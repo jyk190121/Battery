@@ -256,6 +256,118 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!1 &296708432
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 296708436}
+  - component: {fileID: 296708435}
+  - component: {fileID: 296708434}
+  - component: {fileID: 296708433}
+  m_Layer: 0
+  m_Name: Player
+  m_TagString: Player
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!65 &296708433
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 296708432}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!23 &296708434
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 296708432}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &296708435
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 296708432}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &296708436
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 296708432}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 173.08, y: 8, z: 115.73}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &334087141
 GameObject:
   m_ObjectHideFlags: 0
@@ -383,6 +495,209 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!1 &1488227288
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1488227294}
+  - component: {fileID: 1488227293}
+  - component: {fileID: 1488227292}
+  - component: {fileID: 1488227291}
+  - component: {fileID: 1488227295}
+  - component: {fileID: 1488227290}
+  - component: {fileID: 1488227289}
+  - component: {fileID: 1488227296}
+  m_Layer: 0
+  m_Name: Monster
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1488227289
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1488227288}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03bb015d903a79a4fba8cb226ca35e6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MonsterAI
+--- !u!114 &1488227290
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1488227288}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshSurface
+  m_SerializedVersion: 0
+  m_AgentTypeID: 0
+  m_CollectObjects: 0
+  m_Size: {x: 10, y: 10, z: 10}
+  m_Center: {x: 0, y: 2, z: 0}
+  m_LayerMask:
+    serializedVersion: 2
+    m_Bits: 8
+  m_UseGeometry: 0
+  m_DefaultArea: 0
+  m_GenerateLinks: 0
+  m_IgnoreNavMeshAgent: 1
+  m_IgnoreNavMeshObstacle: 1
+  m_OverrideTileSize: 0
+  m_TileSize: 256
+  m_OverrideVoxelSize: 0
+  m_VoxelSize: 0.16666667
+  m_MinRegionArea: 2
+  m_NavMeshData: {fileID: 23800000, guid: b2f0e233de709f24a9a64fa9195b74ac, type: 2}
+  m_BuildHeightMesh: 0
+--- !u!65 &1488227291
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1488227288}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!23 &1488227292
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1488227288}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1488227293
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1488227288}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &1488227294
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1488227288}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 150, y: 1, z: 115}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!195 &1488227295
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1488227288}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.5
+  m_Speed: 3.5
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 120
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 1
+  m_BaseOffset: 0.5
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
+--- !u!65 &1488227296
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1488227288}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &2102643407
 GameObject:
   m_ObjectHideFlags: 0
@@ -669,7 +984,7 @@ GameObject:
   - component: {fileID: 3116063865595924289}
   - component: {fileID: 6328000695743446787}
   - component: {fileID: 3728523816018166333}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -709,7 +1024,7 @@ GameObject:
   - component: {fileID: 3992162554269218648}
   - component: {fileID: 9201853383273373055}
   - component: {fileID: 7310392990498893979}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -779,7 +1094,7 @@ GameObject:
   - component: {fileID: 8317823592935262894}
   - component: {fileID: 1987426686942741861}
   - component: {fileID: 6539253564975970015}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -806,7 +1121,7 @@ GameObject:
   - component: {fileID: 1627796269061662419}
   - component: {fileID: 4310922694412725314}
   - component: {fileID: 7199006072369965722}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -825,7 +1140,7 @@ GameObject:
   - component: {fileID: 1026068647821899004}
   - component: {fileID: 6741234125780595171}
   - component: {fileID: 112791998249995592}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1447,7 +1762,7 @@ GameObject:
   - component: {fileID: 5361638551984207491}
   - component: {fileID: 1997902529108681935}
   - component: {fileID: 2656175654400753266}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1495,7 +1810,7 @@ GameObject:
   - component: {fileID: 9076172200946078667}
   - component: {fileID: 1131553376425026968}
   - component: {fileID: 4644257100199255836}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Bridge
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1514,7 +1829,7 @@ GameObject:
   - component: {fileID: 6206963462186036622}
   - component: {fileID: 8288879540538680501}
   - component: {fileID: 4510224721050373398}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1548,7 +1863,7 @@ GameObject:
   - component: {fileID: 3970305540114246794}
   - component: {fileID: 1294342105287473247}
   - component: {fileID: 7347029827546573200}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1681,7 +1996,7 @@ GameObject:
   - component: {fileID: 3993635599493500002}
   - component: {fileID: 1223861260839095089}
   - component: {fileID: 3411176258312708356}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1753,7 +2068,7 @@ GameObject:
   - component: {fileID: 54959653605947365}
   - component: {fileID: 4227114702213419584}
   - component: {fileID: 1379374721848382133}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1886,7 +2201,7 @@ GameObject:
   - component: {fileID: 5661821541859148625}
   - component: {fileID: 7806084693811186692}
   - component: {fileID: 1650478674446928625}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1927,7 +2242,7 @@ GameObject:
   - component: {fileID: 6935589922621728060}
   - component: {fileID: 1352243728487651270}
   - component: {fileID: 3170795786069618213}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2015,7 +2330,7 @@ GameObject:
   - component: {fileID: 3149651512323999881}
   - component: {fileID: 2554098947794058806}
   - component: {fileID: 2201801279978868394}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: RestRoom
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2065,7 +2380,7 @@ GameObject:
   - component: {fileID: 710591896140380313}
   - component: {fileID: 273515575397096036}
   - component: {fileID: 8515019518840024932}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2231,7 +2546,7 @@ GameObject:
   - component: {fileID: 9036068477621905868}
   - component: {fileID: 1211450242661389176}
   - component: {fileID: 7672684032295509656}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2595,7 +2910,7 @@ GameObject:
   - component: {fileID: 872823178933626942}
   - component: {fileID: 4179496712751284703}
   - component: {fileID: 5733555638745428358}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2630,7 +2945,7 @@ GameObject:
   - component: {fileID: 6523278290291320005}
   - component: {fileID: 2976970828565561986}
   - component: {fileID: 2644995889927478283}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2793,7 +3108,7 @@ GameObject:
   - component: {fileID: 5031318161373816014}
   - component: {fileID: 5794551750701761327}
   - component: {fileID: 9018532005939632455}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3029,7 +3344,7 @@ GameObject:
   - component: {fileID: 3679904995493625828}
   - component: {fileID: 6885109174348417626}
   - component: {fileID: 7926129651276264323}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3069,7 +3384,7 @@ GameObject:
   - component: {fileID: 1035004123129761198}
   - component: {fileID: 6338922287467651071}
   - component: {fileID: 5066322745636081728}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3550,7 +3865,7 @@ GameObject:
   - component: {fileID: 1929046465217636}
   - component: {fileID: 6114309303330424424}
   - component: {fileID: 4769853248179223788}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3569,7 +3884,7 @@ GameObject:
   - component: {fileID: 2230244695973409963}
   - component: {fileID: 3544542357688924941}
   - component: {fileID: 9207207858395834967}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3588,7 +3903,7 @@ GameObject:
   - component: {fileID: 3184580830852906902}
   - component: {fileID: 3998035876186746572}
   - component: {fileID: 2880949514280143324}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3879,7 +4194,7 @@ GameObject:
   - component: {fileID: 348276315624016183}
   - component: {fileID: 5176716155470895147}
   - component: {fileID: 3498423724808796139}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: RestRoom
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3970,7 +4285,7 @@ GameObject:
   - component: {fileID: 6504132597171516950}
   - component: {fileID: 4007859972673723812}
   - component: {fileID: 4582933276672054656}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4005,7 +4320,7 @@ GameObject:
   - component: {fileID: 5319493419555336075}
   - component: {fileID: 6608586250655873669}
   - component: {fileID: 6844170141823693043}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4275,7 +4590,7 @@ GameObject:
   - component: {fileID: 4525555684210565266}
   - component: {fileID: 8084830285496034369}
   - component: {fileID: 1871848867857683030}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4522,7 +4837,7 @@ GameObject:
   - component: {fileID: 9149745297214761611}
   - component: {fileID: 2416066835181943192}
   - component: {fileID: 1593197962229161802}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4572,7 +4887,7 @@ GameObject:
   - component: {fileID: 2059029111595880704}
   - component: {fileID: 6676060659116863265}
   - component: {fileID: 3682508520192145892}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4819,7 +5134,7 @@ GameObject:
   - component: {fileID: 3345593952016503067}
   - component: {fileID: 382981514941101118}
   - component: {fileID: 251016313392903959}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4919,7 +5234,7 @@ GameObject:
   - component: {fileID: 6399030534000608730}
   - component: {fileID: 5267202858802541541}
   - component: {fileID: 752766020588754399}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4989,7 +5304,7 @@ GameObject:
   - component: {fileID: 7186150818752049410}
   - component: {fileID: 1202304031578921533}
   - component: {fileID: 6359513854607572008}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5550,7 +5865,7 @@ GameObject:
   - component: {fileID: 5030090625414566933}
   - component: {fileID: 5354179499521299970}
   - component: {fileID: 5307794328606557158}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: RestRoom
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5689,7 +6004,7 @@ GameObject:
   - component: {fileID: 9059819676702888142}
   - component: {fileID: 1607995090314143024}
   - component: {fileID: 1698443968612157181}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: RestRoom
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5817,7 +6132,7 @@ GameObject:
   - component: {fileID: 4067328136002498527}
   - component: {fileID: 5229891179515971931}
   - component: {fileID: 6592294450287023340}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5880,7 +6195,7 @@ GameObject:
   - component: {fileID: 7013230552919103083}
   - component: {fileID: 1307347250020497022}
   - component: {fileID: 1272640603642841881}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5936,7 +6251,7 @@ GameObject:
   - component: {fileID: 3775336269884483451}
   - component: {fileID: 8430518168811701386}
   - component: {fileID: 7366331646860098610}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6148,7 +6463,7 @@ GameObject:
   - component: {fileID: 7423705000686987955}
   - component: {fileID: 1140354129353490169}
   - component: {fileID: 6359219125592171064}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6207,7 +6522,7 @@ GameObject:
   - component: {fileID: 615720198812990078}
   - component: {fileID: 9047570606958287972}
   - component: {fileID: 6646096021073115078}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6226,7 +6541,7 @@ GameObject:
   - component: {fileID: 561893926955529056}
   - component: {fileID: 3867738006968394694}
   - component: {fileID: 2325132235945121283}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6295,7 +6610,7 @@ GameObject:
   - component: {fileID: 3558800052578496429}
   - component: {fileID: 5519589566471038496}
   - component: {fileID: 4512624296280041718}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6373,7 +6688,7 @@ GameObject:
   - component: {fileID: 2553958848027083326}
   - component: {fileID: 5220374996195826734}
   - component: {fileID: 3575560723734218140}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6486,7 +6801,7 @@ GameObject:
   - component: {fileID: 3488716549609776256}
   - component: {fileID: 8062891173881132661}
   - component: {fileID: 4153388113516101760}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6642,7 +6957,7 @@ GameObject:
   - component: {fileID: 648668397624621615}
   - component: {fileID: 2539839675719867073}
   - component: {fileID: 1676958731912212602}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6661,7 +6976,7 @@ GameObject:
   - component: {fileID: 3379518587741606546}
   - component: {fileID: 139859897244633107}
   - component: {fileID: 2012521092318287875}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6802,7 +7117,7 @@ GameObject:
   - component: {fileID: 6156428830807828397}
   - component: {fileID: 6775673043913699828}
   - component: {fileID: 3928856775030552434}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7001,7 +7316,7 @@ GameObject:
   - component: {fileID: 1838871793626193151}
   - component: {fileID: 398023087212074730}
   - component: {fileID: 5208336475979332694}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7143,7 +7458,7 @@ GameObject:
   - component: {fileID: 1422736181973864318}
   - component: {fileID: 2114253872691233170}
   - component: {fileID: 194441138200720659}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7227,7 +7542,7 @@ GameObject:
   - component: {fileID: 8009121875861324647}
   - component: {fileID: 7329366696741329344}
   - component: {fileID: 3457859434954765341}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7359,7 +7674,7 @@ GameObject:
   - component: {fileID: 3499676126259493471}
   - component: {fileID: 3114682263596867049}
   - component: {fileID: 7834189750147595443}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7378,7 +7693,7 @@ GameObject:
   - component: {fileID: 1920494439132726410}
   - component: {fileID: 1958804984645491085}
   - component: {fileID: 1191977040479364009}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: RestRoom
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7416,7 +7731,7 @@ GameObject:
   - component: {fileID: 8747945119560588543}
   - component: {fileID: 1056940285013785564}
   - component: {fileID: 8114366136961876577}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7724,7 +8039,7 @@ GameObject:
   - component: {fileID: 6411187126258949117}
   - component: {fileID: 1858009191206571952}
   - component: {fileID: 1511385279451712925}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8281,7 +8596,7 @@ GameObject:
   - component: {fileID: 7257018245599326788}
   - component: {fileID: 3087550319695480684}
   - component: {fileID: 619957270852116596}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8512,7 +8827,7 @@ GameObject:
   - component: {fileID: 7758581965358752842}
   - component: {fileID: 6852113929412882693}
   - component: {fileID: 8869061044323504048}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8580,7 +8895,7 @@ GameObject:
   - component: {fileID: 4488948918556667923}
   - component: {fileID: 4104361727911884265}
   - component: {fileID: 7450999042475204314}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8751,7 +9066,7 @@ GameObject:
   - component: {fileID: 7257000974208840377}
   - component: {fileID: 5747291028465874123}
   - component: {fileID: 6589043377068275340}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8971,7 +9286,7 @@ GameObject:
   - component: {fileID: 8255961421707523130}
   - component: {fileID: 6775861499028446520}
   - component: {fileID: 2996113741150994133}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9174,7 +9489,7 @@ GameObject:
   - component: {fileID: 607961894990699643}
   - component: {fileID: 4063727428585146339}
   - component: {fileID: 4624756629245295607}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9291,7 +9606,7 @@ GameObject:
   - component: {fileID: 1005546868318392739}
   - component: {fileID: 1002254623288378565}
   - component: {fileID: 5092579295130494327}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9325,7 +9640,7 @@ GameObject:
   - component: {fileID: 8981697862021253931}
   - component: {fileID: 478236740494621727}
   - component: {fileID: 3408353772876979848}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9630,7 +9945,7 @@ GameObject:
   - component: {fileID: 3376429630252301442}
   - component: {fileID: 6537649715675084364}
   - component: {fileID: 6829007112761153300}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9724,7 +10039,7 @@ GameObject:
   - component: {fileID: 8984399582319565199}
   - component: {fileID: 6768678181090226071}
   - component: {fileID: 9131265095038761835}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9743,7 +10058,7 @@ GameObject:
   - component: {fileID: 7357036301688200137}
   - component: {fileID: 7899817326498795079}
   - component: {fileID: 3379213922435817733}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9811,7 +10126,7 @@ GameObject:
   - component: {fileID: 3274974508544603029}
   - component: {fileID: 3592875677388209740}
   - component: {fileID: 6842911532203583155}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9860,7 +10175,7 @@ GameObject:
   - component: {fileID: 7625490435012545573}
   - component: {fileID: 7975038107351779708}
   - component: {fileID: 2414129283638830096}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9998,7 +10313,7 @@ GameObject:
   - component: {fileID: 8006071259864903780}
   - component: {fileID: 4342474476691033083}
   - component: {fileID: 2556317812045898673}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10017,7 +10332,7 @@ GameObject:
   - component: {fileID: 6945493946845991523}
   - component: {fileID: 1715887302334929758}
   - component: {fileID: 1414870253043696969}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10293,7 +10608,7 @@ GameObject:
   - component: {fileID: 8813064430610124898}
   - component: {fileID: 2702195874082448588}
   - component: {fileID: 5736048310292167094}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10327,7 +10642,7 @@ GameObject:
   - component: {fileID: 4589996673708754788}
   - component: {fileID: 1603094265619136551}
   - component: {fileID: 8652611071424663815}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10407,7 +10722,7 @@ GameObject:
   - component: {fileID: 896899063582809691}
   - component: {fileID: 4558899586818491558}
   - component: {fileID: 6504665322585783707}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11045,7 +11360,7 @@ GameObject:
   - component: {fileID: 9079737470751305463}
   - component: {fileID: 3395512551722064445}
   - component: {fileID: 7146930882720871082}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11107,7 +11422,7 @@ GameObject:
   - component: {fileID: 534739220163610500}
   - component: {fileID: 5877455647493679745}
   - component: {fileID: 5281039517509683863}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11205,7 +11520,7 @@ GameObject:
   - component: {fileID: 7051998921846484239}
   - component: {fileID: 8259168726321919196}
   - component: {fileID: 8633404128790509339}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -12229,7 +12544,7 @@ GameObject:
   - component: {fileID: 5491715271664448767}
   - component: {fileID: 8765791936989371920}
   - component: {fileID: 5739898890163912652}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -12256,7 +12571,7 @@ GameObject:
   - component: {fileID: 6500276374865578127}
   - component: {fileID: 6822974888794992824}
   - component: {fileID: 7714398677530873868}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -12379,7 +12694,7 @@ GameObject:
   - component: {fileID: 2065280887119511111}
   - component: {fileID: 1512117222393086473}
   - component: {fileID: 2188903181350996542}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -12421,7 +12736,7 @@ GameObject:
   - component: {fileID: 3546842980715257434}
   - component: {fileID: 2193419833529964559}
   - component: {fileID: 3598981361607331131}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -12665,7 +12980,7 @@ GameObject:
   - component: {fileID: 1423257347558582636}
   - component: {fileID: 7148452077581332251}
   - component: {fileID: 2966076398447306607}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -12972,7 +13287,7 @@ GameObject:
   - component: {fileID: 616784369040466931}
   - component: {fileID: 583480956468455568}
   - component: {fileID: 3917804046169428013}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13143,7 +13458,7 @@ GameObject:
   - component: {fileID: 4807001626882236947}
   - component: {fileID: 2021533472137430731}
   - component: {fileID: 8254572445110030452}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13264,7 +13579,7 @@ GameObject:
   - component: {fileID: 6587126424889428654}
   - component: {fileID: 7575132706446163618}
   - component: {fileID: 2818183148971264312}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13386,7 +13701,7 @@ GameObject:
   - component: {fileID: 8444688508602312259}
   - component: {fileID: 700424020175385310}
   - component: {fileID: 7544943354483460097}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13594,7 +13909,7 @@ GameObject:
   - component: {fileID: 4206801747530172288}
   - component: {fileID: 8167466669787505775}
   - component: {fileID: 7646071016822088635}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13680,7 +13995,7 @@ GameObject:
   - component: {fileID: 3535559546302793009}
   - component: {fileID: 8474116729716437628}
   - component: {fileID: 5134524449437369143}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: RestRoom
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13867,7 +14182,7 @@ GameObject:
   - component: {fileID: 3236819256479930411}
   - component: {fileID: 8072028082533842681}
   - component: {fileID: 1777208392749909384}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13995,7 +14310,7 @@ GameObject:
   - component: {fileID: 319302155315667358}
   - component: {fileID: 6554536465330117076}
   - component: {fileID: 535758343753727145}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14078,7 +14393,7 @@ GameObject:
   - component: {fileID: 8052292161080492260}
   - component: {fileID: 1987890448062905906}
   - component: {fileID: 9142072802197192818}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14204,7 +14519,7 @@ GameObject:
   - component: {fileID: 2956935351170308979}
   - component: {fileID: 884880224538761265}
   - component: {fileID: 4581792544995004706}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Room
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14265,7 +14580,7 @@ GameObject:
   - component: {fileID: 2036769171620411135}
   - component: {fileID: 3804892615171577311}
   - component: {fileID: 4644070036568540547}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Stair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14359,3 +14674,5 @@ SceneRoots:
   - {fileID: 334087143}
   - {fileID: 6297243936984591495}
   - {fileID: 2102643410}
+  - {fileID: 1488227294}
+  - {fileID: 296708436}
