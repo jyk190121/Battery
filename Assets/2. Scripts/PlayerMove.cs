@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 using Key = UnityEngine.InputSystem.Key;
 
 
-public class Player : MonoBehaviour
+public class PlayerMove : MonoBehaviour
 {
 
     public GameObject playerObject;
