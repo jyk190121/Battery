@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: ab5adabc42abb4d84b27d79d702c2d8f
+guid: 8d503f1858bfe47318c7a420d9e53f4a
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -138,5 +138,5 @@ AssetOrigin:
   productId: 365290
   packageName: 2D Icons - Picto Icon Pack 01
   packageVersion: 1.0
-  assetPath: Assets/UITest/Icon_PictoIcon_Chat.Png
+  assetPath: Assets/Layer Lab/2D Icons-PictoIconPack01/Icons/PictoIcon_64/Icon_PictoIcon_Photo.Png
   uploadId: 873444

@@ -2318,6 +2318,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 409410495}
+  - component: {fileID: 409410496}
   m_Layer: 5
   m_Name: MainUI
   m_TagString: Untagged
@@ -2350,6 +2351,19 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &409410496
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 409410494}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e1640ff08cbec84c925082079280aba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MainUI
+  highlight: {fileID: 1510942533}
 --- !u!1 &465960126
 GameObject:
   m_ObjectHideFlags: 0
@@ -5766,6 +5780,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1264485376}
+  - component: {fileID: 1264485377}
   m_Layer: 5
   m_Name: OnCalling
   m_TagString: Untagged
@@ -5796,6 +5811,22 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1264485377
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1264485375}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b0aec0c9fe1c2c4d86c6cd795a24015, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OnCallingUI
+  callingListUI: {fileID: 1603951452}
+  Accept: {fileID: 170639607}
+  Reject: {fileID: 1183141834}
+  timerText: {fileID: 2005905237}
 --- !u!1 &1266684058
 GameObject:
   m_ObjectHideFlags: 0
@@ -8020,6 +8051,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1603951453}
+  - component: {fileID: 1603951454}
   m_Layer: 5
   m_Name: PhoneListUI
   m_TagString: Untagged
@@ -8050,6 +8082,20 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1603951454
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1603951452}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e3671a6ec8ff3b4987b04dab2daa1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CallUI
+  highlight: {fileID: 184018828}
+  onCall: {fileID: 1264485375}
 --- !u!1 &1625803053
 GameObject:
   m_ObjectHideFlags: 0
@@ -8438,6 +8484,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1739823587}
+  - component: {fileID: 1739823588}
   m_Layer: 0
   m_Name: UIController
   m_TagString: Untagged
@@ -8460,6 +8507,25 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1739823588
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1739823586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22679e8e6aa8b524aa6fdf7f0c9d18e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PhoneUIController
+  phoneUIParent: {fileID: 2119420590}
+  allScreens:
+  - {fileID: 409410494}
+  - {fileID: 175243950}
+  - {fileID: 652157350}
+  - {fileID: 2050788592}
+  - {fileID: 260048209}
 --- !u!1 &1778637938
 GameObject:
   m_ObjectHideFlags: 0
@@ -9460,7 +9526,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 6e6cbe7f443f84d97b37dca0d0a468e7, type: 3}
+  m_Sprite: {fileID: 21300000, guid: f656b8fce66094e92972fb895776db81, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -9725,8 +9791,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -1.5, y: 0}
+  m_SizeDelta: {x: -3, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1977642018
 MonoBehaviour:
