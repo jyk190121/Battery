@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: f91547c52df472747baba1ed5148399b
+ShaderIncludeImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 60955
+  packageName: Weather Maker - Volumetric Clouds and Weather System for Unity
+  packageVersion: 8.0.5
+  assetPath: Assets/WeatherMaker/Prefab/Shaders/WeatherMakerCloudVolumetricRaymarchSetupShaderInclude.cginc
+  uploadId: 878848

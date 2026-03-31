@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 65a054b9f301bee4c805c21b460e065a
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 60955
+  packageName: Weather Maker - Volumetric Clouds and Weather System for Unity
+  packageVersion: 8.0.5
+  assetPath: Assets/WeatherMaker/Prefab/ScriptableRenderPipeline/URP/DemoSceneLensFlareURP.asset
+  uploadId: 878848
