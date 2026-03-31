@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 using Key = UnityEngine.InputSystem.Key;
 
 
-public class Player : MonoBehaviour
+public class PlayerMove : MonoBehaviour
 {
 
     public GameObject playerObject;
@@ -36,7 +36,6 @@ public class Player : MonoBehaviour
         Move(h, v);
     }
 
-    // 매개변수를 받도록 Move 함수를 약간 수정하면 더 효율적입니다.
     void Move(float h, float v)
     {
         Vector3 moveDir = new Vector3(h, 0, v);
@@ -46,6 +45,10 @@ public class Player : MonoBehaviour
             moveDir.Normalize();
         }
 
-        transform.Translate(moveDir * moveSpeed * Time.deltaTime, Space.World);
+        //transform.Translate(moveDir * moveSpeed * Time.deltaTime, Space.World);
+        //transform.Translate(moveDir * moveSpeed * Time.deltaTime, Space.Self);
+
+        Vector3 worldMoveDir = transform.TransformDirection(moveDir);
+        transform.position += worldMoveDir * moveSpeed * Time.deltaTime;
     }
 }
