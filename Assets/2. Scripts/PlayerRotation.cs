@@ -7,21 +7,23 @@ public class PlayerRotation : MonoBehaviour
     public CinemachineCamera vcam; // 인스펙터에서 시네머신 카메라 할당
 
     [Header("설정")]
-    public float sensitivity = 0.05f;
+    public float sensitivity = 0.1f;
 
     private CinemachinePanTilt _panTilt;
 
     void Start()
     {
         if (vcam != null)
+        {
             _panTilt = vcam.GetComponent<CinemachinePanTilt>();
+        }
 
         // 마우스 커서를 화면 중앙에 고정하고 숨깁니다.
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
 
-    void Update()
+    void LateUpdate()
     {
         // 1. Input.cs에서 마우스 이동량 가져오기
         Vector2 mouseDelta = Input.GetMouseDelta();
@@ -40,6 +42,7 @@ public class PlayerRotation : MonoBehaviour
 
         if (_panTilt != null)
         {
+
             // 1. 좌우 회전은 자유롭게 (0~360도)
             _panTilt.PanAxis.Value += mouseDelta.x * sensitivity;
 
