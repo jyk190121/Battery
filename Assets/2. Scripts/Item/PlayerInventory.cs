@@ -13,22 +13,21 @@ public class PlayerInventory : MonoBehaviour
     public float interactRange = 3f;
     public LayerMask itemLayer;
 
-    [Header("Hand Transforms")]
     public Transform leftHandTransform;
     public Transform bothHandsTransform;
+    public float throwForce = 7f;
 
-    [Header("Drop Settings")]
-    public float throwForce = 7f; // 기본 던지는 힘
-
-    [Header("Status")]
-    public float currentWeightPenalty = 1.0f;
-
-    [Header("Events")]
     public Action<int> OnSlotChanged;
     public Action OnInventoryUpdated;
     public Action<bool> OnTwoHandedToggled;
 
     private ItemBase lastLookedItem;
+    private DepartureButton lastLookedButton; // 버튼 조준용 변수 추가
+
+    void Start()
+    {
+        LoadInventoryData(); // 씬 로드 시 인벤토리 복구
+    }
 
     void Update()
     {
@@ -37,21 +36,20 @@ public class PlayerInventory : MonoBehaviour
 
         if (Keyboard.current != null)
         {
-            if (Keyboard.current[Key.E].wasPressedThisFrame) TryPickUpAction();
+            if (Keyboard.current[Key.E].wasPressedThisFrame)
+            {
+                if (lastLookedItem != null) TryPickUpAction();
+                else if (lastLookedButton != null) lastLookedButton.Interact(this);
+            }
             if (Keyboard.current[Key.G].wasPressedThisFrame) RequestDropCurrentItem();
         }
     }
 
-    // ==========================================================
-    // 1. 조준 및 하이라이트 제어
-    // ==========================================================
     private void CheckInteraction()
     {
         if (Camera.main == null) return;
-
         Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
 
-        // 진단용 코드를 걷어내고 레이어 마스크를 사용하는 최적화 코드로 복구
         if (Physics.Raycast(ray, out RaycastHit hit, interactRange, itemLayer))
         {
             if (hit.collider.TryGetComponent(out ItemBase targetItem))
@@ -60,10 +58,18 @@ public class PlayerInventory : MonoBehaviour
                 {
                     ClearHighlight();
                     lastLookedItem = targetItem;
+                    Debug.Log($"포커스: {targetItem.itemData.itemName}");
                     if (lastLookedItem.TryGetComponent(out Outline outline)) outline.enabled = true;
-
-                    // HUD 갱신 (추후 UI 연결 시 주석 해제)
-                    // InteractionUI.Instance.Show(targetItem.itemData.itemName);
+                }
+                return;
+            }
+            if (hit.collider.TryGetComponent(out DepartureButton targetButton))
+            {
+                if (lastLookedButton != targetButton)
+                {
+                    ClearHighlight();
+                    lastLookedButton = targetButton;
+                    Debug.Log("<color=magenta>이륙 버튼 조준됨.</color>");
                 }
                 return;
             }
@@ -76,45 +82,29 @@ public class PlayerInventory : MonoBehaviour
         if (lastLookedItem != null)
         {
             if (lastLookedItem.TryGetComponent(out Outline outline)) outline.enabled = false;
-            // InteractionUI.Instance.Hide();
             lastLookedItem = null;
         }
+        lastLookedButton = null;
     }
 
-    // ==========================================================
-    // 2. 아이템 습득 로직
-    // ==========================================================
-    private void TryPickUpAction()
-    {
-        if (lastLookedItem != null) LocalPickUpLogic(lastLookedItem);
-    }
+    private void TryPickUpAction() { if (lastLookedItem != null) LocalPickUpLogic(lastLookedItem); }
 
     private void LocalPickUpLogic(ItemBase targetItem)
     {
-        // 줍는 순간 하이라이트 및 조준 정보 강제 초기화
         if (targetItem.TryGetComponent(out Outline outline)) outline.enabled = false;
-        if (lastLookedItem == targetItem)
-        {
-            lastLookedItem = null;
-            // InteractionUI.Instance.Hide(); 
-        }
+        lastLookedItem = null;
 
-        // 양손 장비 처리
         if (targetItem.itemData.handType == HandType.TwoHand)
         {
             if (twoHandedItem != null) return;
             if (slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(false);
-
             twoHandedItem = targetItem;
             targetItem.RequestChangeOwnership(true, bothHandsTransform);
-            currentWeightPenalty = 0.7f;
             OnTwoHandedToggled?.Invoke(true);
         }
-        // 한손 장비 처리 (현재 슬롯 -> 빈 슬롯 -> 스왑)
         else
         {
             if (twoHandedItem != null) return;
-
             int targetSlot = -1;
             if (slots[currentSlotIndex] == null) targetSlot = currentSlotIndex;
             else
@@ -124,98 +114,89 @@ public class PlayerInventory : MonoBehaviour
                     if (slots[i] == null) { targetSlot = i; break; }
                 }
             }
-
-            if (targetSlot == -1)
-            {
-                RequestDropCurrentItem();
-                targetSlot = currentSlotIndex;
-            }
-
+            if (targetSlot == -1) { RequestDropCurrentItem(); targetSlot = currentSlotIndex; }
             slots[targetSlot] = targetItem;
             targetItem.RequestChangeOwnership(true, leftHandTransform);
-
             if (targetSlot != currentSlotIndex) targetItem.gameObject.SetActive(false);
         }
-
         OnInventoryUpdated?.Invoke();
     }
 
-    // ==========================================================
-    // 3. 아이템 투척 로직 (정교한 투척 적용)
-    // ==========================================================
     public void RequestDropCurrentItem()
     {
-        ItemBase itemToDrop = null;
+        ItemBase itemToDrop = (twoHandedItem != null) ? twoHandedItem : slots[currentSlotIndex];
+        if (itemToDrop == null) return;
 
-        if (twoHandedItem != null)
+        if (twoHandedItem != null) { twoHandedItem = null; OnTwoHandedToggled?.Invoke(false); }
+        else slots[currentSlotIndex] = null;
+
+        itemToDrop.RequestChangeOwnership(false, null);
+        itemToDrop.transform.position = Camera.main.transform.position + Camera.main.transform.forward;
+        if (itemToDrop.TryGetComponent(out Rigidbody rb))
         {
-            itemToDrop = twoHandedItem;
-            twoHandedItem = null;
-            currentWeightPenalty = 1.0f;
-            OnTwoHandedToggled?.Invoke(false);
+            rb.AddForce((Camera.main.transform.forward + Vector3.up * 0.2f) * throwForce, ForceMode.Impulse);
+            itemToDrop.BeginThrownState();
         }
-        else if (slots[currentSlotIndex] != null)
-        {
-            itemToDrop = slots[currentSlotIndex];
-            slots[currentSlotIndex] = null;
-        }
-
-        if (itemToDrop != null)
-        {
-            // 투척 전 초기화
-            if (itemToDrop.TryGetComponent(out Outline outline)) outline.enabled = false;
-            if (lastLookedItem == itemToDrop) lastLookedItem = null;
-
-            itemToDrop.RequestChangeOwnership(false, null);
-
-            // 카메라 정면을 기준으로 투척 위치 산정
-            Vector3 throwOrigin = Camera.main != null ? Camera.main.transform.position : transform.position;
-            Vector3 throwDir = Camera.main != null ? Camera.main.transform.forward : transform.forward;
-
-            itemToDrop.transform.position = throwOrigin + throwDir * 1.0f;
-            itemToDrop.transform.rotation = Quaternion.identity; // 회전 정자세로 초기화
-
-            // 물리 연산: 포물선 투척
-            if (itemToDrop.TryGetComponent(out Rigidbody rb))
-            {
-                rb.isKinematic = false;
-                rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
-                rb.linearVelocity = Vector3.zero;
-                rb.angularVelocity = Vector3.zero;
-
-                Vector3 forceDir = (throwDir + Vector3.up * 0.2f).normalized; // 살짝 위로 던지기
-                rb.AddForce(forceDir * throwForce, ForceMode.Impulse);
-
-                // [중요] 아이템 측에 던져졌음을 알림
-                itemToDrop.BeginThrownState();
-            }
-
-            // 양손템 투척 시 숨겨둔 한손템 복구
-            if (twoHandedItem == null && slots[currentSlotIndex] != null)
-                slots[currentSlotIndex].gameObject.SetActive(true);
-
-            OnInventoryUpdated?.Invoke();
-        }
+        if (twoHandedItem == null && slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(true);
+        OnInventoryUpdated?.Invoke();
     }
 
-    // ==========================================================
-    // 4. 슬롯 변경 로직 (조건문 최적화)
-    // ==========================================================
     private void HandleSlotChange()
     {
-        float scroll = Mouse.current != null ? Mouse.current.scroll.ReadValue().y : 0f;
+        float scroll = Mouse.current.scroll.ReadValue().y;
         if (scroll == 0f) return;
-
-        int prevIndex = currentSlotIndex;
-
+        int prev = currentSlotIndex;
         if (scroll < 0f && currentSlotIndex < slots.Length - 1) currentSlotIndex++;
         else if (scroll > 0f && currentSlotIndex > 0) currentSlotIndex--;
-
-        if (prevIndex != currentSlotIndex)
+        if (prev != currentSlotIndex)
         {
-            if (twoHandedItem == null && slots[prevIndex] != null) slots[prevIndex].gameObject.SetActive(false);
+            if (twoHandedItem == null && slots[prev] != null) slots[prev].gameObject.SetActive(false);
             if (twoHandedItem == null && slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(true);
             OnSlotChanged?.Invoke(currentSlotIndex);
         }
+    }
+
+    private void LoadInventoryData()
+    {
+        if (GameSessionManager.Instance == null || GameSessionManager.Instance.playerItems.Count == 0) return;
+
+        Debug.Log($"<color=orange><b>[Inventory]</b> {GameSessionManager.Instance.playerItems.Count}개의 인벤토리 아이템 복구를 시작합니다.</color>");
+
+        foreach (var data in GameSessionManager.Instance.playerItems)
+        {
+            ItemBase prefab = GameSessionManager.Instance.GetPrefab(data.itemID);
+            if (prefab == null)
+            {
+                Debug.LogError($"🚨 프리팹 DB에서 ID {data.itemID}를 찾을 수 없습니다!");
+                continue;
+            }
+
+            // 1. 아이템 실체 생성
+            ItemBase spawned = Instantiate(prefab);
+
+            // 2. 내구도 데이터 복구 (내구도형 아이템일 경우)
+            if (spawned is Item_Durability dur)
+            {
+                dur.currentDurability = data.stateValues[0];
+            }
+
+            // 3. 저장된 슬롯 위치에 정확히 배치
+            slots[data.slotIndex] = spawned;
+
+            // 4. 소유권 설정 및 물리 엔진 정지 (손 위치에 붙이기)
+            spawned.RequestChangeOwnership(true, leftHandTransform);
+
+            // 5. 현재 선택된 슬롯이 아니라면 일단 비활성화 (모델링만 숨김)
+            if (data.slotIndex != currentSlotIndex)
+            {
+                spawned.gameObject.SetActive(false);
+            }
+        }
+
+        // 💡 [중요] 모든 아이템 복구 후 UI에 "그려라!"라고 신호를 보냄
+        OnInventoryUpdated?.Invoke();
+        OnSlotChanged?.Invoke(currentSlotIndex);
+
+        Debug.Log("<color=orange><b>[Inventory]</b> 인벤토리 UI 및 아이템 복구 완료.</color>");
     }
 }

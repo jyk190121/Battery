@@ -9,6 +9,17 @@ public class InventoryUI : MonoBehaviour
 
     void Start()
     {
+        if (playerInventory == null)
+        {
+            playerInventory = FindFirstObjectByType<PlayerInventory>();
+
+            if (playerInventory == null)
+            {
+                Debug.LogError("🚨 씬에 PlayerInventory를 가진 오브젝트가 없습니다!");
+                return; // 플레이어가 없으면 아래 코드를 실행하지 않고 중단
+            }
+        }
+
         playerInventory.OnInventoryUpdated += UpdateUI;
         playerInventory.OnSlotChanged += UpdateHighlight;
         playerInventory.OnTwoHandedToggled += HandleTwoHandedUI;
