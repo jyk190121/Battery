@@ -12,9 +12,10 @@ public class PlayerRotation : MonoBehaviour
     public float sensitivity = 0.1f;
 
     [Header("카메라 위치 제어")]
-    public float walkYPos = 0.2f;         // 평소(걷기) Z 위치
-    public float runYPos = 0.4f;        // 달리기 시 Z 위치 (입안이 안 보이게 앞으로 밀기)
-    public float transitionSpeed = 10f; // 위치 전환 부드러움 정도
+    public float originYoffset = 0.0961f;
+    public float walkYPos = 0.1f;           // 평소(걷기) Z 위치
+    public float runYPos = 0.4f;            // 달리기 시 Z 위치 (입안이 안 보이게 앞으로 밀기)
+    public float transitionSpeed = 10f;     // 위치 전환 부드러움 정도
 
     private CinemachinePanTilt _panTilt;
 
@@ -34,7 +35,7 @@ public class PlayerRotation : MonoBehaviour
         if (cameraTarget != null)
         {
             Vector3 pos = cameraTarget.localPosition;
-            cameraTarget.localPosition = new Vector3(pos.x, walkYPos, pos.z);
+            cameraTarget.localPosition = new Vector3(pos.x, walkYPos + originYoffset, pos.z);
         }
 
         // 마우스 커서를 화면 중앙에 고정하고 숨깁니다.
@@ -68,9 +69,9 @@ public class PlayerRotation : MonoBehaviour
             // 2. 상하 회전값 계산
             float newTilt = _panTilt.TiltAxis.Value - (mouseDelta.y * sensitivity);
 
-            // 3. Mathf.Clamp를 사용하여 범위를 제한 (-70도 ~ 30도)
+            // 3. Mathf.Clamp를 사용하여 범위를 제한 (-70도 ~ 70도)
             // 위로 70도(-70), 아래로 30도(30)
-            _panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, -70f, 30f);
+            _panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, -70f, 70f);
 
             // 4. 본체 회전 동기화
             transform.rotation = Quaternion.Euler(0, _panTilt.PanAxis.Value, 0);
@@ -92,8 +93,8 @@ public class PlayerRotation : MonoBehaviour
         // 현재 로컬 위치 가져오기
         Vector3 currentPos = cameraTarget.localPosition;
 
-        // Z값만 부드럽게 보간(Lerp)
-        float newY = Mathf.Lerp(currentPos.y, targetY, Time.deltaTime * transitionSpeed);
+        // Y값만 부드럽게 보간(Lerp)
+        float newY = Mathf.Lerp(currentPos.y, targetY + originYoffset, Time.deltaTime * transitionSpeed);
 
         // 새로운 위치 적용
         cameraTarget.localPosition = new Vector3(currentPos.x, newY, currentPos.z);
