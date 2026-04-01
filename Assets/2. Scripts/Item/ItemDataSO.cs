@@ -1,4 +1,3 @@
-// 파일 이름: ItemDataSO.cs
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "NewItemData", menuName = "Item System/Item Data")]
@@ -11,3 +10,6 @@ public class ItemDataSO : ScriptableObject
     public int basePrice;
     public Sprite icon;
 }
+
+public enum ItemCategory { Scrap, Consumable, Durability, Stat, Weapon, Special }
+public enum HandType { OneHand, TwoHand }
