@@ -23,17 +23,32 @@ public class CallUI : MonoBehaviour
         phoneUIController = FindAnyObjectByType<PhoneUIController>();
     }
 
+    private void OnEnable()
+    {
+        if (onCall.activeSelf)
+        {
+            onCall.SetActive(false);
+        }
+    }
+
     private void Update()
     {
+        // 누구 걸지 고르기
         if (Mouse.current == null || highlight == null) return;
 
         moveScroll();
 
+        // 전화 걸기
         if(Mouse.current.rightButton.wasPressedThisFrame)
         {
             StartCall();
         }
 
+        // 메인으로 돌아가기 
+        if(Keyboard.current.cKey.wasPressedThisFrame)
+        {
+            phoneUIController.ShowScreen(0);
+        }
     }
 
     #region 하이라이트 이동 처리

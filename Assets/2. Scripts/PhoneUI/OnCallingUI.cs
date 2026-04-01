@@ -30,21 +30,12 @@ public class OnCallingUI : MonoBehaviour
 
         if(Keyboard.current.f1Key.wasPressedThisFrame)
         {
-            // 수신 수락
-            Debug.Log("Accepted");
-            isTimerRunning = true;
+            AcceptCall();
         }
 
-        if (Keyboard.current.f2Key.wasPressedThisFrame)
+        if (Keyboard.current.f2Key.wasPressedThisFrame || Keyboard.current.cKey.wasPressedThisFrame)
         {
-            // 수신 거절
-            Debug.Log("Rejected");
-            Accept.SetActive(false);
-            Reject.SetActive(true);
-            isTimerRunning = false;
-            timerText.text = "Call Rejected";
-
-            StartCoroutine(CloseAfterDelay(2f));
+            RejectCall();
         }
 
         if(isTimerRunning)
@@ -56,13 +47,6 @@ public class OnCallingUI : MonoBehaviour
         }
     }
 
-    private IEnumerator CloseAfterDelay(float delayTime)
-    {
-        yield return new WaitForSeconds(delayTime);
-        gameObject.SetActive(false); // 이 오브젝트를 끕니다. (OnDisable이 자동으로 호출됨)
-        phoneUIController.Turnoff(); // 폰 UI를 끕니다.
-    }
-
     private void OnDisable()
     {
         if (callingListUI != null)
@@ -72,6 +56,7 @@ public class OnCallingUI : MonoBehaviour
         Reset();
     }
 
+    // 전화 수신 UI 초기화
     void Reset()
     {
         timer = 0f;
@@ -81,4 +66,30 @@ public class OnCallingUI : MonoBehaviour
         Accept.SetActive(true);
         Reject.SetActive(false);
     }
+
+    void AcceptCall()
+    {
+        // 수신 수락
+        Debug.Log("Accepted");
+        isTimerRunning = true;
+    }
+
+    void RejectCall()
+    {
+        // 수신 거절
+        Debug.Log("Rejected");
+        Accept.SetActive(false);
+        Reject.SetActive(true);
+        isTimerRunning = false;
+        timerText.text = "Call Rejected";
+
+        StartCoroutine(CloseAfterDelay(2f));
+    }
+    private IEnumerator CloseAfterDelay(float delayTime)
+    {
+        yield return new WaitForSeconds(delayTime);
+        gameObject.SetActive(false); // 이 오브젝트를 끕니다. (OnDisable이 자동으로 호출됨)
+        phoneUIController.Turnoff(); // 폰 UI를 끕니다.
+    }
+
 }
