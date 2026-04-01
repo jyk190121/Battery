@@ -520,10 +520,18 @@ PrefabInstance:
       propertyPath: moveSpeed
       value: 3.5
       objectReference: {fileID: 0}
+    - target: {fileID: 1166937674116199471, guid: 2c377507a2062c143bc8d5a4398f6749, type: 3}
+      propertyPath: groundLayer.m_Bits
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 3366771625458936302, guid: 2c377507a2062c143bc8d5a4398f6749, type: 3}
       propertyPath: vcam
       value: 
       objectReference: {fileID: 582992953}
+    - target: {fileID: 3366771625458936302, guid: 2c377507a2062c143bc8d5a4398f6749, type: 3}
+      propertyPath: cameraTarget
+      value: 
+      objectReference: {fileID: 616052607}
     - target: {fileID: 4911454195433589709, guid: 2c377507a2062c143bc8d5a4398f6749, type: 3}
       propertyPath: m_Name
       value: KJW_TEST_Player
@@ -547,6 +555,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4911454195433589709, guid: 2c377507a2062c143bc8d5a4398f6749, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1742116999}
+    - targetCorrespondingSourceObject: {fileID: 4911454195433589709, guid: 2c377507a2062c143bc8d5a4398f6749, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1742117004}
   m_SourcePrefab: {fileID: 100100000, guid: 2c377507a2062c143bc8d5a4398f6749, type: 3}
 --- !u!4 &411751876 stripped
 Transform:
@@ -1979,6 +1990,18 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.88121843, y: 1.8848686, z: 0.31425858}
   m_Center: {x: -0.059390783, y: 0.9864731, z: -0.030620575}
+--- !u!114 &1742117004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1742116992}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa728562c0890c04b813877653de7391, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerAnim
 --- !u!1 &1814433155
 GameObject:
   m_ObjectHideFlags: 0
@@ -2012,8 +2035,8 @@ MonoBehaviour:
   truckItems: []
   playerItems: []
   itemPrefabsDB:
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 109360235115839708, guid: f6cdb16393c87e74496bcecc62cb368c, type: 3}
+  - {fileID: 5134562728361972797, guid: 2d72ef6ea3227664ca05aac27bf436fd, type: 3}
 --- !u!4 &1814433157
 Transform:
   m_ObjectHideFlags: 0
