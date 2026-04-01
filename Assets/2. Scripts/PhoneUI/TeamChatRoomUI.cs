@@ -32,8 +32,9 @@ public class TeamChatRoomUI : MonoBehaviour
 
     private void OnEnable()
     {
-        // 방에 들어오면 입력창을 비우고 스크롤을 맨 아래로
+        // 방에 들어오면 스크롤을 맨 아래로 맞추고, 입력창은 숨김(비활성화) 상태로 시작
         chatInputField.text = "";
+        chatInputField.gameObject.SetActive(false);
         StartCoroutine(ScrollToBottom());
     }
 
@@ -41,13 +42,22 @@ public class TeamChatRoomUI : MonoBehaviour
     {
         if (Keyboard.current == null || Mouse.current == null) return;
 
-        // 엔터 또는 우클릭으로 메시지 전송
         bool isEnterPressed = Keyboard.current.enterKey.wasPressedThisFrame || Keyboard.current.numpadEnterKey.wasPressedThisFrame;
         bool isRightClicked = Mouse.current.rightButton.wasPressedThisFrame;
 
         if (isEnterPressed || isRightClicked)
         {
-            SendMessage();
+            if (!chatInputField.gameObject.activeSelf)
+            {
+                // [입력 상태 진입] 비활성화 상태였다면 켜고 포커스 주기
+                chatInputField.gameObject.SetActive(true);
+                chatInputField.ActivateInputField();
+            }
+            else
+            {
+                // [입력 종료 및 전송] 활성화 상태였다면 메시지를 보내고 다시 끄기
+                SendMessage();
+            }
         }
 
         HandleScrolling();
@@ -66,17 +76,19 @@ public class TeamChatRoomUI : MonoBehaviour
     private void SendMessage()
     {
         string message = chatInputField.text.Trim();
-        if (string.IsNullOrEmpty(message)) return;
 
-        // 포톤 매니저를 통해 서버로 메시지 발송
-        if (chatManager != null)
+        // 텍스트가 비어있지 않을 때만 서버로 발송
+        if (!string.IsNullOrEmpty(message))
         {
-            chatManager.SendChatMessage(message);
+            if (chatManager != null)
+            {
+                chatManager.SendChatMessage(message);
+            }
         }
 
-        // 연속으로 채팅을 칠 수 있도록 텍스트 지우고 포커스 유지
+        // 전송 여부(빈칸 여부)와 상관없이 텍스트를 초기화하고 입력창 비활성화
         chatInputField.text = "";
-        chatInputField.ActivateInputField();
+        chatInputField.gameObject.SetActive(false);
     }
 
     // 포톤 매니저가 서버로부터 메시지를 받았을 때 호출하는 함수
@@ -99,13 +111,18 @@ public class TeamChatRoomUI : MonoBehaviour
             tmp.text = text;
         }
 
+        // 텍스트가 입력된 직후, 자식들의 크기와 위치를 즉시 다시 계산하도록 강제합니다.
+        // 이거 안하면 첫번째는 어긋나고, 두번째부터 자리 잡음
+        Canvas.ForceUpdateCanvases();
+        LayoutRebuilder.ForceRebuildLayoutImmediate(contentTransform.GetComponent<RectTransform>());
+
         StartCoroutine(ScrollToBottom());
     }
 
     private IEnumerator ScrollToBottom()
     {
         // 유니티 UI가 말풍선 크기를 계산할 수 있도록 1프레임 대기
-        yield return new WaitForEndOfFrame();
+        yield return null;
 
         if (scrollRect != null)
         {

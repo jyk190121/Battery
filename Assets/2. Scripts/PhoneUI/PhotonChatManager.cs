@@ -16,7 +16,7 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
     private ChatClient chatClient;
     private readonly string teamChannelName = "TeamRoomChannel"; // 4명이 모일 채널 이름
 
-    private void Start()
+    private void Awake()
     {
         // 포톤 채팅 서버 연결 시도
         chatClient = new ChatClient(this);
