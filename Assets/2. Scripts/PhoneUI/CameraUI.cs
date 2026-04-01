@@ -25,6 +25,8 @@ public class CameraUI : MonoBehaviour
 
     public TextMeshProUGUI modeText;
 
+    public GameObject WarningPopup;
+
     // 갤러리 앱과 연동하기 위한 이벤트
     public static event Action<string> OnPhotoSaved;
 
@@ -48,6 +50,8 @@ public class CameraUI : MonoBehaviour
         // 카메라 앱이 켜질 때 기본 모드 설정 (후면 카메라 활성화)
         isFrontMode = false;
         UpdateCameraState();
+
+        WarningPopup.SetActive(false);
     }
 
     private void OnDisable()
@@ -111,6 +115,13 @@ public class CameraUI : MonoBehaviour
     {
         if (Mouse.current.rightButton.wasPressedThisFrame)
         {
+            // 물리적 폴더 대신 인게임 명부의 사진 개수(최대 4장)를 검사합니다.
+            if (GalleryUI.currentCyclePhotos.Count >= 4)
+            {
+                StartCoroutine(ShowWarningPopup());
+                return;
+            }
+
             StartCoroutine(CapturePhotoRoutine());
         }
     }
@@ -125,12 +136,12 @@ public class CameraUI : MonoBehaviour
         // 1. 현재 활성화된 카메라 확인
         Camera activeCamera = isFrontMode ? frontCamera : backCamera;
 
-        // 2. 캡처 카메라의 위치와 회전값을 현재 바라보고 있는 카메라와 일치시킴 (캡처 방향 문제 해결)
+        // 2. 캡처 카메라의 위치와 회전값을 현재 바라보고 있는 카메라와 일치시킴
         if (activeCamera != null && captureCamera != null)
         {
             captureCamera.transform.position = activeCamera.transform.position;
             captureCamera.transform.rotation = activeCamera.transform.rotation;
-            captureCamera.fieldOfView = activeCamera.fieldOfView; // 시야각도 동일하게 맞춤
+            captureCamera.fieldOfView = activeCamera.fieldOfView;
         }
 
         // 캡처용 RenderTexture 생성 및 카메라에 할당
@@ -151,7 +162,7 @@ public class CameraUI : MonoBehaviour
         RenderTexture.active = null;
         Destroy(rt);
 
-        // 파일명 생성 및 저장
+        // 파일명 생성 및 실제 PC에 저장
         string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
         string fileName = $"IMG_{timestamp}.png";
         string filePath = Path.Combine(Application.persistentDataPath, "Photos", fileName);
@@ -160,10 +171,21 @@ public class CameraUI : MonoBehaviour
         File.WriteAllBytes(filePath, bytes);
         Destroy(screenShot);
 
+        // 실제 저장이 끝난 후, 이번 사이클 명부에 해당 사진의 경로를 등록합니다.
+        GalleryUI.currentCyclePhotos.Add(filePath);
+
         // 갤러리 앱을 위한 이벤트 발송
         OnPhotoSaved?.Invoke(filePath);
-        Debug.Log($"[CameraUI] 찰칵! 사진 저장 완료: {filePath}");
+        Debug.Log($"[CameraUI] 찰칵! 사진 저장 및 명부 등록 완료: {filePath}");
 
         isCapturing = false;
+    }
+
+    private IEnumerator ShowWarningPopup()
+    {
+        WarningPopup.SetActive(true);
+        yield return new WaitForSeconds(1f);
+
+        WarningPopup.SetActive(false);
     }
 }

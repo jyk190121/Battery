@@ -49,7 +49,7 @@ public class MessageUI : MonoBehaviour
 
         if(Mouse.current.rightButton.wasPressedThisFrame)
         {
-            OpenChat();
+            if(!isChatOpen) OpenChat();
         }
     }
 
@@ -61,15 +61,18 @@ public class MessageUI : MonoBehaviour
     void moveScroll()
     {
         float scrollY = Mouse.current.scroll.ReadValue().y;
-        if (scrollY != 0)
+        if (!isChatOpen)
         {
-            if(scrollY > 0)
+            if (scrollY != 0)
             {
-                MoveHighlight(-1);
-            }
-            else if(scrollY < 0)
-            {
-                MoveHighlight(1);
+                if (scrollY > 0)
+                {
+                    MoveHighlight(-1);
+                }
+                else if (scrollY < 0)
+                {
+                    MoveHighlight(1);
+                }
             }
         }
     }
