@@ -48,4 +48,10 @@ public class PlayerAnim : MonoBehaviour
         anim.SetBool("Emotion1", false);
         anim.SetBool("Emotion2", false);
     }
+
+    // 앉을 때 체크용
+    public void UpdateCrouchStatus(bool isCrouching)
+    {
+        anim.SetBool("IsCrouching", isCrouching);
+    }
 }
