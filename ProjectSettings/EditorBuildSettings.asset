@@ -5,6 +5,9 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
+  - enabled: 1
+    path: Assets/1. Scenes/PGY_Player.unity
+    guid: c78d2ade7ab775f459d2cbbcbb30c143
   - enabled: 0
     path: Assets/1. Scenes/SampleScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
@@ -13,7 +16,7 @@ EditorBuildSettings:
     guid: bfe6ccbf2cadfb841b40c8e29fe2d6f5
   - enabled: 1
     path: Assets/1. Scenes/KJW_Test_Scene.unity
-    guid: 8a22d3aa79b06f4469219d78ec22fce8
+    guid: fccdc54f0826db34cb0f9b9a0570bdfd
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
