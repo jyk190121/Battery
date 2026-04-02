@@ -8,9 +8,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/1. Scenes/PGY_Player.unity
     guid: c78d2ade7ab775f459d2cbbcbb30c143
-  - enabled: 0
-    path: Assets/1. Scenes/SampleScene.unity
-    guid: 99c9720ab356a0642a771bea13969a05
+  - enabled: 1
+    path: Assets/1. Scenes/KJY_Player.unity
+    guid: 61ee07c02a8216e4c9e6f4534a2a0f6d
   - enabled: 1
     path: Assets/1. Scenes/KJW.unity
     guid: bfe6ccbf2cadfb841b40c8e29fe2d6f5
