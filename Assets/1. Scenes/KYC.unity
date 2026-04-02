@@ -2560,7 +2560,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   doorType: 0
   isOpen: 0
-  speed: 3
+  speed: 6
   openAngle: 90
   openOffset: {x: 0, y: 0, z: 0}
 --- !u!1 &1488227288
@@ -119764,9 +119764,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   doorType: 1
   isOpen: 0
-  speed: 3
+  speed: 6
   openAngle: 90
-  openOffset: {x: -1, y: 0, z: 0}
+  openOffset: {x: -1.1, y: 0, z: 0}
 --- !u!23 &8941707164295443654
 MeshRenderer:
   m_ObjectHideFlags: 0
