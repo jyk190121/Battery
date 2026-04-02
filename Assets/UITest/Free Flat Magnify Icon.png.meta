@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: b47e5e900aad8344f8c4b8bf0a328d3c
+guid: b6bc290c5fb5d2b4d830dc9d31d43119
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -107,5 +107,6 @@ AssetOrigin:
   productId: 202525
   packageName: 'UX Flat Icons [Free]'
   packageVersion: 2019.1.1
-  assetPath: Assets/UITest/Free Flat Battery Smooth Fill Icon.png
+  assetPath: Assets/_Heathen Engineering/Assets/UX/Icons/Flat Icons [Free]/Free Flat
+    Magnify Icon.png
   uploadId: 451587
