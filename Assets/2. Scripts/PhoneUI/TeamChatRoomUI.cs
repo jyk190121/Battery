@@ -22,18 +22,11 @@ public class TeamChatRoomUI : MonoBehaviour
     public int maxCharacterLimit = 100;
     public float scrollSpeed = 0.1f;
 
-    private MessageUI messageUI;
-
-
     private void Awake()
     {
-        if (chatInputField != null)
-        {
-            chatInputField.characterLimit = maxCharacterLimit;
-        }
-
-        messageUI = FindAnyObjectByType<MessageUI>();
+        if (chatInputField != null) chatInputField.characterLimit = maxCharacterLimit;
     }
+
 
     private void OnEnable()
     {
@@ -41,6 +34,15 @@ public class TeamChatRoomUI : MonoBehaviour
         chatInputField.text = "";
         chatInputField.gameObject.SetActive(false);
         StartCoroutine(ScrollToBottom());
+    }
+
+    private void OnDisable()
+    {
+        // 채팅방 화면이 꺼질 때 꼬임 방지를 위해 입력 차단을 무조건 강제로 풀어줍니다.
+        if (PhoneUIController.Instance != null)
+        {
+            PhoneUIController.Instance.isInputBlocked = false;
+        }
     }
 
     private void Update()
@@ -57,23 +59,14 @@ public class TeamChatRoomUI : MonoBehaviour
                 // [입력 상태 진입] 비활성화 상태였다면 켜고 포커스 주기
                 chatInputField.gameObject.SetActive(true);
                 chatInputField.ActivateInputField();
+
+                // 타이핑 시작: 사령탑에 단축키(C, Q)를 차단하라고 지시
+                if (PhoneUIController.Instance != null) PhoneUIController.Instance.isInputBlocked = true;
             }
             else
             {
                 // [입력 종료 및 전송] 활성화 상태였다면 메시지를 보내고 다시 끄기
                 SendMessage();
-            }
-        }
-
-        if (!chatInputField.gameObject.activeSelf)
-        {
-            if(Keyboard.current.cKey.wasPressedThisFrame)
-            {
-                messageUI.CloseChat();
-            }
-            else if(Keyboard.current.qKey.wasPressedThisFrame)
-            {
-                messageUI.ClosePhoen();
             }
         }
 
@@ -106,6 +99,9 @@ public class TeamChatRoomUI : MonoBehaviour
         // 전송 여부(빈칸 여부)와 상관없이 텍스트를 초기화하고 입력창 비활성화
         chatInputField.text = "";
         chatInputField.gameObject.SetActive(false);
+
+        // 메시지 전송 후 다시 단축키 사용 허용
+        if (PhoneUIController.Instance != null) PhoneUIController.Instance.isInputBlocked = false;
     }
 
     // 포톤 매니저가 서버로부터 메시지를 받았을 때 호출하는 함수

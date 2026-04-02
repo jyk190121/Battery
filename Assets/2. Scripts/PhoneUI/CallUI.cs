@@ -1,102 +1,67 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class CallUI : MonoBehaviour
+public class CallUI : ScrollSelectionUI
 {
     public GameObject highlight;
     public GameObject onCall;
 
-    private int currentIndex = 0;
-    private readonly int maxIndex = 2;
     private readonly float padding = 100f;
-
-    private Vector3 startPosition;    // 하이라이트 초기 위치
-
-    private PhoneUIController phoneUIController;
+    private Vector3 startPosition;
 
     private void Awake()
     {
-        if (highlight != null)
-        {
-            startPosition = highlight.transform.localPosition; // 초기 위치 저장
-        }
-        phoneUIController = FindAnyObjectByType<PhoneUIController>();
+        if (highlight != null) startPosition = highlight.transform.localPosition;
+        maxIndex = 2; // 부모 클래스 변수 설정
     }
 
     private void OnEnable()
     {
-        if (onCall.activeSelf)
-        {
-            onCall.SetActive(false);
-        }
+        if (onCall.activeSelf) onCall.SetActive(false);
+
+        currentIndex = 0;
+        UpdateHighlightVisuals();
+
+        // 이벤트 구독
+        if (PhoneUIController.Instance != null)
+            PhoneUIController.Instance.OnBackButtonPressed += HandleBack;
+    }
+
+    private void OnDisable()
+    {
+        // 이벤트 해제
+        if (PhoneUIController.Instance != null)
+            PhoneUIController.Instance.OnBackButtonPressed -= HandleBack;
     }
 
     private void Update()
     {
-        // 누구 걸지 고르기
         if (Mouse.current == null || highlight == null) return;
 
-        moveScroll();
+        // 부모 클래스 스크롤 기능
+        HandleScroll();
 
-        // 전화 걸기
-        if(Mouse.current.rightButton.wasPressedThisFrame)
-        {
-            StartCall();
-        }
-
-        // 메인으로 돌아가기 
-        if(Keyboard.current.cKey.wasPressedThisFrame)
-        {
-            phoneUIController.ShowScreen(0);
-        }
+        if (Mouse.current.rightButton.wasPressedThisFrame) StartCall();
     }
 
-    #region 하이라이트 이동 처리
-    private void moveScroll()
+    private void HandleBack()
     {
-        float scrollY = Mouse.current.scroll.ReadValue().y;
-
-        if (scrollY != 0)
-        {
-            if (scrollY > 0)
-            {
-                MoveHighlight(-1);
-            }
-            else if (scrollY < 0)
-            {
-                MoveHighlight(1);
-            }
-        }
+        PhoneUIController.Instance.ShowScreen(0);
     }
 
-    private void MoveHighlight(int direction)
+    // CallUI는 세로(Y축)로 이동하므로 y값을 뺍니다.
+    protected override void UpdateHighlightVisuals()
     {
-        // 인덱스를 변경하고 0~3 사이로 제한 (1번에서 4번으로 바로 못 가게 함)
-        int nextIndex = Mathf.Clamp(currentIndex + direction, 0, maxIndex);
-
-        // 인덱스가 실제로 변했을 때만 위치 변경
-        if (nextIndex != currentIndex)
-        {
-            currentIndex = nextIndex;
-            UpdateHighlightPosition();
-        }
-    }
-
-    private void UpdateHighlightPosition()
-    {
-        // 시작 위치에서 (인덱스 * 간격)만큼 X축으로 이동
         Vector3 newPos = startPosition;
         newPos.y -= currentIndex * padding;
-
         highlight.transform.localPosition = newPos;
     }
-    #endregion
 
     void StartCall()
     {
-        onCall.SetActive(true);    // 통화 화면으로 전환
+        onCall.SetActive(true);
         currentIndex = 0;
-        UpdateHighlightPosition(); // 하이라이트 위치 초기화
+        UpdateHighlightVisuals();
         gameObject.SetActive(false);
     }
 }
