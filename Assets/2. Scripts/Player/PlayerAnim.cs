@@ -54,4 +54,9 @@ public class PlayerAnim : MonoBehaviour
     {
         anim.SetBool("IsCrouching", isCrouching);
     }
+
+    public void UpdateStairStatus(bool isStair)
+    {
+        anim.SetBool("IsStair", isStair);
+    }
 }
