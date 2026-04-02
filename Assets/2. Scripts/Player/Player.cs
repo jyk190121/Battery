@@ -4,4 +4,5 @@ using UnityEngine;
 public class Player : ScriptableObject
 {
     float HP = 100f;
+    public float interactDistance = 1.5f;
 }
