@@ -19,8 +19,11 @@ public class PlayerMove : MonoBehaviour
     public LayerMask groundLayer;                   // 인스펙터에서 Ground 레이어 선택
     public float groundCheckDistance = 0.25f;       // 바닥 감지 거리
 
+    [Header("계단 체크 설정")]
+    public LayerMask stairLayer;                    // 인스펙터에서 Stair 레이어 선택
+    bool isOnStair = false;                         // 현재 계단 위인지 여부
+
     // [Header("앉기 체크 설정")]
-    Coroutine crouchRoutine;
     bool isCrouching = false;
 
     Rigidbody rb;
@@ -54,13 +57,29 @@ public class PlayerMove : MonoBehaviour
     }
     void CheckGroundStatus()
     {
+        RaycastHit hit;
         // 캐릭터 발밑으로 레이를 쏘아 바닥인지 확인
         // CapsuleCollider를 사용 중이라면 위치 보정이 필요할 수 있습니다.
-        isGrounded = Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, groundCheckDistance, groundLayer);
+        //isGrounded = Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, groundCheckDistance, groundLayer);
+        isGrounded = Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, out hit, groundCheckDistance, groundLayer);
 
         // 애니메이터에 바닥 상태 전달 (Landing 애니메이션 전환용)
         //anim.SetBool("IsGrounded", isGrounded);
+
+        //playerAnim.UpdateGroundStatus(isGrounded);
+
+        if (isGrounded)
+        {
+            isOnStair = (stairLayer.value & (1 << hit.collider.gameObject.layer)) > 0;
+        }
+        else
+        {
+            isOnStair = false;
+        }
+
+        // 애니메이터에 상태 전달
         playerAnim.UpdateGroundStatus(isGrounded);
+        playerAnim.UpdateStairStatus(isOnStair);
     }
     void HandleMovement(float h, float v)
     {
@@ -73,8 +92,11 @@ public class PlayerMove : MonoBehaviour
 
         if (inputMagnitude > 0.1f && !isCrouching)
         {
+            // [추가] 계단 위일 때는 이동 속도를 약간 조절하거나 전용 속도를 적용할 수 있습니다.
+            float moveSpeedMultiplier = isOnStair ? 0.8f : 1.0f;
+
             // 이동 중일 때만 쉬프트 체크
-            if (Keyboard.current.leftShiftKey.isPressed && isGrounded)
+            if (Keyboard.current.leftShiftKey.isPressed && isGrounded && !isOnStair)
             {
                 currentSpeed = runSpeed;
                 //anim.SetFloat("Speed", 2.0f, 0.05f, Time.deltaTime); // 아주 약간의 댐핑을 주면 더 부드럽습니다.
@@ -82,7 +104,7 @@ public class PlayerMove : MonoBehaviour
             }
             else if(isGrounded)
             {
-                currentSpeed = walkSpeed;
+                currentSpeed = walkSpeed * moveSpeedMultiplier;
                 //anim.SetFloat("Speed", 1.0f, 0.05f, Time.deltaTime);
                 playerAnim.UpdateMoveAnimation(1.0f);
             }
