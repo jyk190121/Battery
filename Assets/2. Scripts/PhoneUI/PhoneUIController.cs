@@ -18,6 +18,8 @@ public class PhoneUIController : MonoBehaviour
     [Header("모든 화면 오브젝트 (Main 포함)")]
     public List<GameObject> allScreens;
 
+    private bool isChatOpen = false;
+
     private void Start()
     {
         if (phoneUIParent != null) phoneUIParent.SetActive(false);
@@ -26,7 +28,7 @@ public class PhoneUIController : MonoBehaviour
     private void Update()
     {
         if (Keyboard.current == null) return;
-        if (Keyboard.current.qKey.wasPressedThisFrame) TogglePhone();
+        if (!isChatOpen && Keyboard.current.qKey.wasPressedThisFrame) TogglePhone();
     }
 
     void TogglePhone()
@@ -56,5 +58,10 @@ public class PhoneUIController : MonoBehaviour
     public void Turnoff()
     {
         TogglePhone();
+    }
+
+    public void SetChatOpen()
+    {
+        isChatOpen = !isChatOpen;
     }
 }

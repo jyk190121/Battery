@@ -3071,7 +3071,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PhotonChatManager
   chatAppId: 3fc3c49e-bb5a-4e26-8611-6943ef4ed936
-  userName: Player2
+  userName: Player3
   teamChatRoom: {fileID: 993721349}
 --- !u!1 &1783564283
 GameObject:
@@ -3944,7 +3944,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 8639489653798324536, guid: dcb11e62d6cf1c94f92e3283d6345762, type: 3}
-    - {fileID: 0}
+    - {fileID: 4978030626878122236, guid: dcb11e62d6cf1c94f92e3283d6345762, type: 3}
     m_RemovedGameObjects:
     - {fileID: 2396499605501916247, guid: dcb11e62d6cf1c94f92e3283d6345762, type: 3}
     - {fileID: 1959988783839389125, guid: dcb11e62d6cf1c94f92e3283d6345762, type: 3}
