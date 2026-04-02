@@ -2713,6 +2713,8 @@ MonoBehaviour:
   - {fileID: 6288071277262456976}
   - {fileID: 528943411939643722}
   isInputBlocked: 0
+  isReceivingCall: 0
+  currentCallerName: 
 --- !u!114 &1739823589
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2726,7 +2728,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PhotonChatManager
   chatAppId: 3fc3c49e-bb5a-4e26-8611-6943ef4ed936
-  userName: Player3
+  userName: Player2
   teamChatRoom: {fileID: 993721349}
 --- !u!1 &1922326206
 GameObject:
@@ -3004,6 +3006,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Phone
       objectReference: {fileID: 0}
+    - target: {fileID: 3352333489820140897, guid: dbb05df9cb540f0449d641eefdfc5909, type: 3}
+      propertyPath: chatManager
+      value: 
+      objectReference: {fileID: 1739823589}
+    - target: {fileID: 3433249226709440065, guid: dbb05df9cb540f0449d641eefdfc5909, type: 3}
+      propertyPath: chatManager
+      value: 
+      objectReference: {fileID: 1739823589}
     - target: {fileID: 4124983975384123799, guid: dbb05df9cb540f0449d641eefdfc5909, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5

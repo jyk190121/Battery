@@ -15,6 +15,10 @@ public class PhoneUIController : MonoBehaviour
     // 채팅창 등에서 타이핑 중일 때 단축키(C, Q)를 차단하기 위한 변수
     public bool isInputBlocked = false;
 
+    // [추가된 부분: 전화 알림용 변수] 유저님이 외부에서 자유롭게 가져다 쓰실 수 있는 알림 장치입니다.
+    public bool isReceivingCall = false;
+    public string currentCallerName = "";
+
     // C키가 눌렸을 때 다른 앱들에게 뒤로 가기를 실행하라고 알리는 방송(이벤트)
     public event Action OnBackButtonPressed;
 
