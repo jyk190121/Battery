@@ -2,6 +2,7 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Photon.Voice.Unity; // 보이스 라이브러리
 
 public class OnCallingUI : MonoBehaviour
 {
@@ -18,9 +19,16 @@ public class OnCallingUI : MonoBehaviour
     int minutes = 0;
 
     private string currentTargetName = "";
-
-    // 내가 전화를 '받아야 하는' 상황인지 기억하는 상태 변수
     private bool isIncomingCall = false;
+
+    // [오디오 처리를 위한 마이크 변수]
+    private Recorder myRecorder;
+
+    private void Start()
+    {
+        // 씬이 시작될 때 맵에 있는 내 마이크(Recorder)를 찾아서 기억해 둡니다.
+        myRecorder = FindAnyObjectByType<Recorder>();
+    }
 
     private void Awake()
     {
@@ -52,7 +60,6 @@ public class OnCallingUI : MonoBehaviour
     {
         if (Keyboard.current == null || Mouse.current == null) return;
 
-        // 내가 '수신자(isIncomingCall)'이고 아직 '타이머가 안 돌아갈 때'만 우클릭으로 받을 수 있음
         if (Mouse.current.rightButton.wasPressedThisFrame)
         {
             if (isIncomingCall && !isTimerRunning)
@@ -63,6 +70,17 @@ public class OnCallingUI : MonoBehaviour
 
         if (isTimerRunning)
         {
+            // V키를 누르는 순간 마이크 ON
+            if (Keyboard.current.vKey.wasPressedThisFrame)
+            {
+                StartAudioConnection();
+            }
+            // V키에서 손을 떼는 순간 마이크 OFF
+            else if (Keyboard.current.vKey.wasReleasedThisFrame)
+            {
+                StopAudioConnection();
+            }
+
             timer += Time.deltaTime;
             minutes = Mathf.FloorToInt(timer / 60f);
             float seconds = timer % 60f;
@@ -83,7 +101,7 @@ public class OnCallingUI : MonoBehaviour
         timer = 0f;
         minutes = 0;
         isTimerRunning = false;
-        isIncomingCall = false; // 내가 거는 쪽이므로 받을 수 없음
+        isIncomingCall = false;
         timerText.text = "Calling...";
 
         Accept.SetActive(true);
@@ -98,7 +116,7 @@ public class OnCallingUI : MonoBehaviour
         timer = 0f;
         minutes = 0;
         isTimerRunning = false;
-        isIncomingCall = true; // 전화를 받는 쪽이므로 우클릭 수락 대기 상태로 전환
+        isIncomingCall = true;
 
         Accept.SetActive(true);
         Reject.SetActive(false);
@@ -131,10 +149,13 @@ public class OnCallingUI : MonoBehaviour
     {
         timerText.text = "Call Ended";
         isTimerRunning = false;
-        isIncomingCall = false; // 통화가 끝났으므로 수신 대기 해제
+        isIncomingCall = false;
 
         Accept.SetActive(false);
         Reject.SetActive(true);
+
+        // 전화가 끊겼으므로 오디오 연결 해제
+        StopAudioConnection();
 
         StartCoroutine(CloseAfterDelay(1.5f));
     }
@@ -144,23 +165,20 @@ public class OnCallingUI : MonoBehaviour
     void AcceptCall()
     {
         isTimerRunning = true;
-        isIncomingCall = false; // 전화를 받았으므로 더 이상 수신 대기 상태가 아님
+        isIncomingCall = false;
 
         if (chatManager != null && !string.IsNullOrEmpty(currentTargetName))
         {
             chatManager.SendCallAccept(currentTargetName);
         }
-
-        // TODO: Photon Voice 2 오디오 연결 코드
     }
 
     void RejectOrHangUpCall()
     {
-        PhoneUIController.Instance.isCallRefusing = true; // 전화 거절/끊기 상태로 전환
         Accept.SetActive(false);
         Reject.SetActive(true);
         isTimerRunning = false;
-        isIncomingCall = false; //  상태 초기화
+        isIncomingCall = false;
         timerText.text = "Call Ended";
 
         if (chatManager != null && !string.IsNullOrEmpty(currentTargetName))
@@ -170,7 +188,32 @@ public class OnCallingUI : MonoBehaviour
 
         if (PhoneUIController.Instance != null) PhoneUIController.Instance.isCallActive = false;
 
+        // 전화가 끊겼으므로 오디오 연결 해제
+        StopAudioConnection();
+
         StartCoroutine(CloseAfterDelay(1.5f));
+    }
+    #endregion
+
+    #region [핵심] 오디오 켜기/끄기 (마이크 전원 관리)
+    private void StartAudioConnection()
+    {
+        // 내 마이크 켜기 (내 목소리를 서버로 전송하기 시작)
+        if (myRecorder != null)
+        {
+            myRecorder.TransmitEnabled = true;
+            Debug.Log("[Voice] 통화가 연결되어 마이크를 켭니다.");
+        }
+    }
+
+    private void StopAudioConnection()
+    {
+        // 내 마이크 끄기 (전송 중단)
+        if (myRecorder != null)
+        {
+            myRecorder.TransmitEnabled = false;
+            Debug.Log("[Voice] 통화가 종료되어 마이크를 끕니다.");
+        }
     }
     #endregion
 
@@ -179,17 +222,14 @@ public class OnCallingUI : MonoBehaviour
         yield return new WaitForSeconds(delayTime);
 
         currentTargetName = "";
-        isIncomingCall = false; // 안전장치 초기화
         gameObject.SetActive(false);
 
         if (PhoneUIController.Instance != null)
         {
             PhoneUIController.Instance.phoneUIParent.SetActive(false);
             PhoneUIController.Instance.isCallActive = false;
-            PhoneUIController.Instance.isCallRefusing = false; // 전화 거절/끊기 상태 초기화
         }
 
         if (callingListUI != null) callingListUI.SetActive(true);
-
     }
 }
