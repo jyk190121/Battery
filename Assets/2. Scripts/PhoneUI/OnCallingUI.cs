@@ -7,8 +7,6 @@ using UnityEngine.InputSystem;
 
 public class OnCallingUI : MonoBehaviour
 {
-    private PhoneUIController phoneUIController;
-
     public GameObject callingListUI;
 
     public GameObject Accept;
@@ -19,32 +17,12 @@ public class OnCallingUI : MonoBehaviour
     bool isTimerRunning = false;
     float timer = 0f;
     int minutes = 0;
-    private void Awake()
+
+    private void OnEnable()
     {
-        phoneUIController = FindAnyObjectByType<PhoneUIController>();
-    }
-
-    private void Update()
-    {
-        if (Keyboard.current == null) return;
-
-        if(Keyboard.current.f1Key.wasPressedThisFrame)
-        {
-            AcceptCall();
-        }
-
-        if (Keyboard.current.f2Key.wasPressedThisFrame || Keyboard.current.cKey.wasPressedThisFrame)
-        {
-            RejectCall();
-        }
-
-        if(isTimerRunning)
-        {
-            timer += Time.deltaTime;
-            minutes = Mathf.FloorToInt(timer / 60f);
-            float seconds = timer % 60f;
-            timerText.text = $"{minutes:00}:{seconds:00}";
-        }
+        // [이벤트 구독]
+        if (PhoneUIController.Instance != null)
+            PhoneUIController.Instance.OnBackButtonPressed += HandleBack;
     }
 
     private void OnDisable()
@@ -54,6 +32,40 @@ public class OnCallingUI : MonoBehaviour
             callingListUI.SetActive(true);
         }
         Reset();
+
+        // [이벤트 해제]
+        if (PhoneUIController.Instance != null)
+            PhoneUIController.Instance.OnBackButtonPressed -= HandleBack;
+    }
+
+    private void Update()
+    {
+        if (Keyboard.current == null) return;
+
+        if (Keyboard.current.f1Key.wasPressedThisFrame)
+        {
+            AcceptCall();
+        }
+
+        // F2키로 거절. (C키 기능은 HandleBack 이벤트로 이전됨)
+        if (Keyboard.current.f2Key.wasPressedThisFrame)
+        {
+            RejectCall();
+        }
+
+        if (isTimerRunning)
+        {
+            timer += Time.deltaTime;
+            minutes = Mathf.FloorToInt(timer / 60f);
+            float seconds = timer % 60f;
+            timerText.text = $"{minutes:00}:{seconds:00}";
+        }
+    }
+
+    // 방송 수신 시 전화 거절 처리
+    private void HandleBack()
+    {
+        RejectCall();
     }
 
     // 전화 수신 UI 초기화
@@ -88,8 +100,12 @@ public class OnCallingUI : MonoBehaviour
     private IEnumerator CloseAfterDelay(float delayTime)
     {
         yield return new WaitForSeconds(delayTime);
-        gameObject.SetActive(false); // 이 오브젝트를 끕니다. (OnDisable이 자동으로 호출됨)
-        phoneUIController.Turnoff(); // 폰 UI를 끕니다.
-    }
+        gameObject.SetActive(false);
 
+        // 싱글톤으로 직접 호출
+        if (PhoneUIController.Instance != null)
+        {
+            PhoneUIController.Instance.Turnoff();
+        }
+    }
 }
