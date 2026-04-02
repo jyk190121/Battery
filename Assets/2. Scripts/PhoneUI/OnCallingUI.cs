@@ -6,31 +6,33 @@ using UnityEngine.InputSystem;
 public class OnCallingUI : MonoBehaviour
 {
     [Header("References")]
-    public PhotonChatManager chatManager; // [추가] 포톤 매니저 연결
-
-    public GameObject callingListUI; // CallUI (전화번호부)
+    public PhotonChatManager chatManager;
+    public GameObject callingListUI;
     public GameObject Accept;
     public GameObject Reject;
+    public TextMeshProUGUI targetName;
     public TextMeshProUGUI timerText;
 
     bool isTimerRunning = false;
     float timer = 0f;
     int minutes = 0;
 
-    // 현재 통화 중이거나 전화를 건 상대방의 닉네임
     private string currentTargetName = "";
+
+    // 내가 전화를 '받아야 하는' 상황인지 기억하는 상태 변수
+    private bool isIncomingCall = false;
 
     private void Awake()
     {
-        // 포톤 매니저의 전화 이벤트 구독 (앱이 꺼져 있어도 신호를 받아야 하므로 Awake에 배치)
         PhotonChatManager.OnIncomingCallReceived += HandleIncomingCall;
+        PhotonChatManager.OnCallAccepted += HandleCallAccepted;
         PhotonChatManager.OnCallHungUp += HandleHangUp;
     }
 
     private void OnDestroy()
     {
-        // 파괴될 때 이벤트 구독 해제
         PhotonChatManager.OnIncomingCallReceived -= HandleIncomingCall;
+        PhotonChatManager.OnCallAccepted -= HandleCallAccepted;
         PhotonChatManager.OnCallHungUp -= HandleHangUp;
     }
 
@@ -42,33 +44,23 @@ public class OnCallingUI : MonoBehaviour
 
     private void OnDisable()
     {
-        if (callingListUI != null)
-        {
-            callingListUI.SetActive(true);
-        }
-        ResetUI();
-
         if (PhoneUIController.Instance != null)
             PhoneUIController.Instance.OnBackButtonPressed -= HandleBack;
     }
 
     private void Update()
     {
-        if (Keyboard.current == null) return;
+        if (Keyboard.current == null || Mouse.current == null) return;
 
-        // 수락
-        if (Keyboard.current.f1Key.wasPressedThisFrame)
+        // 내가 '수신자(isIncomingCall)'이고 아직 '타이머가 안 돌아갈 때'만 우클릭으로 받을 수 있음
+        if (Mouse.current.rightButton.wasPressedThisFrame)
         {
-            if (!isTimerRunning) AcceptCall();
+            if (isIncomingCall && !isTimerRunning)
+            {
+                AcceptCall();
+            }
         }
 
-        // 거절 또는 끊기
-        if (Keyboard.current.f2Key.wasPressedThisFrame)
-        {
-            RejectOrHangUpCall();
-        }
-
-        // 통화 시간 타이머
         if (isTimerRunning)
         {
             timer += Time.deltaTime;
@@ -83,43 +75,64 @@ public class OnCallingUI : MonoBehaviour
         RejectOrHangUpCall();
     }
 
-    // UI 상태 초기화
-    void ResetUI()
+    #region 발신자 / 수신자 모드 세팅
+    public void StartOutgoingCall(string target)
+    {
+        currentTargetName = target;
+        targetName.text = target;
+        timer = 0f;
+        minutes = 0;
+        isTimerRunning = false;
+        isIncomingCall = false; // 내가 거는 쪽이므로 받을 수 없음
+        timerText.text = "Calling...";
+
+        Accept.SetActive(true);
+        Reject.SetActive(false);
+
+        gameObject.SetActive(true);
+        if (callingListUI != null) callingListUI.SetActive(false);
+    }
+
+    void SetReceiverMode()
     {
         timer = 0f;
         minutes = 0;
         isTimerRunning = false;
-        timerText.text = "Calling...";
+        isIncomingCall = true; // 전화를 받는 쪽이므로 우클릭 수락 대기 상태로 전환
+
         Accept.SetActive(true);
         Reject.SetActive(false);
     }
+    #endregion
 
-    #region 네트워크 신호 수신 로직 (상대방이 걸거나 끊었을 때)
+    #region 네트워크 신호 수신 로직
     private void HandleIncomingCall(string callerName)
     {
-        // 상대방이 나에게 전화를 걸었다!
         currentTargetName = callerName;
+        SetReceiverMode();
+        targetName.text = callerName;
+        timerText.text = $"Incoming...";
 
-        // 폰 전원 켜기 & 통화 화면 띄우기 (만약 폰이 꺼져있다면 켜줌)
-        if (PhoneUIController.Instance != null && !PhoneUIController.Instance.phoneUIParent.activeSelf)
-        {
-            PhoneUIController.Instance.Turnoff(); // 토글로 켜기
-        }
-
-        // 내 화면을 OnCallingUI로 강제 이동 (인덱스 1이 Call 스크린이라고 가정, 구조에 맞게 수정 필요)
         gameObject.SetActive(true);
         if (callingListUI != null) callingListUI.SetActive(false);
+    }
 
-        timerText.text = $"Incoming...\n{callerName}";
+    private void HandleCallAccepted(string acceptorName)
+    {
+        if (currentTargetName == acceptorName)
+        {
+            Debug.Log("[Phone] 상대방이 전화를 받았습니다!");
+            isTimerRunning = true;
+            timerText.text = "00:00";
+        }
     }
 
     private void HandleHangUp(string callerName)
     {
-        // 상대방이 먼저 전화를 끊었다!
-        Debug.Log($"[Phone] {callerName}님이 전화를 끊었습니다.");
-
         timerText.text = "Call Ended";
         isTimerRunning = false;
+        isIncomingCall = false; // 통화가 끝났으므로 수신 대기 해제
+
         Accept.SetActive(false);
         Reject.SetActive(true);
 
@@ -127,32 +140,35 @@ public class OnCallingUI : MonoBehaviour
     }
     #endregion
 
-    #region 내 조작 로직 (내가 받거나 끊었을 때)
+    #region 내 조작 로직
     void AcceptCall()
     {
-        Debug.Log("통화 연결됨!");
         isTimerRunning = true;
-        Accept.SetActive(false);
+        isIncomingCall = false; // 전화를 받았으므로 더 이상 수신 대기 상태가 아님
 
-        // TODO: 나중에 여기에 Photon Voice 2 오디오 연결 코드가 들어갑니다.
+        if (chatManager != null && !string.IsNullOrEmpty(currentTargetName))
+        {
+            chatManager.SendCallAccept(currentTargetName);
+        }
+
+        // TODO: Photon Voice 2 오디오 연결 코드
     }
 
     void RejectOrHangUpCall()
     {
-        Debug.Log("통화 거절 / 종료");
+        PhoneUIController.Instance.isCallRefusing = true; // 전화 거절/끊기 상태로 전환
         Accept.SetActive(false);
         Reject.SetActive(true);
         isTimerRunning = false;
+        isIncomingCall = false; //  상태 초기화
         timerText.text = "Call Ended";
 
-        // 내가 끊었으므로 서버를 통해 상대방에게도 뚜-뚜- 신호 보내기
-        // (누구한테 걸었는지 모르겠다면 PhoneUIController에 저장해둔 이름 사용)
-        string target = currentTargetName != "" ? currentTargetName : PhoneUIController.Instance.currentCallerName;
-
-        if (chatManager != null && !string.IsNullOrEmpty(target))
+        if (chatManager != null && !string.IsNullOrEmpty(currentTargetName))
         {
-            chatManager.SendCallHangUp(target);
+            chatManager.SendCallHangUp(currentTargetName);
         }
+
+        if (PhoneUIController.Instance != null) PhoneUIController.Instance.isCallActive = false;
 
         StartCoroutine(CloseAfterDelay(1.5f));
     }
@@ -162,13 +178,18 @@ public class OnCallingUI : MonoBehaviour
     {
         yield return new WaitForSeconds(delayTime);
 
-        currentTargetName = ""; // 대상 초기화
+        currentTargetName = "";
+        isIncomingCall = false; // 안전장치 초기화
         gameObject.SetActive(false);
 
-        // 폰 화면 아예 끄기
         if (PhoneUIController.Instance != null)
         {
             PhoneUIController.Instance.phoneUIParent.SetActive(false);
+            PhoneUIController.Instance.isCallActive = false;
+            PhoneUIController.Instance.isCallRefusing = false; // 전화 거절/끊기 상태 초기화
         }
+
+        if (callingListUI != null) callingListUI.SetActive(true);
+
     }
 }
