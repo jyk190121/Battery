@@ -36,16 +36,9 @@ public class MessageUI : MonoBehaviour
         }
 
         // C키로 뒤로가기 또는 앱 종료
-        if (Keyboard.current.cKey.wasPressedThisFrame)
+        if (Keyboard.current.cKey.wasPressedThisFrame && !isChatOpen)
         {
-            if (!isChatOpen)
-            {
-                phoneUIController.ShowScreen(0);
-            }
-            else
-            {
-                CloseChat();
-            }
+            phoneUIController.ShowScreen(0);
         }
 
         // 채팅방이 안 열려있을 때 우클릭으로 방 입장
@@ -100,12 +93,20 @@ public class MessageUI : MonoBehaviour
         isChatOpen = true;
         roomList.SetActive(false);
         room[currentIndex].SetActive(true);
+        phoneUIController.SetChatOpen();
     }
 
-    private void CloseChat()
+    public void CloseChat()
     {
         isChatOpen = false;
         roomList.SetActive(true);
         room[currentIndex].SetActive(false);
+        phoneUIController.SetChatOpen();
+    }
+
+    public void ClosePhoen()
+    {
+        CloseChat();
+        phoneUIController.Turnoff();
     }
 }

@@ -22,12 +22,17 @@ public class TeamChatRoomUI : MonoBehaviour
     public int maxCharacterLimit = 100;
     public float scrollSpeed = 0.1f;
 
+    private MessageUI messageUI;
+
+
     private void Awake()
     {
         if (chatInputField != null)
         {
             chatInputField.characterLimit = maxCharacterLimit;
         }
+
+        messageUI = FindAnyObjectByType<MessageUI>();
     }
 
     private void OnEnable()
@@ -57,6 +62,18 @@ public class TeamChatRoomUI : MonoBehaviour
             {
                 // [입력 종료 및 전송] 활성화 상태였다면 메시지를 보내고 다시 끄기
                 SendMessage();
+            }
+        }
+
+        if (!chatInputField.gameObject.activeSelf)
+        {
+            if(Keyboard.current.cKey.wasPressedThisFrame)
+            {
+                messageUI.CloseChat();
+            }
+            else if(Keyboard.current.qKey.wasPressedThisFrame)
+            {
+                messageUI.ClosePhoen();
             }
         }
 
