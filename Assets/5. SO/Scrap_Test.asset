@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff10b20d6fe2cce4ab855ce5cb3e8034, type: 3}
   m_Name: Scrap_Test
   m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
-  itemID: 0
+  itemID: 101
   itemName: scrap1
   category: 0
   handType: 0
-  basePrice: 0
+  basePrice: 200
   icon: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}

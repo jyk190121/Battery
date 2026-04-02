@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff10b20d6fe2cce4ab855ce5cb3e8034, type: 3}
-  m_Name: Consumable_Test
+  m_Name: BothHand
   m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
-  itemID: 102
-  itemName: Consumable1
-  category: 1
-  handType: 0
-  basePrice: 200
-  icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  itemID: 201
+  itemName: BothHand
+  category: 0
+  handType: 1
+  basePrice: 460
+  icon: {fileID: 21300000, guid: 984d0a6281d2e6e449db06480c57bf62, type: 3}
