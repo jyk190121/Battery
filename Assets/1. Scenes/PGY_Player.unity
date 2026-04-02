@@ -3071,7 +3071,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PhotonChatManager
   chatAppId: 3fc3c49e-bb5a-4e26-8611-6943ef4ed936
-  userName: Player2
+  userName: Player3
   teamChatRoom: {fileID: 993721349}
 --- !u!1 &1783564283
 GameObject:
