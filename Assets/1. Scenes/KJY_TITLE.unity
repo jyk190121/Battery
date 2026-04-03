@@ -998,8 +998,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\u200B"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8a58080fdb4273441a32398d2ba80d65, type: 2}
+  m_sharedMaterial: {fileID: 8770982070103913165, guid: 8a58080fdb4273441a32398d2ba80d65, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1031,7 +1031,7 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 0
   m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_characterHorizontalScale: 1
@@ -2461,7 +2461,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1608117321}
   m_HandleRect: {fileID: 1608117320}
   m_Direction: 2
-  m_Value: 0
+  m_Value: 1
   m_Size: 0.8333333
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -2883,7 +2883,9 @@ MonoBehaviour:
   settingsPanel: {fileID: 1836415247}
   nicknameInput: {fileID: 397548026}
   sessionListContent: {fileID: 2033737956}
-  sessionEntryPrefab: {fileID: 2083982496}
+  sessionEntryPrefab: {fileID: 0}
+  refreshBtn: {fileID: 0}
+  joinPanelBackBtn: {fileID: 0}
 --- !u!1 &826240195
 GameObject:
   m_ObjectHideFlags: 0
@@ -5637,6 +5639,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2033737956}
+  - component: {fileID: 2033737957}
   m_Layer: 0
   m_Name: Content
   m_TagString: Untagged
@@ -5660,9 +5663,33 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 50}
+  m_AnchoredPosition: {x: 0, y: 0.000030517578}
   m_SizeDelta: {x: 0, y: 300}
   m_Pivot: {x: 0, y: 1}
+--- !u!114 &2033737957
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2033737955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a8695521f0d02e499659fee002a26c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GridLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 1
+  m_StartCorner: 0
+  m_StartAxis: 1
+  m_CellSize: {x: 450, y: 50}
+  m_Spacing: {x: 0, y: 10}
+  m_Constraint: 0
+  m_ConstraintCount: 2
 --- !u!1 &2070945398
 GameObject:
   m_ObjectHideFlags: 0
@@ -5749,7 +5776,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2083982497}
-  - component: {fileID: 2083982498}
   m_Layer: 0
   m_Name: Panel_JoinLobby
   m_TagString: Untagged
@@ -5777,22 +5803,6 @@ Transform:
   - {fileID: 2070945399}
   m_Father: {fileID: 46573765}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2083982498
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2083982496}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: edc7f473c52648846bb6d2dfa432477d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SessionUIEntry
-  roomNameText: {fileID: 0}
-  playerCountText: {fileID: 0}
-  joinButton: {fileID: 193332650}
-  resetButton: {fileID: 1431602728}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

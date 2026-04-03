@@ -18,7 +18,7 @@ public class StartManager : MonoBehaviour
     [Header("Panels (Popups)")]
     public GameObject nicknamePanel;        // 닉네임 입력 패널 (최초 노출)
     public GameObject mainPanel;            // 메인 화면 (버전/제목 등)
-    public GameObject createPanel;          // 방 만들기 입력창
+    public GameObject createPanel;          // 방 만들기 로딩창
     public GameObject joinPanel;            // 방 목록 리스트창
     public GameObject settingsPanel;        // 설정창
 
@@ -28,6 +28,10 @@ public class StartManager : MonoBehaviour
     [Header("Join Panel 설정")]
     public Transform sessionListContent;    // Scroll View의 Content 객체
     public GameObject sessionEntryPrefab;   // SessionUIEntry 프리팹
+
+    [Header("Join Panel 전용 UI")]
+    public Button refreshBtn;               // 방 목록 새로고침 버튼 (Reset)
+    public Button joinPanelBackBtn;         // 조인 패널에서 나가는 버튼
 
     private void OnEnable()
     {
@@ -44,11 +48,10 @@ public class StartManager : MonoBehaviour
 
     void Start()
     {
-        // 모든 팝업 초기화 (메인만 남기고 끄기)
         ShowPanel(nicknamePanel);
 
         // 버튼 리스너 연결
-        //createBtn.onClick.AddListener(() => ShowPanel(createPanel));
+        createBtn.onClick.AddListener(() => ShowPanel(createPanel));
         createBtn.onClick.AddListener(OnConfirmCreate);
         joinBtn.onClick.AddListener(OnJoinBtnClicked);
         settingBtn.onClick.AddListener(() => ShowPanel(settingsPanel));
@@ -63,6 +66,7 @@ public class StartManager : MonoBehaviour
     {
         nicknamePanel.SetActive(targetPanel == nicknamePanel);
         mainPanel.SetActive(targetPanel == mainPanel);
+        createPanel.SetActive(targetPanel == createPanel);
         joinPanel.SetActive(targetPanel == joinPanel);
         settingsPanel.SetActive(targetPanel == settingsPanel);
     }
@@ -106,28 +110,26 @@ public class StartManager : MonoBehaviour
 
     private void UpdateSessionListUI(List<ISession> sessions)
     {
-        // 1. 기존에 생성된 방 목록 UI 삭제 (청소)
+        // 1. 기존 리스트 청소
         foreach (Transform child in sessionListContent)
         {
             Destroy(child.gameObject);
         }
 
-        // 2. 새로운 방 목록 생성
-        if (sessions == null || sessions.Count == 0)
-        {
-            Debug.Log("생성된 방이 없습니다.");
-            return;
-        }
+        if (sessions == null || sessions.Count == 0) return;
 
+        // 2. 새로운 방 목록 생성
         foreach (var session in sessions)
         {
-            // 프리팹 생성
             GameObject entryGo = Instantiate(sessionEntryPrefab, sessionListContent);
 
-            // 스크립트 가져와서 데이터 세팅
             if (entryGo.TryGetComponent<SessionUIEntry>(out var entryScript))
             {
-                entryScript.Setup(session);
+                // 생성 시점에 "클릭하면 이 함수를 실행해라"라고 주입 (의존성 주입)
+                entryScript.Setup(session, (selectedSession) => {
+                    Debug.Log($"{selectedSession.Name} 선택됨 -> 입장 시도");
+                    MultiPlayerSessionManager.Instance.JoinSessionAsync(selectedSession);
+                });
             }
         }
     }
