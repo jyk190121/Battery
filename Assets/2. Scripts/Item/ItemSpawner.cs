@@ -19,25 +19,24 @@ public class ItemSpawner : NetworkBehaviour
     {
         if (itemDatabase == null || areaManagers.Count == 0) return;
 
-        // 1. 모든 관리자로부터 좌표를 싹 모아서 지역별 사전을 만듭니다. (취합 작업)
         Dictionary<SpawnLocation, List<Transform>> spawnDict = new Dictionary<SpawnLocation, List<Transform>>();
         foreach (var manager in areaManagers)
         {
             if (!spawnDict.ContainsKey(manager.location))
                 spawnDict[manager.location] = new List<Transform>();
 
-            // 💡 관리자에게 "네가 가진 좌표들 다 줘"라고 요청 (로직 위임)
             spawnDict[manager.location].AddRange(manager.GetPoints());
         }
 
-        // 2. 소환 로직 실행 (사용자님의 원본 랜덤 로직 유지)
         int successCount = 0;
-        List<ItemDataSO> itemPool = new List<ItemDataSO>(itemDatabase);
+        int attempts = 0;
+        int maxAttempts = spawnCount * 3; // 무한 루프 방지용 (원하는 개수의 3배수까지만 시도)
 
-        for (int i = 0; i < spawnCount; i++)
+        while (successCount < spawnCount && attempts < maxAttempts)
         {
-            if (itemPool.Count == 0) break;
-            ItemDataSO data = itemPool[Random.Range(0, itemPool.Count)];
+            attempts++;
+
+            ItemDataSO data = itemDatabase[Random.Range(0, itemDatabase.Length)];
 
             if (spawnDict.TryGetValue(data.spawnLocation, out List<Transform> points) && points.Count > 0)
             {
@@ -46,16 +45,16 @@ public class ItemSpawner : NetworkBehaviour
 
                 GameObject obj = Instantiate(data.itemPrefab, target.position, Quaternion.identity);
 
-                // 데이터 주입 및 네트워크 처리
                 ItemBase item = obj.GetComponent<ItemBase>();
                 if (item != null) item.itemData = data;
+
                 HandleNetworkSpawn(obj);
 
-                points.RemoveAt(idx); // 중복 방지
+                points.RemoveAt(idx);
                 successCount++;
             }
         }
-        Debug.Log($"[Spawner] {successCount}개 아이템 스폰 완료.");
+        Debug.Log($"[Spawner] {successCount}개 아이템 스폰 완료. (총 시도 횟수: {attempts})");
     }
 
     [ContextMenu("Bake: 모든 지역 관리자 동기화")]
@@ -84,5 +83,14 @@ public class ItemSpawner : NetworkBehaviour
     private void HandleNetworkSpawn(GameObject obj)
     {
         if (CheckIsMultiplayer() && IsServer) obj.GetComponent<NetworkObject>()?.Spawn();
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        // 멀티플레이 모드일 때, 방장(서버) 권한으로만 아이템을 한 번 뿌립니다.
+        if (CheckIsMultiplayer() && IsServer)
+        {
+            SpawnRandomItems();
+        }
     }
 }

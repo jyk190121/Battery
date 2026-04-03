@@ -1,20 +1,31 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Unity.Netcode; // NetworkBehaviour 사용을 위한 네임스페이스 추가
 
-public class PlayerInventory : MonoBehaviour
+public class PlayerInventory : NetworkBehaviour // MonoBehaviour에서 변경
 {
+    // 전역에서 접근 가능한 로컬 인스턴스 (선택 사항)
+    public static PlayerInventory LocalInstance { get; private set; }
+
     [Header("Inventory Slots")]
     public ItemBase[] slots = new ItemBase[4];
     public int currentSlotIndex = 0;
-    public ItemBase twoHandedItem = null;
+    [HideInInspector] public ItemBase twoHandedItem = null;
 
     [Header("Interaction Settings")]
     public float interactRange = 3f;
     public LayerMask itemLayer;
 
-    public Transform leftHandTransform;
-    public Transform bothHandsTransform;
+    // [핵심 변경] 인스펙터 할당 대신 이름으로 찾기 위한 문자열
+    [Header("Hand Transform Names (자식 오브젝트 이름)")]
+    public string leftHandName = "OneHandle";   // 실제 프리팹 안의 오브젝트 이름과 맞추세요
+    public string bothHandsName = "BothHandle";
+
+    // 인스펙터에서 숨기고 코드에서 동적으로 할당합니다.
+    [HideInInspector] public Transform leftHandTransform;
+    [HideInInspector] public Transform bothHandsTransform;
+
     public float throwForce = 7f;
 
     public Action<int> OnSlotChanged;
@@ -24,13 +35,41 @@ public class PlayerInventory : MonoBehaviour
     private ItemBase lastLookedItem;
     private DepartureButton lastLookedButton;
 
-    void Start()
+    // [핵심 변경] Start() 대신 NGO 전용 스폰 콜백 사용
+    public override void OnNetworkSpawn()
     {
-        LoadInventoryData(); // 씬 로드 시 인벤토리 복구
+        // 1. 내 캐릭터, 남의 캐릭터 상관없이 손 위치는 무조건 찾아야 합니다.
+        leftHandTransform = FindChildByName(transform, leftHandName);
+        bothHandsTransform = FindChildByName(transform, bothHandsName);
+
+        if (leftHandTransform == null || bothHandsTransform == null)
+        {
+            Debug.LogError($"[PlayerInventory] 손 Transform을 찾지 못했습니다! 자식 오브젝트 이름을 확인해주세요.");
+        }
+
+        // 2. 내 조종 권한이 있는 캐릭터일 때만 로직 실행 및 데이터 복구
+        if (IsOwner)
+        {
+            LocalInstance = this;
+            LoadInventoryData();
+        }
+    }
+
+    // [핵심 변경] 이름으로 자식 오브젝트를 깊이 탐색하여 찾는 재귀 함수
+    private Transform FindChildByName(Transform parent, string targetName)
+    {
+        foreach (Transform child in parent.GetComponentsInChildren<Transform>(true))
+        {
+            if (child.name == targetName) return child;
+        }
+        return null;
     }
 
     void Update()
     {
+        // [핵심 변경] 내가 조종하는 캐릭터가 아니면 레이캐스트 및 키보드 입력 무시
+        if (!IsOwner) return;
+
         CheckInteraction();
         HandleSlotChange();
 
@@ -99,9 +138,6 @@ public class PlayerInventory : MonoBehaviour
         if (lastLookedItem != null) LocalPickUpLogic(lastLookedItem);
     }
 
-    // ==========================================================
-    // 💡 [핵심 변경] 아이템 줍기 로직 (교체 불가, 양손 제약 적용)
-    // ==========================================================
     private void LocalPickUpLogic(ItemBase targetItem)
     {
         if (targetItem.TryGetComponent(out Outline outline)) outline.enabled = false;
@@ -167,9 +203,6 @@ public class PlayerInventory : MonoBehaviour
         OnInventoryUpdated?.Invoke();
     }
 
-    // ==========================================================
-    // 💡 [핵심 변경] 버리기 로직 (양손 해제 및 한손 복구)
-    // ==========================================================
     public void RequestDropCurrentItem()
     {
         ItemBase itemToDrop = null;
@@ -262,7 +295,7 @@ public class PlayerInventory : MonoBehaviour
 
             slots[data.slotIndex] = spawned;
 
-            // 💡 양손/한손 타입에 맞춰서 쥐어주기
+            // 양손/한손 타입에 맞춰서 쥐어주기
             if (spawned.itemData.handType == HandType.TwoHand)
             {
                 twoHandedItem = spawned;
