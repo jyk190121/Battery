@@ -1,7 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
 
-[RequireComponent(typeof(NetworkObject))]
 public abstract class ItemBase : NetworkBehaviour
 {
     [Header("Base Data")]
@@ -18,11 +17,26 @@ public abstract class ItemBase : NetworkBehaviour
     {
         itemPhysicsRigidbody = GetComponent<Rigidbody>();
         itemPhysicalCollider = GetComponent<Collider>();
+
+        // 💡 [최후의 수단: NGO 원천 봉쇄]
+        // 멀티플레이 모드가 아니거나, 씬에 설정 오브젝트가 없다면 NGO 컴포넌트를 삭제합니다.
+        bool isMulti = NetworkGlobalSettings.Instance != null && NetworkGlobalSettings.Instance.isMultiplayerMode;
+
+        if (!isMulti)
+        {
+            var netObj = GetComponent<NetworkObject>();
+            if (netObj != null)
+            {
+                // 싱글 모드일 때는 NGO가 아예 존재하지 않는 것처럼 삭제해버립니다.
+                // (프리팹은 안전하며, 실시간 생성된 인스턴스에서만 사라집니다.)
+                DestroyImmediate(netObj);
+                Debug.Log($"<color=cyan><b>[Single Mode]</b></color> {gameObject.name}의 NetworkObject를 제거하여 에러를 차단했습니다.");
+            }
+        }
     }
 
     protected virtual void Start()
     {
-        // 💡 [최적화] 시작할 때 멀티모드가 아니면 NetworkTransform을 꺼서 간섭 차단
         bool isMulti = NetworkGlobalSettings.Instance != null && NetworkGlobalSettings.Instance.isMultiplayerMode;
         var netTransform = GetComponent<Unity.Netcode.Components.NetworkTransform>();
         if (netTransform != null) netTransform.enabled = isMulti;
@@ -30,26 +44,30 @@ public abstract class ItemBase : NetworkBehaviour
 
     public virtual void RequestDespawn()
     {
-        // TODO: 멀티플레이 시 서버에서 NetworkObject.Despawn() 호출
-        gameObject.SetActive(false);
+        bool isMulti = NetworkGlobalSettings.Instance != null && NetworkGlobalSettings.Instance.isMultiplayerMode;
+        if (isMulti && IsSpawned)
+        {
+            // TODO: [ServerRpc] 멀티플레이 Despawn
+            gameObject.SetActive(false);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
-    // ==========================================================
-    // 1. 소유권 변경 (줍기 / 버리기)
-    // ==========================================================
     public virtual void RequestChangeOwnership(bool isPickingUp, Transform targetHand)
     {
-        // 💡 [이원화] 설정 파일의 멀티플레이 모드 체크
         bool isMulti = NetworkGlobalSettings.Instance != null && NetworkGlobalSettings.Instance.isMultiplayerMode;
 
-        if (isMulti && IsSpawned && NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+        // NGO 컴포넌트가 살아있고 멀티 모드일 때만 NGO 로직 수행
+        if (isMulti && GetComponent<NetworkObject>() != null && IsSpawned)
         {
-            // TODO: [ServerRpc] 멀티플레이 시 서버에 줍기/버리기 허락 요청
+            // TODO: [ServerRpc] 멀티플레이 권한 요청
             ExecuteChangeOwnership(isPickingUp, targetHand);
         }
         else
         {
-            // 싱글플레이 모드이거나 서버 연동 전이면 즉시 실행
             ExecuteChangeOwnership(isPickingUp, targetHand);
         }
     }
@@ -59,13 +77,8 @@ public abstract class ItemBase : NetworkBehaviour
         isEquipped = isPickingUp;
         isThrown = false;
 
-        // NGO 컴포넌트 참조 (에러 방지용 차단막)
-        var netObj = GetComponent<NetworkObject>();
-        bool isMulti = NetworkGlobalSettings.Instance != null && NetworkGlobalSettings.Instance.isMultiplayerMode;
-
         if (isPickingUp)
         {
-            // 물리 제어
             if (itemPhysicsRigidbody != null)
             {
                 itemPhysicsRigidbody.linearVelocity = Vector3.zero;
@@ -73,75 +86,23 @@ public abstract class ItemBase : NetworkBehaviour
             }
             if (itemPhysicalCollider != null) itemPhysicalCollider.enabled = false;
 
-            // --- [NGO 진입 차단 if-else 구조] ---
-            if (isMulti && IsSpawned)
-            {
-                // 💡 [True] 멀티플레이 모드일 때만 NGO 정석 로직 진행
-                // TODO: 멀티플레이 전용 부모 설정 로직 (NetworkObject.TrySetParent 등)
-                transform.SetParent(targetHand);
-            }
-            else
-            {
-                // 💡 [False] 싱글 모드일 때는 NGO가 감시하지 못하게 컴포넌트를 잠시 끄고 진행 (에러 원천 봉쇄)
-                if (netObj != null) netObj.enabled = false;
-
-                transform.SetParent(targetHand); // NGO 간섭 없이 일반 유니티 로직 실행
-
-                if (netObj != null) netObj.enabled = true; // 다시 켜줌
-            }
-            // ------------------------------------
+            // 💡 [핵심] 이제 NGO 간섭 없이 안전하게 부모를 설정합니다.
+            transform.SetParent(targetHand);
 
             transform.localPosition = Vector3.zero;
             transform.localRotation = Quaternion.identity;
-
-            if (itemData != null)
-                Debug.Log($"<color=#00FF00><b>[Anim Trigger]</b></color> {gameObject.name} 장착! -> {itemData.animType}");
         }
         else
         {
-            // 버릴 때 (Drop)
-            if (isMulti && IsSpawned)
-            {
-                // TODO: 멀티플레이 전용 부모 해제 로직
-                transform.SetParent(null);
-            }
-            else
-            {
-                if (netObj != null) netObj.enabled = false;
-                transform.SetParent(null);
-                if (netObj != null) netObj.enabled = true;
-            }
+            transform.SetParent(null);
 
             if (itemPhysicsRigidbody != null) itemPhysicsRigidbody.isKinematic = false;
             if (itemPhysicalCollider != null) itemPhysicalCollider.enabled = true;
-
-            Debug.Log($"<color=#FF8800><b>[Anim Trigger]</b></color> {gameObject.name} 해제!");
         }
     }
 
-    // ==========================================================
-    // 2. 아이템 사용 (클릭)
-    // ==========================================================
-    public virtual void RequestUseItem()
-    {
-        bool isMulti = NetworkGlobalSettings.Instance != null && NetworkGlobalSettings.Instance.isMultiplayerMode;
-
-        if (isMulti && IsSpawned && NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
-        {
-            // TODO: [ServerRpc] 서버에 아이템 사용 요청
-            ExecuteUseItem();
-        }
-        else
-        {
-            ExecuteUseItem();
-        }
-    }
-
+    public virtual void RequestUseItem() { ExecuteUseItem(); }
     public virtual void ExecuteUseItem() { }
-
-    // ==========================================================
-    // 3. 기타 물리 로직
-    // ==========================================================
     public virtual void BeginThrownState() { isThrown = true; }
 
     protected virtual void OnCollisionEnter(Collision collision)
@@ -157,9 +118,6 @@ public abstract class ItemBase : NetworkBehaviour
         }
     }
 
-    // ==========================================================
-    // 4. 상태 저장/복구 (Data Persistence)
-    // ==========================================================
     public virtual float[] ExtractSaveData() { return null; }
     public virtual void ApplySaveData(float[] savedStates) { }
 }
