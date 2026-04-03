@@ -14,7 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
   itemID: 101
   itemName: scrap1
-  category: 0
   handType: 0
+  category: 0
   basePrice: 200
   icon: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  animType: 0
+  spawnLocation: 0
+  itemPrefab: {fileID: 7116581890818129184, guid: f6cdb16393c87e74496bcecc62cb368c, type: 3}

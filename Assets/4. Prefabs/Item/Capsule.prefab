@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 5841831567233170844}
   - component: {fileID: 1703716899635158450}
   - component: {fileID: 1986669050289793610}
+  - component: {fileID: 1253128006961111095}
   - component: {fileID: 384831874198767449}
   - component: {fileID: 4663663742443006188}
   m_Layer: 17
@@ -116,6 +117,31 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1253128006961111095
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9025454128932066489}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 370885500
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!114 &384831874198767449
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -128,6 +154,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f700343a66c6f924e99869c90edd43f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Item_Scrap
+  ShowTopMostFoldoutHeaderGroup: 1
   itemData: {fileID: 11400000, guid: 1473f70f8e1093a46b7661e18db31796, type: 2}
   isEquipped: 0
   currentScrapValue: 350

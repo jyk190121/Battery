@@ -50,4 +50,7 @@ public class ItemDataSO : ScriptableObject
     [Tooltip("해당 층 또는 특정 장소에 랜덤 스폰시킴.")]
     public SpawnLocation spawnLocation = SpawnLocation.Floor1;
 
+    [Header("스폰시 사용될 Prefab")]
+    public GameObject itemPrefab;
+
 }

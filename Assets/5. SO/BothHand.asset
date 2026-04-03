@@ -20,3 +20,4 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 984d0a6281d2e6e449db06480c57bf62, type: 3}
   animType: 3
   spawnLocation: 0
+  itemPrefab: {fileID: 9025454128932066489, guid: a0b604afa26cef0499b89e22685cc4ae, type: 3}
