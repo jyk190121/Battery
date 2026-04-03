@@ -1,7 +1,8 @@
 using Unity.Cinemachine;
+using Unity.Netcode;
 using UnityEngine;
 
-public class PlayerRotation : MonoBehaviour
+public class PlayerRotation : NetworkBehaviour
 {
     [Header("참조")]
     public CinemachineCamera vcam;  // 인스펙터에서 시네머신 카메라 할당
@@ -19,61 +20,112 @@ public class PlayerRotation : MonoBehaviour
 
     private CinemachinePanTilt _panTilt;
 
-    void Start()
+    //void Start()
+    //{
+    //    if (vcam != null)
+    //    {
+    //        _panTilt = vcam.GetComponent<CinemachinePanTilt>();
+    //    }
+
+    //    if(playerMove == null)
+    //    {
+    //        playerMove = GetComponent<PlayerMove>();
+    //    }
+
+    //    // 초기 위치 설정
+    //    if (cameraTarget != null)
+    //    {
+    //        Vector3 pos = cameraTarget.localPosition;
+    //        cameraTarget.localPosition = new Vector3(pos.x, walkYPos + originYoffset, pos.z);
+    //    }
+
+    //    // 마우스 커서를 화면 중앙에 고정하고 숨깁니다.
+    //    Cursor.lockState = CursorLockMode.Locked;
+    //    Cursor.visible = false;
+    //}
+
+    public override void OnNetworkSpawn()
     {
         if (vcam != null)
         {
             _panTilt = vcam.GetComponent<CinemachinePanTilt>();
         }
-        
-        if(playerMove == null)
+
+        if (playerMove == null)
         {
             playerMove = GetComponent<PlayerMove>();
         }
 
-        // 초기 위치 설정
-        if (cameraTarget != null)
+        if (IsOwner)
         {
-            Vector3 pos = cameraTarget.localPosition;
-            cameraTarget.localPosition = new Vector3(pos.x, walkYPos + originYoffset, pos.z);
-        }
+            // [에러 해결] .Enabled 대신 .enabled 사용 (소문자)
+            if (vcam != null)
+            {
+                vcam.Priority = 10;
+                vcam.enabled = true;
 
-        // 마우스 커서를 화면 중앙에 고정하고 숨깁니다.
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+                // 혹은 게임 오브젝트 전체를 끄고 켜는 방식이 가장 확실합니다.
+                // vcam.gameObject.SetActive(true);
+            }
+
+            // 초기 위치 설정
+            if (cameraTarget != null)
+            {
+                Vector3 pos = cameraTarget.localPosition;
+                cameraTarget.localPosition = new Vector3(pos.x, walkYPos + originYoffset, pos.z);
+            }
+
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+        else
+        {
+            // 내 캐릭터가 아니라면 카메라 컴포넌트 비활성화
+            if (vcam != null)
+            {
+                vcam.enabled = false;
+                // vcam.gameObject.SetActive(false); // 추천: 카메라 오브젝트 자체를 끄기
+            }
+        }
     }
 
     void LateUpdate()
     {
-        // 1. Input.cs에서 마우스 이동량 가져오기
-        Vector2 mouseDelta = Input.GetMouseDelta();
+        if (!IsOwner) return; // 내 캐릭터만 마우스 회전 처리
+        
+        //Vector2 mouseDelta = Input.GetMouseDelta();
 
         //if (_panTilt != null)
         //{
-        //    // 2. 시네머신 PanTilt 값 업데이트
-        //    // Pan (좌우 회전), Tilt (상하 회전)
-        //    _panTilt.PanAxis.Value += mouseDelta.x * sensitivity;
-        //    _panTilt.TiltAxis.Value -= mouseDelta.y * sensitivity; // 위로 올리면 화면이 위를 보게 함
 
-        //    // 3. 플레이어 본체(몸) 회전 동기화
-        //    // 카메라가 보는 수평 방향(Pan)으로 몸을 돌려줘야 이동(WASD) 방향이 일치하게 됩니다.
+        //    // 1. 좌우 회전은 자유롭게 (0~360도)
+        //    _panTilt.PanAxis.Value += mouseDelta.x * sensitivity;
+
+        //    // 2. 상하 회전값 계산
+        //    float newTilt = _panTilt.TiltAxis.Value - (mouseDelta.y * sensitivity);
+
+        //    // 3. Mathf.Clamp를 사용하여 범위를 제한 (-70도 ~ 70도)
+        //    // 위로 70도(-70), 아래로 30도(30)
+        //    _panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, -70f, 70f);
+
+        //    // 4. 본체 회전 동기화
         //    transform.rotation = Quaternion.Euler(0, _panTilt.PanAxis.Value, 0);
+
+        //    UpdateCameraPosition();
         //}
 
         if (_panTilt != null)
         {
+            Vector2 mouseDelta = Input.GetMouseDelta();
 
-            // 1. 좌우 회전은 자유롭게 (0~360도)
+            // 1. 좌우 회전 (Pan)
             _panTilt.PanAxis.Value += mouseDelta.x * sensitivity;
 
-            // 2. 상하 회전값 계산
+            // 2. 상하 회전 (Tilt) 및 제한
             float newTilt = _panTilt.TiltAxis.Value - (mouseDelta.y * sensitivity);
-
-            // 3. Mathf.Clamp를 사용하여 범위를 제한 (-70도 ~ 70도)
-            // 위로 70도(-70), 아래로 30도(30)
             _panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, -70f, 70f);
 
-            // 4. 본체 회전 동기화
+            // 3. 본체 회전 동기화 (Y축만)
             transform.rotation = Quaternion.Euler(0, _panTilt.PanAxis.Value, 0);
 
             UpdateCameraPosition();

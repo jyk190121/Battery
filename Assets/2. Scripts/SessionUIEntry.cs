@@ -12,19 +12,20 @@ public class SessionUIEntry : MonoBehaviour
     [SerializeField] private TextMeshProUGUI playerCountText;   // 인원수 (중앙)
     [SerializeField] private Button selectBtn;                 // 참여 버튼 (오른쪽 하단)
 
-    private ISession _session;
-    private Action<ISession> _onSelected;
+    private ISessionInfo _session;
+    private Action<ISessionInfo> _onSelected;
 
     /// <summary>
     /// 방 정보를 받아 UI 텍스트를 갱신하고 버튼 이벤트를 연결합니다.
     /// </summary>
-    public void Setup(ISession session, Action<ISession> onSelected)
+    public void Setup(ISessionInfo session, Action<ISessionInfo> onSelected)
     {
         _session = session;
         _onSelected = onSelected;
 
         roomNameText.text = session.Name;
-        playerCountText.text = $"{session.Players.Count} / {session.MaxPlayers}";
+        playerCountText.text = $"{session.MaxPlayers}";
+        //playerCountText.text = $"{session.Players.Count} / {session.MaxPlayers}";
 
         selectBtn.onClick.RemoveAllListeners();
         selectBtn.onClick.AddListener(() => _onSelected?.Invoke(_session));
