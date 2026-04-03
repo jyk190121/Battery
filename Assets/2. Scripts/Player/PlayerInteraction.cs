@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -8,7 +9,7 @@ public class PlayerInteraction : MonoBehaviour
     public Player data;                                 // 플레이어 SO
     public LayerMask DoorLayer;                         // 문 레이어
     public GameObject interactUI;                       // UI오브젝트
-    public TMPro.TextMeshProUGUI interactText;          // 텍스트
+    TextMeshProUGUI interactText;                       // 텍스트
 
     [Header("References")]
     [SerializeField] private Transform camTransform;    // 카메라 위치
@@ -18,6 +19,7 @@ public class PlayerInteraction : MonoBehaviour
     void Start()
     {
         if (camTransform == null) camTransform = Camera.main.transform;
+        interactText = interactUI.GetComponent<TextMeshProUGUI>();
     }
 
     // Update is called once per frame
