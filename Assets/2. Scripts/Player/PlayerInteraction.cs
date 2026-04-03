@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Netcode;
+using Unity.Cinemachine;
 
 
 public class PlayerInteraction : NetworkBehaviour
@@ -19,13 +20,13 @@ public class PlayerInteraction : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        interactUI = FindAnyObjectByType<GameObject>();
-    }
+        interactUI = GameObject.Find("Interact_Text").gameObject;
+        if (camTransform == null) camTransform = FindAnyObjectByType<CinemachineCamera>().GetComponent<Transform>();
 
-    void Start()
-    {
-        if (camTransform == null) camTransform = Camera.main.transform;
+        //if (camTransform == null) camTransform = Camera.main.transform;
         interactText = interactUI.GetComponent<TextMeshProUGUI>();
+
+        interactUI.SetActive(false);
     }
 
     // Update is called once per frame
