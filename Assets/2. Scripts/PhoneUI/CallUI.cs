@@ -1,10 +1,16 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
 
 public class CallUI : ScrollSelectionUI
 {
+    [Header("References")]
+    public PhotonChatManager chatManager;
     public GameObject highlight;
     public GameObject onCall;
+
+    [Header("Phone Book (임시 목록)")]
+    public List<string> phoneBookList = new List<string>();
 
     private readonly float padding = 100f;
     private Vector3 startPosition;
@@ -12,24 +18,30 @@ public class CallUI : ScrollSelectionUI
     private void Awake()
     {
         if (highlight != null) startPosition = highlight.transform.localPosition;
-        maxIndex = 2; // 부모 클래스 변수 설정
+
+        if (phoneBookList.Count == 0)
+        {
+            phoneBookList.Add("Player1");
+            phoneBookList.Add("Player2");
+            phoneBookList.Add("Player3");
+            phoneBookList.Add("Player4");
+        }
     }
 
     private void OnEnable()
     {
         if (onCall.activeSelf) onCall.SetActive(false);
 
+        maxIndex = Mathf.Max(0, phoneBookList.Count - 1);
         currentIndex = 0;
         UpdateHighlightVisuals();
 
-        // 이벤트 구독
         if (PhoneUIController.Instance != null)
             PhoneUIController.Instance.OnBackButtonPressed += HandleBack;
     }
 
     private void OnDisable()
     {
-        // 이벤트 해제
         if (PhoneUIController.Instance != null)
             PhoneUIController.Instance.OnBackButtonPressed -= HandleBack;
     }
@@ -38,7 +50,6 @@ public class CallUI : ScrollSelectionUI
     {
         if (Mouse.current == null || highlight == null) return;
 
-        // 부모 클래스 스크롤 기능
         HandleScroll();
 
         if (Mouse.current.rightButton.wasPressedThisFrame) StartCall();
@@ -49,7 +60,6 @@ public class CallUI : ScrollSelectionUI
         PhoneUIController.Instance.ShowScreen(0);
     }
 
-    // CallUI는 세로(Y축)로 이동하므로 y값을 뺍니다.
     protected override void UpdateHighlightVisuals()
     {
         Vector3 newPos = startPosition;
@@ -59,9 +69,39 @@ public class CallUI : ScrollSelectionUI
 
     void StartCall()
     {
-        onCall.SetActive(true);
-        currentIndex = 0;
-        UpdateHighlightVisuals();
+        if (phoneBookList.Count == 0) return;
+
+        string targetPlayer = phoneBookList[currentIndex];
+
+        if (chatManager != null)
+        {
+            // [핵심 3] 아직 서버 접속이 완료되지 않았다면 전화 걸기 차단
+            if (!chatManager.CanChat)
+            {
+                Debug.LogWarning("[Phone] 아직 채팅 서버에 연결되지 않았습니다. 잠시 후 시도해주세요.");
+                return;
+            }
+
+            // [핵심 3] 자기 자신에게 전화를 거는 행위 차단
+            if (targetPlayer == chatManager.userName)
+            {
+                Debug.LogWarning("[Phone] 자기 자신에게는 전화를 걸 수 없습니다.");
+                return;
+            }
+
+            chatManager.SendCallRequest(targetPlayer);
+        }
+
+        OnCallingUI callingScript = onCall.GetComponent<OnCallingUI>();
+        if (callingScript != null)
+        {
+            callingScript.StartOutgoingCall(targetPlayer);
+        }
+        else
+        {
+            onCall.SetActive(true);
+        }
+
         gameObject.SetActive(false);
     }
 }
