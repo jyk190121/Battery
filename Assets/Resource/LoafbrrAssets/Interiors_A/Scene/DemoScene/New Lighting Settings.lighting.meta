@@ -11,5 +11,6 @@ AssetOrigin:
   productId: 325198
   packageName: Interiors A
   packageVersion: 1.0
-  assetPath: Assets/LoafbrrAssets/Interiors_A/Scene/DemoScene/New Lighting Settings.lighting
+  assetPath: Assets/Resource/LoafbrrAssets/Interiors_A/Scene/DemoScene/New Lighting
+    Settings.lighting
   uploadId: 769116
