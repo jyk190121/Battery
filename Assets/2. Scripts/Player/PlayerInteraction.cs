@@ -1,9 +1,11 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Unity.Netcode;
+using Unity.Cinemachine;
 
 
-public class PlayerInteraction : MonoBehaviour
+public class PlayerInteraction : NetworkBehaviour
 {
     [Header("Data & Settings")]
     public Player data;                                 // 플레이어 SO
@@ -16,10 +18,15 @@ public class PlayerInteraction : MonoBehaviour
 
     private bool isLookingAtInteractable = false;       // 문을 보고 있는가
 
-    void Start()
+    public override void OnNetworkSpawn()
     {
-        if (camTransform == null) camTransform = Camera.main.transform;
+        interactUI = GameObject.Find("Interact_Text").gameObject;
+        if (camTransform == null) camTransform = FindAnyObjectByType<CinemachineCamera>().GetComponent<Transform>();
+
+        //if (camTransform == null) camTransform = Camera.main.transform;
         interactText = interactUI.GetComponent<TextMeshProUGUI>();
+
+        interactUI.SetActive(false);
     }
 
     // Update is called once per frame
