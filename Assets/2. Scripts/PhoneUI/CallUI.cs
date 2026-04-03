@@ -26,6 +26,12 @@ public class CallUI : ScrollSelectionUI
             phoneBookList.Add("Player3");
             phoneBookList.Add("Player4");
         }
+
+        if (onCall != null)
+        {
+            onCall.SetActive(true);
+            onCall.SetActive(false);
+        }
     }
 
     private void OnEnable()
@@ -75,14 +81,13 @@ public class CallUI : ScrollSelectionUI
 
         if (chatManager != null)
         {
-            // [핵심 3] 아직 서버 접속이 완료되지 않았다면 전화 걸기 차단
+            // [해결] 채팅 서버(신호망)가 아직 준비되지 않았다면 클릭 자체를 무시합니다.
             if (!chatManager.CanChat)
             {
-                Debug.LogWarning("[Phone] 아직 채팅 서버에 연결되지 않았습니다. 잠시 후 시도해주세요.");
-                return;
+                Debug.LogWarning("[Phone] 통신망 연결 중입니다. 1~2초 뒤에 다시 시도해주세요.");
+                return; // 여기서 멈춤 (에러 방지)
             }
 
-            // [핵심 3] 자기 자신에게 전화를 거는 행위 차단
             if (targetPlayer == chatManager.userName)
             {
                 Debug.LogWarning("[Phone] 자기 자신에게는 전화를 걸 수 없습니다.");
