@@ -2631,6 +2631,7 @@ GameObject:
   m_Component:
   - component: {fileID: 658577172614144005}
   - component: {fileID: 9016010991022753783}
+  - component: {fileID: -5311720854902051619}
   - component: {fileID: 3366771625458936302}
   - component: {fileID: 1166937674116199471}
   m_Layer: 0
@@ -2694,6 +2695,31 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &-5311720854902051619
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4911454195433589709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 3080782475
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!114 &3366771625458936302
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2706,8 +2732,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e00bb5d226cab9441a4ea612cde8b613, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerRotation
+  ShowTopMostFoldoutHeaderGroup: 1
   vcam: {fileID: 0}
+  cameraTarget: {fileID: 0}
+  playerMove: {fileID: 0}
   sensitivity: 0.02
+  originYoffset: 0.0961
+  walkYPos: 0.1
+  runYPos: 0.4
+  transitionSpeed: 10
 --- !u!114 &1166937674116199471
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2720,8 +2753,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d13bd3b7aab04b48b4f5d1ddc480a8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
-  playerObject: {fileID: 0}
-  moveSpeed: 3
+  ShowTopMostFoldoutHeaderGroup: 1
+  walkSpeed: 3.5
+  runSpeed: 6
+  currentSpeed: 0
+  jumpForce: 5
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  groundCheckDistance: 0.25
+  stairLayer:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!1 &5047510916941267613
 GameObject:
   m_ObjectHideFlags: 0

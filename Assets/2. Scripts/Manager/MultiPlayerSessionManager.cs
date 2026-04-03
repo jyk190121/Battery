@@ -41,7 +41,8 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     }
 
     // UI 갱신을 위한 이벤트 (방 목록 전달)
-    public event Action<List<ISession>> OnSessionListUpdated;
+    //public event Action<List<ISession>> OnSessionListUpdated;
+    public event Action<List<ISessionInfo>> OnSessionListUpdated;
     public event Action<bool> OnHostStatusChanged;
 
     private bool _isLeaving = false;
@@ -84,6 +85,7 @@ public class MultiPlayerSessionManager : NetworkBehaviour
             Debug.LogError($"[Multiplayer] 초기화 실패: {e.Message}");
         }
     }
+
 
     #region Authentication
     public async Task EnsureSignedInAsync()
@@ -146,8 +148,7 @@ public class MultiPlayerSessionManager : NetworkBehaviour
             Debug.Log($"[Multiplayer] 세션 생성 성공: {ActiveSession.Name}");
 
             // GameSceneManager가 Null인지도 체크
-            if (GameSceneManager.Instance != null)
-                GameSceneManager.Instance.LoadScene(LOBBY_SCENE_NAME);
+            if (GameSceneManager.Instance != null) GameSceneManager.Instance.LoadNetworkScene(LOBBY_SCENE_NAME);
             else
                 Debug.LogError("[Multiplayer] GameSceneManager 인스턴스를 찾을 수 없습니다.");
         }
@@ -164,38 +165,56 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         {
             await EnsureSignedInAsync();
 
-            //var queryOptions = new QuerySessionsOptions { MaxResults = 10 };
-            //var queryResponse = await MultiplayerService.Instance.QuerySessionsAsync(queryOptions);
+            // 에러 해결: Options에 Limit이 없다면 기본 생성자 사용 후 속성 설정
+            var queryOptions = new QuerySessionsOptions();
+            // 만약 queryOptions.Count 나 queryOptions.MaxResults 등도 안된다면 일단 비워둡니다.
 
-            //Debug.Log($"[Multiplayer] {queryResponse.Results.Count}개의 방을 찾았습니다.");
-            //OnSessionListUpdated?.Invoke(queryResponse.Results);
+            // 쿼리 실행
+            var queryResponse = await MultiplayerService.Instance.QuerySessionsAsync(queryOptions);
+
+            // 에러 해결: ISession 대신 ISessionInfo 리스트 생성
+            List<ISessionInfo> sessions = new List<ISessionInfo>();
+
+            if (queryResponse != null && queryResponse.Sessions != null)
+            {
+                foreach (var session in queryResponse.Sessions)
+                {
+                    // 이제 ISessionInfo 형식으로 리스트에 담깁니다.
+                    sessions.Add(session);
+                }
+            }
+
+            Debug.Log($"[Multiplayer] {sessions.Count}개의 방을 찾았습니다.");
+            OnSessionListUpdated?.Invoke(sessions);
         }
         catch (Exception e)
         {
             Debug.LogError($"[Multiplayer] 방 목록 불러오기 실패: {e.Message}");
         }
     }
-
     // 3. 특정 방에 참가하기 (Join)
-    public async void JoinSessionAsync(ISession session)
+    public async void JoinSessionAsync(ISessionInfo session)
     {
         _isLeaving = false;
         try
         {
             await EnsureSignedInAsync();
 
-            // 세션 참가
+            // 에러 해결: ISessionInfo에서 세션 ID를 가져와 참가
             ActiveSession = await MultiplayerService.Instance.JoinSessionByIdAsync(session.Id);
 
-            // Relay 접속 정보 추출
+            // Relay 접속 정보 추출 (ActiveSession.Code 또는 Relay 할당 정보 사용)
             var joinAllocation = await RelayService.Instance.JoinAllocationAsync(ActiveSession.Code);
             var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
 
-            transport.SetClientRelayData(
-                joinAllocation.RelayServer.IpV4, (ushort)joinAllocation.RelayServer.Port,
-                joinAllocation.AllocationIdBytes, joinAllocation.Key,
-                joinAllocation.ConnectionData, joinAllocation.HostConnectionData
-            );
+            if (transport != null)
+            {
+                transport.SetClientRelayData(
+                    joinAllocation.RelayServer.IpV4, (ushort)joinAllocation.RelayServer.Port,
+                    joinAllocation.AllocationIdBytes, joinAllocation.Key,
+                    joinAllocation.ConnectionData, joinAllocation.HostConnectionData
+                );
+            }
 
             // 클라이언트 시작
             NetworkManager.Singleton.StartClient();
@@ -203,7 +222,8 @@ public class MultiPlayerSessionManager : NetworkBehaviour
 
             Debug.Log($"[Multiplayer] 세션 참가 성공: {ActiveSession.Name}");
 
-            GameSceneManager.Instance.LoadScene(LOBBY_SCENE_NAME);
+            if (GameSceneManager.Instance != null)
+                GameSceneManager.Instance.LoadNetworkScene(LOBBY_SCENE_NAME);
         }
         catch (Exception e)
         {
@@ -236,7 +256,7 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         }
 
         _isLeaving = false;
-        UnityEngine.SceneManagement.SceneManager.LoadScene(START_SCENE_NAME);
+        GameSceneManager.Instance.LoadNetworkScene(START_SCENE_NAME);
     }
 
     private void OnClientDisconnected(ulong clientId)
