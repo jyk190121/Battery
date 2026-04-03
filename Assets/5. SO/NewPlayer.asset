@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ef104983d0f1ff4b82c0fbf533b6c1b, type: 3}
   m_Name: NewPlayer
   m_EditorClassIdentifier: Assembly-CSharp::Player
-  interactDistance: 1.5
+  interactDistance: 2
