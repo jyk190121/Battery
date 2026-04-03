@@ -12,9 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff10b20d6fe2cce4ab855ce5cb3e8034, type: 3}
   m_Name: Consumable_Test
   m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
-  itemID: 1
+  itemID: 102
   itemName: Consumable1
-  category: 1
   handType: 0
-  basePrice: 0
+  category: 1
+  basePrice: 200
   icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  animType: 4
+  spawnLocation: 0
+  itemPrefab: {fileID: 9048807808036045262, guid: 2d72ef6ea3227664ca05aac27bf436fd, type: 3}

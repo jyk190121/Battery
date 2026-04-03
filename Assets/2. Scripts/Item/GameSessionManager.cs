@@ -37,6 +37,21 @@ public class GameSessionManager : MonoBehaviour
 
     public ItemBase GetPrefab(int id)
     {
-        return itemPrefabsDB.Find(x => x.itemData.itemID == id);
+        foreach (var item in itemPrefabsDB)
+        {
+            if (item == null)
+            {
+                Debug.LogWarning("🚨 [DB 경고] 리스트에 빈칸(None)이 있습니다!");
+                continue;
+            }
+            if (item.itemData == null)
+            {
+                Debug.LogWarning($"🚨 [DB 경고] 프리팹 '{item.gameObject.name}'에 ItemDataSO가 없습니다!");
+                continue;
+            }
+            if (item.itemData.itemID == id) return item;
+        }
+        Debug.LogError($"🚨 [DB 에러] ID {id}번 아이템을 찾을 수 없습니다.");
+        return null;
     }
 }

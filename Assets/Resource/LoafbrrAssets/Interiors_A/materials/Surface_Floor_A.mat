@@ -32,7 +32,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ColorTexture:
-        m_Texture: {fileID: 2800000, guid: 0823afaf936363e45a253a6acffdcc1b, type: 3}
+        m_Texture: {fileID: 2800000, guid: a8b3ffa5ac71ee34f9bacbe988fadc7b, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissionTexture:
