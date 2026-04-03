@@ -35,19 +35,26 @@ public class StartManager : MonoBehaviour
 
     private void OnEnable()
     {
-        // 세션 매니저의 이벤트 구독
         if (MultiPlayerSessionManager.Instance != null)
+        {
+            MultiPlayerSessionManager.Instance.OnSessionListUpdated -= UpdateSessionListUI;
             MultiPlayerSessionManager.Instance.OnSessionListUpdated += UpdateSessionListUI;
+        }
     }
 
     private void OnDisable()
     {
-        if (MultiPlayerSessionManager.Instance != null)
-            MultiPlayerSessionManager.Instance.OnSessionListUpdated -= UpdateSessionListUI;
+        if (MultiPlayerSessionManager.Instance != null) MultiPlayerSessionManager.Instance.OnSessionListUpdated -= UpdateSessionListUI;
     }
 
     void Start()
     {
+        if (MultiPlayerSessionManager.Instance != null)
+        {
+            MultiPlayerSessionManager.Instance.OnSessionListUpdated -= UpdateSessionListUI;
+            MultiPlayerSessionManager.Instance.OnSessionListUpdated += UpdateSessionListUI;
+        }
+
         ShowPanel(nicknamePanel);
 
         // 버튼 리스너 연결
@@ -59,6 +66,11 @@ public class StartManager : MonoBehaviour
 
         //닉네임 결정 버튼
         nicknameConfirmBtn.onClick.AddListener(OnNicknameConfirm);
+
+        // Join 패널 내부 버튼들
+        if (refreshBtn != null) refreshBtn.onClick.AddListener(OnRefreshClicked); // 새로고침(Reset) 버튼
+
+        if (joinPanelBackBtn != null) joinPanelBackBtn.onClick.AddListener(OnBackToMain); // 뒤로가기 버튼
     }
 
     // 특정 패널만 켜고 나머지는 끄는 공통 함수
@@ -104,17 +116,45 @@ public class StartManager : MonoBehaviour
     private void OnJoinBtnClicked()
     {
         ShowPanel(joinPanel);
+
         // 서버에서 방 목록을 요청함
-        MultiPlayerSessionManager.Instance.QuerySessionsAsync();
+        //MultiPlayerSessionManager.Instance.QuerySessionsAsync();
+        RefreshSessionList(); // 패널을 열 때 목록을 새로고침함
     }
 
-    private void UpdateSessionListUI(List<ISession> sessions)
+    // 2. '새로고침(Reset)' 버튼 클릭 시 (Join 패널 내부)
+    private void OnRefreshClicked()
     {
-        // 1. 기존 리스트 청소
+        Debug.Log("방 목록 새로고침 요청...");
+        RefreshSessionList();
+    }
+
+    // 공통 새로고침 로직
+    private void RefreshSessionList()
+    {
+        // 시각적으로 목록이 비워지는 피드백을 주려면 여기서 미리 삭제할 수 있습니다.
+        ClearSessionListUI();
+
+        // 서버에 최신 목록 요청 (성공 시 OnSessionListUpdated 이벤트가 발생하여 UpdateSessionListUI 실행)
+        if (MultiPlayerSessionManager.Instance != null)
+        {
+            MultiPlayerSessionManager.Instance.QuerySessionsAsync();
+        }
+    }
+
+    // UI 리스트만 비우는 헬퍼 함수
+    private void ClearSessionListUI()
+    {
         foreach (Transform child in sessionListContent)
         {
             Destroy(child.gameObject);
         }
+    }
+
+    private void UpdateSessionListUI(List<ISessionInfo> sessions)
+    {
+        // 1. 기존 리스트 청소
+        ClearSessionListUI();
 
         if (sessions == null || sessions.Count == 0) return;
 
@@ -122,6 +162,16 @@ public class StartManager : MonoBehaviour
         foreach (var session in sessions)
         {
             GameObject entryGo = Instantiate(sessionEntryPrefab, sessionListContent);
+            print("프리팹 생성하는가");
+            //entryGo.transform.localScale = Vector3.one;                                 // 스케일 강제 고정
+            //entryGo.transform.localPosition = Vector3.zero;                             // 위치 초기화
+            // UI 프리팹이 깨지는 것을 방지하기 위한 코드
+            RectTransform rt = entryGo.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.localScale = Vector3.one;
+                rt.anchoredPosition3D = Vector3.zero;
+            }
 
             if (entryGo.TryGetComponent<SessionUIEntry>(out var entryScript))
             {
@@ -132,6 +182,7 @@ public class StartManager : MonoBehaviour
                 });
             }
         }
+        LayoutRebuilder.ForceRebuildLayoutImmediate(sessionListContent.GetComponent<RectTransform>());
     }
 
     public void OnBackToMain()

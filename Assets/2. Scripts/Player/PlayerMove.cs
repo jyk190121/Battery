@@ -1,10 +1,11 @@
+using System.Collections;                          // 코루틴용
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System.Collections;                          // 코루틴용
 using Key = UnityEngine.InputSystem.Key;
 
 
-public class PlayerMove : MonoBehaviour
+public class PlayerMove : NetworkBehaviour
 {
     [Header("이동 설정")]
     public float walkSpeed = 3.5f;                  // 기본 걷기 속도
@@ -45,6 +46,8 @@ public class PlayerMove : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!IsOwner) return;
+
         if (Keyboard.current == null) return;
 
         float h = Input.GetAxisRaw("Horizontal");
