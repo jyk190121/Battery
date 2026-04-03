@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &9048807808036045262
+--- !u!1 &9025454128932066489
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,51 +8,51 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1989250866295250192}
-  - component: {fileID: 8452210613283847379}
-  - component: {fileID: 2423014097430781250}
-  - component: {fileID: 8375969092777436851}
-  - component: {fileID: 4257705134030563439}
-  - component: {fileID: -1305727448179239751}
-  - component: {fileID: 5134562728361972797}
-  - component: {fileID: 7216426420027540899}
+  - component: {fileID: 6090336198511599704}
+  - component: {fileID: 5841831567233170844}
+  - component: {fileID: 1703716899635158450}
+  - component: {fileID: 1986669050289793610}
+  - component: {fileID: 1253128006961111095}
+  - component: {fileID: 384831874198767449}
+  - component: {fileID: 4663663742443006188}
+  - component: {fileID: -4762510182798289736}
   m_Layer: 17
-  m_Name: Cylinder
+  m_Name: Capsule
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1989250866295250192
+--- !u!4 &6090336198511599704
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9048807808036045262}
+  m_GameObject: {fileID: 9025454128932066489}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.5, z: 5.1}
-  m_LocalScale: {x: 1, y: 0.5, z: 1}
+  m_LocalPosition: {x: -2.59, y: 1, z: 6.86}
+  m_LocalScale: {x: 2.32, y: 0.43, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &8452210613283847379
+--- !u!33 &5841831567233170844
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9048807808036045262}
-  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &2423014097430781250
+  m_GameObject: {fileID: 9025454128932066489}
+  m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &1703716899635158450
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9048807808036045262}
+  m_GameObject: {fileID: 9025454128932066489}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -95,13 +95,13 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &8375969092777436851
+--- !u!136 &1986669050289793610
 CapsuleCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9048807808036045262}
+  m_GameObject: {fileID: 9025454128932066489}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -114,17 +114,58 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.5000001
+  m_Radius: 0.5
   m_Height: 2
   m_Direction: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
---- !u!54 &4257705134030563439
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1253128006961111095
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9025454128932066489}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 370885500
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
+--- !u!114 &384831874198767449
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9025454128932066489}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f700343a66c6f924e99869c90edd43f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Item_Scrap
+  ShowTopMostFoldoutHeaderGroup: 1
+  itemData: {fileID: 11400000, guid: 1473f70f8e1093a46b7661e18db31796, type: 2}
+  isEquipped: 0
+  currentScrapValue: 350
+--- !u!54 &4663663742443006188
 Rigidbody:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9048807808036045262}
+  m_GameObject: {fileID: 9025454128932066489}
   serializedVersion: 5
   m_Mass: 1
   m_LinearDamping: 0
@@ -145,53 +186,13 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &-1305727448179239751
+--- !u!114 &-4762510182798289736
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9048807808036045262}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3543978018
-  InScenePlacedSourceGlobalObjectIdHash: 0
-  DeferredDespawnTick: 0
-  Ownership: 1
-  AlwaysReplicateAsRoot: 0
-  SynchronizeTransform: 1
-  ActiveSceneSynchronization: 0
-  SceneMigrationSynchronization: 1
-  SpawnWithObservers: 1
-  DontDestroyWithOwner: 0
-  AutoObjectParentSync: 1
-  SyncOwnerTransformWhenParented: 1
-  AllowOwnerToParent: 0
---- !u!114 &5134562728361972797
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9048807808036045262}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 48822c19e1cb85f4391053cb26aecc62, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Item_Consumable
-  ShowTopMostFoldoutHeaderGroup: 1
-  itemData: {fileID: 11400000, guid: a1311076796163449b980b6bd733e586, type: 2}
-  isEquipped: 0
---- !u!114 &7216426420027540899
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9048807808036045262}
+  m_GameObject: {fileID: 9025454128932066489}
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}

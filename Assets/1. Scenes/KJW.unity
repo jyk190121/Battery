@@ -143,12 +143,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 75231943}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0.5483389, y: 0.079928264, z: 0.5308922, w: 0.64116263}
+  m_LocalPosition: {x: 0.70407456, y: 0.089198895, z: -0.43234098}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 411751876}
+  m_Father: {fileID: 616052607}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &234506072
 GameObject:
@@ -542,7 +542,7 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5353027069092692048, guid: 2c377507a2062c143bc8d5a4398f6749, type: 3}
       insertIndex: -1
       addedObject: {fileID: 271426200}
-    - targetCorrespondingSourceObject: {fileID: 3749171752710270344, guid: 2c377507a2062c143bc8d5a4398f6749, type: 3}
+    - targetCorrespondingSourceObject: {fileID: 8435035688047205567, guid: 2c377507a2062c143bc8d5a4398f6749, type: 3}
       insertIndex: -1
       addedObject: {fileID: 75231944}
     m_AddedComponents:
@@ -559,11 +559,6 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1742117004}
   m_SourcePrefab: {fileID: 100100000, guid: 2c377507a2062c143bc8d5a4398f6749, type: 3}
---- !u!4 &411751876 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 3749171752710270344, guid: 2c377507a2062c143bc8d5a4398f6749, type: 3}
-  m_PrefabInstance: {fileID: 411751875}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &411751877 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5353027069092692048, guid: 2c377507a2062c143bc8d5a4398f6749, type: 3}
@@ -1643,7 +1638,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1496571787}
+  - component: {fileID: 1496571788}
   - component: {fileID: 1496571786}
+  - component: {fileID: 1496571789}
   m_Layer: 0
   m_Name: ItemSpwanPoint
   m_TagString: Untagged
@@ -1663,15 +1660,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f560914f5d37e8479e5c43dce6b69fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemSpawner
-  spawnPoints:
-  - {fileID: 1453518231}
-  - {fileID: 296396734}
-  - {fileID: 1078391656}
-  - {fileID: 919933048}
-  itemPrefabs:
-  - {fileID: 7116581890818129184, guid: f6cdb16393c87e74496bcecc62cb368c, type: 3}
-  - {fileID: 9048807808036045262, guid: 2d72ef6ea3227664ca05aac27bf436fd, type: 3}
+  ShowTopMostFoldoutHeaderGroup: 1
+  itemDatabase:
+  - {fileID: 11400000, guid: 1473f70f8e1093a46b7661e18db31796, type: 2}
+  - {fileID: 11400000, guid: a1311076796163449b980b6bd733e586, type: 2}
+  - {fileID: 11400000, guid: 948deca58d407434cb3941bfb7d3448f, type: 2}
   spawnCount: 10
+  areaManagers:
+  - {fileID: 1496571789}
 --- !u!4 &1496571787
 Transform:
   m_ObjectHideFlags: 0
@@ -1691,6 +1687,49 @@ Transform:
   - {fileID: 919933048}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1496571788
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1496571785}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 1160410802
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
+--- !u!114 &1496571789
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1496571785}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b377b6fb980d8e4f9326ecac339c8c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemSpawnPoint
+  location: 0
+  points:
+  - {fileID: 1453518231}
+  - {fileID: 296396734}
+  - {fileID: 1078391656}
+  - {fileID: 919933048}
 --- !u!1 &1522523439
 GameObject:
   m_ObjectHideFlags: 0
@@ -2012,6 +2051,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1814433157}
   - component: {fileID: 1814433156}
+  - component: {fileID: 1814433158}
   m_Layer: 0
   m_Name: GameMaanger
   m_TagString: Untagged
@@ -2052,6 +2092,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1814433158
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1814433155}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05dd29f386053f24fb72cf9fe4f5fa27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetworkGlobalSettings
+  isMultiplayerMode: 0
 --- !u!1 &1863846086
 GameObject:
   m_ObjectHideFlags: 0
@@ -2139,6 +2192,7 @@ GameObject:
   - component: {fileID: 1931058561}
   - component: {fileID: 1931058563}
   - component: {fileID: 1931058562}
+  - component: {fileID: 1931058564}
   m_Layer: 5
   m_Name: InventoryPanel
   m_TagString: Untagged
@@ -2218,6 +2272,18 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!225 &1931058564
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1931058560}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &2010107739
 GameObject:
   m_ObjectHideFlags: 0
@@ -2358,5 +2424,5 @@ SceneRoots:
   - {fileID: 1586351270}
   - {fileID: 1522523443}
   - {fileID: 1365177701}
-  - {fileID: 1814433157}
   - {fileID: 1496571787}
+  - {fileID: 1814433157}
