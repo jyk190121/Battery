@@ -631,7 +631,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PhotonChatManager
   chatAppId: 3fc3c49e-bb5a-4e26-8611-6943ef4ed936
-  userName: Player1
+  userName: Player2
   teamChatRoom: {fileID: 993721349}
   ifConnected: {fileID: 2123583559}
   connectYet: {fileID: 438459562}
@@ -674,7 +674,7 @@ MonoBehaviour:
   encrypt: 0
   transmitEnabled: 0
   samplingRate: 24000
-  frameDuration: 40000
+  frameDuration: 20000
   bitrate: 30000
   sourceType: 0
   microphoneType: 0
@@ -2074,6 +2074,10 @@ PrefabInstance:
     - target: {fileID: 3395234632279944532, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
       propertyPath: m_Name
       value: DefaultUI
+      objectReference: {fileID: 0}
+    - target: {fileID: 3527746616065891556, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3696020283463225045, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
       propertyPath: m_IsActive

@@ -31,6 +31,26 @@ public class PhoneUIController : MonoBehaviour
     private void Awake()
     {
         if (Instance == null) Instance = this;
+
+        if (phoneUIParent != null)
+        {
+            phoneUIParent.SetActive(true); // 1. 휴대폰 최상위 부모 켜기
+
+            // 2. CallUI 앱 화면 켜기 (인덱스 1번이라 가정)
+            if (allScreens.Count > 1 && allScreens[1] != null)
+            {
+                allScreens[1].SetActive(true);
+
+                // 3. OnCallingUI 켜기 (모든 부모가 켜져있으므로 비로소 Awake가 실행됨)
+                if (onCallingUIObject != null)
+                {
+                    onCallingUIObject.SetActive(true);
+                    onCallingUIObject.SetActive(false); // 4. Awake 실행 후 즉시 끄기
+                }
+
+                allScreens[1].SetActive(false); // 5. CallUI 다시 끄기
+            }
+        }
     }
 
     private void Start()
