@@ -12,6 +12,9 @@ public class PhoneUIController : MonoBehaviour
     [Header("모든 화면 오브젝트 (Main 포함)")]
     public List<GameObject> allScreens;
 
+    [Header("전화 화면 (OnCallingUI가 있는 오브젝트)")]
+    public GameObject onCallingUIObject;
+
     public bool isInputBlocked = false;
 
     // 통화 중이거나 전화가 오는 중인지 통합 관리
@@ -49,7 +52,8 @@ public class PhoneUIController : MonoBehaviour
 
         bool isActive = phoneUIParent.activeSelf;
 
-        if (isActive && isCallActive && isCallRefusing) return;
+        // OnCallingUI가 달린 오브젝트가 실제로 켜져 있으면 끄는 기능 무조건 차단
+        if (isActive && onCallingUIObject != null && onCallingUIObject.activeInHierarchy) return;
 
         if (!isActive)
         {

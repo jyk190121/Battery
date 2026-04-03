@@ -226,7 +226,7 @@ public class OnCallingUI : MonoBehaviour
         currentTargetName = "";
         gameObject.SetActive(false);
 
-        // [해결] 1.5초가 지나고 UI가 완전히 닫히는 이 순간에만 통화 상태를 풉니다. 
+        // 1.5초가 지나고 UI가 완전히 닫히는 이 순간에만 통화 상태를 풉니다. 
         // 이제 1.5초 대기 중에 아무리 Q키를 눌러도 UI가 강제로 닫히며 꼬이지 않습니다.
         if (PhoneUIController.Instance != null)
         {
