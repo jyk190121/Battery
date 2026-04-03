@@ -91,6 +91,13 @@ public class PlayerRotation : NetworkBehaviour
 
     void LateUpdate()
     {
+
+        if (vcam == null)
+        {
+            vcam = FindAnyObjectByType<CinemachineCamera>();
+            return;
+        }
+
         if (!IsOwner) return; // 내 캐릭터만 마우스 회전 처리
         
         //Vector2 mouseDelta = Input.GetMouseDelta();

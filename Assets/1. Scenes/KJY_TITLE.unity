@@ -1998,7 +1998,7 @@ MonoBehaviour:
   NetworkConfig:
     ProtocolVersion: 0
     NetworkTransport: {fileID: 508085959}
-    PlayerPrefab: {fileID: 4911454195433589709, guid: 85da4e28247293c4ebe8f6c07893d6cb, type: 3}
+    PlayerPrefab: {fileID: 4911454195433589709, guid: bdc89a6ba56abf94c808c9d59ce9bdb0, type: 3}
     Prefabs:
       NetworkPrefabsLists:
       - {fileID: 11400000, guid: e9914e2b55d77094bb77da3ae8337032, type: 2}
