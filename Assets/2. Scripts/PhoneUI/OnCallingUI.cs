@@ -2,7 +2,7 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Photon.Voice.Unity; // 보이스 라이브러리
+using Photon.Voice.Unity;
 
 public class OnCallingUI : MonoBehaviour
 {
@@ -21,12 +21,10 @@ public class OnCallingUI : MonoBehaviour
     private string currentTargetName = "";
     private bool isIncomingCall = false;
 
-    // [오디오 처리를 위한 마이크 변수]
     private Recorder myRecorder;
 
     private void Start()
     {
-        // 씬이 시작될 때 맵에 있는 내 마이크(Recorder)를 찾아서 기억해 둡니다.
         myRecorder = FindAnyObjectByType<Recorder>();
     }
 
@@ -35,6 +33,7 @@ public class OnCallingUI : MonoBehaviour
         PhotonChatManager.OnIncomingCallReceived += HandleIncomingCall;
         PhotonChatManager.OnCallAccepted += HandleCallAccepted;
         PhotonChatManager.OnCallHungUp += HandleHangUp;
+        PhotonChatManager.OnCallBusy += HandleBusy; // [추가]
     }
 
     private void OnDestroy()
@@ -42,6 +41,7 @@ public class OnCallingUI : MonoBehaviour
         PhotonChatManager.OnIncomingCallReceived -= HandleIncomingCall;
         PhotonChatManager.OnCallAccepted -= HandleCallAccepted;
         PhotonChatManager.OnCallHungUp -= HandleHangUp;
+        PhotonChatManager.OnCallBusy -= HandleBusy; // [추가]
     }
 
     private void OnEnable()
@@ -54,6 +54,9 @@ public class OnCallingUI : MonoBehaviour
     {
         if (PhoneUIController.Instance != null)
             PhoneUIController.Instance.OnBackButtonPressed -= HandleBack;
+
+        // 폰 화면이 꺼질 때 마이크가 켜져있다면 강제 종료 (안전장치)
+        if (myRecorder != null) myRecorder.TransmitEnabled = false;
     }
 
     private void Update()
@@ -62,25 +65,23 @@ public class OnCallingUI : MonoBehaviour
 
         if (Mouse.current.rightButton.wasPressedThisFrame)
         {
-            if (isIncomingCall && !isTimerRunning)
+            if (isIncomingCall && !isTimerRunning) AcceptCall();
+        }
+
+        // [핵심 4] 절대 꼬이지 않는 V키 상태 동기화 방식
+        if (myRecorder != null)
+        {
+            // 통화 타이머가 돌아가는 중이면서 && 물리적인 V키가 꾹 눌려있을 때만 true
+            bool shouldTransmit = isTimerRunning && Keyboard.current.vKey.isPressed;
+
+            if (myRecorder.TransmitEnabled != shouldTransmit)
             {
-                AcceptCall();
+                myRecorder.TransmitEnabled = shouldTransmit;
             }
         }
 
         if (isTimerRunning)
         {
-            // V키를 누르는 순간 마이크 ON
-            if (Keyboard.current.vKey.wasPressedThisFrame)
-            {
-                StartAudioConnection();
-            }
-            // V키에서 손을 떼는 순간 마이크 OFF
-            else if (Keyboard.current.vKey.wasReleasedThisFrame)
-            {
-                StopAudioConnection();
-            }
-
             timer += Time.deltaTime;
             minutes = Mathf.FloorToInt(timer / 60f);
             float seconds = timer % 60f;
@@ -142,6 +143,10 @@ public class OnCallingUI : MonoBehaviour
             Debug.Log("[Phone] 상대방이 전화를 받았습니다!");
             isTimerRunning = true;
             timerText.text = "00:00";
+
+            // [추가] 통화가 시작되면 비밀 1:1 보이스 방으로 둘 다 입장!
+            if (VoiceRoomManager.Instance != null)
+                VoiceRoomManager.Instance.JoinCallRoom(chatManager.userName, currentTargetName);
         }
     }
 
@@ -154,8 +159,21 @@ public class OnCallingUI : MonoBehaviour
         Accept.SetActive(false);
         Reject.SetActive(true);
 
-        // 전화가 끊겼으므로 오디오 연결 해제
-        StopAudioConnection();
+        // [추가] 통화가 끊기면 1:1 방에서 퇴장
+        if (VoiceRoomManager.Instance != null) VoiceRoomManager.Instance.LeaveCallRoom();
+
+        StartCoroutine(CloseAfterDelay(1.5f));
+    }
+
+    // [핵심 2] 상대방이 바쁠 때 거절 처리
+    private void HandleBusy(string targetName)
+    {
+        timerText.text = "User Busy"; // 화면에 바쁘다고 표시
+        isTimerRunning = false;
+        isIncomingCall = false;
+
+        Accept.SetActive(false);
+        Reject.SetActive(true);
 
         StartCoroutine(CloseAfterDelay(1.5f));
     }
@@ -171,6 +189,10 @@ public class OnCallingUI : MonoBehaviour
         {
             chatManager.SendCallAccept(currentTargetName);
         }
+
+        // 전화를 받은 사람도 1:1 보이스 방으로 입장!
+        if (VoiceRoomManager.Instance != null)
+            VoiceRoomManager.Instance.JoinCallRoom(chatManager.userName, currentTargetName);
     }
 
     void RejectOrHangUpCall()
@@ -188,32 +210,10 @@ public class OnCallingUI : MonoBehaviour
 
         if (PhoneUIController.Instance != null) PhoneUIController.Instance.isCallActive = false;
 
-        // 전화가 끊겼으므로 오디오 연결 해제
-        StopAudioConnection();
+        // [추가] 내가 전화를 끊었을 때도 1:1 방에서 퇴장
+        if (VoiceRoomManager.Instance != null) VoiceRoomManager.Instance.LeaveCallRoom();
 
         StartCoroutine(CloseAfterDelay(1.5f));
-    }
-    #endregion
-
-    #region [핵심] 오디오 켜기/끄기 (마이크 전원 관리)
-    private void StartAudioConnection()
-    {
-        // 내 마이크 켜기 (내 목소리를 서버로 전송하기 시작)
-        if (myRecorder != null)
-        {
-            myRecorder.TransmitEnabled = true;
-            Debug.Log("[Voice] 통화가 연결되어 마이크를 켭니다.");
-        }
-    }
-
-    private void StopAudioConnection()
-    {
-        // 내 마이크 끄기 (전송 중단)
-        if (myRecorder != null)
-        {
-            myRecorder.TransmitEnabled = false;
-            Debug.Log("[Voice] 통화가 종료되어 마이크를 끕니다.");
-        }
     }
     #endregion
 

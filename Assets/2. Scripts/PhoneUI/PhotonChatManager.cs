@@ -16,13 +16,17 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
     private ChatClient chatClient;
     private readonly string teamChannelName = "TeamRoomChannel";
 
-    // 통화 수락 이벤트
+    // 통화 이벤트
     public static event Action<string> OnIncomingCallReceived;
     public static event Action<string> OnCallAccepted;
     public static event Action<string> OnCallHungUp;
+    public static event Action<string> OnCallBusy; // [추가] 통화 중 거절 이벤트
 
     // 테스트 
     public TextMeshProUGUI playerText;
+
+    // [핵심 3] 외부에서 현재 서버에 완전히 접속되었는지 확인하기 위한 프로퍼티
+    public bool CanChat => chatClient != null && chatClient.CanChat;
 
     private void Awake()
     {
@@ -38,30 +42,27 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
 
     public void SendChatMessage(string message)
     {
-        if (chatClient != null && chatClient.CanChat)
-            chatClient.PublishMessage(teamChannelName, message);
+        if (CanChat) chatClient.PublishMessage(teamChannelName, message);
     }
 
     #region [전화 시스템] 개인 메시지를 활용한 신호 전송
     public void SendCallRequest(string targetPlayerName)
     {
-        if (chatClient != null && chatClient.CanChat)
+        if (CanChat)
         {
             chatClient.SendPrivateMessage(targetPlayerName, "CALL_REQUEST");
             if (PhoneUIController.Instance != null) PhoneUIController.Instance.isCallActive = true;
         }
     }
 
-    // 수락 신호 보내기
     public void SendCallAccept(string targetPlayerName)
     {
-        if (chatClient != null && chatClient.CanChat)
-            chatClient.SendPrivateMessage(targetPlayerName, "CALL_ACCEPT");
+        if (CanChat) chatClient.SendPrivateMessage(targetPlayerName, "CALL_ACCEPT");
     }
 
     public void SendCallHangUp(string targetPlayerName)
     {
-        if (chatClient != null && chatClient.CanChat)
+        if (CanChat)
         {
             chatClient.SendPrivateMessage(targetPlayerName, "CALL_HANGUP");
             if (PhoneUIController.Instance != null) PhoneUIController.Instance.isCallActive = false;
@@ -95,13 +96,17 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
 
         if (msgText == "CALL_REQUEST")
         {
-            // 통화 중복 방지 (이미 전화 중이면 무시)
-            if (PhoneUIController.Instance != null && PhoneUIController.Instance.isCallActive) return;
+            // [핵심 2] 내가 통화 중이라면 무시하지 않고 거절 신호(BUSY)를 보냄!
+            if (PhoneUIController.Instance != null && PhoneUIController.Instance.isCallActive)
+            {
+                chatClient.SendPrivateMessage(sender, "CALL_BUSY");
+                return;
+            }
 
             if (PhoneUIController.Instance != null) PhoneUIController.Instance.isCallActive = true;
             OnIncomingCallReceived?.Invoke(sender);
         }
-        else if (msgText == "CALL_ACCEPT") // [추가] 상대방이 전화를 받음!
+        else if (msgText == "CALL_ACCEPT")
         {
             OnCallAccepted?.Invoke(sender);
         }
@@ -109,6 +114,11 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
         {
             if (PhoneUIController.Instance != null) PhoneUIController.Instance.isCallActive = false;
             OnCallHungUp?.Invoke(sender);
+        }
+        else if (msgText == "CALL_BUSY") // [추가] 상대가 통화 중일 때 받는 신호
+        {
+            if (PhoneUIController.Instance != null) PhoneUIController.Instance.isCallActive = false;
+            OnCallBusy?.Invoke(sender);
         }
     }
 

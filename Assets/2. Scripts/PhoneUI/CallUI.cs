@@ -75,10 +75,23 @@ public class CallUI : ScrollSelectionUI
 
         if (chatManager != null)
         {
+            // [핵심 3] 아직 서버 접속이 완료되지 않았다면 전화 걸기 차단
+            if (!chatManager.CanChat)
+            {
+                Debug.LogWarning("[Phone] 아직 채팅 서버에 연결되지 않았습니다. 잠시 후 시도해주세요.");
+                return;
+            }
+
+            // [핵심 3] 자기 자신에게 전화를 거는 행위 차단
+            if (targetPlayer == chatManager.userName)
+            {
+                Debug.LogWarning("[Phone] 자기 자신에게는 전화를 걸 수 없습니다.");
+                return;
+            }
+
             chatManager.SendCallRequest(targetPlayer);
         }
 
-        // OnCallingUI에게 내가 누굴 호출했는지 알려주고 발신자 전용 UI로 세팅시킴
         OnCallingUI callingScript = onCall.GetComponent<OnCallingUI>();
         if (callingScript != null)
         {
@@ -86,7 +99,7 @@ public class CallUI : ScrollSelectionUI
         }
         else
         {
-            onCall.SetActive(true); // 안전장치
+            onCall.SetActive(true);
         }
 
         gameObject.SetActive(false);
