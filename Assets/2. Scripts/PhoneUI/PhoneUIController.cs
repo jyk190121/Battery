@@ -15,6 +15,11 @@ public class PhoneUIController : MonoBehaviour
     [Header("전화 화면 (OnCallingUI가 있는 오브젝트)")]
     public GameObject onCallingUIObject;
 
+    [Header("알림 UI")]
+    public GameObject callNotificationObj;
+    public GameObject messageNotificationObj;
+    public GameObject messageNotificationMobile;
+
     public bool isInputBlocked = false;
 
     // 통화 중이거나 전화가 오는 중인지 통합 관리
