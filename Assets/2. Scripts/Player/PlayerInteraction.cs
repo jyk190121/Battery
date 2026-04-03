@@ -1,9 +1,10 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Unity.Netcode;
 
 
-public class PlayerInteraction : MonoBehaviour
+public class PlayerInteraction : NetworkBehaviour
 {
     [Header("Data & Settings")]
     public Player data;                                 // 플레이어 SO
@@ -15,6 +16,11 @@ public class PlayerInteraction : MonoBehaviour
     [SerializeField] private Transform camTransform;    // 카메라 위치
 
     private bool isLookingAtInteractable = false;       // 문을 보고 있는가
+
+    public override void OnNetworkSpawn()
+    {
+        interactUI = FindAnyObjectByType<GameObject>();
+    }
 
     void Start()
     {
