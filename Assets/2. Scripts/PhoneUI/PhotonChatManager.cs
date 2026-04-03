@@ -13,6 +13,10 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
     [Header("References")]
     public TeamChatRoomUI teamChatRoom;
 
+    // [추가] 연결 상태 표시 UI
+    public GameObject ifConnected;
+    public GameObject connectYet;
+
     private ChatClient chatClient;
     private readonly string teamChannelName = "TeamRoomChannel";
 
@@ -20,12 +24,10 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
     public static event Action<string> OnIncomingCallReceived;
     public static event Action<string> OnCallAccepted;
     public static event Action<string> OnCallHungUp;
-    public static event Action<string> OnCallBusy; // [추가] 통화 중 거절 이벤트
+    public static event Action<string> OnCallBusy;
 
-    // 테스트 
     public TextMeshProUGUI playerText;
 
-    // [핵심 3] 외부에서 현재 서버에 완전히 접속되었는지 확인하기 위한 프로퍼티
     public bool CanChat => chatClient != null && chatClient.CanChat;
 
     private void Awake()
@@ -38,6 +40,13 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
     private void Update()
     {
         if (chatClient != null) chatClient.Service();
+
+        // [추가] 연결 상태에 따른 UI 활성화/비활성화
+        if (ifConnected != null && connectYet != null)
+        {
+            ifConnected.SetActive(CanChat);
+            connectYet.SetActive(!CanChat);
+        }
     }
 
     public void SendChatMessage(string message)
@@ -96,7 +105,6 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
 
         if (msgText == "CALL_REQUEST")
         {
-            // [핵심 2] 내가 통화 중이라면 무시하지 않고 거절 신호(BUSY)를 보냄!
             if (PhoneUIController.Instance != null && PhoneUIController.Instance.isCallActive)
             {
                 chatClient.SendPrivateMessage(sender, "CALL_BUSY");
@@ -115,7 +123,7 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
             if (PhoneUIController.Instance != null) PhoneUIController.Instance.isCallActive = false;
             OnCallHungUp?.Invoke(sender);
         }
-        else if (msgText == "CALL_BUSY") // [추가] 상대가 통화 중일 때 받는 신호
+        else if (msgText == "CALL_BUSY")
         {
             if (PhoneUIController.Instance != null) PhoneUIController.Instance.isCallActive = false;
             OnCallBusy?.Invoke(sender);
