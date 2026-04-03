@@ -33,7 +33,7 @@ public class OnCallingUI : MonoBehaviour
         PhotonChatManager.OnIncomingCallReceived += HandleIncomingCall;
         PhotonChatManager.OnCallAccepted += HandleCallAccepted;
         PhotonChatManager.OnCallHungUp += HandleHangUp;
-        PhotonChatManager.OnCallBusy += HandleBusy; // [추가]
+        PhotonChatManager.OnCallBusy += HandleBusy;
     }
 
     private void OnDestroy()
@@ -41,7 +41,7 @@ public class OnCallingUI : MonoBehaviour
         PhotonChatManager.OnIncomingCallReceived -= HandleIncomingCall;
         PhotonChatManager.OnCallAccepted -= HandleCallAccepted;
         PhotonChatManager.OnCallHungUp -= HandleHangUp;
-        PhotonChatManager.OnCallBusy -= HandleBusy; // [추가]
+        PhotonChatManager.OnCallBusy -= HandleBusy;
     }
 
     private void OnEnable()
@@ -55,7 +55,6 @@ public class OnCallingUI : MonoBehaviour
         if (PhoneUIController.Instance != null)
             PhoneUIController.Instance.OnBackButtonPressed -= HandleBack;
 
-        // 폰 화면이 꺼질 때 마이크가 켜져있다면 강제 종료 (안전장치)
         if (myRecorder != null) myRecorder.TransmitEnabled = false;
     }
 
@@ -68,10 +67,8 @@ public class OnCallingUI : MonoBehaviour
             if (isIncomingCall && !isTimerRunning) AcceptCall();
         }
 
-        // [핵심 4] 절대 꼬이지 않는 V키 상태 동기화 방식
         if (myRecorder != null)
         {
-            // 통화 타이머가 돌아가는 중이면서 && 물리적인 V키가 꾹 눌려있을 때만 true
             bool shouldTransmit = isTimerRunning && Keyboard.current.vKey.isPressed;
 
             if (myRecorder.TransmitEnabled != shouldTransmit)
@@ -144,7 +141,6 @@ public class OnCallingUI : MonoBehaviour
             isTimerRunning = true;
             timerText.text = "00:00";
 
-            // [추가] 통화가 시작되면 비밀 1:1 보이스 방으로 둘 다 입장!
             if (VoiceRoomManager.Instance != null)
                 VoiceRoomManager.Instance.JoinCallRoom(chatManager.userName, currentTargetName);
         }
@@ -156,21 +152,31 @@ public class OnCallingUI : MonoBehaviour
         isTimerRunning = false;
         isIncomingCall = false;
 
+        if (!gameObject.activeInHierarchy)
+        {
+            if (PhoneUIController.Instance != null) PhoneUIController.Instance.isCallActive = false;
+            return;
+        }
+
         Accept.SetActive(false);
         Reject.SetActive(true);
 
-        // [추가] 통화가 끊기면 1:1 방에서 퇴장
         if (VoiceRoomManager.Instance != null) VoiceRoomManager.Instance.LeaveCallRoom();
 
         StartCoroutine(CloseAfterDelay(1.5f));
     }
 
-    // [핵심 2] 상대방이 바쁠 때 거절 처리
     private void HandleBusy(string targetName)
     {
-        timerText.text = "User Busy"; // 화면에 바쁘다고 표시
+        timerText.text = "User Busy";
         isTimerRunning = false;
         isIncomingCall = false;
+
+        if (!gameObject.activeInHierarchy)
+        {
+            if (PhoneUIController.Instance != null) PhoneUIController.Instance.isCallActive = false;
+            return;
+        }
 
         Accept.SetActive(false);
         Reject.SetActive(true);
@@ -190,7 +196,6 @@ public class OnCallingUI : MonoBehaviour
             chatManager.SendCallAccept(currentTargetName);
         }
 
-        // 전화를 받은 사람도 1:1 보이스 방으로 입장!
         if (VoiceRoomManager.Instance != null)
             VoiceRoomManager.Instance.JoinCallRoom(chatManager.userName, currentTargetName);
     }
@@ -208,9 +213,6 @@ public class OnCallingUI : MonoBehaviour
             chatManager.SendCallHangUp(currentTargetName);
         }
 
-        if (PhoneUIController.Instance != null) PhoneUIController.Instance.isCallActive = false;
-
-        // [추가] 내가 전화를 끊었을 때도 1:1 방에서 퇴장
         if (VoiceRoomManager.Instance != null) VoiceRoomManager.Instance.LeaveCallRoom();
 
         StartCoroutine(CloseAfterDelay(1.5f));
@@ -224,10 +226,12 @@ public class OnCallingUI : MonoBehaviour
         currentTargetName = "";
         gameObject.SetActive(false);
 
+        // [해결] 1.5초가 지나고 UI가 완전히 닫히는 이 순간에만 통화 상태를 풉니다. 
+        // 이제 1.5초 대기 중에 아무리 Q키를 눌러도 UI가 강제로 닫히며 꼬이지 않습니다.
         if (PhoneUIController.Instance != null)
         {
-            PhoneUIController.Instance.phoneUIParent.SetActive(false);
             PhoneUIController.Instance.isCallActive = false;
+            PhoneUIController.Instance.phoneUIParent.SetActive(false);
         }
 
         if (callingListUI != null) callingListUI.SetActive(true);
