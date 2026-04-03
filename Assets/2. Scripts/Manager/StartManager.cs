@@ -18,7 +18,7 @@ public class StartManager : MonoBehaviour
     [Header("Panels (Popups)")]
     public GameObject nicknamePanel;        // 닉네임 입력 패널 (최초 노출)
     public GameObject mainPanel;            // 메인 화면 (버전/제목 등)
-    public GameObject createPanel;          // 방 만들기 입력창
+    public GameObject createPanel;          // 방 만들기 로딩창
     public GameObject joinPanel;            // 방 목록 리스트창
     public GameObject settingsPanel;        // 설정창
 
@@ -48,7 +48,7 @@ public class StartManager : MonoBehaviour
         ShowPanel(nicknamePanel);
 
         // 버튼 리스너 연결
-        //createBtn.onClick.AddListener(() => ShowPanel(createPanel));
+        createBtn.onClick.AddListener(() => ShowPanel(createPanel));
         createBtn.onClick.AddListener(OnConfirmCreate);
         joinBtn.onClick.AddListener(OnJoinBtnClicked);
         settingBtn.onClick.AddListener(() => ShowPanel(settingsPanel));
@@ -63,6 +63,7 @@ public class StartManager : MonoBehaviour
     {
         nicknamePanel.SetActive(targetPanel == nicknamePanel);
         mainPanel.SetActive(targetPanel == mainPanel);
+        createPanel.SetActive(targetPanel == createPanel);
         joinPanel.SetActive(targetPanel == joinPanel);
         settingsPanel.SetActive(targetPanel == settingsPanel);
     }

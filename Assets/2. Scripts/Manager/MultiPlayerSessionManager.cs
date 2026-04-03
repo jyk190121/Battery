@@ -14,7 +14,7 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     public static MultiPlayerSessionManager Instance { get; private set; }
 
     [Header("설정")]
-    private const string LOBBY_SCENE_NAME = "KJY_Player";
+    private const string LOBBY_SCENE_NAME = "KJY_Lobby";
     private const string START_SCENE_NAME = "KJY_Player";
 
     // 현재 활성화된 세션 정보
