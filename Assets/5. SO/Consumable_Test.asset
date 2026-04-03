@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
   itemID: 102
   itemName: Consumable1
-  category: 1
   handType: 0
+  category: 1
   basePrice: 200
   icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  animType: 4
+  spawnLocation: 0

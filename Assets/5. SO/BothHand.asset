@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
   itemID: 201
   itemName: BothHand
-  category: 0
   handType: 1
+  category: 0
   basePrice: 460
   icon: {fileID: 21300000, guid: 984d0a6281d2e6e449db06480c57bf62, type: 3}
+  animType: 3
+  spawnLocation: 0
