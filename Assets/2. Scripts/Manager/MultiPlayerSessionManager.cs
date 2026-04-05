@@ -103,54 +103,88 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     // 1. 방 만들기 (Create)
     public async void CreateSessionAsync(string sessionName)
     {
-        _isLeaving = false;
+        //_isLeaving = false;
+        //try
+        //{
+        //    await EnsureSignedInAsync();
+
+        //    // 1. NetworkManager 존재 여부 최우선 확인
+        //    if (NetworkManager.Singleton == null)
+        //    {
+        //        Debug.LogError("[Multiplayer] NetworkManager가 씬에 존재하지 않습니다!");
+        //        return;
+        //    }
+
+        //    var options = new SessionOptions
+        //    {
+        //        Name = sessionName,
+        //        MaxPlayers = 4,
+        //        IsPrivate = false
+        //    }.WithRelayNetwork();
+
+        //    ActiveSession = await MultiplayerService.Instance.CreateSessionAsync(options);
+
+        //    // 2. Relay 할당
+        //    var allocation = await RelayService.Instance.CreateAllocationAsync(ActiveSession.MaxPlayers);
+
+        //    // 3. UnityTransport 참조 확인
+        //    var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+        //    if (transport == null)
+        //    {
+        //        Debug.LogError("[Multiplayer] NetworkManager에 UnityTransport 컴포넌트가 없습니다!");
+        //        return;
+        //    }
+
+        //    // 4. Relay 데이터 설정
+        //    transport.SetHostRelayData(
+        //        allocation.RelayServer.IpV4, (ushort)allocation.RelayServer.Port,
+        //        allocation.AllocationIdBytes, allocation.Key, allocation.ConnectionData
+        //    );
+
+        //    // 5. 호스트 시작
+        //    NetworkManager.Singleton.StartHost();
+        //    OnHostStatusChanged?.Invoke(true);
+
+        //    Debug.Log($"[Multiplayer] 세션 생성 성공: {ActiveSession.Name}");
+
+        //    // GameSceneManager가 Null인지도 체크
+        //    if (GameSceneManager.Instance != null) GameSceneManager.Instance.LoadNetworkScene(LOBBY_SCENE_NAME);
+        //    else
+        //        Debug.LogError("[Multiplayer] GameSceneManager 인스턴스를 찾을 수 없습니다.");
+        //}
+        //catch (Exception e)
+        //{
+        //    Debug.LogError($"[Multiplayer] 세션 생성 실패: {e.Message}");
+        //}
+
         try
         {
             await EnsureSignedInAsync();
-
-            // 1. NetworkManager 존재 여부 최우선 확인
-            if (NetworkManager.Singleton == null)
-            {
-                Debug.LogError("[Multiplayer] NetworkManager가 씬에 존재하지 않습니다!");
-                return;
-            }
 
             var options = new SessionOptions
             {
                 Name = sessionName,
                 MaxPlayers = 4,
                 IsPrivate = false
-            }.WithRelayNetwork();
+            }.WithRelayNetwork(); // 여기서 Relay 자동 할당
 
             ActiveSession = await MultiplayerService.Instance.CreateSessionAsync(options);
 
-            // 2. Relay 할당
-            var allocation = await RelayService.Instance.CreateAllocationAsync(ActiveSession.MaxPlayers);
+            // 중요: 별도의 Relay 할당 코드를 작성하지 마세요. 
+            // ActiveSession.Code에 이미 Relay 코드가 담겨 있습니다.
+            string joinCode = ActiveSession.Code;
 
-            // 3. UnityTransport 참조 확인
-            var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-            if (transport == null)
+            if (string.IsNullOrEmpty(joinCode))
             {
-                Debug.LogError("[Multiplayer] NetworkManager에 UnityTransport 컴포넌트가 없습니다!");
+                Debug.LogError("Join Code 생성 실패");
                 return;
             }
 
-            // 4. Relay 데이터 설정
-            transport.SetHostRelayData(
-                allocation.RelayServer.IpV4, (ushort)allocation.RelayServer.Port,
-                allocation.AllocationIdBytes, allocation.Key, allocation.ConnectionData
-            );
-
-            // 5. 호스트 시작
             NetworkManager.Singleton.StartHost();
-            OnHostStatusChanged?.Invoke(true);
+            Debug.Log($"[Multiplayer] 호스트 시작 성공! 코드: {joinCode}");
 
-            Debug.Log($"[Multiplayer] 세션 생성 성공: {ActiveSession.Name}");
-
-            // GameSceneManager가 Null인지도 체크
-            if (GameSceneManager.Instance != null) GameSceneManager.Instance.LoadNetworkScene(LOBBY_SCENE_NAME);
-            else
-                Debug.LogError("[Multiplayer] GameSceneManager 인스턴스를 찾을 수 없습니다.");
+            if (GameSceneManager.Instance != null)
+                GameSceneManager.Instance.LoadNetworkScene(LOBBY_SCENE_NAME);
         }
         catch (Exception e)
         {
@@ -195,35 +229,96 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     // 3. 특정 방에 참가하기 (Join)
     public async void JoinSessionAsync(ISessionInfo session)
     {
-        _isLeaving = false;
+        //_isLeaving = false;
+        //try
+        //{
+        //    await EnsureSignedInAsync();
+
+        //    // 에러 해결: ISessionInfo에서 세션 ID를 가져와 참가
+        //    ActiveSession = await MultiplayerService.Instance.JoinSessionByIdAsync(session.Id);
+
+        //    // Relay 접속 정보 추출 (ActiveSession.Code 또는 Relay 할당 정보 사용)
+        //    var joinAllocation = await RelayService.Instance.JoinAllocationAsync(ActiveSession.Code);
+        //    var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+
+        //    if (transport != null)
+        //    {
+        //        transport.SetClientRelayData(
+        //            joinAllocation.RelayServer.IpV4, (ushort)joinAllocation.RelayServer.Port,
+        //            joinAllocation.AllocationIdBytes, joinAllocation.Key,
+        //            joinAllocation.ConnectionData, joinAllocation.HostConnectionData
+        //        );
+        //    }
+
+        //    // 클라이언트 시작
+        //    NetworkManager.Singleton.StartClient();
+        //    OnHostStatusChanged?.Invoke(false);
+
+        //    Debug.Log($"[Multiplayer] 세션 참가 성공: {ActiveSession.Name}");
+
+        //    if (GameSceneManager.Instance != null)
+        //        GameSceneManager.Instance.LoadNetworkScene(LOBBY_SCENE_NAME);
+        //}
+        //catch (Exception e)
+        //{
+        //    Debug.LogError($"[Multiplayer] 세션 참가 실패: {e.Message}");
+        //}
+
+        //try
+        //{
+        //    await EnsureSignedInAsync();
+
+        //    // 1. 세션 서비스 참가
+        //    ActiveSession = await MultiplayerService.Instance.JoinSessionByIdAsync(session.Id);
+
+        //    // 2. [수정] 세션으로부터 Relay Join Code 추출
+        //    // 만약 ActiveSession.Code가 null이라면 세션 옵션 설정을 다시 확인해야 합니다.
+        //    string relayJoinCode = ActiveSession.Code;
+
+        //    if (string.IsNullOrEmpty(relayJoinCode))
+        //    {
+        //        Debug.LogError("Join Code를 찾을 수 없습니다. 호스트의 세션 설정을 확인하세요.");
+        //        return;
+        //    }
+
+        //    // 3. Relay 접속
+        //    var joinAllocation = await RelayService.Instance.JoinAllocationAsync(relayJoinCode);
+        //    var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+
+        //    transport.SetClientRelayData(
+        //        joinAllocation.RelayServer.IpV4, (ushort)joinAllocation.RelayServer.Port,
+        //        joinAllocation.AllocationIdBytes, joinAllocation.Key,
+        //        joinAllocation.ConnectionData, joinAllocation.HostConnectionData
+        //    );
+
+        //    NetworkManager.Singleton.StartClient();
+        //    Debug.Log($"[Multiplayer] Relay 코드({relayJoinCode})로 참가 성공");
+        //}
+        //catch (Exception e)
+        //{
+        //    Debug.LogError($"[Multiplayer] 세션 참가 실패: {e.Message}");
+        //}
+
         try
         {
             await EnsureSignedInAsync();
 
-            // 에러 해결: ISessionInfo에서 세션 ID를 가져와 참가
+            // 1. 세션 서비스 참가 (이 내부에서 Relay 연결이 자동으로 준비됩니다)
             ActiveSession = await MultiplayerService.Instance.JoinSessionByIdAsync(session.Id);
 
-            // Relay 접속 정보 추출 (ActiveSession.Code 또는 Relay 할당 정보 사용)
-            var joinAllocation = await RelayService.Instance.JoinAllocationAsync(ActiveSession.Code);
-            var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+            // [중요] 여기서 RelayService.Instance.JoinAllocationAsync를 직접 호출하지 마세요!
+            // WithRelayNetwork()를 사용하면 세션에 참가하는 순간 
+            // 하단의 NetworkManager와 Transport 설정이 자동으로 연동되거나 
+            // 내부 엔진이 처리하도록 설계되어 있습니다.
 
-            if (transport != null)
+            // 2. NetworkManager 시작 (클라이언트)
+            // Transport 데이터 설정은 세션 라이브러리가 내부적으로 처리하므로 바로 StartClient를 시도합니다.
+            if (!NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer)
             {
-                transport.SetClientRelayData(
-                    joinAllocation.RelayServer.IpV4, (ushort)joinAllocation.RelayServer.Port,
-                    joinAllocation.AllocationIdBytes, joinAllocation.Key,
-                    joinAllocation.ConnectionData, joinAllocation.HostConnectionData
-                );
+                NetworkManager.Singleton.StartClient();
             }
 
-            // 클라이언트 시작
-            NetworkManager.Singleton.StartClient();
-            OnHostStatusChanged?.Invoke(false);
-
-            Debug.Log($"[Multiplayer] 세션 참가 성공: {ActiveSession.Name}");
-
-            if (GameSceneManager.Instance != null)
-                GameSceneManager.Instance.LoadNetworkScene(LOBBY_SCENE_NAME);
+            Debug.Log($"[Multiplayer] 세션 참가 완료: {ActiveSession.Name}");
         }
         catch (Exception e)
         {
