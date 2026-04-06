@@ -1,7 +1,6 @@
 using Photon.Voice.Unity;
 using System.Collections;
 using TMPro;
-using Unity.VectorGraphics.Editor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 

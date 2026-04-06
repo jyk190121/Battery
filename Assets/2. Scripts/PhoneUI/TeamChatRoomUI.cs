@@ -1,6 +1,5 @@
 using System.Collections;
 using TMPro;
-using Unity.VectorGraphics.Editor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -127,11 +126,6 @@ public class TeamChatRoomUI : MonoBehaviour
         // 4명 중 누가 보냈는지 알 수 있도록 닉네임 결합
         string formattedMessage = isMine ? messageText : $"<b>{senderName}</b>\n{messageText}";
 
-        if (!isMine)
-        {
-            SoundManager.Instance.PlaySfx(SfxSound.PHONE_MESSAGE_RECEIVE);
-        }
-
         GameObject prefabToUse = isMine ? myBubblePrefab : otherBubblePrefab;
         CreateSpeechBubble(prefabToUse, formattedMessage);
     }
@@ -148,10 +142,14 @@ public class TeamChatRoomUI : MonoBehaviour
 
         // 텍스트가 입력된 직후, 자식들의 크기와 위치를 즉시 다시 계산하도록 강제합니다.
         // 이거 안하면 첫번째는 어긋나고, 두번째부터 자리 잡음
-        Canvas.ForceUpdateCanvases();
-        LayoutRebuilder.ForceRebuildLayoutImmediate(contentTransform.GetComponent<RectTransform>());
+        if (gameObject.activeInHierarchy)
+        {
+            // 텍스트가 입력된 직후, 자식들의 크기와 위치를 즉시 다시 계산하도록 강제합니다.
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(contentTransform.GetComponent<RectTransform>());
 
-        StartCoroutine(ScrollToBottom());
+            StartCoroutine(ScrollToBottom());
+        }
     }
 
     private IEnumerator ScrollToBottom()
