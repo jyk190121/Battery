@@ -84,7 +84,7 @@ public class PlayerStateManager : NetworkBehaviour
 
         currentStamina = Mathf.Clamp(currentStamina, 0, player.maxStamina);
 
-        print($"현재 체력 : {currentHealth} , 현재 스테미너 {currentStamina}");
+      //  print($"현재 체력 : {currentHealth} , 현재 스테미너 {currentStamina}");
     }
 
     [ServerRpc]

@@ -6,7 +6,9 @@ public class DoorController : MonoBehaviour
     public DoorType doorType;
 
     [Header("Settings")]
-    public bool isOpen = false; 
+    public bool isOpen = false;
+    public bool isLocked = false; 
+    public string requiredKeyID;     // 필요한 열쇠 ID (예: "Science_Key")
     public float speed = 3f;
 
     [Header("Swing Settings")]
@@ -41,8 +43,40 @@ public class DoorController : MonoBehaviour
     }
 
     // 상태를 바꾸는 토글
-    public void ToggleDoor()
+    //public void ToggleDoor()
+    //{
+    //    isOpen = !isOpen;
+    //}
+
+    public void TryOpen(string heldKeyID)
     {
-        isOpen = !isOpen;
+        if (isOpen)
+        {
+            isOpen = false;
+            return;
+        }
+
+        if (isLocked)
+        {
+            // 전달받은 KeyID와 필요한 KeyID가 일치하는지 확인
+            if (heldKeyID == requiredKeyID)
+            {
+                Debug.Log("<color=green>열쇠가 일치합니다! 잠금을 해제하고 문을 엽니다.</color>");
+                isLocked = false;
+                isOpen = true;
+            }
+            else
+            {
+                Debug.Log("<color=red>문이 잠겨 있습니다. 맞는 열쇠가 필요합니다.</color>");
+            }
+        }
+        else
+        {
+            isOpen = true;
+        }
     }
+
+    [ContextMenu("Force Unlock")] public void ForceUnlock() { isLocked = false; }
+    [ContextMenu("Force Lock")] public void ForceLock() { isLocked = true; }
+
 }

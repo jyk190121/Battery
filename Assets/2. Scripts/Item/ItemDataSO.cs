@@ -53,4 +53,8 @@ public class ItemDataSO : ScriptableObject
     [Header("스폰시 사용될 Prefab")]
     public GameObject itemPrefab;
 
+    [Header("Key Settings")]
+    [Tooltip("열쇠 아이템일 경우, 문과 일치해야 하는 ID (예: ScienceRoom_Key)")]
+    public string keyID;
+
 }
