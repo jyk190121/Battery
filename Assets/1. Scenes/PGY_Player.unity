@@ -199,7 +199,7 @@ MonoBehaviour:
   - sound: 12
     clip: {fileID: 8300000, guid: 0c7f4332468c63d409ed65aa901944ef, type: 3}
   - sound: 13
-    clip: {fileID: 8300000, guid: b92538e5a07326c458bf72cd7279c4d4, type: 3}
+    clip: {fileID: 8300000, guid: c7f5486b66aba464793a743e44e63726, type: 3}
   - sound: 14
     clip: {fileID: 8300000, guid: 8a4e43f4c503b7d4b81bac381bbe1b7d, type: 3}
   - sound: 15
@@ -1018,7 +1018,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PhotonChatManager
   chatAppId: 3fc3c49e-bb5a-4e26-8611-6943ef4ed936
-  userName: Player1
+  userName: Player2
   teamChatRoom: {fileID: 993721349}
   ifConnected: {fileID: 2123583559}
   connectYet: {fileID: 438459562}
