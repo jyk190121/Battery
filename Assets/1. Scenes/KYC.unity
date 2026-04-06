@@ -1408,6 +1408,10 @@ PrefabInstance:
       propertyPath: GlobalObjectIdHash
       value: 3090262530
       objectReference: {fileID: 0}
+    - target: {fileID: -8672932438391609394, guid: 2dfaa95cdcbadbd4aa611e8e4a7ef7b8, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 1422712853
+      objectReference: {fileID: 0}
     - target: {fileID: 658577172614144005, guid: 2dfaa95cdcbadbd4aa611e8e4a7ef7b8, type: 3}
       propertyPath: m_LocalPosition.x
       value: 80.65
@@ -1459,11 +1463,11 @@ PrefabInstance:
     - target: {fileID: 9174420971247566103, guid: 2dfaa95cdcbadbd4aa611e8e4a7ef7b8, type: 3}
       propertyPath: interactUI
       value: 
-      objectReference: {fileID: 2083281002}
+      objectReference: {fileID: 0}
     - target: {fileID: 9174420971247566103, guid: 2dfaa95cdcbadbd4aa611e8e4a7ef7b8, type: 3}
       propertyPath: camTransform
       value: 
-      objectReference: {fileID: 2003406915}
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -2026,7 +2030,7 @@ MonoBehaviour:
     PlayerPrefab: {fileID: 4911454195433589709, guid: 85da4e28247293c4ebe8f6c07893d6cb, type: 3}
     Prefabs:
       NetworkPrefabsLists:
-      - {fileID: 11400000, guid: e9914e2b55d77094bb77da3ae8337032, type: 2}
+      - {fileID: 0}
     TickRate: 30
     ClientConnectionBufferTimeout: 10
     ConnectionApproval: 0
@@ -5159,7 +5163,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &2083281003
 RectTransform:
   m_ObjectHideFlags: 0
