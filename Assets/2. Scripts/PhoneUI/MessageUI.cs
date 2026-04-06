@@ -1,5 +1,5 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class MessageUI : ScrollSelectionUI
@@ -75,6 +75,8 @@ public class MessageUI : ScrollSelectionUI
 
     private void OpenChat()
     {
+        SoundManager.Instance.PlaySfx(SfxSound.PHONE_SELECT);
+
         isChatOpen = true;
         roomList.SetActive(false);
         room[currentIndex].SetActive(true);

@@ -41,7 +41,7 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
     {
         if (chatClient != null) chatClient.Service();
 
-        // [추가] 연결 상태에 따른 UI 활성화/비활성화
+        // 연결 상태에 따른 UI 활성화/비활성화
         if (ifConnected != null && connectYet != null)
         {
             ifConnected.SetActive(CanChat);
@@ -96,21 +96,37 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
 
                 if (!isMine)
                 {
+                    bool isPhoneDownOrChatClosed = false;
+
                     if (PhoneUIController.Instance != null)
                     {
-                        if (!PhoneUIController.Instance.phoneUIParent.activeSelf || !teamChatRoom.gameObject.activeInHierarchy)
+                        // 폰이 내려가 있거나, 채팅 화면이 꺼져 있는지 판단
+                        isPhoneDownOrChatClosed = !PhoneUIController.Instance.phoneUIParent.activeSelf || !teamChatRoom.gameObject.activeInHierarchy;
+
+                        if (isPhoneDownOrChatClosed)
                         {
                             if (PhoneUIController.Instance.messageNotificationObj != null)
                             {
                                 PhoneUIController.Instance.messageNotificationObj.SetActive(true);
                             }
 
-                            // Mobile 알림 객체에 대한 Null 체크 분리하여 에러 방어
                             if (PhoneUIController.Instance.messageNotificationMobile != null)
                             {
                                 PhoneUIController.Instance.messageNotificationMobile.SetActive(true);
                             }
                         }
+                    }
+
+                    // 사운드 재생 분기
+                    if (isPhoneDownOrChatClosed)
+                    {
+                        // 폰을 내렸거나 다른 화면을 보고 있을 때
+                        SoundManager.Instance.PlaySfx(SfxSound.PHONE_MESSAGE_ALARM);
+                    }
+                    else
+                    {
+                        // 폰을 들고 있고, 채팅방을 보고 있을 때
+                        SoundManager.Instance.PlaySfx(SfxSound.PHONE_MESSAGE_RECEIVE);
                     }
                 }
             }

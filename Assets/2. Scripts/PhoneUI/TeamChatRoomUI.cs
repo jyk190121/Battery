@@ -1,8 +1,8 @@
 using System.Collections;
-using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
+using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class TeamChatRoomUI : MonoBehaviour
 {
@@ -25,6 +25,8 @@ public class TeamChatRoomUI : MonoBehaviour
     private void Awake()
     {
         if (chatInputField != null) chatInputField.characterLimit = maxCharacterLimit;
+
+        chatInputField.onValueChanged.AddListener(OnTyping);
     }
 
 
@@ -68,6 +70,7 @@ public class TeamChatRoomUI : MonoBehaviour
         {
             if (!chatInputField.gameObject.activeSelf)
             {
+                SoundManager.Instance.PlaySfx(SfxSound.PHONE_TYPING_START);
                 // [입력 상태 진입] 비활성화 상태였다면 켜고 포커스 주기
                 chatInputField.gameObject.SetActive(true);
                 chatInputField.ActivateInputField();
@@ -102,6 +105,7 @@ public class TeamChatRoomUI : MonoBehaviour
         // 텍스트가 비어있지 않을 때만 서버로 발송
         if (!string.IsNullOrEmpty(message))
         {
+            SoundManager.Instance.PlaySfx(SfxSound.PHONE_MESSAGE_SEND);
             if (chatManager != null)
             {
                 chatManager.SendChatMessage(message);
@@ -138,10 +142,14 @@ public class TeamChatRoomUI : MonoBehaviour
 
         // 텍스트가 입력된 직후, 자식들의 크기와 위치를 즉시 다시 계산하도록 강제합니다.
         // 이거 안하면 첫번째는 어긋나고, 두번째부터 자리 잡음
-        Canvas.ForceUpdateCanvases();
-        LayoutRebuilder.ForceRebuildLayoutImmediate(contentTransform.GetComponent<RectTransform>());
+        if (gameObject.activeInHierarchy)
+        {
+            // 텍스트가 입력된 직후, 자식들의 크기와 위치를 즉시 다시 계산하도록 강제합니다.
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(contentTransform.GetComponent<RectTransform>());
 
-        StartCoroutine(ScrollToBottom());
+            StartCoroutine(ScrollToBottom());
+        }
     }
 
     private IEnumerator ScrollToBottom()
@@ -152,6 +160,16 @@ public class TeamChatRoomUI : MonoBehaviour
         if (scrollRect != null)
         {
             scrollRect.verticalNormalizedPosition = 0f; // 0이 맨 아래
+        }
+    }
+
+
+    // 입력 필드에 타이핑이 시작될 때마다 호출되는 함수
+    private void OnTyping(string text)
+    {
+        if (!string.IsNullOrEmpty(text))
+        {
+            SoundManager.Instance.PlaySfx(SfxSound.PHONE_TYPING);
         }
     }
 }

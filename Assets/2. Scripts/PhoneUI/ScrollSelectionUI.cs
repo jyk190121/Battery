@@ -29,6 +29,7 @@ public abstract class ScrollSelectionUI : MonoBehaviour
         if (nextIndex != currentIndex)
         {
             currentIndex = nextIndex;
+            SoundManager.Instance.PlaySfx(SfxSound.PHONE_SCROLL);
             UpdateHighlightVisuals(); // 시각적 업데이트
             OnIndexChanged();         // 스크롤 변경시 발생하는 추가 작업 (필요한 자식만 사용)
         }
