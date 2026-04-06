@@ -18,15 +18,23 @@ public class GameSessionManager : MonoBehaviour
 
     [Header("Save Containers")]
     public List<ItemSaveData> truckItems = new List<ItemSaveData>();
-    public List<ItemSaveData> playerItems = new List<ItemSaveData>();
+    // 💡 멀티플레이 플레이어별 가방 보관소
+    public Dictionary<ulong, List<ItemSaveData>> playerItems = new Dictionary<ulong, List<ItemSaveData>>();
 
     [Header("Prefab Database")]
     public List<ItemBase> itemPrefabsDB = new List<ItemBase>();
 
     private void Awake()
     {
-        if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
-        else { Destroy(gameObject); }
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     public void AddMoney(int amount)
