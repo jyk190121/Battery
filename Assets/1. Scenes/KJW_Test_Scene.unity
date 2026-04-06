@@ -737,7 +737,7 @@ MonoBehaviour:
   m_StreamingVersion: 20241001
   m_LegacyPriority: 0
   Target:
-    TrackingTarget: {fileID: 0}
+    TrackingTarget: {fileID: 1927615824}
     LookAtTarget: {fileID: 0}
     CustomLookAtTarget: 0
   Lens:
@@ -857,7 +857,7 @@ Transform:
   m_GameObject: {fileID: 582992952}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.0029096513, y: 1.8635832, z: 0.12537909}
+  m_LocalPosition: {x: 0.0025329671, y: 1.8539175, z: 0.1223222}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1102,7 +1102,7 @@ Transform:
   m_GameObject: {fileID: 1041704654}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.0029096513, y: 1.8635832, z: 0.12537909}
+  m_LocalPosition: {x: 0.0025329671, y: 1.8539175, z: 0.1223222}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1347,6 +1347,7 @@ GameObject:
   - component: {fileID: 1365177700}
   - component: {fileID: 1365177699}
   - component: {fileID: 1365177698}
+  - component: {fileID: 1365177703}
   - component: {fileID: 1365177702}
   m_Layer: 0
   m_Name: SettlementZone
@@ -1461,8 +1462,34 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79f4cacc689d2d84cb6f82f2b63f9de6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SettlementZone
+  ShowTopMostFoldoutHeaderGroup: 1
   anchor: {fileID: 1365177701}
   nextSceneName: KJW
+--- !u!114 &1365177703
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1365177697}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 3481192095
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!1 &1522523439
 GameObject:
   m_ObjectHideFlags: 0
@@ -1715,10 +1742,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameSessionManager
   currentMoney: 0
   truckItems: []
-  playerItems: []
   itemPrefabsDB:
   - {fileID: 109360235115839708, guid: f6cdb16393c87e74496bcecc62cb368c, type: 3}
   - {fileID: 5134562728361972797, guid: 2d72ef6ea3227664ca05aac27bf436fd, type: 3}
+  - {fileID: 384831874198767449, guid: a0b604afa26cef0499b89e22685cc4ae, type: 3}
 --- !u!4 &1814433157
 Transform:
   m_ObjectHideFlags: 0
@@ -1892,6 +1919,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 92d906517a362204d922506a665a3ae6, type: 3}
+--- !u!4 &1927615824 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8435035688047205567, guid: 92d906517a362204d922506a665a3ae6, type: 3}
+  m_PrefabInstance: {fileID: 1927615823}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1931058560
 GameObject:
   m_ObjectHideFlags: 0

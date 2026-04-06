@@ -1,34 +1,43 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
+using Unity.Netcode;
 
 [RequireComponent(typeof(BoxCollider))]
-public class SettlementZone : MonoBehaviour
+public class SettlementZone : NetworkBehaviour
 {
     public Transform anchor;
     public string nextSceneName;
 
-    private void Start()
-    {
-        SpawnItems();
-    }
+    private void Start() => SpawnItems();
 
     private void Update()
     {
-        // F12 키를 누르면 즉시 정산 실행
         if (Keyboard.current != null && Keyboard.current[Key.F12].wasPressedThisFrame)
+            if (IsServer) ProcessSettlement();
+    }
+
+    public void ExecuteTransition(PlayerInventory player)
+    {
+        if (!IsSpawned) return;
+        Debug.Log("<color=cyan><b>[Ship System]</b> 이륙 시퀀스 시작...</color>");
+        if (IsServer) PerformTransitionLogic(player);
+        else RequestTransitionServerRpc(player.OwnerClientId);
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    private void RequestTransitionServerRpc(ulong clientId)
+    {
+        if (NetworkManager.ConnectedClients.TryGetValue(clientId, out var client))
         {
-            ProcessSettlement();
+            var p = client.PlayerObject.GetComponent<PlayerInventory>();
+            if (p != null) PerformTransitionLogic(p);
         }
     }
 
-    // ==========================================================
-    // 1. 씬 이동 및 데이터 보존 (이륙/출발 버튼용)
-    // ==========================================================
-    public void ExecuteTransition(PlayerInventory player)
+    private void PerformTransitionLogic(PlayerInventory player)
     {
-        Debug.Log("<color=cyan><b>[Ship System]</b> 이륙 시퀀스 시작...</color>");
         GameSessionManager.Instance.truckItems.Clear();
         GameSessionManager.Instance.playerItems.Clear();
 
@@ -39,10 +48,10 @@ public class SettlementZone : MonoBehaviour
         Collider[] targets = Physics.OverlapBox(center, halfExtents, transform.rotation);
         int totalValue = 0;
 
+        // 1. 바닥 짐 정산
         foreach (var t in targets)
         {
             ItemBase item = t.GetComponentInParent<ItemBase>();
-            // 바닥에 있는 아이템만 스캔 (!item.isEquipped)
             if (item != null && !item.isEquipped)
             {
                 if (item is Item_Scrap scrap)
@@ -55,11 +64,11 @@ public class SettlementZone : MonoBehaviour
                     SaveToTruck(item);
                     Debug.Log($"<color=green>[보존]</color> {item.itemData.itemName} 위치 저장");
                 }
-                item.RequestDespawn();
+                if (item.NetworkObject != null && item.NetworkObject.IsSpawned) item.NetworkObject.Despawn();
             }
         }
 
-        // 💡 [수정됨] 이륙할 때, 가방에 든 폐지도 팔고 돈으로 바꿈
+        // 2. 가방 정산 (💡 여기서 양손템도 가방 1칸을 차지하므로 자동으로 같이 정산됨!)
         for (int i = 0; i < player.slots.Length; i++)
         {
             if (player.slots[i] != null)
@@ -68,42 +77,52 @@ public class SettlementZone : MonoBehaviour
                 {
                     totalValue += scrapItem.currentScrapValue;
                     Debug.Log($"<color=yellow>[판매]</color> 가방 속 {scrapItem.itemData.itemName} (+{scrapItem.currentScrapValue})");
-                    scrapItem.RequestDespawn();
-                    player.slots[i] = null; // 가방 비우기
                 }
                 else
                 {
-                    SaveToPlayer(player.slots[i], i);
+                    SaveToPlayer(player.slots[i], i, player.OwnerClientId);
                 }
+
+                if (player.slots[i].NetworkObject != null && player.slots[i].NetworkObject.IsSpawned)
+                    player.slots[i].NetworkObject.Despawn();
+                player.slots[i] = null;
             }
         }
 
-        // 양손에 든 폐지도 판다
-        if (player.twoHandedItem != null && player.twoHandedItem is Item_Scrap twoHandScrap)
+        // 3. 💡 [수정] 아이템은 위에서 정산+삭제 되었으므로, 양손 UI 상태만 초기화
+        if (player.twoHandedItem != null)
         {
-            totalValue += twoHandScrap.currentScrapValue;
-            Debug.Log($"<color=yellow>[판매]</color> 양손에 든 {twoHandScrap.itemData.itemName} (+{twoHandScrap.currentScrapValue})");
-            twoHandScrap.RequestDespawn();
             player.twoHandedItem = null;
             player.OnTwoHandedToggled?.Invoke(false);
         }
 
+        // 4. 외부 방치 아이템 강제 청소
+        ItemBase[] allItemsInScene = FindObjectsByType<ItemBase>(FindObjectsSortMode.None);
+        foreach (var leftoverItem in allItemsInScene)
+        {
+            if (leftoverItem != null && leftoverItem.NetworkObject != null && leftoverItem.NetworkObject.IsSpawned)
+            {
+                leftoverItem.NetworkObject.Despawn();
+            }
+        }
+
         GameSessionManager.Instance.AddMoney(totalValue);
         Debug.Log($"<color=cyan><b>[Ship System]</b> {nextSceneName}으로 이동합니다.</color>");
-        SceneManager.LoadScene(nextSceneName);
+        StartCoroutine(WaitAndLoadSceneSafe());
     }
 
-    // ==========================================================
-    // 2. 구역 내 강제 정산 로직 (F12 디버깅 및 수동 정산용)
-    // ==========================================================
+    private IEnumerator WaitAndLoadSceneSafe()
+    {
+#if UNITY_EDITOR
+        UnityEditor.Selection.activeGameObject = null;
+#endif
+        yield return new WaitForSecondsRealtime(0.2f);
+        NetworkManager.Singleton.SceneManager.LoadScene(nextSceneName, UnityEngine.SceneManagement.LoadSceneMode.Single);
+    }
+
     public void ProcessSettlement()
     {
         int totalValue = 0;
-        bool inventoryChanged = false;
-
-        Debug.Log("<color=yellow><b>[Settlement]</b> 물리 스캔 정산을 시작합니다...</color>");
-
-        // 1. 바닥에 떨어진 아이템 스캔 (isEquipped가 false인 것만)
         BoxCollider zoneCol = GetComponent<BoxCollider>();
         Vector3 center = transform.position + transform.TransformDirection(zoneCol.center);
         Vector3 halfExtents = Vector3.Scale(zoneCol.size, transform.lossyScale) * 0.5f;
@@ -115,107 +134,76 @@ public class SettlementZone : MonoBehaviour
             if (item != null && !item.isEquipped && item is Item_Scrap scrap)
             {
                 totalValue += scrap.currentScrapValue;
-                Debug.Log($"바닥 폐지 정산: {item.itemData.itemName} (+{scrap.currentScrapValue}원)");
-                scrap.RequestDespawn();
+                if (scrap.NetworkObject != null && scrap.NetworkObject.IsSpawned) scrap.NetworkObject.Despawn();
             }
         }
 
-        // 2. 플레이어 인벤토리 직접 검사 (isEquipped 무시하고 강제로 검사)
-        PlayerInventory player = FindFirstObjectByType<PlayerInventory>();
-
-        if (player != null)
+        PlayerInventory[] allPlayers = FindObjectsByType<PlayerInventory>(FindObjectsSortMode.None);
+        foreach (var player in allPlayers)
         {
-            // 2-1. 양손에 들고 있는 폐지 확인
-            if (player.twoHandedItem != null && player.twoHandedItem is Item_Scrap twoHandScrap)
-            {
-                totalValue += twoHandScrap.currentScrapValue;
-                Debug.Log($"양손 폐지 정산: {twoHandScrap.itemData.itemName} (+{twoHandScrap.currentScrapValue}원)");
-                twoHandScrap.RequestDespawn();
+            bool inventoryChanged = false;
 
-                player.twoHandedItem = null;
-                player.OnTwoHandedToggled?.Invoke(false);
-                inventoryChanged = true;
-            }
-
-            // 2-2. 가방(0~3번 슬롯)에 있는 폐지 강제 스캔
+            // 💡 [수정] 가방 먼저 싹 검사
             for (int i = 0; i < player.slots.Length; i++)
             {
-                // 💡 [핵심] 여기서 isEquipped 조건을 보지 않고, Item_Scrap인지 타입만 검사함!
                 if (player.slots[i] != null && player.slots[i] is Item_Scrap slotScrap)
                 {
                     totalValue += slotScrap.currentScrapValue;
-                    Debug.Log($"가방 폐지 정산 [{i}번 슬롯]: {slotScrap.itemData.itemName} (+{slotScrap.currentScrapValue}원)");
-                    slotScrap.RequestDespawn();
+                    if (slotScrap.NetworkObject != null && slotScrap.NetworkObject.IsSpawned) slotScrap.NetworkObject.Despawn();
+
+                    // 만약 방금 판 폐지가 양손 템이었다면 참조 날리기
+                    if (player.twoHandedItem == player.slots[i])
+                    {
+                        player.twoHandedItem = null;
+                        player.OnTwoHandedToggled?.Invoke(false);
+                    }
 
                     player.slots[i] = null;
                     inventoryChanged = true;
                 }
             }
 
-            // 가방 안의 아이템이 팔렸다면 인벤토리 UI 즉시 갱신
-            if (inventoryChanged)
-            {
-                player.OnInventoryUpdated?.Invoke();
-            }
+            if (inventoryChanged) player.OnInventoryUpdated?.Invoke();
         }
 
-        // 3. 최종 금액 합산
-        if (totalValue > 0)
-        {
-            GameSessionManager.Instance.AddMoney(totalValue);
-        }
-        else
-        {
-            Debug.Log("<color=grey>정산할 폐지가 없습니다.</color>");
-        }
+        if (totalValue > 0) GameSessionManager.Instance.AddMoney(totalValue);
     }
 
-    // ==========================================================
-    // 3. 내부 저장 및 복구(스폰) 헬퍼 함수
-    // ==========================================================
     private void SaveToTruck(ItemBase item)
     {
-        ItemSaveData d = new ItemSaveData
+        GameSessionManager.Instance.truckItems.Add(new ItemSaveData
         {
             itemID = item.itemData.itemID,
             localPos = anchor.InverseTransformPoint(item.transform.position),
             localRot = Quaternion.Inverse(anchor.rotation) * item.transform.rotation,
             stateValues = new float[] { (item is Item_Durability dur) ? dur.currentDurability : 0 },
             slotIndex = -1
-        };
-        GameSessionManager.Instance.truckItems.Add(d);
+        });
     }
 
-    private void SaveToPlayer(ItemBase item, int index)
+    private void SaveToPlayer(ItemBase item, int index, ulong pId)
     {
-        ItemSaveData d = new ItemSaveData
+        if (!GameSessionManager.Instance.playerItems.ContainsKey(pId))
+            GameSessionManager.Instance.playerItems[pId] = new List<ItemSaveData>();
+
+        GameSessionManager.Instance.playerItems[pId].Add(new ItemSaveData
         {
             itemID = item.itemData.itemID,
             slotIndex = index,
             stateValues = new float[] { (item is Item_Durability dur) ? dur.currentDurability : 0 }
-        };
-        GameSessionManager.Instance.playerItems.Add(d);
+        });
     }
 
     private void SpawnItems()
     {
-        int dataCount = GameSessionManager.Instance.truckItems.Count;
-        if (dataCount <= 0) return;
-
+        if (!IsServer || GameSessionManager.Instance == null) return;
         foreach (var d in GameSessionManager.Instance.truckItems)
         {
             ItemBase prefab = GameSessionManager.Instance.GetPrefab(d.itemID);
-
             if (prefab == null || anchor == null) continue;
-
-            Vector3 spawnPos = anchor.TransformPoint(d.localPos);
-            Quaternion spawnRot = anchor.rotation * d.localRot;
-            ItemBase spawned = Instantiate(prefab, spawnPos, spawnRot);
-
-            if (spawned is Item_Durability dur)
-            {
-                dur.currentDurability = d.stateValues[0];
-            }
+            ItemBase spawned = Instantiate(prefab, anchor.TransformPoint(d.localPos), anchor.rotation * d.localRot);
+            if (spawned is Item_Durability dur) dur.currentDurability = d.stateValues[0];
+            spawned.GetComponent<NetworkObject>().Spawn();
         }
     }
 }

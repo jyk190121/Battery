@@ -2777,6 +2777,10 @@ MonoBehaviour:
   stairLayer:
     serializedVersion: 2
     m_Bits: 128
+  stepUpper: {fileID: 0}
+  stepLower: {fileID: 0}
+  stepHeight: 0.4
+  stepSmooth: 2
 --- !u!54 &8234240459708401988
 Rigidbody:
   m_ObjectHideFlags: 0
