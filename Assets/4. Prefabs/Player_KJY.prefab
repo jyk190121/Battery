@@ -2644,6 +2644,8 @@ GameObject:
   - component: {fileID: 8091833355368807864}
   - component: {fileID: 8808567715922933914}
   - component: {fileID: 7194879222986223479}
+  - component: {fileID: -3479541866016816257}
+  - component: {fileID: 8589258417540942549}
   m_Layer: 0
   m_Name: Player_KJY
   m_TagString: Untagged
@@ -2717,7 +2719,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 6777840
+  GlobalObjectIdHash: 405663255
   InScenePlacedSourceGlobalObjectIdHash: 1799783564
   DeferredDespawnTick: 0
   Ownership: 1
@@ -2969,9 +2971,8 @@ MonoBehaviour:
   data: {fileID: 11400000, guid: 51fe10672196c0c4daf37fc48f14bb9a, type: 2}
   DoorLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 512
   interactUI: {fileID: 0}
-  camTransform: {fileID: 0}
 --- !u!114 &7194879222986223479
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3001,6 +3002,36 @@ MonoBehaviour:
   leftHandTransform: {fileID: 0}
   bothHandsTransform: {fileID: 0}
   throwForce: 7
+--- !u!114 &-3479541866016816257
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4911454195433589709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17b734dbddad0b8489e4ebe4ef7db0e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerStateManager
+  ShowTopMostFoldoutHeaderGroup: 1
+  player: {fileID: 11400000, guid: 51fe10672196c0c4daf37fc48f14bb9a, type: 2}
+  currentHealth:
+    m_InternalValue: 0
+--- !u!114 &8589258417540942549
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4911454195433589709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c8954012d9ccaf418987a9b65dd95cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerUIManager
+  vignetteImage: {fileID: 0}
+  breathAudio: {fileID: 0}
 --- !u!1 &5047510916941267613
 GameObject:
   m_ObjectHideFlags: 0

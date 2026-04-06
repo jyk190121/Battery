@@ -31,14 +31,17 @@ public class PlayerMove : NetworkBehaviour
     bool isGrounded = false;
 
     PlayerAnim playerAnim;
+    PlayerStateManager stateManager;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         //anim = GetComponent<Animator>();
         playerAnim = GetComponent<PlayerAnim>();
-        currentSpeed = walkSpeed;
+        stateManager = GetComponent<PlayerStateManager>();
 
+        currentSpeed = walkSpeed;
+        
         // Rigidbody가 멋대로 회전해서 넘어지는 걸 방지
         rb.freezeRotation = true;
     }
@@ -98,8 +101,11 @@ public class PlayerMove : NetworkBehaviour
             // [추가] 계단 위일 때는 이동 속도를 약간 조절하거나 전용 속도를 적용할 수 있습니다.
             float moveSpeedMultiplier = isOnStair ? 0.8f : 1.0f;
 
+            // 스테미너 값에 따른 달리기 여부
+            bool canRun = Keyboard.current.leftShiftKey.isPressed && isGrounded && !isOnStair && !stateManager.IsExhausted;
+
             // 이동 중일 때만 쉬프트 체크
-            if (Keyboard.current.leftShiftKey.isPressed && isGrounded && !isOnStair)
+            if (canRun)
             {
                 currentSpeed = runSpeed;
                 //anim.SetFloat("Speed", 2.0f, 0.05f, Time.deltaTime); // 아주 약간의 댐핑을 주면 더 부드럽습니다.
@@ -175,6 +181,9 @@ public class PlayerMove : NetworkBehaviour
         Vector3 worldMoveDir = transform.TransformDirection(moveDir);
         transform.position += worldMoveDir * currentSpeed * Time.deltaTime;
     }
+
+    // 외부에서 이동 여부를 확인하기 위한 프로퍼티
+    public bool IsMoving => inputMagnitude > 0.1f;
 
     // 레이캐스트 시각화 (디버깅용)
     void OnDrawGizmosSelected()
