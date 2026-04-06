@@ -48,6 +48,12 @@ public class OnCallingUI : MonoBehaviour
     {
         if (PhoneUIController.Instance != null)
             PhoneUIController.Instance.OnBackButtonPressed += HandleBack;
+        // OnCalling 화면을 보면 전화 알림 끄기
+        if (PhoneUIController.Instance.callNotificationObj != null)
+        {
+            PhoneUIController.Instance.callNotificationObj.SetActive(false);
+        }
+
     }
 
     private void OnDisable()
@@ -129,6 +135,22 @@ public class OnCallingUI : MonoBehaviour
         targetName.text = callerName;
         timerText.text = $"Incoming...";
 
+        // 폰 상태에 따른 알림 및 화면 전환 처리 
+        if (PhoneUIController.Instance != null)
+        {
+            if (!PhoneUIController.Instance.phoneUIParent.activeSelf)
+            {
+                // 휴대폰이 내려가 있는 경우 알림 표시
+                if (PhoneUIController.Instance.callNotificationObj != null)
+                    PhoneUIController.Instance.callNotificationObj.SetActive(true);
+            }
+            else
+            {
+                // 휴대폰이 올려져 있는 경우 즉시 통화 앱(인덱스 1 가정)으로 화면 강제 전환
+                PhoneUIController.Instance.ShowScreen(1);
+            }
+        }
+
         gameObject.SetActive(true);
         if (callingListUI != null) callingListUI.SetActive(false);
     }
@@ -145,7 +167,7 @@ public class OnCallingUI : MonoBehaviour
                 VoiceRoomManager.Instance.JoinCallRoom(chatManager.userName, currentTargetName);
         }
     }
-
+    // 상대방이 통화 중이거나, 전화가 울리는 도중에 끊었을 때 처리 로직
     private void HandleHangUp(string callerName)
     {
         timerText.text = "Call Ended";
@@ -154,7 +176,11 @@ public class OnCallingUI : MonoBehaviour
 
         if (!gameObject.activeInHierarchy)
         {
+            // UI가 켜져 있지 않은 상태에서 상대방이 끊은 경우, 통화 상태를 풀어주기
             if (PhoneUIController.Instance != null) PhoneUIController.Instance.isCallActive = false;
+            // UI가 켜져 있지 않은 상태에서 상대방이 끊은 경우, 알림이 켜져 있다면 끄기
+            if (PhoneUIController.Instance.callNotificationObj != null)
+                PhoneUIController.Instance.callNotificationObj.SetActive(false);
             return;
         }
 
@@ -165,7 +191,7 @@ public class OnCallingUI : MonoBehaviour
 
         StartCoroutine(CloseAfterDelay(1.5f));
     }
-
+    // 상대방이 통화 중일 때 처리 로직
     private void HandleBusy(string targetName)
     {
         timerText.text = "User Busy";
@@ -174,7 +200,15 @@ public class OnCallingUI : MonoBehaviour
 
         if (!gameObject.activeInHierarchy)
         {
-            if (PhoneUIController.Instance != null) PhoneUIController.Instance.isCallActive = false;
+            if (PhoneUIController.Instance != null)
+            {
+                // UI가 켜져 있지 않은 상태에서 상대방이 통화 중인 경우, 통화 상태를 풀어주기
+                PhoneUIController.Instance.isCallActive = false;
+
+                // 폰이 내려가 있는 상태에서 상대방이 통화 중일 때 알림 끄기 방어 로직 추가
+                if (PhoneUIController.Instance.callNotificationObj != null)
+                    PhoneUIController.Instance.callNotificationObj.SetActive(false);
+            }
             return;
         }
 
@@ -186,6 +220,7 @@ public class OnCallingUI : MonoBehaviour
     #endregion
 
     #region 내 조작 로직
+    // 수신자 입장에서 전화 받기
     void AcceptCall()
     {
         isTimerRunning = true;
@@ -199,7 +234,7 @@ public class OnCallingUI : MonoBehaviour
         if (VoiceRoomManager.Instance != null)
             VoiceRoomManager.Instance.JoinCallRoom(chatManager.userName, currentTargetName);
     }
-
+    // 발신자 입장에서, 또는 수신자 입장에서 통화 거절 또는 통화 중에 끊기
     void RejectOrHangUpCall()
     {
         Accept.SetActive(false);
@@ -218,7 +253,7 @@ public class OnCallingUI : MonoBehaviour
         StartCoroutine(CloseAfterDelay(1.5f));
     }
     #endregion
-
+    // UI가 닫히는 순간에 통화 상태를 풀어주는 코루틴
     private IEnumerator CloseAfterDelay(float delayTime)
     {
         yield return new WaitForSeconds(delayTime);

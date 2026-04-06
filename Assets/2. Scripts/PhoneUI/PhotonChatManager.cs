@@ -93,6 +93,26 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
             {
                 bool isMine = (senders[i] == userName);
                 teamChatRoom.ReceiveMessage(senders[i], messages[i].ToString(), isMine);
+
+                if (!isMine)
+                {
+                    if (PhoneUIController.Instance != null)
+                    {
+                        if (!PhoneUIController.Instance.phoneUIParent.activeSelf || !teamChatRoom.gameObject.activeInHierarchy)
+                        {
+                            if (PhoneUIController.Instance.messageNotificationObj != null)
+                            {
+                                PhoneUIController.Instance.messageNotificationObj.SetActive(true);
+                            }
+
+                            // Mobile 알림 객체에 대한 Null 체크 분리하여 에러 방어
+                            if (PhoneUIController.Instance.messageNotificationMobile != null)
+                            {
+                                PhoneUIController.Instance.messageNotificationMobile.SetActive(true);
+                            }
+                        }
+                    }
+                }
             }
         }
     }

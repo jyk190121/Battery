@@ -26,12 +26,6 @@ public class CallUI : ScrollSelectionUI
             phoneBookList.Add("Player3");
             phoneBookList.Add("Player4");
         }
-
-        if (onCall != null)
-        {
-            onCall.SetActive(true);
-            onCall.SetActive(false);
-        }
     }
 
     private void OnEnable()
