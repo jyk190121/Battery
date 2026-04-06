@@ -2836,12 +2836,15 @@ MonoBehaviour:
   mainPanel: {fileID: 713371776}
   createPanel: {fileID: 483086251}
   joinPanel: {fileID: 2083982496}
+  joinLoadingPanel: {fileID: 2070945398}
   settingsPanel: {fileID: 1836415247}
   nicknameInput: {fileID: 397548026}
   sessionListContent: {fileID: 2033737956}
   sessionEntryPrefab: {fileID: 1768786364203320588, guid: 0dd246db859941a43af357347ca033d3, type: 3}
   refreshBtn: {fileID: 1431602728}
   joinPanelBackBtn: {fileID: 934063162}
+  createCancelBtn: {fileID: 861537369}
+  joinCancelBtn: {fileID: 475086809}
 --- !u!1 &826240195
 GameObject:
   m_ObjectHideFlags: 0

@@ -20,6 +20,7 @@ public class StartManager : MonoBehaviour
     public GameObject mainPanel;            // 메인 화면 (버전/제목 등)
     public GameObject createPanel;          // 방 만들기 로딩창
     public GameObject joinPanel;            // 방 목록 리스트창
+    public GameObject joinLoadingPanel;     // 방 입장 로딩창
     public GameObject settingsPanel;        // 설정창
 
     [Header("Input Fields")]
@@ -33,27 +34,25 @@ public class StartManager : MonoBehaviour
     public Button refreshBtn;               // 방 목록 새로고침 버튼 (Reset)
     public Button joinPanelBackBtn;         // 조인 패널에서 나가는 버튼
 
-    private void OnEnable()
+    [Header("취소 버튼")]
+    public Button createCancelBtn;
+    public Button joinCancelBtn;
+
+    bool isCancelling = false;
+
+    void OnEnable()
     {
-        if (MultiPlayerSessionManager.Instance != null)
-        {
-            MultiPlayerSessionManager.Instance.OnSessionListUpdated -= UpdateSessionListUI;
-            MultiPlayerSessionManager.Instance.OnSessionListUpdated += UpdateSessionListUI;
-        }
+        TrySubscribeEvents();
     }
 
-    private void OnDisable()
+    void OnDisable()
     {
         if (MultiPlayerSessionManager.Instance != null) MultiPlayerSessionManager.Instance.OnSessionListUpdated -= UpdateSessionListUI;
     }
 
     void Start()
     {
-        if (MultiPlayerSessionManager.Instance != null)
-        {
-            MultiPlayerSessionManager.Instance.OnSessionListUpdated -= UpdateSessionListUI;
-            MultiPlayerSessionManager.Instance.OnSessionListUpdated += UpdateSessionListUI;
-        }
+        TrySubscribeEvents();
 
         ShowPanel(nicknamePanel);
 
@@ -64,6 +63,9 @@ public class StartManager : MonoBehaviour
         settingBtn.onClick.AddListener(() => ShowPanel(settingsPanel));
         quitBtn.onClick.AddListener(QuitGame);
 
+        if (createCancelBtn != null) createCancelBtn.onClick.AddListener(OnCancelCreate);
+        if (joinCancelBtn != null) joinCancelBtn.onClick.AddListener(OnCancelJoin);
+
         //닉네임 결정 버튼
         nicknameConfirmBtn.onClick.AddListener(OnNicknameConfirm);
 
@@ -71,6 +73,67 @@ public class StartManager : MonoBehaviour
         if (refreshBtn != null) refreshBtn.onClick.AddListener(OnRefreshClicked); // 새로고침(Reset) 버튼
 
         if (joinPanelBackBtn != null) joinPanelBackBtn.onClick.AddListener(OnBackToMain); // 뒤로가기 버튼
+    }
+    void TrySubscribeEvents()
+    {
+        if (MultiPlayerSessionManager.Instance != null)
+        {
+            MultiPlayerSessionManager.Instance.OnSessionListUpdated -= UpdateSessionListUI;
+            MultiPlayerSessionManager.Instance.OnSessionListUpdated += UpdateSessionListUI;
+        }
+    }
+    public void OnCancelCreate()
+    {
+        //Debug.Log("방 생성 취소");
+
+        //// 실제 네트워크 비동기 작업 중단 요청
+        //if (MultiPlayerSessionManager.Instance != null)
+        //{
+        //    MultiPlayerSessionManager.Instance.CancelSessionOperations();
+        //}
+
+        //ClearSessionListUI();
+
+        //ShowPanel(mainPanel);
+
+        Debug.Log("방 생성 취소 시작");
+        isCancelling = true; // [추가] 취소 플래그 On
+
+        // 1. 네트워크 및 세션 중단
+        if (MultiPlayerSessionManager.Instance != null)
+        {
+            MultiPlayerSessionManager.Instance.CancelSessionOperations();
+        }
+
+        // 2. UI 즉시 파괴
+        ClearSessionListUI();
+
+        // 3. 패널 전환
+        ShowPanel(mainPanel);
+
+        // 4. [추가] 1초 후 플래그 해제 (비동기 응답이 모두 끝날 시간 벌기)
+        Invoke(nameof(ResetCancelFlag), 1.0f);
+    }
+    void ResetCancelFlag() => isCancelling = false;
+
+    // 방 참가 취소: 로딩 패널을 끄고 조인 패널(목록창)로 이동
+    public void OnCancelJoin()
+    {
+        Debug.Log("방 입장 취소");
+
+        if (MultiPlayerSessionManager.Instance != null)
+        {
+            MultiPlayerSessionManager.Instance.CancelSessionOperations();
+        }
+
+        // 입장 로딩 패널 비활성화
+        joinLoadingPanel.SetActive(false);
+
+        // 조인 패널(방 목록)은 유지하거나 다시 띄움
+        ShowPanel(joinPanel);
+
+        // 목록 새로고침 (혹시 모를 상태 동기화)
+        RefreshSessionList();
     }
 
     // 특정 패널만 켜고 나머지는 끄는 공통 함수
@@ -81,6 +144,8 @@ public class StartManager : MonoBehaviour
         createPanel.SetActive(targetPanel == createPanel);
         joinPanel.SetActive(targetPanel == joinPanel);
         settingsPanel.SetActive(targetPanel == settingsPanel);
+
+        joinLoadingPanel.SetActive(false);
     }
 
     // 닉네임 입력 후 '확인' 버튼을 누를 때 호출 (UI에서 연결 필요)
@@ -145,15 +210,49 @@ public class StartManager : MonoBehaviour
     // UI 리스트만 비우는 헬퍼 함수
     private void ClearSessionListUI()
     {
+        //foreach (Transform child in sessionListContent)
+        //{
+        //    //Destroy 대신 (즉각적인 UI 갱신을 위해)
+        //    DestroyImmediate(child.gameObject);
+        //}
+
+        //print("파괴 처리하고 있나");
+
+        if (sessionListContent == null) return;
+
+        // 자식들을 임시 리스트에 담아 안전하게 파괴
+        List<GameObject> toDestroy = new List<GameObject>();
         foreach (Transform child in sessionListContent)
         {
-            Destroy(child.gameObject);
+            toDestroy.Add(child.gameObject);
         }
+
+        foreach (GameObject go in toDestroy)
+        {
+            // 부모 관계를 끊어서 즉시 리스트에서 이탈시킴
+            go.transform.SetParent(null);
+            DestroyImmediate(go);
+        }
+
+        Debug.Log("[UI] 모든 세션 프리팹 파괴 완료");
     }
 
-    private void UpdateSessionListUI(List<ISessionInfo> sessions)
+    void UpdateSessionListUI(List<ISessionInfo> sessions)
     {
-        // 1. 기존 리스트 청소
+        //if (isCancelling || !joinPanel.activeInHierarchy || mainPanel.activeInHierarchy)
+        //{
+        //    Debug.Log("취소 중이거나 비활성 상태이므로 UI 업데이트를 무시합니다.");
+        //    ClearSessionListUI();
+        //    return;
+        //}
+
+        // [방어막] UI가 목록을 보여줄 상황이 아니면 무조건 리턴
+        if (isCancelling || !joinPanel.activeInHierarchy || mainPanel.activeInHierarchy)
+        {
+            ClearSessionListUI();
+            return;
+        }
+
         ClearSessionListUI();
 
         if (sessions == null || sessions.Count == 0) return;
@@ -162,7 +261,7 @@ public class StartManager : MonoBehaviour
         foreach (var session in sessions)
         {
             GameObject entryGo = Instantiate(sessionEntryPrefab, sessionListContent);
-            print("프리팹 생성하는가");
+            //print("프리팹 생성하는가");
             //entryGo.transform.localScale = Vector3.one;                                 // 스케일 강제 고정
             //entryGo.transform.localPosition = Vector3.zero;                             // 위치 초기화
             // UI 프리팹이 깨지는 것을 방지하기 위한 코드
@@ -176,8 +275,10 @@ public class StartManager : MonoBehaviour
             if (entryGo.TryGetComponent<SessionUIEntry>(out var entryScript))
             {
                 // 생성 시점에 "클릭하면 이 함수를 실행해라"라고 주입 (의존성 주입)
-                entryScript.Setup(session, (selectedSession) => {
+                entryScript.Setup(session, (selectedSession) => 
+                {
                     Debug.Log($"{selectedSession.Name} 선택됨 -> 입장 시도");
+                    joinLoadingPanel.SetActive(true);
                     MultiPlayerSessionManager.Instance.JoinSessionAsync(selectedSession);
                 });
             }
