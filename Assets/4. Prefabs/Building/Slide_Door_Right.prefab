@@ -26,7 +26,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 89.22579, y: 7.5100007, z: 136.41653}
-  m_LocalScale: {x: 1.5, y: 1.2, z: 1}
+  m_LocalScale: {x: 1.5, y: 1.5, z: 2.1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3286721935974736953}
@@ -43,7 +43,7 @@ GameObject:
   - component: {fileID: 3286721935974736953}
   - component: {fileID: 2018301237261013574}
   - component: {fileID: 7150303115430164862}
-  - component: {fileID: 2308885318905382419}
+  - component: {fileID: 3176756311694031951}
   m_Layer: 0
   m_Name: Door_G_Frame
   m_TagString: Untagged
@@ -125,8 +125,8 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &2308885318905382419
-MeshCollider:
+--- !u!65 &3176756311694031951
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -143,10 +143,9 @@ MeshCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 6406857752418047365, guid: efd7a9b8104d825438596dfd274cb6de, type: 3}
+  serializedVersion: 3
+  m_Size: {x: 0.7144594, y: 2.122425, z: 0.6}
+  m_Center: {x: -0.62111014, y: 1.0612125, z: -0.000000056766332}
 --- !u!1 &6350125821750604089
 GameObject:
   m_ObjectHideFlags: 0
@@ -158,7 +157,7 @@ GameObject:
   - component: {fileID: 3094528465888049837}
   - component: {fileID: 6737483484655814712}
   - component: {fileID: 8351278791248112915}
-  - component: {fileID: 1372385198055903744}
+  - component: {fileID: 3727254929513963575}
   - component: {fileID: 6846908254052586561}
   m_Layer: 9
   m_Name: Door_G_Door
@@ -175,13 +174,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6350125821750604089}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.946, y: 1.0526125, z: 0.00015044212}
-  m_LocalScale: {x: 1, y: 1, z: 3}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
+  m_LocalPosition: {x: -0.26069558, y: 1.0526122, z: 0.024680762}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3286721935974736953}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!33 &6737483484655814712
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -240,8 +239,8 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &1372385198055903744
-MeshCollider:
+--- !u!65 &3727254929513963575
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -258,10 +257,9 @@ MeshCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 6139922440271982727, guid: efd7a9b8104d825438596dfd274cb6de, type: 3}
+  serializedVersion: 3
+  m_Size: {x: 1.2119231, y: 2.0852115, z: 0.2}
+  m_Center: {x: -0.6058681, y: 0.00000035762787, z: -0.00000013038516}
 --- !u!114 &6846908254052586561
 MonoBehaviour:
   m_ObjectHideFlags: 0

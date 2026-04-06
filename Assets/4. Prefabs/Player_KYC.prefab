@@ -2681,6 +2681,7 @@ Transform:
   - {fileID: 5002268081230083302}
   - {fileID: 8725482598054510622}
   - {fileID: 6881943023747061349}
+  - {fileID: 5560892907769453988}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &9016010991022753783
@@ -2717,8 +2718,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1968860785
-  InScenePlacedSourceGlobalObjectIdHash: 1799783564
+  GlobalObjectIdHash: 3090262530
+  InScenePlacedSourceGlobalObjectIdHash: 1422712853
   DeferredDespawnTick: 0
   Ownership: 1
   AlwaysReplicateAsRoot: 0
@@ -2965,12 +2966,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a23b96bf94d75594082ece5306dfd327, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInteraction
+  ShowTopMostFoldoutHeaderGroup: 1
   data: {fileID: 11400000, guid: 51fe10672196c0c4daf37fc48f14bb9a, type: 2}
   DoorLayer:
     serializedVersion: 2
     m_Bits: 512
   interactUI: {fileID: 0}
-  camTransform: {fileID: 0}
 --- !u!114 &1031317065671549591
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2983,6 +2984,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c144c904f8659242bed14fa20061a42, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInventory
+  ShowTopMostFoldoutHeaderGroup: 1
   slots:
   - {fileID: 0}
   - {fileID: 0}
@@ -2994,6 +2996,8 @@ MonoBehaviour:
   itemLayer:
     serializedVersion: 2
     m_Bits: 131072
+  leftHandName: OneHandle
+  bothHandsName: BothHandle
   leftHandTransform: {fileID: 2022906801399526411}
   bothHandsTransform: {fileID: 1470356795425094812}
   throwForce: 1
@@ -4848,3 +4852,65 @@ SkinnedMeshRenderer:
     m_Center: {x: 0.008844858, y: 0.07785554, z: -0.00046533998}
     m_Extent: {x: 0.013207562, y: 0.030636303, z: 0.031521153}
   m_DirtyAABB: 0
+--- !u!1001 &5029164424381154724
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 658577172614144005}
+    m_Modifications:
+    - target: {fileID: 641601073774270464, guid: fdd0c2843d1d2f440adbb435d68c876c, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 641601073774270464, guid: fdd0c2843d1d2f440adbb435d68c876c, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.303
+      objectReference: {fileID: 0}
+    - target: {fileID: 641601073774270464, guid: fdd0c2843d1d2f440adbb435d68c876c, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.336
+      objectReference: {fileID: 0}
+    - target: {fileID: 641601073774270464, guid: fdd0c2843d1d2f440adbb435d68c876c, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7183934
+      objectReference: {fileID: 0}
+    - target: {fileID: 641601073774270464, guid: fdd0c2843d1d2f440adbb435d68c876c, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.072381
+      objectReference: {fileID: 0}
+    - target: {fileID: 641601073774270464, guid: fdd0c2843d1d2f440adbb435d68c876c, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.07423822
+      objectReference: {fileID: 0}
+    - target: {fileID: 641601073774270464, guid: fdd0c2843d1d2f440adbb435d68c876c, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.6878667
+      objectReference: {fileID: 0}
+    - target: {fileID: 641601073774270464, guid: fdd0c2843d1d2f440adbb435d68c876c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 11.896
+      objectReference: {fileID: 0}
+    - target: {fileID: 641601073774270464, guid: fdd0c2843d1d2f440adbb435d68c876c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -0.415
+      objectReference: {fileID: 0}
+    - target: {fileID: 641601073774270464, guid: fdd0c2843d1d2f440adbb435d68c876c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 87.47
+      objectReference: {fileID: 0}
+    - target: {fileID: 4136903623506803131, guid: fdd0c2843d1d2f440adbb435d68c876c, type: 3}
+      propertyPath: m_Name
+      value: Spot Light
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: fdd0c2843d1d2f440adbb435d68c876c, type: 3}
+--- !u!4 &5560892907769453988 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 641601073774270464, guid: fdd0c2843d1d2f440adbb435d68c876c, type: 3}
+  m_PrefabInstance: {fileID: 5029164424381154724}
+  m_PrefabAsset: {fileID: 0}
