@@ -88,7 +88,14 @@ public class PlayerInteraction : NetworkBehaviour
             var door = hit.collider.GetComponentInParent<DoorController>();
             if (door != null)
             {
-                interactText.text = door.isOpen ? "Close (E)" : "Open (E)";
+                if (door.isLocked && !door.isOpen)
+                {
+                    interactText.text = "Locked (E)"; // 잠겨있을 때 표시
+                }
+                else
+                {
+                    interactText.text = door.isOpen ? "Close (E)" : "Open (E)";
+                }
             }
         }
         else
@@ -109,8 +116,10 @@ public class PlayerInteraction : NetworkBehaviour
             var door = hit.collider.GetComponentInParent<DoorController>();
             if (door != null)
             {
+                string testKeyID = "Test_01";
+
                 // 멀티플레이어: 여기서 서버 RPC 함수를 호출
-                door.ToggleDoor();
+                door.TryOpen(testKeyID);
             }
         }
     }
