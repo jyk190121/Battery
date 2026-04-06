@@ -46,6 +46,16 @@ public class PlayerRotation : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        if(vcam == null)
+        {
+            vcam = FindAnyObjectByType<CinemachineCamera>();
+        }
+
+        if (vcam != null)
+        {
+            _panTilt = vcam.GetComponent<CinemachinePanTilt>();
+        }
+
         if (playerMove == null)
         {
             playerMove = GetComponent<PlayerMove>();
