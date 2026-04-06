@@ -34,6 +34,18 @@ public class TeamChatRoomUI : MonoBehaviour
         chatInputField.text = "";
         chatInputField.gameObject.SetActive(false);
         StartCoroutine(ScrollToBottom());
+
+        if (PhoneUIController.Instance != null && PhoneUIController.Instance.messageNotificationObj != null)
+        {
+            // 채팅방 화면이 켜질 때 알림이 켜져 있다면 끄기
+            PhoneUIController.Instance.messageNotificationObj.SetActive(false);
+
+            // 모바일 알림도 끄기 
+            if (PhoneUIController.Instance.messageNotificationMobile != null)
+            {
+                PhoneUIController.Instance.messageNotificationMobile.SetActive(false);
+            }
+        }
     }
 
     private void OnDisable()

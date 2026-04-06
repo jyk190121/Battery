@@ -143,8 +143,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: PhotonVoice::Photon.Voice.Unity.Speaker
   playDelayConfig:
-    Low: 200
-    High: 200
+    Low: 50
+    High: 50
     Max: 1000
     SpeedUpPerc: 5
   restartOnDeviceChange: 1
