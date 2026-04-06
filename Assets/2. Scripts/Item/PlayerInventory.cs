@@ -1,5 +1,5 @@
 using System;
-using System.Collections; // 💡 코루틴을 사용하기 위해 추가
+using System.Collections; // 💡 코루틴 사용
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Netcode;
@@ -39,32 +39,28 @@ public class PlayerInventory : NetworkBehaviour
         bothHandsTransform = FindChildByName(transform, bothHandsName);
 
         if (leftHandTransform == null || bothHandsTransform == null)
-        {
-            Debug.LogError($"[PlayerInventory] 손 Transform을 찾지 못했습니다! 자식 오브젝트 이름을 확인해주세요.");
-        }
+            Debug.LogError($"[PlayerInventory] 손 Transform을 찾지 못했습니다!");
 
         if (IsOwner) LocalInstance = this;
 
         if (IsServer)
         {
-            // 💡 [에러 수정] 씬이 열리자마자 바로 부모를 바꾸면 에러가 나므로 코루틴으로 지연 실행!
-            StartCoroutine(DelayedRestoreItems());
+            // 💡 [핵심] 0.2초가 아니라 딱 1프레임만 대기! (눈에 안 보일 정도로 빠름)
+            StartCoroutine(WaitOneFrameAndRestore());
         }
     }
 
-    // 💡 0.2초 대기 후 복구를 시작하는 코루틴
-    private IEnumerator DelayedRestoreItems()
+    private IEnumerator WaitOneFrameAndRestore()
     {
-        yield return new WaitForSeconds(0.2f);
+        // 유니티 엔진이 플레이어 스폰 처리를 완료할 수 있도록 딱 1프레임(약 0.01초)만 양보합니다.
+        yield return null;
         RestoreItemsFromServer();
     }
 
     private Transform FindChildByName(Transform parent, string targetName)
     {
         foreach (Transform child in parent.GetComponentsInChildren<Transform>(true))
-        {
             if (child.name == targetName) return child;
-        }
         return null;
     }
 
@@ -79,14 +75,8 @@ public class PlayerInventory : NetworkBehaviour
         {
             if (Keyboard.current[Key.E].wasPressedThisFrame)
             {
-                if (lastLookedButton != null)
-                {
-                    lastLookedButton.Interact(this);
-                }
-                else if (lastLookedItem != null)
-                {
-                    TryPickUpAction();
-                }
+                if (lastLookedButton != null) lastLookedButton.Interact(this);
+                else if (lastLookedItem != null) TryPickUpAction();
             }
             if (Keyboard.current[Key.G].wasPressedThisFrame) RequestDropCurrentItem();
         }
@@ -105,7 +95,6 @@ public class PlayerInventory : NetworkBehaviour
                 {
                     ClearHighlight();
                     lastLookedItem = targetItem;
-                    Debug.Log($"포커스: {targetItem.itemData.itemName}");
                     if (lastLookedItem.TryGetComponent(out Outline outline)) outline.enabled = true;
                 }
                 return;
@@ -116,7 +105,6 @@ public class PlayerInventory : NetworkBehaviour
                 {
                     ClearHighlight();
                     lastLookedButton = targetButton;
-                    Debug.Log("<color=magenta>이륙 버튼 조준됨.</color>");
                 }
                 return;
             }
@@ -144,40 +132,24 @@ public class PlayerInventory : NetworkBehaviour
         if (targetItem.TryGetComponent(out Outline outline)) outline.enabled = false;
         lastLookedItem = null;
 
-        if (twoHandedItem != null)
-        {
-            Debug.Log("<color=red>양손을 사용 중이라 다른 아이템을 주울 수 없습니다!</color>");
-            return;
-        }
+        if (twoHandedItem != null) return;
 
         int emptySlotIndex = -1;
-        if (slots[currentSlotIndex] == null)
-        {
-            emptySlotIndex = currentSlotIndex;
-        }
+        if (slots[currentSlotIndex] == null) emptySlotIndex = currentSlotIndex;
         else
         {
             for (int i = 0; i < slots.Length; i++)
-            {
                 if (slots[i] == null) { emptySlotIndex = i; break; }
-            }
         }
 
-        if (emptySlotIndex == -1)
-        {
-            Debug.Log("<color=red>인벤토리가 가득 찼습니다! (G키로 버려야 합니다)</color>");
-            return;
-        }
+        if (emptySlotIndex == -1) return;
 
         if (targetItem.itemData.handType == HandType.TwoHand)
         {
             slots[emptySlotIndex] = targetItem;
             twoHandedItem = targetItem;
-
             if (slots[currentSlotIndex] != null && slots[currentSlotIndex] != targetItem)
-            {
                 slots[currentSlotIndex].gameObject.SetActive(false);
-            }
 
             targetItem.RequestChangeOwnership(true, bothHandsTransform);
             OnTwoHandedToggled?.Invoke(true);
@@ -186,11 +158,7 @@ public class PlayerInventory : NetworkBehaviour
         {
             slots[emptySlotIndex] = targetItem;
             targetItem.RequestChangeOwnership(true, leftHandTransform);
-
-            if (emptySlotIndex != currentSlotIndex)
-            {
-                targetItem.gameObject.SetActive(false);
-            }
+            if (emptySlotIndex != currentSlotIndex) targetItem.gameObject.SetActive(false);
         }
 
         OnInventoryUpdated?.Invoke();
@@ -203,23 +171,13 @@ public class PlayerInventory : NetworkBehaviour
         if (twoHandedItem != null)
         {
             itemToDrop = twoHandedItem;
-
             for (int i = 0; i < slots.Length; i++)
-            {
-                if (slots[i] == twoHandedItem)
-                {
-                    slots[i] = null;
-                    break;
-                }
-            }
+                if (slots[i] == twoHandedItem) { slots[i] = null; break; }
 
             twoHandedItem = null;
             OnTwoHandedToggled?.Invoke(false);
 
-            if (slots[currentSlotIndex] != null)
-            {
-                slots[currentSlotIndex].gameObject.SetActive(true);
-            }
+            if (slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(true);
         }
         else if (slots[currentSlotIndex] != null)
         {
@@ -248,7 +206,6 @@ public class PlayerInventory : NetworkBehaviour
         if (scroll == 0f) return;
 
         int prev = currentSlotIndex;
-
         if (scroll < 0f && currentSlotIndex < slots.Length - 1) currentSlotIndex++;
         else if (scroll > 0f && currentSlotIndex > 0) currentSlotIndex--;
 
@@ -260,15 +217,11 @@ public class PlayerInventory : NetworkBehaviour
         }
     }
 
-    // ==========================================================
-    // 멀티플레이 아이템 복구 시스템
-    // ==========================================================
     private void RestoreItemsFromServer()
     {
         ulong myId = OwnerClientId;
         if (GameSessionManager.Instance.playerItems.TryGetValue(myId, out var savedItems))
         {
-            Debug.Log($"<color=orange><b>[Inventory]</b> {savedItems.Count}개의 인벤토리 아이템 복구를 시작합니다.</color>");
             foreach (var data in savedItems)
             {
                 ItemBase prefab = GameSessionManager.Instance.GetPrefab(data.itemID);

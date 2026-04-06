@@ -48,7 +48,6 @@ public class SettlementZone : NetworkBehaviour
         Collider[] targets = Physics.OverlapBox(center, halfExtents, transform.rotation);
         int totalValue = 0;
 
-        // 1. 바닥 짐 정산
         foreach (var t in targets)
         {
             ItemBase item = t.GetComponentInParent<ItemBase>();
@@ -68,7 +67,6 @@ public class SettlementZone : NetworkBehaviour
             }
         }
 
-        // 2. 가방 정산 (💡 여기서 양손템도 가방 1칸을 차지하므로 자동으로 같이 정산됨!)
         for (int i = 0; i < player.slots.Length; i++)
         {
             if (player.slots[i] != null)
@@ -89,14 +87,12 @@ public class SettlementZone : NetworkBehaviour
             }
         }
 
-        // 3. 💡 [수정] 아이템은 위에서 정산+삭제 되었으므로, 양손 UI 상태만 초기화
         if (player.twoHandedItem != null)
         {
             player.twoHandedItem = null;
             player.OnTwoHandedToggled?.Invoke(false);
         }
 
-        // 4. 외부 방치 아이템 강제 청소
         ItemBase[] allItemsInScene = FindObjectsByType<ItemBase>(FindObjectsSortMode.None);
         foreach (var leftoverItem in allItemsInScene)
         {
@@ -108,15 +104,11 @@ public class SettlementZone : NetworkBehaviour
 
         GameSessionManager.Instance.AddMoney(totalValue);
         Debug.Log($"<color=cyan><b>[Ship System]</b> {nextSceneName}으로 이동합니다.</color>");
-        StartCoroutine(WaitAndLoadSceneSafe());
-    }
 
-    private IEnumerator WaitAndLoadSceneSafe()
-    {
+        // 💡 [변경됨] 딜레이 없이 즉시 씬 로드
 #if UNITY_EDITOR
         UnityEditor.Selection.activeGameObject = null;
 #endif
-        yield return new WaitForSecondsRealtime(0.2f);
         NetworkManager.Singleton.SceneManager.LoadScene(nextSceneName, UnityEngine.SceneManagement.LoadSceneMode.Single);
     }
 
@@ -143,7 +135,6 @@ public class SettlementZone : NetworkBehaviour
         {
             bool inventoryChanged = false;
 
-            // 💡 [수정] 가방 먼저 싹 검사
             for (int i = 0; i < player.slots.Length; i++)
             {
                 if (player.slots[i] != null && player.slots[i] is Item_Scrap slotScrap)
@@ -151,7 +142,6 @@ public class SettlementZone : NetworkBehaviour
                     totalValue += slotScrap.currentScrapValue;
                     if (slotScrap.NetworkObject != null && slotScrap.NetworkObject.IsSpawned) slotScrap.NetworkObject.Despawn();
 
-                    // 만약 방금 판 폐지가 양손 템이었다면 참조 날리기
                     if (player.twoHandedItem == player.slots[i])
                     {
                         player.twoHandedItem = null;
