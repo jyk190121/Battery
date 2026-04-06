@@ -46,45 +46,76 @@ public class PlayerRotation : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        if (vcam != null)
-        {
-            _panTilt = vcam.GetComponent<CinemachinePanTilt>();
-        }
-
         if (playerMove == null)
         {
             playerMove = GetComponent<PlayerMove>();
         }
+        //if(vcam == null)
+        //{
+        //    vcam = FindAnyObjectByType<CinemachineCamera>();
+        //}
 
-        if (IsOwner)
+        //if (vcam != null)
+        //{
+        //    _panTilt = vcam.GetComponent<CinemachinePanTilt>();
+        //}
+
+        //vcam = FindAnyObjectByType<CinemachineCamera>();
+
+        //if (vcam != null)
+        //{
+        //    _panTilt = vcam.GetComponent<CinemachinePanTilt>();
+        //}
+
+        //if (IsOwner)
+        //{
+        //    // [에러 해결] .Enabled 대신 .enabled 사용 (소문자)
+        //    if (vcam != null)
+        //    {
+        //        vcam.Priority = 10;
+        //        vcam.enabled = true;
+
+        //        // 혹은 게임 오브젝트 전체를 끄고 켜는 방식이 가장 확실합니다.
+        //        // vcam.gameObject.SetActive(true);
+        //    }
+
+        //    // 초기 위치 설정
+        //    if (cameraTarget != null)
+        //    {
+        //        Vector3 pos = cameraTarget.localPosition;
+        //        cameraTarget.localPosition = new Vector3(pos.x, walkYPos + originYoffset, pos.z);
+        //    }
+
+        //    Cursor.lockState = CursorLockMode.Locked;
+        //    Cursor.visible = false;
+        //}
+        //else
+        //{
+        //    // 내 캐릭터가 아니라면 카메라 컴포넌트 비활성화
+        //    if (vcam != null)
+        //    {
+        //        vcam.enabled = false;
+        //        // vcam.gameObject.SetActive(false); // 추천: 카메라 오브젝트 자체를 끄기
+        //    }
+        //}
+
+        TryFindCamera();
+    }
+
+    private void TryFindCamera()
+    {
+        if (vcam == null)
         {
-            // [에러 해결] .Enabled 대신 .enabled 사용 (소문자)
+            vcam = FindAnyObjectByType<CinemachineCamera>();
             if (vcam != null)
             {
-                vcam.Priority = 10;
-                vcam.enabled = true;
-
-                // 혹은 게임 오브젝트 전체를 끄고 켜는 방식이 가장 확실합니다.
-                // vcam.gameObject.SetActive(true);
-            }
-
-            // 초기 위치 설정
-            if (cameraTarget != null)
-            {
-                Vector3 pos = cameraTarget.localPosition;
-                cameraTarget.localPosition = new Vector3(pos.x, walkYPos + originYoffset, pos.z);
-            }
-
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-        }
-        else
-        {
-            // 내 캐릭터가 아니라면 카메라 컴포넌트 비활성화
-            if (vcam != null)
-            {
-                vcam.enabled = false;
-                // vcam.gameObject.SetActive(false); // 추천: 카메라 오브젝트 자체를 끄기
+                _panTilt = vcam.GetComponent<CinemachinePanTilt>();
+                // 내 카메라라면 타겟 설정
+                if (IsOwner)
+                {
+                    vcam.Follow = cameraTarget;
+                    vcam.LookAt = cameraTarget;
+                }
             }
         }
     }
@@ -92,6 +123,10 @@ public class PlayerRotation : NetworkBehaviour
     void LateUpdate()
     {
         if (!IsOwner) return; // 내 캐릭터만 마우스 회전 처리
+
+        // 만약 Spawn 시점에 못 찾았다면 여기서 다시 시도 (성능을 위해 null일 때만)
+        if (vcam == null) TryFindCamera();
+        if (_panTilt == null) return;
         
         //Vector2 mouseDelta = Input.GetMouseDelta();
 

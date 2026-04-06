@@ -1998,7 +1998,7 @@ MonoBehaviour:
   NetworkConfig:
     ProtocolVersion: 0
     NetworkTransport: {fileID: 508085959}
-    PlayerPrefab: {fileID: 4911454195433589709, guid: 85da4e28247293c4ebe8f6c07893d6cb, type: 3}
+    PlayerPrefab: {fileID: 0}
     Prefabs:
       NetworkPrefabsLists:
       - {fileID: 11400000, guid: e9914e2b55d77094bb77da3ae8337032, type: 2}
@@ -4739,6 +4739,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameSceneManager
   ShowTopMostFoldoutHeaderGroup: 1
+  playerPrefabName: Player_KJY
 --- !u!114 &1276800883
 MonoBehaviour:
   m_ObjectHideFlags: 0
