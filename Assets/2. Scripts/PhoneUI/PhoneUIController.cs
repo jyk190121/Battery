@@ -1,7 +1,8 @@
-using UnityEngine;
-using UnityEngine.InputSystem;
 using System;
 using System.Collections.Generic;
+using Unity.VectorGraphics.Editor;
+using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PhoneUIController : MonoBehaviour
 {
@@ -67,6 +68,7 @@ public class PhoneUIController : MonoBehaviour
 
         if (Keyboard.current.cKey.wasPressedThisFrame)
         {
+            SoundManager.Instance.PlaySfx(SfxSound.PHONE_RETURN);
             OnBackButtonPressed?.Invoke();
         }
     }
@@ -83,8 +85,13 @@ public class PhoneUIController : MonoBehaviour
         if (!isActive)
         {
             // 전화 관련 이벤트가 활성화되어 있다면 무조건 통화 화면(1번) 오픈
+            SoundManager.Instance.PlaySfx(SfxSound.PHONE_OPEN);
             if (isCallActive) ShowScreen(1);
             else ShowScreen(0);
+        }
+        else
+        {
+            SoundManager.Instance.PlaySfx(SfxSound.PHONE_CLOSE);
         }
         phoneUIParent.SetActive(!isActive);
     }

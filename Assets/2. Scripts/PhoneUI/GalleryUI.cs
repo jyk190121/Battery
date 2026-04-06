@@ -1,6 +1,7 @@
+using Unity.VectorGraphics.Editor;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class GalleryUI : ScrollSelectionUI
 {
@@ -144,6 +145,12 @@ public class GalleryUI : ScrollSelectionUI
 
         if (Mouse.current.rightButton.isPressed)
         {
+            if (!isHoldingRightClick)
+            {
+                // 누르기 시작할 때 삭제 게이지 소리 
+                SoundManager.Instance.PlaySfx(SfxSound.PHONE_GALLERYDELETE);
+            }
+
             isHoldingRightClick = true;
             deletePopup.SetActive(true);
             currentHoldTime += Time.deltaTime;
@@ -177,6 +184,8 @@ public class GalleryUI : ScrollSelectionUI
 
     private void DeleteCurrentPhoto()
     {
+        SoundManager.Instance.PlaySfx(SfxSound.PHONE_GALLERYDELETED);
+
         // 매니저를 통해 사진(과 데이터) 완전히 삭제
         PhotoDataManager.Instance.RemovePhoto(currentIndex);
         Debug.Log($"[GalleryUI] {currentIndex}번 사진 및 데이터 삭제 완료");

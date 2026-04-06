@@ -1,3 +1,4 @@
+using Unity.VectorGraphics.Editor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -31,6 +32,7 @@ public class MainUI : ScrollSelectionUI
         // 우클릭시 해당 화면으로 이동
         if (Mouse.current.rightButton.wasPressedThisFrame)
         {
+            SoundManager.Instance.PlaySfx(SfxSound.PHONE_SELECT);
             PhoneUIController.Instance.ShowScreen(currentIndex + 1);
         }
     }

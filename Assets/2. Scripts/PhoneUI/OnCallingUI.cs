@@ -1,8 +1,9 @@
+using Photon.Voice.Unity;
 using System.Collections;
 using TMPro;
+using Unity.VectorGraphics.Editor;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Photon.Voice.Unity;
 
 public class OnCallingUI : MonoBehaviour
 {
@@ -108,6 +109,8 @@ public class OnCallingUI : MonoBehaviour
         isIncomingCall = false;
         timerText.text = "Calling...";
 
+        SoundManager.Instance.PlayLoopSfx(SfxSound.PHONE_DIAL);
+
         Accept.SetActive(true);
         Reject.SetActive(false);
 
@@ -135,6 +138,8 @@ public class OnCallingUI : MonoBehaviour
         targetName.text = callerName;
         timerText.text = $"Incoming...";
 
+        SoundManager.Instance.PlayLoopSfx(SfxSound.PHONE_CALLALARM);
+
         // 폰 상태에 따른 알림 및 화면 전환 처리 
         if (PhoneUIController.Instance != null)
         {
@@ -160,6 +165,8 @@ public class OnCallingUI : MonoBehaviour
         if (currentTargetName == acceptorName)
         {
             Debug.Log("[Phone] 상대방이 전화를 받았습니다!");
+
+            SoundManager.Instance.StopLoopSfx();
             isTimerRunning = true;
             timerText.text = "00:00";
 
@@ -173,6 +180,9 @@ public class OnCallingUI : MonoBehaviour
         timerText.text = "Call Ended";
         isTimerRunning = false;
         isIncomingCall = false;
+
+        SoundManager.Instance.StopLoopSfx();
+        SoundManager.Instance.PlaySfx(SfxSound.PHONE_REJECT);
 
         if (!gameObject.activeInHierarchy)
         {
@@ -191,12 +201,16 @@ public class OnCallingUI : MonoBehaviour
 
         StartCoroutine(CloseAfterDelay(1.5f));
     }
+
     // 상대방이 통화 중일 때 처리 로직
     private void HandleBusy(string targetName)
     {
         timerText.text = "User Busy";
         isTimerRunning = false;
         isIncomingCall = false;
+
+        SoundManager.Instance.StopLoopSfx();
+        SoundManager.Instance.PlayLoopSfx(SfxSound.PHONE_BUSY);
 
         if (!gameObject.activeInHierarchy)
         {
@@ -226,6 +240,9 @@ public class OnCallingUI : MonoBehaviour
         isTimerRunning = true;
         isIncomingCall = false;
 
+        SoundManager.Instance.StopLoopSfx();
+        SoundManager.Instance.PlaySfx(SfxSound.PHONE_ACCEPT);
+
         if (chatManager != null && !string.IsNullOrEmpty(currentTargetName))
         {
             chatManager.SendCallAccept(currentTargetName);
@@ -243,6 +260,9 @@ public class OnCallingUI : MonoBehaviour
         isIncomingCall = false;
         timerText.text = "Call Ended";
 
+        SoundManager.Instance.StopLoopSfx();
+        SoundManager.Instance.PlaySfx(SfxSound.PHONE_REJECT);
+
         if (chatManager != null && !string.IsNullOrEmpty(currentTargetName))
         {
             chatManager.SendCallHangUp(currentTargetName);
@@ -257,6 +277,8 @@ public class OnCallingUI : MonoBehaviour
     private IEnumerator CloseAfterDelay(float delayTime)
     {
         yield return new WaitForSeconds(delayTime);
+
+        SoundManager.Instance.StopLoopSfx();
 
         currentTargetName = "";
         gameObject.SetActive(false);

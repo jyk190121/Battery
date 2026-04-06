@@ -1,8 +1,9 @@
 using System.Collections;
-using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
+using Unity.VectorGraphics.Editor;
+using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class TeamChatRoomUI : MonoBehaviour
 {
@@ -25,6 +26,8 @@ public class TeamChatRoomUI : MonoBehaviour
     private void Awake()
     {
         if (chatInputField != null) chatInputField.characterLimit = maxCharacterLimit;
+
+        chatInputField.onValueChanged.AddListener(OnTyping);
     }
 
 
@@ -68,6 +71,7 @@ public class TeamChatRoomUI : MonoBehaviour
         {
             if (!chatInputField.gameObject.activeSelf)
             {
+                SoundManager.Instance.PlaySfx(SfxSound.PHONE_TYPING_START);
                 // [입력 상태 진입] 비활성화 상태였다면 켜고 포커스 주기
                 chatInputField.gameObject.SetActive(true);
                 chatInputField.ActivateInputField();
@@ -102,6 +106,7 @@ public class TeamChatRoomUI : MonoBehaviour
         // 텍스트가 비어있지 않을 때만 서버로 발송
         if (!string.IsNullOrEmpty(message))
         {
+            SoundManager.Instance.PlaySfx(SfxSound.PHONE_MESSAGE_SEND);
             if (chatManager != null)
             {
                 chatManager.SendChatMessage(message);
@@ -121,6 +126,11 @@ public class TeamChatRoomUI : MonoBehaviour
     {
         // 4명 중 누가 보냈는지 알 수 있도록 닉네임 결합
         string formattedMessage = isMine ? messageText : $"<b>{senderName}</b>\n{messageText}";
+
+        if (!isMine)
+        {
+            SoundManager.Instance.PlaySfx(SfxSound.PHONE_MESSAGE_RECEIVE);
+        }
 
         GameObject prefabToUse = isMine ? myBubblePrefab : otherBubblePrefab;
         CreateSpeechBubble(prefabToUse, formattedMessage);
@@ -152,6 +162,16 @@ public class TeamChatRoomUI : MonoBehaviour
         if (scrollRect != null)
         {
             scrollRect.verticalNormalizedPosition = 0f; // 0이 맨 아래
+        }
+    }
+
+
+    // 입력 필드에 타이핑이 시작될 때마다 호출되는 함수
+    private void OnTyping(string text)
+    {
+        if (!string.IsNullOrEmpty(text))
+        {
+            SoundManager.Instance.PlaySfx(SfxSound.PHONE_TYPING);
         }
     }
 }
