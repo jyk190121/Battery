@@ -99,18 +99,20 @@ public class PlayerMove : NetworkBehaviour
 
         if (inputMagnitude > 0.1f && !isCrouching)
         {
-            // [추가] 계단 위일 때는 이동 속도를 약간 조절하거나 전용 속도를 적용할 수 있습니다.
+            // 계단 이용 시 0.8배율로 속도 감소
             float moveSpeedMultiplier = isOnStair ? 0.8f : 1.0f;
 
             // 스테미너 값에 따른 달리기 여부
-            bool canRun = Keyboard.current.leftShiftKey.isPressed && isGrounded && !isOnStair && !stateManager.IsExhausted;
+            bool canRun = Keyboard.current.leftShiftKey.isPressed && isGrounded && !stateManager.IsExhausted;
 
             // 이동 중일 때만 쉬프트 체크
             if (canRun)
             {
-                currentSpeed = runSpeed;
-                //anim.SetFloat("Speed", 2.0f, 0.05f, Time.deltaTime); // 아주 약간의 댐핑을 주면 더 부드럽습니다.
+                currentSpeed = runSpeed * moveSpeedMultiplier;
                 playerAnim.UpdateMoveAnimation(2.0f);
+                //currentSpeed = runSpeed;
+                //anim.SetFloat("Speed", 2.0f, 0.05f, Time.deltaTime); // 아주 약간의 댐핑을 주면 더 부드럽습니다.
+                //playerAnim.UpdateMoveAnimation(2.0f);
             }
             else if(isGrounded)
             {

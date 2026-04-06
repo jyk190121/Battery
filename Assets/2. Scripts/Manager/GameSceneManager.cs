@@ -179,7 +179,7 @@ public class GameSceneManager : NetworkBehaviour
         }
 
         // 3. 스폰 위치 설정 (동일 위치면 겹치므로 필요시 약간의 오프셋을 줄 수 있습니다)
-        Vector3 spawnPos = new Vector3(100f, 0, 150f);
+        Vector3 spawnPos = new Vector3(100f, 0, 140f);
         Quaternion spawnRot = Quaternion.identity;
 
         // 4. 서버에서 인스턴스화 및 네트워크 스폰

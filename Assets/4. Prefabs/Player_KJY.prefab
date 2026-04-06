@@ -2719,7 +2719,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 405663255
+  GlobalObjectIdHash: 6777840
   InScenePlacedSourceGlobalObjectIdHash: 1799783564
   DeferredDespawnTick: 0
   Ownership: 1
@@ -2801,7 +2801,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 1
+  m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 2
 --- !u!65 &3046390276159156554
@@ -3030,7 +3030,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c8954012d9ccaf418987a9b65dd95cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerUIManager
+  ShowTopMostFoldoutHeaderGroup: 1
   vignetteImage: {fileID: 0}
+  staminaBarImage: {fileID: 0}
   breathAudio: {fileID: 0}
 --- !u!1 &5047510916941267613
 GameObject:

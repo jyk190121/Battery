@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Netcode;
-using Unity.Netcode.Transports.UTP;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Multiplayer;
-using Unity.Services.Relay;
 using UnityEngine;
+//지연
+using System.Threading;
 
 public class MultiPlayerSessionManager : NetworkBehaviour
 {
@@ -46,6 +46,9 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     public event Action<bool> OnHostStatusChanged;
 
     private bool _isLeaving = false;
+
+    // 비동기 작업 취소를 위한 토큰 소스
+    CancellationTokenSource _sessionCancelSource;
 
     private void Awake()
     {
@@ -98,7 +101,7 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     }
     #endregion
 
-    #region Session Management (Create / Join / Query)
+    #region Session Management (Create / Join / Query / Cancel)
 
     // 1. 방 만들기 (Create)
     public async void CreateSessionAsync(string sessionName)
@@ -157,18 +160,33 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         //    Debug.LogError($"[Multiplayer] 세션 생성 실패: {e.Message}");
         //}
 
+        // 이전 작업이 있다면 취소 후 새로 생성
+        CancelSessionOperations();
+        _sessionCancelSource = new CancellationTokenSource();
+        var token = _sessionCancelSource.Token;
+
         try
         {
             await EnsureSignedInAsync();
 
+            // 여기서 Relay 자동 할당
             var options = new SessionOptions
             {
                 Name = sessionName,
                 MaxPlayers = 4,
                 IsPrivate = false
-            }.WithRelayNetwork(); // 여기서 Relay 자동 할당
+            }.WithRelayNetwork(); 
 
             ActiveSession = await MultiplayerService.Instance.CreateSessionAsync(options);
+
+            // 만약 대기 중에 취소되었다면 중단
+            if (token.IsCancellationRequested)
+            {
+                Debug.Log("[Multiplayer] 방 생성 직후 취소 요청 감지. 서버에서 방을 즉시 제거합니다.");
+                await ActiveSession.LeaveAsync();
+                ActiveSession = null;
+                return;
+            }
 
             // 중요: 별도의 Relay 할당 코드를 작성하지 마세요. 
             // ActiveSession.Code에 이미 Relay 코드가 담겨 있습니다.
@@ -176,19 +194,22 @@ public class MultiPlayerSessionManager : NetworkBehaviour
 
             if (string.IsNullOrEmpty(joinCode))
             {
-                Debug.LogError("Join Code 생성 실패");
+                //Debug.LogError("Join Code 생성 실패");
                 return;
             }
 
             NetworkManager.Singleton.StartHost();
             Debug.Log($"[Multiplayer] 호스트 시작 성공! 코드: {joinCode}");
 
-            if (GameSceneManager.Instance != null)
-                GameSceneManager.Instance.LoadNetworkScene(LOBBY_SCENE_NAME);
+            if (GameSceneManager.Instance != null) GameSceneManager.Instance.LoadNetworkScene(LOBBY_SCENE_NAME);
+        }
+        catch (OperationCanceledException)
+        {
+            Debug.Log("방 생성 작업이 사용자에 의해 취소되었습니다.");
         }
         catch (Exception e)
         {
-            Debug.LogError($"[Multiplayer] 세션 생성 실패: {e.Message}");
+            if (!token.IsCancellationRequested) Debug.LogError($"[Multiplayer] 세션 생성 실패: {e.Message}");
         }
     }
 
@@ -299,12 +320,23 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         //    Debug.LogError($"[Multiplayer] 세션 참가 실패: {e.Message}");
         //}
 
+        CancelSessionOperations();
+        _sessionCancelSource = new CancellationTokenSource();
+        var token = _sessionCancelSource.Token;
+
         try
         {
             await EnsureSignedInAsync();
 
             // 1. 세션 서비스 참가 (이 내부에서 Relay 연결이 자동으로 준비됩니다)
             ActiveSession = await MultiplayerService.Instance.JoinSessionByIdAsync(session.Id);
+            
+            // 이미 세션에 들어갔다면 바로 나가기 처리
+            if (token.IsCancellationRequested)
+            {
+                await ActiveSession.LeaveAsync();
+                return;
+            }
 
             // [중요] 여기서 RelayService.Instance.JoinAllocationAsync를 직접 호출하지 마세요!
             // WithRelayNetwork()를 사용하면 세션에 참가하는 순간 
@@ -320,9 +352,59 @@ public class MultiPlayerSessionManager : NetworkBehaviour
 
             Debug.Log($"[Multiplayer] 세션 참가 완료: {ActiveSession.Name}");
         }
+        catch (OperationCanceledException)
+        {
+            Debug.Log("방 참가 작업이 사용자에 의해 취소되었습니다.");
+        }
         catch (Exception e)
         {
-            Debug.LogError($"[Multiplayer] 세션 참가 실패: {e.Message}");
+            if (!token.IsCancellationRequested) Debug.LogError($"[Multiplayer] 세션 참가 실패: {e.Message}");
+        }
+    }
+
+    public async void CancelSessionOperations()
+    {
+        if (_sessionCancelSource != null)
+        {
+            _sessionCancelSource.Cancel();
+            _sessionCancelSource.Dispose();
+            _sessionCancelSource = null;
+            Debug.Log("[Multiplayer] 진행 중인 모든 작업을 취소했습니다.");
+        }
+
+        // 2. 만약 이미 세션이 생성되어 있다면 서버에서 제거
+        if (ActiveSession != null)
+        {
+            try
+            {
+                Debug.Log($"[Multiplayer] 생성 중이던 세션({ActiveSession.Name})을 서버에서 제거합니다.");
+                // 호스트인 경우 세션을 떠나면 일반적으로 세션이 삭제되거나 유효하지 않게 됩니다.
+                await ActiveSession.LeaveAsync();
+            }
+            catch (System.Exception e)
+            {
+                // 'lobby not found'나 'session not started'는 취소 상황에서 빈번하므로 
+                // 에러가 아닌 정보성 로그로 처리하거나 무시합니다.
+                if (e.Message.Contains("lobby not found") || e.Message.Contains("never started"))
+                {
+                    Debug.Log("[Multiplayer] 세션이 아직 생성 전이거나 이미 정리되었습니다.");
+                }
+                else
+                {
+                    Debug.LogWarning($"[Multiplayer] 세션 정리 중 예외 발생: {e.Message}");
+                }
+            }
+            finally
+            {
+                ActiveSession = null;
+            }
+        }
+
+
+        // UI에서 취소를 눌렀을 때 NetworkManager가 이미 시작되었다면 셧다운
+        if (NetworkManager.Singleton != null && (NetworkManager.Singleton.IsClient || NetworkManager.Singleton.IsServer))
+        {
+            NetworkManager.Singleton.Shutdown();
         }
     }
 
