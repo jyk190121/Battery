@@ -24,6 +24,12 @@ public class PlayerMove : NetworkBehaviour
     public LayerMask stairLayer;                    // 인스펙터에서 Stair 레이어 선택
     bool isOnStair = false;                         // 현재 계단 위인지 여부
 
+    [Header("계단 로직 설정")]
+    public GameObject stepUpper; // 위쪽 레이 발사 지점 (예: 지면에서 0.5m 높이)
+    public GameObject stepLower; // 아래쪽 레이 발사 지점 (예: 지면에서 0.1m 높이)
+    public float stepHeight = 0.4f; // 넘을 수 있는 최대 높이
+    public float stepSmooth = 2f; // 계단을 오르는 부드러움 정도
+
     // [Header("앉기 체크 설정")]
     bool isCrouching = false;
 
@@ -61,6 +67,31 @@ public class PlayerMove : NetworkBehaviour
         HandleMovement(h, v);
         HandleActions();
     }
+
+    void FixedUpdate()
+    {
+        if (!IsOwner) return;
+        StepUp(); // 계단 오르기 로직
+    }
+
+    void StepUp()
+    {
+        // 이동 입력이 있을 때만 작동
+        if (inputMagnitude < 0.1f) return;
+
+        RaycastHit hitLower;
+        if (Physics.Raycast(stepLower.transform.position, transform.TransformDirection(Vector3.forward), out hitLower, 0.1f))
+        {
+            RaycastHit hitUpper;
+            if (!Physics.Raycast(stepUpper.transform.position, transform.TransformDirection(Vector3.forward), out hitUpper, 0.2f))
+            {
+                // 아래는 닿고 위는 안 닿았다면 = '계단'이다!
+                // 리지드바디의 속도를 조절하거나 위치를 부드럽게 올림
+                rb.position += new Vector3(0f, stepHeight * Time.deltaTime * stepSmooth, 0f);
+            }
+        }
+    }
+
     void CheckGroundStatus()
     {
         RaycastHit hit;
