@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System.Collections.Generic;
 
 public class CallUI : ScrollSelectionUI
 {
@@ -67,6 +67,7 @@ public class CallUI : ScrollSelectionUI
         highlight.transform.localPosition = newPos;
     }
 
+    // 전화 걸기 로직
     void StartCall()
     {
         if (phoneBookList.Count == 0) return;
@@ -75,21 +76,26 @@ public class CallUI : ScrollSelectionUI
 
         if (chatManager != null)
         {
-            // [해결] 채팅 서버(신호망)가 아직 준비되지 않았다면 클릭 자체를 무시합니다.
+            // 채팅 서버(신호망)가 아직 준비되지 않았다면 클릭 자체를 무시합니다.
             if (!chatManager.CanChat)
             {
+                SoundManager.Instance.PlaySfx(SfxSound.PHONE_ERROR);
                 Debug.LogWarning("[Phone] 통신망 연결 중입니다. 1~2초 뒤에 다시 시도해주세요.");
                 return; // 여기서 멈춤 (에러 방지)
             }
 
             if (targetPlayer == chatManager.userName)
             {
+                SoundManager.Instance.PlaySfx(SfxSound.PHONE_ERROR);
                 Debug.LogWarning("[Phone] 자기 자신에게는 전화를 걸 수 없습니다.");
                 return;
             }
 
             chatManager.SendCallRequest(targetPlayer);
         }
+
+        // 전화 걸 때 사운드 재생
+        SoundManager.Instance.PlaySfx(SfxSound.PHONE_SELECT);
 
         OnCallingUI callingScript = onCall.GetComponent<OnCallingUI>();
         if (callingScript != null)

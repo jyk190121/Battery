@@ -1,8 +1,7 @@
-using System;
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using TMPro;
 
 public class CameraUI : MonoBehaviour
 {
@@ -87,6 +86,7 @@ public class CameraUI : MonoBehaviour
             if (backCamera != null) backCamera.enabled = true;
             modeText.text = "Back";
         }
+        SoundManager.Instance.PlaySfx(SfxSound.PHONE_PHOTOMODECHANGE);
     }
 
     private void HandleCapture()
@@ -96,9 +96,11 @@ public class CameraUI : MonoBehaviour
             // 매니저를 통해 사진 개수 검사
             if (PhotoDataManager.Instance.currentPhotos.Count >= PhotoDataManager.Instance.maxPhotos)
             {
+                SoundManager.Instance.PlaySfx(SfxSound.PHONE_PHOTOFULLALERT);
                 StartCoroutine(ShowWarningPopup());
                 return;
             }
+            SoundManager.Instance.PlaySfx(SfxSound.PHONE_TAKEPHOTO);
             StartCoroutine(CapturePhotoRoutine());
         }
     }
