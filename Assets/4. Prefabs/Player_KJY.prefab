@@ -2642,8 +2642,8 @@ GameObject:
   - component: {fileID: 9182508245703953868}
   - component: {fileID: 5358241311784179748}
   - component: {fileID: 8091833355368807864}
-  - component: {fileID: 9174420971247566103}
-  - component: {fileID: 1031317065671549591}
+  - component: {fileID: 8808567715922933914}
+  - component: {fileID: 7194879222986223479}
   m_Layer: 0
   m_Name: Player_KJY
   m_TagString: Untagged
@@ -2717,7 +2717,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1968860785
+  GlobalObjectIdHash: 6777840
   InScenePlacedSourceGlobalObjectIdHash: 1799783564
   DeferredDespawnTick: 0
   Ownership: 1
@@ -2799,7 +2799,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 2
 --- !u!65 &3046390276159156554
@@ -2953,7 +2953,7 @@ MonoBehaviour:
   UseRigidBodyForMotion: 0
   AutoUpdateKinematicState: 1
   AutoSetKinematicOnDespawn: 1
---- !u!114 &9174420971247566103
+--- !u!114 &8808567715922933914
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2965,13 +2965,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a23b96bf94d75594082ece5306dfd327, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInteraction
+  ShowTopMostFoldoutHeaderGroup: 1
   data: {fileID: 11400000, guid: 51fe10672196c0c4daf37fc48f14bb9a, type: 2}
   DoorLayer:
     serializedVersion: 2
-    m_Bits: 512
+    m_Bits: 0
   interactUI: {fileID: 0}
   camTransform: {fileID: 0}
---- !u!114 &1031317065671549591
+--- !u!114 &7194879222986223479
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2983,6 +2984,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c144c904f8659242bed14fa20061a42, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInventory
+  ShowTopMostFoldoutHeaderGroup: 1
   slots:
   - {fileID: 0}
   - {fileID: 0}
@@ -2994,9 +2996,11 @@ MonoBehaviour:
   itemLayer:
     serializedVersion: 2
     m_Bits: 131072
-  leftHandTransform: {fileID: 2022906801399526411}
-  bothHandsTransform: {fileID: 1470356795425094812}
-  throwForce: 1
+  leftHandName: OneHandle
+  bothHandsName: BothHandle
+  leftHandTransform: {fileID: 0}
+  bothHandsTransform: {fileID: 0}
+  throwForce: 7
 --- !u!1 &5047510916941267613
 GameObject:
   m_ObjectHideFlags: 0
