@@ -13,7 +13,6 @@ public abstract class ItemBase : NetworkBehaviour
     protected Collider itemPhysicalCollider;
     protected bool isThrown = false;
 
-    // 💡 [추가됨] 강제 위치 추적을 위한 타겟 손 변수
     protected Transform currentTargetHand;
 
     protected virtual void Awake()
@@ -21,33 +20,20 @@ public abstract class ItemBase : NetworkBehaviour
         itemPhysicsRigidbody = GetComponent<Rigidbody>();
         itemPhysicalCollider = GetComponent<Collider>();
 
-        bool isMulti = NetworkGlobalSettings.Instance != null && NetworkGlobalSettings.Instance.isMultiplayerMode;
-
-        if (!isMulti)
-        {
-            var netObj = GetComponent<NetworkObject>();
-            if (netObj != null)
-            {
-                DestroyImmediate(netObj);
-                Debug.Log($"<color=cyan><b>[Dev-Single]</b></color> {gameObject.name} NGO 차단 완료.");
-            }
-        }
+        // 🗑️ NetworkGlobalSettings 체크 로직 삭제 완료
     }
 
     protected virtual void Start()
     {
-        bool isMulti = NetworkGlobalSettings.Instance != null && NetworkGlobalSettings.Instance.isMultiplayerMode;
-        var netTransform = GetComponent<Unity.Netcode.Components.NetworkTransform>();
-        if (netTransform != null) netTransform.enabled = isMulti;
+        // 🗑️ NetworkTransform 강제 활성화/비활성화 로직 삭제 완료
+        // (자식 클래스 상속을 위해 함수 뼈대만 남겨둠)
     }
 
-    // 💡 [해결 2] 덜덜거림을 유발하던 SnapToHandRoutine 코루틴을 완전히 삭제했습니다.
     public virtual void ExecuteChangeOwnership(bool isPickingUp, Transform targetHand)
     {
         isEquipped = isPickingUp;
         isThrown = false;
 
-        // 타겟 손 저장
         currentTargetHand = isPickingUp ? targetHand : null;
 
         Outline outline = GetComponentInChildren<Outline>();
@@ -65,7 +51,6 @@ public abstract class ItemBase : NetworkBehaviour
             }
             if (itemPhysicalCollider != null) itemPhysicalCollider.enabled = false;
 
-            // 줍는 순간 NetworkTransform 동기화를 꺼서 위치 싸움을 막습니다.
             if (netTransform != null) netTransform.enabled = false;
 
             if (IsServer)
@@ -89,7 +74,6 @@ public abstract class ItemBase : NetworkBehaviour
         }
     }
 
-    // 💡 [해결 2 핵심] 클라이언트에서 NGO가 부모를 어떻게 꼬아놓든 무시하고, 무조건 손 위치를 강제로 따라갑니다.
     protected virtual void Update()
     {
         if (isEquipped && currentTargetHand != null)

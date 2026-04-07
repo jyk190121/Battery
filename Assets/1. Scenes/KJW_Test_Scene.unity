@@ -1720,7 +1720,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1814433157}
   - component: {fileID: 1814433156}
-  - component: {fileID: 1814433158}
   m_Layer: 0
   m_Name: GameMaanger
   m_TagString: Untagged
@@ -1761,19 +1760,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1814433158
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1814433155}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 05dd29f386053f24fb72cf9fe4f5fa27, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NetworkGlobalSettings
-  isMultiplayerMode: 1
 --- !u!1 &1863846086
 GameObject:
   m_ObjectHideFlags: 0
@@ -1909,6 +1895,10 @@ PrefabInstance:
     - target: {fileID: 4933054589484967505, guid: 92d906517a362204d922506a665a3ae6, type: 3}
       propertyPath: GlobalObjectIdHash
       value: 301136158
+      objectReference: {fileID: 0}
+    - target: {fileID: 7194879222986223479, guid: 92d906517a362204d922506a665a3ae6, type: 3}
+      propertyPath: throwForce
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7695698461423151968, guid: 92d906517a362204d922506a665a3ae6, type: 3}
       propertyPath: GlobalObjectIdHash

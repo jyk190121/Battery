@@ -187,8 +187,7 @@ public class SettlementZone : NetworkBehaviour
             itemID = item.itemData.itemID,
             localPos = anchor.InverseTransformPoint(item.transform.position),
             localRot = Quaternion.Inverse(anchor.rotation) * item.transform.rotation,
-           
-            stateValue1 = (item is Item_Durability dur) ? dur.currentDurability : 0,
+            stateValue1 = (item is Item_Durability dur) ? dur.currentDurability : 0, // 구조체 패치 반영
             slotIndex = -1
         });
     }

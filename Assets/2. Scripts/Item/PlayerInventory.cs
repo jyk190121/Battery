@@ -24,7 +24,7 @@ public class PlayerInventory : NetworkBehaviour
     [HideInInspector] public Transform leftHandTransform;
     [HideInInspector] public Transform bothHandsTransform;
 
-    public float throwForce = 7f;
+    public float throwForce = 1f;
 
     public Action<int> OnSlotChanged;
     public Action OnInventoryUpdated;
