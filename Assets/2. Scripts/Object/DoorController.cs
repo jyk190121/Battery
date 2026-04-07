@@ -20,6 +20,10 @@ public class DoorController : MonoBehaviour
     private Vector3 closedPos;
     private Quaternion closedRot;
 
+    // AI가 잠금 여부를 쉽게 확인할 수 있는 속성
+    // isLocked가 false이면 true를 반환합니다.
+    public bool CanOpenWithoutKey => !isLocked;
+
     void Start()
     {
         closedPos = transform.localPosition;

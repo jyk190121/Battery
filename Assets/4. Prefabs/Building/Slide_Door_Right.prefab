@@ -26,7 +26,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 89.22579, y: 7.5100007, z: 136.41653}
-  m_LocalScale: {x: 1.5, y: 1.5, z: 2.1}
+  m_LocalScale: {x: 1, y: 1, z: 2.1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3286721935974736953}
@@ -159,6 +159,7 @@ GameObject:
   - component: {fileID: 8351278791248112915}
   - component: {fileID: 3727254929513963575}
   - component: {fileID: 6846908254052586561}
+  - component: {fileID: 6664900567721981824}
   m_Layer: 9
   m_Name: Door_G_Door
   m_TagString: Untagged
@@ -274,6 +275,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   doorType: 1
   isOpen: 0
+  isLocked: 0
+  requiredKeyID: 
   speed: 6
   openAngle: 90
   openOffset: {x: -1.1, y: 0, z: 0}
+--- !u!208 &6664900567721981824
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6350125821750604089}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 0.606, y: 1.0430001, z: 0.083000004}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 1
+  m_Center: {x: -0.606, y: 0, z: 0}
+  m_TimeToStationary: 0.5

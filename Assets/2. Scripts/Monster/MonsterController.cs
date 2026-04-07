@@ -10,6 +10,7 @@ public class MonsterController : NetworkBehaviour
     public EnvironmentScanner scanner;
     public MonsterAnimation animHandler; // 별도 분리된 애니메이션 클래스
     public WaypointManager waypointManager;
+    public DoorController TargetDoor { get; set; }
 
     public NetworkVariable<MonsterStateType> CurrentStateNet = new NetworkVariable<MonsterStateType>();
     public NetworkVariable<float> Alertness = new NetworkVariable<float>();
@@ -34,7 +35,8 @@ public class MonsterController : NetworkBehaviour
                 { MonsterStateType.Detect, new DetectState(this) },
                 { MonsterStateType.Chase, new ChaseState(this) },
                 { MonsterStateType.Search, new SearchState(this) },
-                { MonsterStateType.Attack, new AttackState(this) }
+                { MonsterStateType.Attack, new AttackState(this) },
+                { MonsterStateType.InteractDoor, new InteractDoorState(this) }
             };
 
             stateMachine = new MonsterStateMachine();
