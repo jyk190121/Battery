@@ -202,9 +202,9 @@ MonoBehaviour:
   m_MaxConnectAttempts: 60
   m_DisconnectTimeoutMS: 30000
   ConnectionData:
-    Address: 0,0,0,0
+    Address: 0.0.0.0
     Port: 7777
-    ServerListenAddress: 192.168.0.25
+    ServerListenAddress: 0.0.0.0
     ClientBindPort: 0
   DebugSimulator:
     PacketDelayMS: 0
