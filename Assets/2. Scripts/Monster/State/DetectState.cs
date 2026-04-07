@@ -8,6 +8,9 @@ public class DetectState : MonsterBaseState
     {
         owner.navAgent.isStopped = true; // 잠시 멈춰서 주시
         // 애니메이션: 경계하는 동작 실행
+
+        // NavMeshAgent의 자동 회전을 꺼서 수동 회전(Slerp)과 충돌하지 않게 함
+        owner.navAgent.updateRotation = false;
     }
 
     public override void FixedUpdate()
@@ -39,5 +42,11 @@ public class DetectState : MonsterBaseState
                 owner.ChangeState(MonsterStateType.Patrol);
             }
         }
+    }
+
+    public override void Exit()
+    {
+        // 상태를 나갈 때 다시 자동 회전을 켜줌
+        owner.navAgent.updateRotation = true;
     }
 }

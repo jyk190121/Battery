@@ -9,6 +9,7 @@ public class MonsterController : NetworkBehaviour
     public MonsterData monsterData;
     public EnvironmentScanner scanner;
     public MonsterAnimation animHandler; // 별도 분리된 애니메이션 클래스
+    public WaypointManager waypointManager;
 
     public NetworkVariable<MonsterStateType> CurrentStateNet = new NetworkVariable<MonsterStateType>();
     public NetworkVariable<float> Alertness = new NetworkVariable<float>();
@@ -24,6 +25,7 @@ public class MonsterController : NetworkBehaviour
             navAgent = GetComponent<NavMeshAgent>();
             scanner = GetComponent<EnvironmentScanner>();
             scanner.Init(this, monsterData);
+            waypointManager = Object.FindAnyObjectByType<WaypointManager>();
 
             // 상태 인스턴스 생성 및 저장
             states = new Dictionary<MonsterStateType, IState>
@@ -59,13 +61,22 @@ public class MonsterController : NetworkBehaviour
     {
         if (!IsServer) return;
 
-        stateMachine.ChangeState(states[newState]);
-        CurrentStateNet.Value = newState; // 모든 클라이언트에게 상태 동기화
+        stateMachine.ChangeState(states[newState]);     // 실제 서버 상태 변경
+        CurrentStateNet.Value = newState;               // 모든 클라이언트에게 상태 동기화
     }
 
     public bool IsInSafeZone(GameObject obj)
     {
         // 레이어 체크 또는 트리거 체크 로직
         return (1 << obj.layer & LayerMask.GetMask("SafeZone")) != 0;
+    }
+
+    public void ExecuteAttackDamage()
+    {
+        // 현재 상태가 AttackState인지 확인
+        if (stateMachine.CurrentState is AttackState attackState)
+        {
+            attackState.ApplyDamageToTarget();
+        }
     }
 }

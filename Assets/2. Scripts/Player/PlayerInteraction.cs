@@ -97,6 +97,12 @@ public class PlayerInteraction : NetworkBehaviour
                     interactText.text = door.isOpen ? "Close (E)" : "Open (E)";
                 }
             }
+            var portal = hit.collider.GetComponentInParent<PortalController>();
+            if (portal != null)
+            {
+                interactText.text = portal.GetInteractText();
+                return;
+            }
         }
         else
         {
@@ -120,6 +126,13 @@ public class PlayerInteraction : NetworkBehaviour
 
                 // 멀티플레이어: 여기서 서버 RPC 함수를 호출
                 door.TryOpen(testKeyID);
+            }
+
+            var portal = hit.collider.GetComponentInParent<PortalController>();
+            if (portal != null)
+            {
+                portal.TeleportPlayer(this.transform);
+                return; 
             }
         }
     }

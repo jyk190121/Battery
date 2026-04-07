@@ -1,17 +1,22 @@
 using UnityEngine;
+using UnityEngine.AI;
 
 public class SearchState : MonsterBaseState
 {
-    private float searchTimer;
-    private float searchDuration = 5f; // 5초간 수색
+    private float totalSearchTimer;
+    private readonly float maxSearchDuration = 5f; // 총 5초간 주변 수색
+    private bool isInvestigating;
+    private float pauseTimer;
 
     public SearchState(MonsterController owner) : base(owner) { }
 
     public override void Enter()
     {
-        searchTimer = 0f;
+        totalSearchTimer = 0f;
+        isInvestigating = false;
         owner.navAgent.speed = data.patrolSpeed;
-        // 마지막으로 플레이어를 본 위치로 이동
+
+        // 우선 마지막으로 본 위치로 전력 질주
         owner.navAgent.SetDestination(owner.scanner.LastSeenPosition);
     }
 
@@ -25,17 +30,44 @@ public class SearchState : MonsterBaseState
             return;
         }
 
-        searchTimer += Time.deltaTime;
-
-        // 목적지 도착 후 두리번거리기 연출
-        if (owner.navAgent.remainingDistance < 0.2f)
+        totalSearchTimer += Time.deltaTime;
+        if (totalSearchTimer >= maxSearchDuration)
         {
-            // 좌우로 회전하는 로직 등을 여기에 추가 (애니메이션 파라미터 활용 가능)
+            owner.ChangeState(MonsterStateType.Patrol); // 수색 포기
+            return;
         }
 
-        if (searchTimer >= searchDuration)
+        // 목적지 도착 시 주변 수색 로직 시작
+        if (!owner.navAgent.pathPending && owner.navAgent.remainingDistance <= owner.navAgent.stoppingDistance)
         {
-            owner.ChangeState(MonsterStateType.Patrol);
+            if (!isInvestigating)
+            {
+                pauseTimer += Time.deltaTime;
+                // 도착 후 1.5초간 두리번거리기 (잠시 멈춤)
+                if (pauseTimer > 1.5f)
+                {
+                    InvestigateNearby(); // 다른 곳으로 이동
+                }
+            }
+        }
+        else
+        {
+            // 이동 중일 때는 타이머 초기화
+            pauseTimer = 0f;
+            isInvestigating = false;
+        }
+    }
+
+    private void InvestigateNearby()
+    {
+        isInvestigating = true;
+        Vector3 randomDir = Random.insideUnitSphere * 6f; // 6m 반경
+        randomDir += owner.transform.position;
+
+        NavMeshHit hit;
+        if (NavMesh.SamplePosition(randomDir, out hit, 6f, NavMesh.AllAreas))
+        {
+            owner.navAgent.SetDestination(hit.position);
         }
     }
 }
