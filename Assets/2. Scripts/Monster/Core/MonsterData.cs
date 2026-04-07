@@ -16,4 +16,8 @@ public class MonsterData : ScriptableObject
     public float attackDamage = 21f;
     public float attackRange = 2f;
     public float attackCooldown = 1.5f;
+
+    [Header("Patrol Settings")]
+    public float minWaitTime = 2f; // 최소 대기 시간
+    public float maxWaitTime = 5f; // 최대 대기 시간
 }
