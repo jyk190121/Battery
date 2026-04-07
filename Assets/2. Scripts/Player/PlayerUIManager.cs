@@ -7,6 +7,7 @@ public class PlayerUIManager : NetworkBehaviour
     private PlayerStateManager stateManager;
 
     [Header("UI References")]
+    public Image PlayerHpImage;
     public Image vignetteImage;         // 터널 시야용 이미지 (Material의 _VignetteAmount 조절 권장)
     public Image staminaBarImage;       // 스테미너 게이지 (Fill Amount용)
     public AudioSource breathAudio;     // 거친 숨소리
