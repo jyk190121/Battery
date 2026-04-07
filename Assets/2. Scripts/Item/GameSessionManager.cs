@@ -1,14 +1,30 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode; // 💡 네트워크 직렬화를 위해 추가됨
 
+// 💡 [수정됨] 향후 클라이언트에게 UI 데이터 등을 전송할 때 에러가 나지 않도록
+// 네트워크 통신에 최적화된 규격(INetworkSerializable)으로 업그레이드된 구조체입니다.
 [System.Serializable]
-public struct ItemSaveData
+public struct ItemSaveData : INetworkSerializable
 {
     public int itemID;
     public Vector3 localPos;
     public Quaternion localRot;
-    public float[] stateValues; // [0]: 내구도 등
-    public int slotIndex;       // 인벤토리 위치 (-1이면 바닥)
+
+    // 배열(float[]) 대신 단일 변수로 변경하여 네트워크 패킷 최적화
+    public float stateValue1;
+
+    public int slotIndex;
+
+    // NGO 네트워크 통신용 포장(직렬화) 메서드 필수 구현
+    public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+    {
+        serializer.SerializeValue(ref itemID);
+        serializer.SerializeValue(ref localPos);
+        serializer.SerializeValue(ref localRot);
+        serializer.SerializeValue(ref stateValue1);
+        serializer.SerializeValue(ref slotIndex);
+    }
 }
 
 public class GameSessionManager : MonoBehaviour
@@ -18,7 +34,7 @@ public class GameSessionManager : MonoBehaviour
 
     [Header("Save Containers")]
     public List<ItemSaveData> truckItems = new List<ItemSaveData>();
-    // 💡 멀티플레이 플레이어별 가방 보관소
+    // 멀티플레이 플레이어별 가방 보관소
     public Dictionary<ulong, List<ItemSaveData>> playerItems = new Dictionary<ulong, List<ItemSaveData>>();
 
     [Header("Prefab Database")]

@@ -133,19 +133,15 @@ public class PlayerInventory : NetworkBehaviour
         }
     }
 
-    // [경고 해결] ServerRpc -> Rpc 최신 문법 교체. ServerRpcParams -> RpcParams
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     private void RequestPickUpServerRpc(ulong itemNetId, RpcParams rpcParams = default)
     {
         if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(itemNetId, out var netObj)) return;
         ItemBase item = netObj.GetComponent<ItemBase>();
 
-        // [이중 줍기 완벽 방어] 서버 측에서 이미 주워진 아이템인지 즉시 검증
         if (item == null || item.isEquipped) return;
 
-        // 다른 누군가의 후속 요청을 막기 위해 상태 즉시 잠금
         item.isEquipped = true;
-
         item.NetworkObject.ChangeOwnership(rpcParams.Receive.SenderClientId);
         NotifyPickUpClientRpc(itemNetId);
     }
@@ -171,7 +167,8 @@ public class PlayerInventory : NetworkBehaviour
             slots[emptySlotIndex] = item;
             twoHandedItem = item;
 
-            if (IsOwner && slots[currentSlotIndex] != null && slots[currentSlotIndex] != item)
+            // 💡 [버그 1 해결] 양손 무기를 들면 "모든 화면에서" 1번 아이템을 숨김 처리
+            if (slots[currentSlotIndex] != null && slots[currentSlotIndex] != item)
                 slots[currentSlotIndex].gameObject.SetActive(false);
 
             item.ExecuteChangeOwnership(true, bothHandsTransform);
@@ -223,7 +220,9 @@ public class PlayerInventory : NetworkBehaviour
         {
             twoHandedItem = null;
             if (IsOwner) OnTwoHandedToggled?.Invoke(false);
-            if (IsOwner && slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(true);
+
+            // 💡 [버그 1 해결] 양손 무기를 버리면 "모든 화면에서" 기존 1번 무기를 다시 켬
+            if (slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(true);
         }
 
         for (int i = 0; i < slots.Length; i++)
@@ -231,8 +230,12 @@ public class PlayerInventory : NetworkBehaviour
             if (slots[i] == item) slots[i] = null;
         }
 
+        // 💡 [버그 3 해결] 가방 안에서 꺼져(SetActive(false))있던 아이템을 버릴 때 다시 보이게 켬!
+        item.gameObject.SetActive(true);
+
         item.transform.position = dropPos;
         item.ExecuteChangeOwnership(false, null);
+
         if (IsServer)
         {
             if (item.TryGetComponent(out Rigidbody rb))
@@ -245,6 +248,10 @@ public class PlayerInventory : NetworkBehaviour
         if (IsOwner) OnInventoryUpdated?.Invoke();
     }
 
+    // ==========================================================
+    // 💡 [버그 2 해결 구역] 마우스 휠 슬롯 변경 동기화
+    // ==========================================================
+
     private void HandleSlotChange()
     {
         if (twoHandedItem != null) return;
@@ -252,17 +259,37 @@ public class PlayerInventory : NetworkBehaviour
         float scroll = Mouse.current.scroll.ReadValue().y;
         if (scroll == 0f) return;
 
-        int prev = currentSlotIndex;
-        if (scroll < 0f && currentSlotIndex < slots.Length - 1) currentSlotIndex++;
-        else if (scroll > 0f && currentSlotIndex > 0) currentSlotIndex--;
+        int newIndex = currentSlotIndex;
+        if (scroll < 0f && newIndex < slots.Length - 1) newIndex++;
+        else if (scroll > 0f && newIndex > 0) newIndex--;
 
-        if (prev != currentSlotIndex)
+        if (newIndex != currentSlotIndex)
         {
-            if (slots[prev] != null) slots[prev].gameObject.SetActive(false);
-            if (slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(true);
-            OnSlotChanged?.Invoke(currentSlotIndex);
+            // 혼자만 바꾸지 않고 서버에 "나 슬롯 돌렸어!" 라고 보고합니다.
+            RequestChangeSlotServerRpc(newIndex);
         }
     }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    private void RequestChangeSlotServerRpc(int newIndex)
+    {
+        // 서버가 모든 클라이언트에게 "얘 슬롯 돌렸대! 화면 업데이트 해!" 라고 방송합니다.
+        SyncSlotChangeClientRpc(newIndex);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void SyncSlotChangeClientRpc(int newIndex)
+    {
+        if (slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(false);
+
+        currentSlotIndex = newIndex;
+
+        if (slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(true);
+
+        if (IsOwner) OnSlotChanged?.Invoke(currentSlotIndex);
+    }
+
+    // ==========================================================
 
     private void RestoreItemsFromServer()
     {
@@ -275,7 +302,7 @@ public class PlayerInventory : NetworkBehaviour
                 if (prefab == null) continue;
 
                 ItemBase spawned = Instantiate(prefab);
-                if (spawned is Item_Durability dur) dur.currentDurability = data.stateValues[0];
+                if (spawned is Item_Durability dur) dur.currentDurability = data.stateValue1;
 
                 spawned.NetworkObject.SpawnWithOwnership(myId);
                 SyncRestoredItemClientRpc(new NetworkObjectReference(spawned.NetworkObject), data.slotIndex);
