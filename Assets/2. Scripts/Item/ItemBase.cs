@@ -1,12 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
 
-/**
- * [ Item System Architecture & Optimization Guide ]
- * 1. 완벽한 네트워크 동기화 구조 적용 완료.
- * 2. 변수명 및 구조 100% 보존. (TryGetComponentInChildren 배제, 표준 API 사용)
- * 3. 자식 클래스가 에러 없이 override 할 수 있도록 RPC 및 virtual 함수 틀 제공.
- */
 public abstract class ItemBase : NetworkBehaviour
 {
     [Header("Item Data")]
@@ -17,10 +11,6 @@ public abstract class ItemBase : NetworkBehaviour
     protected Rigidbody itemPhysicsRigidbody;
     protected Collider itemPhysicalCollider;
     protected bool isThrown = false;
-
-    // ==========================================================
-    // [1] 초기화 (이원화 보호 유지)
-    // ==========================================================
 
     protected virtual void Awake()
     {
@@ -47,16 +37,11 @@ public abstract class ItemBase : NetworkBehaviour
         if (netTransform != null) netTransform.enabled = isMulti;
     }
 
-    // ==========================================================
-    // [2] 로컬 실행 로직 (Execute - 물리 및 시각 동기화)
-    // ==========================================================
-
     public virtual void ExecuteChangeOwnership(bool isPickingUp, Transform targetHand)
     {
         isEquipped = isPickingUp;
         isThrown = false;
 
-        // [핵심] 표준 API 적용 (자식 메쉬의 Outline 끄기)
         Outline outline = GetComponentInChildren<Outline>();
         if (outline != null) outline.enabled = false;
 
@@ -104,41 +89,39 @@ public abstract class ItemBase : NetworkBehaviour
     public virtual void ApplySaveData(float[] savedStates) { }
 
     // ==========================================================
-    // [3] 서버 이관 및 패킷 최적화 구역 (RPC 동기화)
+    // [RPC 최신 문법 적용 구역]
     // ==========================================================
 
-    // 아이템 삭제 요청 (자식 클래스 사용)
     public virtual void RequestDespawn()
     {
         if (IsSpawned && IsOwner) RequestDespawnServerRpc();
         else if (!IsSpawned) Destroy(gameObject);
     }
 
-    [ServerRpc(RequireOwnership = true)]
+    // [경고 해결] RequireOwnership은 삭제되고 InvokePermission으로 대체됨
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     private void RequestDespawnServerRpc()
     {
         if (NetworkObject.IsSpawned) NetworkObject.Despawn();
     }
 
-    // 아이템 사용 동기화 요청 (자식 클래스 사용)
     public virtual void RequestUseItem()
     {
         if (IsSpawned && IsOwner) RequestUseItemServerRpc();
         else if (!IsSpawned) ExecuteUseItem();
     }
 
-    [ServerRpc(RequireOwnership = true)]
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     private void RequestUseItemServerRpc()
     {
         ExecuteUseItemClientRpc();
     }
 
-    [ClientRpc]
+    [Rpc(SendTo.Everyone)]
     private void ExecuteUseItemClientRpc()
     {
         ExecuteUseItem();
     }
 
-    // 실제 아이템 사용 효과 (자식에서 override)
     public virtual void ExecuteUseItem() { }
 }

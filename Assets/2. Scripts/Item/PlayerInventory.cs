@@ -17,7 +17,7 @@ public class PlayerInventory : NetworkBehaviour
     public float interactRange = 3f;
     public LayerMask itemLayer;
 
-    [Header("Hand Transform Names (자식 오브젝트 이름)")]
+    [Header("Hand Transform Names")]
     public string leftHandName = "OneHandle";
     public string bothHandsName = "BothHandle";
 
@@ -84,7 +84,6 @@ public class PlayerInventory : NetworkBehaviour
 
         if (Physics.Raycast(ray, out RaycastHit hit, interactRange, itemLayer))
         {
-            // [핵심] InParent를 사용하여 인식 범위 강건화
             ItemBase targetItem = hit.collider.GetComponentInParent<ItemBase>();
             if (targetItem != null && !targetItem.isEquipped)
             {
@@ -122,10 +121,6 @@ public class PlayerInventory : NetworkBehaviour
         lastLookedButton = null;
     }
 
-    // ==========================================================
-    // [네트워크 줍기 동기화 구역]
-    // ==========================================================
-
     private void TryPickUpAction()
     {
         if (lastLookedItem != null && twoHandedItem == null && !lastLookedItem.isEquipped)
@@ -133,31 +128,29 @@ public class PlayerInventory : NetworkBehaviour
             Outline outline = lastLookedItem.GetComponentInChildren<Outline>();
             if (outline != null) outline.enabled = false;
 
-            // 로컬 처리를 삭제하고, 서버에게 권한 요청
             RequestPickUpServerRpc(lastLookedItem.NetworkObjectId);
             lastLookedItem = null;
         }
     }
 
-    [ServerRpc]
-    private void RequestPickUpServerRpc(ulong itemNetId, ServerRpcParams rpcParams = default)
+    // [경고 해결] ServerRpc -> Rpc 최신 문법 교체. ServerRpcParams -> RpcParams
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    private void RequestPickUpServerRpc(ulong itemNetId, RpcParams rpcParams = default)
     {
         if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(itemNetId, out var netObj)) return;
         ItemBase item = netObj.GetComponent<ItemBase>();
 
-        // 1. 누군가 이미 주웠다면(isEquipped == true) 0.01초 차이로 늦은 요청은 여기서 즉시 차단
+        // [이중 줍기 완벽 방어] 서버 측에서 이미 주워진 아이템인지 즉시 검증
         if (item == null || item.isEquipped) return;
 
-        // 💡 2. [핵심 방어 로직] 통과한 즉시 서버 측 상태를 true로 잠금 (아이템 선점)
-        // 이 한 줄 덕분에 NotifyPickUpClientRpc가 클라이언트에 도달하기 전이라도,
-        // 서버는 이미 이 아이템이 '주인 있는 상태'임을 인지하게 됩니다.
+        // 다른 누군가의 후속 요청을 막기 위해 상태 즉시 잠금
         item.isEquipped = true;
 
-        // 3. 서버에서 소유권 이전 및 전체 클라이언트에 동기화 명령
         item.NetworkObject.ChangeOwnership(rpcParams.Receive.SenderClientId);
         NotifyPickUpClientRpc(itemNetId);
     }
-    [ClientRpc]
+
+    [Rpc(SendTo.Everyone)]
     private void NotifyPickUpClientRpc(ulong itemNetId)
     {
         if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(itemNetId, out var netObj)) return;
@@ -178,7 +171,6 @@ public class PlayerInventory : NetworkBehaviour
             slots[emptySlotIndex] = item;
             twoHandedItem = item;
 
-            // 본인 화면에서만 다른 장비 숨기기
             if (IsOwner && slots[currentSlotIndex] != null && slots[currentSlotIndex] != item)
                 slots[currentSlotIndex].gameObject.SetActive(false);
 
@@ -195,10 +187,6 @@ public class PlayerInventory : NetworkBehaviour
         if (IsOwner) OnInventoryUpdated?.Invoke();
     }
 
-    // ==========================================================
-    // [네트워크 버리기 동기화 구역]
-    // ==========================================================
-
     public void RequestDropCurrentItem()
     {
         ItemBase itemToDrop = null;
@@ -211,12 +199,11 @@ public class PlayerInventory : NetworkBehaviour
             Vector3 dropPos = Camera.main.transform.position + Camera.main.transform.forward;
             Vector3 throwDir = Camera.main.transform.forward;
 
-            // 서버에 버리기 요청
             RequestDropServerRpc(itemToDrop.NetworkObjectId, dropPos, throwDir);
         }
     }
 
-    [ServerRpc]
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     private void RequestDropServerRpc(ulong itemNetId, Vector3 dropPos, Vector3 throwDir)
     {
         if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(itemNetId, out var netObj)) return;
@@ -226,7 +213,7 @@ public class PlayerInventory : NetworkBehaviour
         NotifyItemDroppedClientRpc(itemNetId, dropPos, throwDir);
     }
 
-    [ClientRpc]
+    [Rpc(SendTo.Everyone)]
     private void NotifyItemDroppedClientRpc(ulong itemNetId, Vector3 dropPos, Vector3 throwDir)
     {
         if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(itemNetId, out var netObj)) return;
@@ -246,11 +233,13 @@ public class PlayerInventory : NetworkBehaviour
 
         item.transform.position = dropPos;
         item.ExecuteChangeOwnership(false, null);
-
-        if (item.TryGetComponent(out Rigidbody rb))
+        if (IsServer)
         {
-            rb.AddForce((throwDir + Vector3.up * 0.2f) * throwForce, ForceMode.Impulse);
-            item.BeginThrownState();
+            if (item.TryGetComponent(out Rigidbody rb))
+            {
+                rb.AddForce((throwDir + Vector3.up * 0.2f) * throwForce, ForceMode.Impulse);
+                item.BeginThrownState();
+            }
         }
 
         if (IsOwner) OnInventoryUpdated?.Invoke();
@@ -275,7 +264,6 @@ public class PlayerInventory : NetworkBehaviour
         }
     }
 
-    // 서버 복원 로직은 기존 코드 100% 동일 유지
     private void RestoreItemsFromServer()
     {
         ulong myId = OwnerClientId;
@@ -295,7 +283,7 @@ public class PlayerInventory : NetworkBehaviour
         }
     }
 
-    [ClientRpc]
+    [Rpc(SendTo.Everyone)]
     private void SyncRestoredItemClientRpc(NetworkObjectReference itemRef, int slotIdx)
     {
         if (itemRef.TryGet(out NetworkObject netObj))

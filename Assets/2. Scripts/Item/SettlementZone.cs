@@ -22,14 +22,20 @@ public class SettlementZone : NetworkBehaviour
     {
         if (!IsSpawned) return;
         Debug.Log("<color=cyan><b>[Ship System]</b> 이륙 시퀀스 시작...</color>");
-        if (IsServer) PerformTransitionLogic(player);
-        else RequestTransitionServerRpc(player.OwnerClientId);
+
+        if (IsServer)
+            PerformTransitionLogic(player);
+        else
+            RequestTransitionServerRpc(); 
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-    private void RequestTransitionServerRpc(ulong clientId)
+    private void RequestTransitionServerRpc(RpcParams rpcParams = default) 
     {
-        if (NetworkManager.ConnectedClients.TryGetValue(clientId, out var client))
+       
+        ulong realSenderId = rpcParams.Receive.SenderClientId;
+
+        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(realSenderId, out var client))
         {
             var p = client.PlayerObject.GetComponent<PlayerInventory>();
             if (p != null) PerformTransitionLogic(p);
