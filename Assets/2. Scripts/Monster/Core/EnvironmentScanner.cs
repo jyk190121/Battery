@@ -22,24 +22,24 @@ public class EnvironmentScanner : MonoBehaviour
 
     public void Tick()
     {
-        // 1. 주변 플레이어 수집
+        // 1. 반경 내 모든 플레이어 추출
         Collider[] hits = Physics.OverlapSphere(transform.position, data.viewRange, playerMask);
 
         Transform bestTarget = null;
-        float minDistance = float.MaxValue; // 가장 가까운 타겟을 찾기 위한 초기값
+        float minDistance = float.MaxValue;
 
         foreach (var hit in hits)
         {
-            // [중요] 팀원의 플레이어 스크립트에서 "건물 안 여부"를 체크한다고 가정
-            // 예: hit.GetComponent<PlayerStatus>().isInsideBuilding
             if (!IsTargetValid(hit.gameObject)) continue;
 
-            // 2. 시야각 및 장애물 체크 (이전 로직 활용)
-            if (IsInVisualCone(hit.transform))
+            // 2. 360도 시야: 각도 체크는 빼고, 장애물(벽)에 가려졌는지만 체크
+            if (HasLineOfSight(hit.transform))
             {
+                if (hit.transform.position.y - gameObject.transform.position.y > 5) { Debug.Log("범위에는 들어왔지만 높이가 다름"); return; }
+
                 float dist = Vector3.Distance(transform.position, hit.transform.position);
 
-                if (dist < minDistance) // 더 가까운 플레이어 갱신
+                if (dist < minDistance)
                 {
                     minDistance = dist;
                     bestTarget = hit.transform;
@@ -48,27 +48,52 @@ public class EnvironmentScanner : MonoBehaviour
         }
 
         CurrentTarget = bestTarget;
-        if (CurrentTarget != null) LastSeenPosition = CurrentTarget.position;
+
+        // 타겟이 존재하면, 마지막 목격 위치를 계속 업데이트
+        if (CurrentTarget != null)
+        {
+            LastSeenPosition = CurrentTarget.position;
+        }
     }
 
     private bool IsTargetValid(GameObject target)
     {
-        // 1. 안전구역에 있는가?
-        //if (owner.IsInSafeZone(target)) return false;
-
-        // 2. 건물 밖에 있는가? (팀원과 협의할 변수)
-        // 만약 플레이어 스크립트에 접근하기 어렵다면, 
-        // 여기서 직접 Physics.CheckSphere 등을 이용해 "Building" 레이어 안에 있는지 확인 가능합니다.
+        // 필요 시 안전구역 로직 추가
         return true;
     }
 
-    private bool IsInVisualCone(Transform target)
+    // 장애물 체크만 하는 함수 (360도 시야)
+    private bool HasLineOfSight(Transform target)
     {
         Vector3 dir = (target.position - transform.position).normalized;
-        if (Vector3.Angle(transform.forward, dir) < data.viewAngle / 2)
+        float dist = Vector3.Distance(transform.position, target.position);
+
+        // 플레이어를 향해 레이저를 쏴서 장애물이 있는지 확인
+        if (Physics.Raycast(transform.position + Vector3.up, dir, dist, obstacleMask))
         {
-            return !Physics.Raycast(transform.position + Vector3.up, dir, data.viewRange, obstacleMask);
+            return false; // 벽에 가려짐
         }
-        return false;
+
+        return true; // 시야 확보됨
+    }
+
+    // 기즈모를 활용하여 시야 범위와 마지막 목격 위치 시각화
+    private void OnDrawGizmos()
+    {
+        if (data == null) return;
+
+        // 360도 탐지 반경 시각화 
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, data.viewRange);
+
+        // 마지막으로 본 위치 시각화 
+        if (LastSeenPosition != Vector3.zero)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawSphere(LastSeenPosition, 0.5f);
+
+            // 몬스터에서 마지막 목격 위치까지 점선 긋기
+            Gizmos.DrawLine(transform.position, LastSeenPosition);
+        }
     }
 }
