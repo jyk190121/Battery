@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Netcode;
 using Unity.Cinemachine;
+using UnityEngine.UI;
 
 
 public class PlayerInteraction : NetworkBehaviour
@@ -12,6 +13,9 @@ public class PlayerInteraction : NetworkBehaviour
     public LayerMask DoorLayer;                         // 문 레이어
     public GameObject interactUI;                       // UI오브젝트
     TextMeshProUGUI interactText;                       // 텍스트
+    public Image progressImage;
+    public float requiredHoldTime = 2f;
+    private float currentHoldTime = 0f;
 
     //[Header("References")]
     //[SerializeField] private Transform camTransform;    // 카메라 위치
@@ -21,6 +25,9 @@ public class PlayerInteraction : NetworkBehaviour
     Transform camTransform;
 
     private bool isLookingAtInteractable = false;       // 문을 보고 있는가
+
+    private DoorController targetDoor = null;
+    private PortalController targetPortal = null;
 
     public override void OnNetworkSpawn()
     {
@@ -48,6 +55,18 @@ public class PlayerInteraction : NetworkBehaviour
                 Debug.LogWarning("[PlayerInteraction] 'Interact_Text'를 찾을 수 없습니다. UI가 씬에 있는지 확인하세요.");
             }
 
+            GameObject foundRing = GameObject.Find("ProgressRing_Img");
+            if (foundRing != null)
+            {
+                // 찾은 오브젝트에서 Image 컴포넌트를 가져와서 연결
+                progressImage = foundRing.GetComponent<Image>();
+                progressImage.fillAmount = 0f; 
+            }
+            else
+            {
+                Debug.LogWarning("[PlayerInteraction] 'Progress_Ring'을 찾을 수 없습니다. 이름을 정확히 확인하세요.");
+            }
+
             if (playerRotation == null) playerRotation = GetComponent<PlayerRotation>();
         }
     }
@@ -66,9 +85,45 @@ public class PlayerInteraction : NetworkBehaviour
 
         CheckInteraction();
 
-        if (Keyboard.current.eKey.wasPressedThisFrame)
+        if (isLookingAtInteractable)
         {
-            PerformInteraction();
+            // 1. 포탈인 경우: '홀드(Hold)' 방식
+            if (targetPortal != null)
+            {
+                // E키를 누르고 있는 중인가?
+                if (Keyboard.current.eKey.isPressed)
+                {
+                    // 시간 누적 및 게이지 UI 업데이트
+                    currentHoldTime += Time.deltaTime;
+                    if (progressImage != null) progressImage.fillAmount = currentHoldTime / requiredHoldTime;
+
+                    // 지정된 시간이 다 차면 텔레포트 실행!
+                    if (currentHoldTime >= requiredHoldTime)
+                    {
+                        targetPortal.TeleportPlayer(this.transform);
+                        ResetHold(); // 텔레포트 후 게이지 초기화
+                    }
+                }
+                else
+                {
+                    // 손을 떼면 즉시 초기화
+                    ResetHold();
+                }
+            }
+            // 2. 일반 문인 경우: '클릭(Press)' 방식
+            else if (targetDoor != null)
+            {
+                if (Keyboard.current.eKey.wasPressedThisFrame)
+                {
+                    string testKeyID = "Test_01";
+                    targetDoor.TryOpen(testKeyID);
+                }
+            }
+        }
+        else
+        {
+            // 상호작용 물체에서 시선을 돌리면 무조건 초기화
+            ResetHold();
         }
     }
 
@@ -81,59 +136,38 @@ public class PlayerInteraction : NetworkBehaviour
 
         if (Physics.Raycast(camTransform.position, camTransform.forward, out hit, data.interactDistance, DoorLayer))
         {
-            if (!isLookingAtInteractable) interactUI.SetActive(true);
-            isLookingAtInteractable = true;
+            // 타겟 갱신
+            targetDoor = hit.collider.GetComponentInParent<DoorController>();
+            targetPortal = hit.collider.GetComponentInParent<PortalController>();
 
-            // 문 상태 확인해서 텍스트 변경
-            var door = hit.collider.GetComponentInParent<DoorController>();
-            if (door != null)
+            if (targetDoor != null || targetPortal != null)
             {
-                if (door.isLocked && !door.isOpen)
+                if (!isLookingAtInteractable) interactUI.SetActive(true);
+                isLookingAtInteractable = true;
+
+                // 텍스트 설정
+                if (targetDoor != null)
                 {
-                    interactText.text = "Locked (E)"; // 잠겨있을 때 표시
+                    interactText.text = (targetDoor.isLocked && !targetDoor.isOpen) ? "Locked (E)" : (targetDoor.isOpen ? "Close (E)" : "Open (E)");
                 }
-                else
+                else if (targetPortal != null)
                 {
-                    interactText.text = door.isOpen ? "Close (E)" : "Open (E)";
+                    interactText.text = targetPortal.GetInteractText();
                 }
-            }
-            var portal = hit.collider.GetComponentInParent<PortalController>();
-            if (portal != null)
-            {
-                interactText.text = portal.GetInteractText();
                 return;
             }
         }
-        else
-        {
-            if (isLookingAtInteractable) interactUI.SetActive(false);
-            isLookingAtInteractable = false;
-        }
+
+        // 아무것도 보지 않을 때
+        if (isLookingAtInteractable) interactUI.SetActive(false);
+        isLookingAtInteractable = false;
+        targetDoor = null;
+        targetPortal = null;
     }
 
-    private void PerformInteraction()
+    private void ResetHold()
     {
-        if (playerRotation == null || playerRotation.vcam == null) return;
-        camTransform = playerRotation.vcam.transform;
-
-        RaycastHit hit;
-        if (Physics.Raycast(camTransform.position, camTransform.forward, out hit, data.interactDistance, DoorLayer))
-        {
-            var door = hit.collider.GetComponentInParent<DoorController>();
-            if (door != null)
-            {
-                string testKeyID = "Test_01";
-
-                // 멀티플레이어: 여기서 서버 RPC 함수를 호출
-                door.TryOpen(testKeyID);
-            }
-
-            var portal = hit.collider.GetComponentInParent<PortalController>();
-            if (portal != null)
-            {
-                portal.TeleportPlayer(this.transform);
-                return; 
-            }
-        }
+        currentHoldTime = 0f;
+        if (progressImage != null) progressImage.fillAmount = 0f;
     }
 }
