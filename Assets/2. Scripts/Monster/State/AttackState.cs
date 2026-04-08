@@ -31,6 +31,13 @@ public class AttackState : MonsterBaseState
 
         if (attackTimer < attackAnimDuration)
         {
+            if (attackTimer < 0.7f && owner.scanner.CurrentTarget != null)
+            {
+                Vector3 dir = (owner.scanner.CurrentTarget.position - owner.transform.position).normalized;
+                Quaternion targetRot = Quaternion.LookRotation(new Vector3(dir.x, 0, dir.z));
+                owner.transform.rotation = Quaternion.Slerp(owner.transform.rotation, targetRot, Time.deltaTime * 8f);
+            }
+
             return;
         }
 
