@@ -30,7 +30,7 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
 
     public bool CanChat => chatClient != null && chatClient.CanChat;
 
-    private void Start()
+    public void SetUp()
     {
         if(MultiPlayerSessionManager.Instance != null)
         {
