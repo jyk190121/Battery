@@ -37,8 +37,10 @@ public class StartManager : MonoBehaviour
     [Header("취소 버튼")]
     public Button createCancelBtn;
     public Button joinCancelBtn;
-
+    
     bool isCancelling = false;
+
+    PhotonChatManager photonChatManager;
 
     void OnEnable()
     {
@@ -52,6 +54,9 @@ public class StartManager : MonoBehaviour
 
     void Start()
     {
+
+        photonChatManager = FindAnyObjectByType<PhotonChatManager>();
+
         TrySubscribeEvents();
 
         // --- 닉네임 입력 제한 설정 추가 ---
@@ -170,6 +175,8 @@ public class StartManager : MonoBehaviour
 
         // 세션 매니저에 닉네임 저장 (이후 게임 내내 사용됨)
         MultiPlayerSessionManager.Instance.PlayerNickname = nicknameInput.text;
+
+        photonChatManager.SetUp();
 
         // 메인 패널로 전환
         ShowPanel(mainPanel);

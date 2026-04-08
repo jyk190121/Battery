@@ -1,8 +1,9 @@
 using TMPro;
+using Unity.Cinemachine;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Unity.Netcode;
-using Unity.Cinemachine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 
@@ -42,32 +43,20 @@ public class PlayerInteraction : NetworkBehaviour
 
         if (IsOwner)
         {
-            GameObject foundUI = GameObject.Find("Interact_Text");
-            GameObject foundRing = GameObject.Find("ProgressRing_Img");
+            FindUIElements(); // 1. 처음 스폰될 때 한 번 찾기
 
-            if (foundUI != null)
-            {
-                interactUI = foundUI;
-                interactText = interactUI.GetComponent<TextMeshProUGUI>();
-                interactUI.SetActive(false);
-            }
-            else
-            {
-                Debug.LogWarning("[PlayerInteraction] 'Interact_Text'를 찾을 수 없습니다. UI가 씬에 있는지 확인하세요.");
-            }
-            
-            if (foundRing != null)
-            {
-                // 찾은 오브젝트에서 Image 컴포넌트를 가져와서 연결
-                progressImage = foundRing.GetComponent<Image>();
-                progressImage.fillAmount = 0f; 
-            }
-            else
-            {
-                Debug.LogWarning("[PlayerInteraction] 'Progress_Ring'을 찾을 수 없습니다. 이름을 정확히 확인하세요.");
-            }
+            // 2. 씬이 바뀔 때마다 'FindUIElements' 함수를 실행하도록 예약(구독)
+            SceneManager.sceneLoaded += OnSceneLoaded;
 
             if (playerRotation == null) playerRotation = GetComponent<PlayerRotation>();
+        }
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        if (IsOwner)
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
         }
     }
 
@@ -127,6 +116,11 @@ public class PlayerInteraction : NetworkBehaviour
         }
     }
 
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        FindUIElements();
+    }
+
     public void CheckInteraction()
     {
         if (playerRotation == null || playerRotation.vcam == null) return;
@@ -163,6 +157,26 @@ public class PlayerInteraction : NetworkBehaviour
         isLookingAtInteractable = false;
         targetDoor = null;
         targetPortal = null;
+    }
+
+    private void FindUIElements()
+    {
+        GameObject foundUI = GameObject.Find("Interact_Text");
+        GameObject foundRing = GameObject.Find("ProgressRing_Img");
+
+        if (foundUI != null && foundRing != null)
+        {
+            interactUI = foundUI;
+            interactText = interactUI.GetComponent<TextMeshProUGUI>();
+            interactUI.SetActive(false);
+
+            progressImage = foundRing.GetComponent<Image>();
+            progressImage.fillAmount = 0f;
+        }
+        else
+        {
+            Debug.LogWarning($"[PlayerInteraction] 씬({SceneManager.GetActiveScene().name})에서 UI를 찾을 수 없습니다.");
+        }
     }
 
     private void ResetHold()
