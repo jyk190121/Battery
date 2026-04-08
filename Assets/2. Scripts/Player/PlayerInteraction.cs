@@ -43,6 +43,7 @@ public class PlayerInteraction : NetworkBehaviour
         if (IsOwner)
         {
             GameObject foundUI = GameObject.Find("Interact_Text");
+            GameObject foundRing = GameObject.Find("ProgressRing_Img");
 
             if (foundUI != null)
             {
@@ -54,8 +55,7 @@ public class PlayerInteraction : NetworkBehaviour
             {
                 Debug.LogWarning("[PlayerInteraction] 'Interact_Text'를 찾을 수 없습니다. UI가 씬에 있는지 확인하세요.");
             }
-
-            GameObject foundRing = GameObject.Find("ProgressRing_Img");
+            
             if (foundRing != null)
             {
                 // 찾은 오브젝트에서 Image 컴포넌트를 가져와서 연결

@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Multiplayer;
 using UnityEngine;
-//지연
-using System.Threading;
 
 public class MultiPlayerSessionManager : NetworkBehaviour
 {
@@ -29,8 +28,7 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         set
         {
             // 공백 체크 등 최소한의 검증 후 저장
-            if (!string.IsNullOrWhiteSpace(value))
-                _playerNickname = value;
+            if (!string.IsNullOrWhiteSpace(value)) _playerNickname = value;
         }
     }
 
