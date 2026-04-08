@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 6bb137323660a81429c33cb9e1e6097b
+guid: 4e57a1c5bdba81d459fb34b5e0130ea8
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -45,7 +45,7 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 1
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
@@ -93,40 +93,27 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: Android
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: AppCase_0
+      name: "\uAC8C\uC774\uC9C0\uBC14_0"
       rect:
         serializedVersion: 2
-        x: 177
-        y: 72
-        width: 114
-        height: 112
+        x: 110
+        y: 123
+        width: 423
+        height: 423
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 2a5990f0066c14b4e8027eee99e30886
-      internalID: 902400757
+      spriteID: 1461e06ba8121e34f8a30a0017e81ec5
+      internalID: -1659656459
       vertices: []
       indices: 
       edges: []
@@ -135,7 +122,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 2a0db0b09920e044c9122dd918c6b8a0
+    spriteID: c0302a0b7317a134dae05116a052ab03
     internalID: 0
     vertices: []
     indices: 
@@ -145,7 +132,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      AppCase_0: 902400757
+      "\uAC8C\uC774\uC9C0\uBC14_0": -1659656459
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

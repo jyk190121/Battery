@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 6bb137323660a81429c33cb9e1e6097b
+guid: 22b11820559be61448d53c730df751d1
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -45,7 +45,7 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 1
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
@@ -110,23 +110,133 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: AppCase_0
+      name: Money
       rect:
         serializedVersion: 2
-        x: 177
-        y: 72
-        width: 114
-        height: 112
+        x: 80
+        y: 299
+        width: 165
+        height: 104
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 2a5990f0066c14b4e8027eee99e30886
-      internalID: 902400757
+      spriteID: 73dee87a367a8f24397ed93015fc0cfa
+      internalID: -1608717554
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Coin
+      rect:
+        serializedVersion: 2
+        x: 359
+        y: 288
+        width: 138
+        height: 131
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ffa376308c7cd6e459fd7d2f16c0d1ea
+      internalID: 1306299395
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Quest
+      rect:
+        serializedVersion: 2
+        x: 636
+        y: 279
+        width: 141
+        height: 151
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 73f6754979f1f1f49b44c7d063815f23
+      internalID: 209793831
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Shopping
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 69
+        width: 150
+        height: 131
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8b78b05eee2a32e43a8e22c641429720
+      internalID: 873120621
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuestList
+      rect:
+        serializedVersion: 2
+        x: 374
+        y: 60
+        width: 109
+        height: 152
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 83d923ce90dca3545b4c0307bbb60812
+      internalID: -1219314381
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item
+      rect:
+        serializedVersion: 2
+        x: 640
+        y: 60
+        width: 136
+        height: 153
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cb6530be23b5813428c152651ff63228
+      internalID: -1547279323
       vertices: []
       indices: 
       edges: []
@@ -135,7 +245,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 2a0db0b09920e044c9122dd918c6b8a0
+    spriteID: 06cd8933a239bdc4e96c20ad42c27d73
     internalID: 0
     vertices: []
     indices: 
@@ -145,7 +255,12 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      AppCase_0: 902400757
+      Coin: 1306299395
+      Item: -1547279323
+      Money: -1608717554
+      Quest: 209793831
+      QuestList: -1219314381
+      Shopping: 873120621
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

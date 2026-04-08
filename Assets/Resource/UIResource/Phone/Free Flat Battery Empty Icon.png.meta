@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: b47e5e900aad8344f8c4b8bf0a328d3c
+guid: 52ef2ea9601187e4c9fd3db7dd7027f3
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -107,5 +107,5 @@ AssetOrigin:
   productId: 202525
   packageName: 'UX Flat Icons [Free]'
   packageVersion: 2019.1.1
-  assetPath: Assets/UITest/Free Flat Battery Smooth Fill Icon.png
+  assetPath: Assets/Resource/UIResource/Phone/Free Flat Battery Empty Icon.png
   uploadId: 451587
