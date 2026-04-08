@@ -43,9 +43,29 @@ public class PlayerInventory : NetworkBehaviour
 
         if (IsOwner) LocalInstance = this;
 
-        if (IsServer) StartCoroutine(WaitOneFrameAndRestore());
+        if (IsServer)
+        {
+            StartCoroutine(WaitOneFrameAndRestore());
+
+            // 씬 로드가 끝날 때마다 복구 로직이 실행되도록 예약
+            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnSceneLoaded; // 중복 방지
+            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnSceneLoaded;
+        }
     }
 
+    public override void OnNetworkDespawn()
+    {
+        if (IsServer && NetworkManager.Singleton != null && NetworkManager.Singleton.SceneManager != null)
+        {
+            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnSceneLoaded;
+        }
+    }
+
+    //씬 로드 완료 시 실행될 연결 함수
+    private void OnSceneLoaded(string sceneName, UnityEngine.SceneManagement.LoadSceneMode loadSceneMode, System.Collections.Generic.List<ulong> clientsCompleted, System.Collections.Generic.List<ulong> clientsTimedOut)
+    {
+        RestoreItemsFromServer();
+    }
     private IEnumerator WaitOneFrameAndRestore()
     {
         yield return null;
@@ -308,6 +328,8 @@ public class PlayerInventory : NetworkBehaviour
                 SyncRestoredItemClientRpc(new NetworkObjectReference(spawned.NetworkObject), data.slotIndex);
             }
         }
+
+        GameSessionManager.Instance.playerItems.Remove(myId);
     }
 
     [Rpc(SendTo.Everyone)]
