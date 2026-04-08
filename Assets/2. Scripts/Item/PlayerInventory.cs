@@ -32,6 +32,7 @@ public class PlayerInventory : NetworkBehaviour
 
     private ItemBase lastLookedItem;
     private DepartureButton lastLookedButton;
+    private MissionStartButton lastLookedMissionButton;
 
     public override void OnNetworkSpawn()
     {
@@ -46,10 +47,13 @@ public class PlayerInventory : NetworkBehaviour
         if (IsServer)
         {
             StartCoroutine(WaitOneFrameAndRestore());
-
-            // 씬 로드가 끝날 때마다 복구 로직이 실행되도록 예약
-            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnSceneLoaded; // 중복 방지
+            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnSceneLoaded;
             NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnSceneLoaded;
+        }
+        else if (IsOwner)
+        {
+            // 💡 [보완 4] 난입 유저를 위한 시각적 동기화 요청
+            RequestSyncLateJoinerServerRpc();
         }
     }
 
@@ -61,11 +65,11 @@ public class PlayerInventory : NetworkBehaviour
         }
     }
 
-    //씬 로드 완료 시 실행될 연결 함수
     private void OnSceneLoaded(string sceneName, UnityEngine.SceneManagement.LoadSceneMode loadSceneMode, System.Collections.Generic.List<ulong> clientsCompleted, System.Collections.Generic.List<ulong> clientsTimedOut)
     {
         RestoreItemsFromServer();
     }
+
     private IEnumerator WaitOneFrameAndRestore()
     {
         yield return null;
@@ -91,6 +95,7 @@ public class PlayerInventory : NetworkBehaviour
             if (Keyboard.current[Key.E].wasPressedThisFrame)
             {
                 if (lastLookedButton != null) lastLookedButton.Interact(this);
+                else if (lastLookedMissionButton != null) lastLookedMissionButton.Interact(this);
                 else if (lastLookedItem != null) TryPickUpAction();
             }
             if (Keyboard.current[Key.G].wasPressedThisFrame) RequestDropCurrentItem();
@@ -117,13 +122,15 @@ public class PlayerInventory : NetworkBehaviour
                 return;
             }
 
-            if (hit.collider.TryGetComponent(out DepartureButton targetButton))
+            if (hit.collider.TryGetComponent(out DepartureButton dBtn))
             {
-                if (lastLookedButton != targetButton)
-                {
-                    ClearHighlight();
-                    lastLookedButton = targetButton;
-                }
+                if (lastLookedButton != dBtn) { ClearHighlight(); lastLookedButton = dBtn; }
+                return;
+            }
+
+            if (hit.collider.TryGetComponent(out MissionStartButton mBtn))
+            {
+                if (lastLookedMissionButton != mBtn) { ClearHighlight(); lastLookedMissionButton = mBtn; }
                 return;
             }
         }
@@ -139,12 +146,23 @@ public class PlayerInventory : NetworkBehaviour
             lastLookedItem = null;
         }
         lastLookedButton = null;
+        lastLookedMissionButton = null;
     }
 
     private void TryPickUpAction()
     {
         if (lastLookedItem != null && twoHandedItem == null && !lastLookedItem.isEquipped)
         {
+            // 가방 Full 상태 사전 예외 처리
+            bool hasEmptySlot = false;
+            foreach (var slot in slots) if (slot == null) hasEmptySlot = true;
+
+            if (!hasEmptySlot)
+            {
+                Debug.LogWarning("가방이 꽉 차서 주울 수 없습니다!");
+                return;
+            }
+
             Outline outline = lastLookedItem.GetComponentInChildren<Outline>();
             if (outline != null) outline.enabled = false;
 
@@ -186,8 +204,6 @@ public class PlayerInventory : NetworkBehaviour
         {
             slots[emptySlotIndex] = item;
             twoHandedItem = item;
-
-            // 💡 [버그 1 해결] 양손 무기를 들면 "모든 화면에서" 1번 아이템을 숨김 처리
             if (slots[currentSlotIndex] != null && slots[currentSlotIndex] != item)
                 slots[currentSlotIndex].gameObject.SetActive(false);
 
@@ -207,14 +223,23 @@ public class PlayerInventory : NetworkBehaviour
     public void RequestDropCurrentItem()
     {
         ItemBase itemToDrop = null;
-
         if (twoHandedItem != null) itemToDrop = twoHandedItem;
         else if (slots[currentSlotIndex] != null) itemToDrop = slots[currentSlotIndex];
 
         if (itemToDrop != null)
         {
-            Vector3 dropPos = Camera.main.transform.position + Camera.main.transform.forward;
-            Vector3 throwDir = Camera.main.transform.forward;
+            Transform camTransform = Camera.main.transform;
+            Vector3 startPos = camTransform.position;
+            Vector3 throwDir = camTransform.forward;
+
+            //  벽 뚫기 방지 레이캐스트 검사
+            Vector3 dropPos = startPos + throwDir * 1.5f;
+            if (Physics.Raycast(startPos, throwDir, out RaycastHit hit, 1.5f))
+            {
+                // 플레이어가 아닌 벽에 맞았다면, 벽 바로 앞에 떨어지게 보정
+                if (hit.collider.gameObject != this.gameObject)
+                    dropPos = hit.point - throwDir * 0.2f;
+            }
 
             RequestDropServerRpc(itemToDrop.NetworkObjectId, dropPos, throwDir);
         }
@@ -240,8 +265,6 @@ public class PlayerInventory : NetworkBehaviour
         {
             twoHandedItem = null;
             if (IsOwner) OnTwoHandedToggled?.Invoke(false);
-
-            // 💡 [버그 1 해결] 양손 무기를 버리면 "모든 화면에서" 기존 1번 무기를 다시 켬
             if (slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(true);
         }
 
@@ -250,9 +273,7 @@ public class PlayerInventory : NetworkBehaviour
             if (slots[i] == item) slots[i] = null;
         }
 
-        // 💡 [버그 3 해결] 가방 안에서 꺼져(SetActive(false))있던 아이템을 버릴 때 다시 보이게 켬!
         item.gameObject.SetActive(true);
-
         item.transform.position = dropPos;
         item.ExecuteChangeOwnership(false, null);
 
@@ -268,10 +289,6 @@ public class PlayerInventory : NetworkBehaviour
         if (IsOwner) OnInventoryUpdated?.Invoke();
     }
 
-    // ==========================================================
-    // 💡 [버그 2 해결 구역] 마우스 휠 슬롯 변경 동기화
-    // ==========================================================
-
     private void HandleSlotChange()
     {
         if (twoHandedItem != null) return;
@@ -285,7 +302,6 @@ public class PlayerInventory : NetworkBehaviour
 
         if (newIndex != currentSlotIndex)
         {
-            // 혼자만 바꾸지 않고 서버에 "나 슬롯 돌렸어!" 라고 보고합니다.
             RequestChangeSlotServerRpc(newIndex);
         }
     }
@@ -293,7 +309,6 @@ public class PlayerInventory : NetworkBehaviour
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     private void RequestChangeSlotServerRpc(int newIndex)
     {
-        // 서버가 모든 클라이언트에게 "얘 슬롯 돌렸대! 화면 업데이트 해!" 라고 방송합니다.
         SyncSlotChangeClientRpc(newIndex);
     }
 
@@ -301,15 +316,10 @@ public class PlayerInventory : NetworkBehaviour
     private void SyncSlotChangeClientRpc(int newIndex)
     {
         if (slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(false);
-
         currentSlotIndex = newIndex;
-
         if (slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(true);
-
         if (IsOwner) OnSlotChanged?.Invoke(currentSlotIndex);
     }
-
-    // ==========================================================
 
     private void RestoreItemsFromServer()
     {
@@ -328,7 +338,6 @@ public class PlayerInventory : NetworkBehaviour
                 SyncRestoredItemClientRpc(new NetworkObjectReference(spawned.NetworkObject), data.slotIndex);
             }
         }
-
         GameSessionManager.Instance.playerItems.Remove(myId);
     }
 
@@ -350,16 +359,42 @@ public class PlayerInventory : NetworkBehaviour
             }
 
             if (slotIdx != currentSlotIndex && item.itemData.handType != HandType.TwoHand)
-            {
                 item.gameObject.SetActive(false);
-            }
             else if (twoHandedItem != null && item != twoHandedItem)
-            {
                 item.gameObject.SetActive(false);
-            }
 
             OnInventoryUpdated?.Invoke();
             OnSlotChanged?.Invoke(currentSlotIndex);
         }
+    }
+
+    // ==========================================================
+    // 💡 [보완 4] 난입 유저 동기화 로직 구역
+    // ==========================================================
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    private void RequestSyncLateJoinerServerRpc(RpcParams rpcParams = default)
+    {
+        ulong senderId = rpcParams.Receive.SenderClientId;
+
+        // 서버가 접속해 있는 모든 플레이어의 아이템 소유 상태를 뉴비에게 전달
+        PlayerInventory[] allPlayers = FindObjectsByType<PlayerInventory>(FindObjectsSortMode.None);
+        foreach (var p in allPlayers)
+        {
+            for (int i = 0; i < p.slots.Length; i++)
+            {
+                if (p.slots[i] != null && p.slots[i].NetworkObject != null && p.slots[i].NetworkObject.IsSpawned)
+                {
+                    // 뉴비(Target)에게만 강제로 동기화 RPC 쏘기
+                    p.SyncRestoredItemClientRpc(new NetworkObjectReference(p.slots[i].NetworkObject), i, RpcTarget.Single(senderId, RpcTargetUse.Temp));
+                }
+            }
+        }
+    }
+
+    // 오버로딩 (특정 클라이언트에게만 쏠 수 있는 타겟 RPC)
+    [Rpc(SendTo.SpecifiedInParams)]
+    private void SyncRestoredItemClientRpc(NetworkObjectReference itemRef, int slotIdx, RpcParams rpcParams)
+    {
+        SyncRestoredItemClientRpc(itemRef, slotIdx); // 기존 함수 재활용
     }
 }

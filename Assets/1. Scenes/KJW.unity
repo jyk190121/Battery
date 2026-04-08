@@ -532,6 +532,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DepartureButton
   shipZone: {fileID: 1365177702}
+  targetSceneName: KJW
 --- !u!1 &576317264
 GameObject:
   m_ObjectHideFlags: 0
@@ -1542,7 +1543,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SettlementZone
   ShowTopMostFoldoutHeaderGroup: 1
   anchor: {fileID: 1365177701}
-  nextSceneName: KJW_Test_Scene
 --- !u!114 &1365177703
 MonoBehaviour:
   m_ObjectHideFlags: 0

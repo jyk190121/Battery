@@ -54,6 +54,16 @@ public class StartManager : MonoBehaviour
     {
         TrySubscribeEvents();
 
+        // --- 닉네임 입력 제한 설정 추가 ---
+        if (nicknameInput != null)
+        {
+            nicknameInput.characterLimit = 12; // 인스펙터에서도 설정 가능하지만 코드로 강제
+            nicknameInput.onValueChanged.AddListener(OnNicknameValueChanged);
+        }
+
+        // 초기 버튼 상태 설정 (비어있으므로 비활성화)
+        nicknameConfirmBtn.interactable = false;
+
         ShowPanel(nicknamePanel);
 
         // 버튼 리스너 연결
@@ -151,9 +161,10 @@ public class StartManager : MonoBehaviour
     // 닉네임 입력 후 '확인' 버튼을 누를 때 호출 (UI에서 연결 필요)
     public void OnNicknameConfirm()
     {
-        if (string.IsNullOrWhiteSpace(nicknameInput.text))
+        // 한 번 더 검증 (버튼이 활성화된 상태라 하더라도 안전을 위해)
+        if (string.IsNullOrWhiteSpace(nicknameInput.text) || nicknameInput.text.Length > 12)
         {
-            Debug.LogWarning("닉네임을 입력해주세요!");
+            Debug.LogWarning("닉네임 형식이 올바르지 않습니다.");
             return;
         }
 
@@ -284,6 +295,17 @@ public class StartManager : MonoBehaviour
             }
         }
         LayoutRebuilder.ForceRebuildLayoutImmediate(sessionListContent.GetComponent<RectTransform>());
+    }
+
+    // 닉네임 입력값이 변할 때마다 호출되는 함수
+    private void OnNicknameValueChanged(string input)
+    {
+        // 공백 제외 1글자 이상 12글자 이하인지 체크
+        // (characterLimit으로 상한선은 이미 막혀있으므로 하한선과 공백 위주 체크)
+        bool isValid = !string.IsNullOrWhiteSpace(input) && input.Length >= 1 && input.Length <= 12;
+
+        // 조건에 맞을 때만 확인 버튼 활성화
+        nicknameConfirmBtn.interactable = isValid;
     }
 
     public void OnBackToMain()
