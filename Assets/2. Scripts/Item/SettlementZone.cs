@@ -22,21 +22,24 @@ public class SettlementZone : NetworkBehaviour
     {
         if (!IsSpawned) return;
         Debug.Log("<color=cyan><b>[Ship System]</b> 이륙 시퀀스 시작...</color>");
+
         if (IsServer) PerformTransitionLogic(player);
-        else RequestTransitionServerRpc(player.OwnerClientId);
+        else RequestTransitionServerRpc();
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-    private void RequestTransitionServerRpc(ulong clientId)
+    private void RequestTransitionServerRpc(RpcParams rpcParams = default)
     {
-        if (NetworkManager.ConnectedClients.TryGetValue(clientId, out var client))
+        ulong realSenderId = rpcParams.Receive.SenderClientId;
+
+        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(realSenderId, out var client))
         {
             var p = client.PlayerObject.GetComponent<PlayerInventory>();
             if (p != null) PerformTransitionLogic(p);
         }
     }
 
-    private void PerformTransitionLogic(PlayerInventory player)
+    private void PerformTransitionLogic(PlayerInventory callerPlayer)
     {
         GameSessionManager.Instance.truckItems.Clear();
         GameSessionManager.Instance.playerItems.Clear();
@@ -67,30 +70,34 @@ public class SettlementZone : NetworkBehaviour
             }
         }
 
-        for (int i = 0; i < player.slots.Length; i++)
+        PlayerInventory[] allPlayers = FindObjectsByType<PlayerInventory>(FindObjectsSortMode.None);
+        foreach (var p in allPlayers)
         {
-            if (player.slots[i] != null)
+            for (int i = 0; i < p.slots.Length; i++)
             {
-                if (player.slots[i] is Item_Scrap scrapItem)
+                if (p.slots[i] != null)
                 {
-                    totalValue += scrapItem.currentScrapValue;
-                    Debug.Log($"<color=yellow>[판매]</color> 가방 속 {scrapItem.itemData.itemName} (+{scrapItem.currentScrapValue})");
-                }
-                else
-                {
-                    SaveToPlayer(player.slots[i], i, player.OwnerClientId);
-                }
+                    if (p.slots[i] is Item_Scrap scrapItem)
+                    {
+                        totalValue += scrapItem.currentScrapValue;
+                        Debug.Log($"<color=yellow>[판매]</color> {p.OwnerClientId}번 가방 속 {scrapItem.itemData.itemName} (+{scrapItem.currentScrapValue})");
+                    }
+                    else
+                    {
+                        SaveToPlayer(p.slots[i], i, p.OwnerClientId);
+                    }
 
-                if (player.slots[i].NetworkObject != null && player.slots[i].NetworkObject.IsSpawned)
-                    player.slots[i].NetworkObject.Despawn();
-                player.slots[i] = null;
+                    if (p.slots[i].NetworkObject != null && p.slots[i].NetworkObject.IsSpawned)
+                        p.slots[i].NetworkObject.Despawn();
+                    p.slots[i] = null;
+                }
             }
-        }
 
-        if (player.twoHandedItem != null)
-        {
-            player.twoHandedItem = null;
-            player.OnTwoHandedToggled?.Invoke(false);
+            if (p.twoHandedItem != null)
+            {
+                p.twoHandedItem = null;
+                p.OnTwoHandedToggled?.Invoke(false);
+            }
         }
 
         ItemBase[] allItemsInScene = FindObjectsByType<ItemBase>(FindObjectsSortMode.None);
@@ -102,10 +109,11 @@ public class SettlementZone : NetworkBehaviour
             }
         }
 
-        GameSessionManager.Instance.AddMoney(totalValue);
+        // 💡 [해결 1] 서버 혼자 계산하고 끝내지 않고, 모든 클라이언트에게 결과를 방송합니다!
+        BroadcastSettlementResultClientRpc(totalValue);
+
         Debug.Log($"<color=cyan><b>[Ship System]</b> {nextSceneName}으로 이동합니다.</color>");
 
-        // 💡 [변경됨] 딜레이 없이 즉시 씬 로드
 #if UNITY_EDITOR
         UnityEditor.Selection.activeGameObject = null;
 #endif
@@ -156,7 +164,20 @@ public class SettlementZone : NetworkBehaviour
             if (inventoryChanged) player.OnInventoryUpdated?.Invoke();
         }
 
-        if (totalValue > 0) GameSessionManager.Instance.AddMoney(totalValue);
+        // 💡 F12 테스트 로직에도 방송 기능 추가
+        if (totalValue > 0) BroadcastSettlementResultClientRpc(totalValue);
+    }
+
+    // 💡 [해결 1 핵심] 서버가 계산한 돈을 클라이언트들의 지갑에도 넣어주는 함수
+    [Rpc(SendTo.Everyone)]
+    private void BroadcastSettlementResultClientRpc(int addedMoney)
+    {
+        if (addedMoney > 0)
+        {
+            // 이 코드가 이제 클라이언트의 컴퓨터에서도 실행되므로, 
+            // 클라이언트 콘솔창에도 똑같이 정산 로그(+XXX원)가 찍힙니다!
+            GameSessionManager.Instance.AddMoney(addedMoney);
+        }
     }
 
     private void SaveToTruck(ItemBase item)
@@ -166,7 +187,7 @@ public class SettlementZone : NetworkBehaviour
             itemID = item.itemData.itemID,
             localPos = anchor.InverseTransformPoint(item.transform.position),
             localRot = Quaternion.Inverse(anchor.rotation) * item.transform.rotation,
-            stateValues = new float[] { (item is Item_Durability dur) ? dur.currentDurability : 0 },
+            stateValue1 = (item is Item_Durability dur) ? dur.currentDurability : 0, // 구조체 패치 반영
             slotIndex = -1
         });
     }
@@ -180,7 +201,7 @@ public class SettlementZone : NetworkBehaviour
         {
             itemID = item.itemData.itemID,
             slotIndex = index,
-            stateValues = new float[] { (item is Item_Durability dur) ? dur.currentDurability : 0 }
+            stateValue1 = (item is Item_Durability dur) ? dur.currentDurability : 0 // 구조체 패치 반영
         });
     }
 
@@ -192,7 +213,7 @@ public class SettlementZone : NetworkBehaviour
             ItemBase prefab = GameSessionManager.Instance.GetPrefab(d.itemID);
             if (prefab == null || anchor == null) continue;
             ItemBase spawned = Instantiate(prefab, anchor.TransformPoint(d.localPos), anchor.rotation * d.localRot);
-            if (spawned is Item_Durability dur) dur.currentDurability = d.stateValues[0];
+            if (spawned is Item_Durability dur) dur.currentDurability = d.stateValue1; // 구조체 패치 반영
             spawned.GetComponent<NetworkObject>().Spawn();
         }
     }
