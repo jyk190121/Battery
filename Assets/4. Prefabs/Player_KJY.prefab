@@ -2645,6 +2645,7 @@ GameObject:
   - component: {fileID: 8808567715922933914}
   - component: {fileID: -3479541866016816257}
   - component: {fileID: 1697737443919903314}
+  - component: {fileID: 1274011911571015947}
   m_Layer: 6
   m_Name: Player_KJY
   m_TagString: Untagged
@@ -2718,7 +2719,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2320307899
+  GlobalObjectIdHash: 405663255
   InScenePlacedSourceGlobalObjectIdHash: 6777840
   DeferredDespawnTick: 0
   Ownership: 1
@@ -3019,6 +3020,54 @@ MonoBehaviour:
   leftHandTransform: {fileID: 0}
   bothHandsTransform: {fileID: 0}
   throwForce: 1
+--- !u!114 &1274011911571015947
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4911454195433589709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 275afc4d029ecc8489a2780670f3cab9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerNameSync
+  ShowTopMostFoldoutHeaderGroup: 1
+  NetworkNickname:
+    m_InternalValue:
+      utf8LengthInBytes: 0
+      bytes:
+        offset0000:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        byte0016: 0
+        byte0017: 0
+        byte0018: 0
+        byte0019: 0
+        byte0020: 0
+        byte0021: 0
+        byte0022: 0
+        byte0023: 0
+        byte0024: 0
+        byte0025: 0
+        byte0026: 0
+        byte0027: 0
+        byte0028: 0
+        byte0029: 0
 --- !u!1 &5047510916941267613
 GameObject:
   m_ObjectHideFlags: 0
