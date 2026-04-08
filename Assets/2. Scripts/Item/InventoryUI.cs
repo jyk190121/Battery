@@ -1,3 +1,4 @@
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -61,5 +62,16 @@ public class InventoryUI : MonoBehaviour
     {
         // 양손 아이템 들면 UI 전체를 약간 어둡게 처리
         GetComponent<CanvasGroup>().alpha = isHeavy ? 0.5f : 1.0f;
+    }
+
+    private void OnDestroy()
+    {
+        // 스크립트가 파괴될 때(씬 이동 등) 연결된 이벤트를 모두 끊어줍니다.
+        if (playerInventory != null)
+        {
+            playerInventory.OnInventoryUpdated -= UpdateUI;
+            playerInventory.OnSlotChanged -= UpdateHighlight;
+            playerInventory.OnTwoHandedToggled -= HandleTwoHandedUI;
+        }
     }
 }
