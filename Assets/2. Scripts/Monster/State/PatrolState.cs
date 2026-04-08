@@ -10,10 +10,7 @@ public class PatrolState : MonsterBaseState
     private float stuckTimer;
     private readonly float maxMoveTime = 10f;   // 10초 이상 같은 목적지로 이동하면 끼인 것으로 간주    
 
-    public PatrolState(MonsterController owner) : base(owner)
-    {
-      
-    }
+    public PatrolState(MonsterController owner) : base(owner) { }
 
     public override void Enter()
     {
@@ -49,7 +46,7 @@ public class PatrolState : MonsterBaseState
     private void MoveToNextPoint()
     {
         Transform nextPoint = owner.waypointManager?.GetRandomWaypoint();
-        owner.animHandler.SetSpeed(data.patrolSpeed);
+        owner.animHandler.SetSpeed(1f);
 
         if (nextPoint != null)
         {

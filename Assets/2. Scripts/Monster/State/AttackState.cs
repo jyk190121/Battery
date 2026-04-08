@@ -3,12 +3,17 @@ using UnityEngine;
 public class AttackState : MonsterBaseState
 {
     private float attackTimer;
+    private readonly float attackAnimDuration = 2f;
 
     public AttackState(MonsterController owner) : base(owner) { }
 
     public override void Enter()
     {
         owner.navAgent.isStopped = true;    // 공격 시 멈춤
+        //owner.navAgent.ResetPath();
+        //owner.navAgent.velocity = Vector3.zero;
+        //owner.animHandler.SetSpeed(0f);
+
         attackTimer = data.attackCooldown;  // 즉시 공격 가능하게 설정하거나 대기
 
         Transform target = owner.scanner.CurrentTarget; // 타겟을 바라보게 회전
@@ -23,6 +28,11 @@ public class AttackState : MonsterBaseState
     public override void Update()
     {
         attackTimer += Time.deltaTime;
+
+        if (attackTimer < attackAnimDuration)
+        {
+            return;
+        }
 
         Transform target = owner.scanner.CurrentTarget;
 
@@ -52,7 +62,7 @@ public class AttackState : MonsterBaseState
             {
                 // TODO: 플레이어 데미지 처리
                 // target.GetComponent<PlayerHealth>().TakeDamage(data.attackDamage);
-                Debug.Log($"[퍼펙트 타격] {target.name}에게 {data.attackDamage} 피해 발생");
+                Debug.Log($"{target.name}에게 {data.attackDamage} 피해 발생");
             }
             else
             {

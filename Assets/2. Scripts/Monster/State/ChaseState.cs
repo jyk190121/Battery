@@ -15,7 +15,7 @@ public class ChaseState : MonsterBaseState
         owner.navAgent.speed = data.chaseSpeed;
         lastTargetPos = Vector3.zero;
         stuckTimer = 0f;
-        owner.animHandler.SetSpeed(data.chaseSpeed);
+        owner.animHandler.SetSpeed(2f);
     }
 
     public override void FixedUpdate()

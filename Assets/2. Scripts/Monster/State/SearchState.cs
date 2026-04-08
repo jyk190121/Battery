@@ -4,7 +4,7 @@ using UnityEngine.AI;
 public class SearchState : MonsterBaseState
 {
     private float totalSearchTimer;
-    private readonly float maxSearchDuration = 15f; // 총 5초간 주변 수색
+    private readonly float maxSearchDuration = 10f; // 총 5초간 주변 수색
     private bool isInvestigating;
     private float pauseTimer;
     private int searchAttemptCount;                 // 몇 군데나 찾아봤는지 기록
