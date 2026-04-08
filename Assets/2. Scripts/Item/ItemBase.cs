@@ -19,21 +19,14 @@ public abstract class ItemBase : NetworkBehaviour
     {
         itemPhysicsRigidbody = GetComponent<Rigidbody>();
         itemPhysicalCollider = GetComponent<Collider>();
-
-        // 🗑️ NetworkGlobalSettings 체크 로직 삭제 완료
     }
 
-    protected virtual void Start()
-    {
-        // 🗑️ NetworkTransform 강제 활성화/비활성화 로직 삭제 완료
-        // (자식 클래스 상속을 위해 함수 뼈대만 남겨둠)
-    }
+    protected virtual void Start() { }
 
     public virtual void ExecuteChangeOwnership(bool isPickingUp, Transform targetHand)
     {
         isEquipped = isPickingUp;
         isThrown = false;
-
         currentTargetHand = isPickingUp ? targetHand : null;
 
         Outline outline = GetComponentInChildren<Outline>();
@@ -50,7 +43,6 @@ public abstract class ItemBase : NetworkBehaviour
                 itemPhysicsRigidbody.isKinematic = true;
             }
             if (itemPhysicalCollider != null) itemPhysicalCollider.enabled = false;
-
             if (netTransform != null) netTransform.enabled = false;
 
             if (IsServer)
@@ -58,8 +50,7 @@ public abstract class ItemBase : NetworkBehaviour
                 NetworkObject.TrySetParent(targetHand, false);
             }
 
-            if (itemData != null)
-                Debug.Log($"<color=green>[Execute]</color> {itemData.itemName} 장착 완료.");
+            if (itemData != null) Debug.Log($"<color=green>[Execute]</color> {itemData.itemName} 장착 완료.");
         }
         else
         {
