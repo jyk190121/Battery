@@ -4,9 +4,10 @@ using UnityEngine.AI;
 public class SearchState : MonsterBaseState
 {
     private float totalSearchTimer;
-    private readonly float maxSearchDuration = 5f; // 총 5초간 주변 수색
+    private readonly float maxSearchDuration = 15f; // 총 5초간 주변 수색
     private bool isInvestigating;
     private float pauseTimer;
+    private int searchAttemptCount;                 // 몇 군데나 찾아봤는지 기록
 
     public SearchState(MonsterController owner) : base(owner) { }
 
@@ -14,11 +15,16 @@ public class SearchState : MonsterBaseState
     {
         totalSearchTimer = 0f;
         isInvestigating = false;
+        pauseTimer = 0f;
+        searchAttemptCount = 0;
+
         owner.navAgent.speed = data.patrolSpeed;
 
-        // 우선 마지막으로 본 위치로 전력 질주
+        // 우선 마지막으로 본 위치로 이동
         owner.navAgent.SetDestination(owner.scanner.LastSeenPosition);
+        Debug.Log($"[수색 시작] 마지막으로 목격된 위치({owner.scanner.LastSeenPosition})로 이동.");
     }
+    
 
     public override void Update()
     {
@@ -26,13 +32,16 @@ public class SearchState : MonsterBaseState
         owner.scanner.Tick();
         if (owner.scanner.CurrentTarget != null)
         {
+            Debug.Log("[수색 성공] 플레이어를 다시 발견. 추격을 재개.");
             owner.ChangeState(MonsterStateType.Chase);
             return;
         }
 
         totalSearchTimer += Time.deltaTime;
+
         if (totalSearchTimer >= maxSearchDuration)
         {
+            Debug.Log("[수색 포기] 아무것도 찾지 못했습니다. 순찰로 돌아갑니다.");
             owner.ChangeState(MonsterStateType.Patrol); // 수색 포기
             return;
         }
@@ -44,7 +53,7 @@ public class SearchState : MonsterBaseState
             {
                 pauseTimer += Time.deltaTime;
                 // 도착 후 1.5초간 두리번거리기 (잠시 멈춤)
-                if (pauseTimer > 1.5f)
+                if (pauseTimer > 3f)
                 {
                     InvestigateNearby(); // 다른 곳으로 이동
                 }
@@ -61,12 +70,18 @@ public class SearchState : MonsterBaseState
     private void InvestigateNearby()
     {
         isInvestigating = true;
-        Vector3 randomDir = Random.insideUnitSphere * 6f; // 6m 반경
-        randomDir += owner.transform.position;
+        searchAttemptCount++;
+
+        // 탐색 범위: 횟수가 늘어날수록 더 넓은 범위를 찾아봅니다 (5m -> 7m -> 9m...)
+        float searchRadius = 5f + (searchAttemptCount * 2f);
+
+        Vector3 randomDir = Random.insideUnitSphere * searchRadius;
+        randomDir += owner.scanner.LastSeenPosition;
 
         NavMeshHit hit;
-        if (NavMesh.SamplePosition(randomDir, out hit, 6f, NavMesh.AllAreas))
+        if (NavMesh.SamplePosition(randomDir, out hit, searchRadius, NavMesh.AllAreas))
         {
+            Debug.Log($"[수색 진행] {searchAttemptCount}번째 탐색 지점으로 이동 중");
             owner.navAgent.SetDestination(hit.position);
         }
     }
