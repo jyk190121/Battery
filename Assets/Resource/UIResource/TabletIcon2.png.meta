@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 6bb137323660a81429c33cb9e1e6097b
+guid: 1d2739c0c9cb57547b06e6d94e11fd86
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -45,7 +45,7 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 1
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
@@ -110,13 +110,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: AppCase_0
+      name: TabletIcon2_0
       rect:
         serializedVersion: 2
-        x: 177
-        y: 72
-        width: 114
-        height: 112
+        x: 481
+        y: 82
+        width: 187
+        height: 203
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -125,8 +125,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 2a5990f0066c14b4e8027eee99e30886
-      internalID: 902400757
+      spriteID: 286b2f0124558a74fbdcf320f2c053bf
+      internalID: 1447170868
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 2a0db0b09920e044c9122dd918c6b8a0
+    spriteID: 7b996f247d95331419e837c7b89bf9cc
     internalID: 0
     vertices: []
     indices: 
@@ -145,7 +145,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      AppCase_0: 902400757
+      TabletIcon2_0: 1447170868
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
