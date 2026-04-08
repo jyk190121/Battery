@@ -49,6 +49,8 @@ public class PatrolState : MonsterBaseState
     private void MoveToNextPoint()
     {
         Transform nextPoint = owner.waypointManager?.GetRandomWaypoint();
+        owner.animHandler.SetSpeed(data.patrolSpeed);
+
         if (nextPoint != null)
         {
             Debug.Log($"[{nextPoint.name}] 지점으로 이동 시작");
@@ -83,6 +85,7 @@ public class PatrolState : MonsterBaseState
         isWaiting = true;
         waitTimer = 0f;
         currentWaitDuration = Random.Range(data.minWaitTime, data.maxWaitTime);
+        owner.animHandler.SetSpeed(0f);
 
         owner.navAgent.isStopped = true;
     }

@@ -18,6 +18,9 @@ public class SearchState : MonsterBaseState
         pauseTimer = 0f;
         searchAttemptCount = 0;
 
+        owner.animHandler.SetSpeed(0f); // 멈춤
+        owner.animHandler.SetSearching(true); // 두리번 애니메이션 시작
+
         owner.navAgent.speed = data.patrolSpeed;
 
         // 우선 마지막으로 본 위치로 이동
@@ -65,6 +68,11 @@ public class SearchState : MonsterBaseState
             pauseTimer = 0f;
             isInvestigating = false;
         }
+    }
+
+    public override void Exit()
+    {
+        owner.animHandler.SetSearching(false); // 두리번 애니메이션 종료
     }
 
     private void InvestigateNearby()

@@ -5,17 +5,33 @@ public class MonsterAnimation : MonoBehaviour
     public MonsterController controller;
     private Animator animator;
     // 파라미터 해싱
-    private static readonly int IsMovingHash = Animator.StringToHash("IsMoving");
-    private static readonly int AttackTriggerHash = Animator.StringToHash("Attack");
-    private static readonly int AlertnessFloatHash = Animator.StringToHash("Alertness");
+    private static readonly int SpeedHash = Animator.StringToHash("Speed");
+    private static readonly int AttackHash = Animator.StringToHash("Attack");
+    private static readonly int IsSearchingHash = Animator.StringToHash("IsSearching");
 
-    public void UpdateAnimation(float speed, float alertness)
+    private void Awake()
     {
-        animator.SetBool(IsMovingHash, speed > 0.1f);
-        animator.SetFloat(AlertnessFloatHash, alertness);
+        animator = GetComponent<Animator>();
+        // GetComponentInChildren<Animator>() 
     }
 
-    public void PlayAttack() => animator.SetTrigger(AttackTriggerHash);
+    // 1. 이동 속도 업데이트 (Blend Tree 제어용)
+    public void SetSpeed(float speed)
+    {
+        animator.SetFloat(SpeedHash, speed);
+    }
+
+    // 2. 공격 애니메이션 실행
+    public void PlayAttack()
+    {
+        animator.SetTrigger(AttackHash);
+    }
+
+    // 3. 수색(두리번) 애니메이션 토글
+    public void SetSearching(bool isSearching)
+    {
+        animator.SetBool(IsSearchingHash, isSearching);
+    }
 
     // 애니메이션 이벤트로 호출될 함수
     public void OnAnimationEvent_AttackHit()
