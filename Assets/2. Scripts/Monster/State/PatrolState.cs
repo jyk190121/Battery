@@ -1,5 +1,4 @@
 using UnityEngine;
-
 public class PatrolState : MonsterBaseState
 {
     private bool isWaiting;

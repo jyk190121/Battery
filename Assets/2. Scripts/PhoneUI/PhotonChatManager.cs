@@ -6,9 +6,9 @@ using TMPro;
 
 public class PhotonChatManager : MonoBehaviour, IChatClientListener
 {
-    [Header("Photon Settings")]
+    //[Header("Photon Settings")]
     public string chatAppId = "YOUR_APP_ID";
-    string userName = MultiPlayerSessionManager.Instance.PlayerNickname;
+    public string userName;
 
     [Header("References")]
     public TeamChatRoomUI teamChatRoom;
@@ -30,8 +30,17 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
 
     public bool CanChat => chatClient != null && chatClient.CanChat;
 
-    private void Awake()
+    private void Start()
     {
+        if(MultiPlayerSessionManager.Instance != null)
+        {
+            userName = MultiPlayerSessionManager.Instance.PlayerNickname;
+        }
+        else
+        {
+            userName = "Guest";
+        }
+
         chatClient = new ChatClient(this);
         chatClient.Connect(chatAppId, "1.0", new AuthenticationValues(userName));
         playerText.text = $"Player: {userName}";
