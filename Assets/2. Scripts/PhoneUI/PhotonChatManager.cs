@@ -8,7 +8,7 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
 {
     [Header("Photon Settings")]
     public string chatAppId = "YOUR_APP_ID";
-    public string userName = "Player1";
+    string userName = MultiPlayerSessionManager.Instance.PlayerNickname;
 
     [Header("References")]
     public TeamChatRoomUI teamChatRoom;
