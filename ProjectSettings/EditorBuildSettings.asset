@@ -29,6 +29,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/1. Scenes/KYC.unity
     guid: ecd7b33776253c34e9f3b8cc24f52e00
+  - enabled: 1
+    path: Assets/1. Scenes/KJY_Plyaer.unity
+    guid: 00a852c28baae794cbe45c0c6aac02ca
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
