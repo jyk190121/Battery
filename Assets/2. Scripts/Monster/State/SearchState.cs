@@ -4,7 +4,7 @@ using UnityEngine.AI;
 public class SearchState : MonsterBaseState
 {
     private float totalSearchTimer;
-    private readonly float maxSearchDuration = 15f; // 총 5초간 주변 수색
+    private readonly float maxSearchDuration = 10f; // 총 5초간 주변 수색
     private bool isInvestigating;
     private float pauseTimer;
     private int searchAttemptCount;                 // 몇 군데나 찾아봤는지 기록
@@ -17,6 +17,9 @@ public class SearchState : MonsterBaseState
         isInvestigating = false;
         pauseTimer = 0f;
         searchAttemptCount = 0;
+
+        owner.animHandler.SetSpeed(0f); // 멈춤
+        owner.animHandler.SetSearching(true); // 두리번 애니메이션 시작
 
         owner.navAgent.speed = data.patrolSpeed;
 
@@ -65,6 +68,11 @@ public class SearchState : MonsterBaseState
             pauseTimer = 0f;
             isInvestigating = false;
         }
+    }
+
+    public override void Exit()
+    {
+        owner.animHandler.SetSearching(false); // 두리번 애니메이션 종료
     }
 
     private void InvestigateNearby()
