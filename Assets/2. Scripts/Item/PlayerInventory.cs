@@ -1,5 +1,5 @@
 using System;
-using System.Collections; // 💡 코루틴 사용
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Netcode;
@@ -17,14 +17,14 @@ public class PlayerInventory : NetworkBehaviour
     public float interactRange = 3f;
     public LayerMask itemLayer;
 
-    [Header("Hand Transform Names (자식 오브젝트 이름)")]
+    [Header("Hand Transform Names")]
     public string leftHandName = "OneHandle";
     public string bothHandsName = "BothHandle";
 
     [HideInInspector] public Transform leftHandTransform;
     [HideInInspector] public Transform bothHandsTransform;
 
-    public float throwForce = 7f;
+    public float throwForce = 1f;
 
     public Action<int> OnSlotChanged;
     public Action OnInventoryUpdated;
@@ -43,16 +43,11 @@ public class PlayerInventory : NetworkBehaviour
 
         if (IsOwner) LocalInstance = this;
 
-        if (IsServer)
-        {
-            // 💡 [핵심] 0.2초가 아니라 딱 1프레임만 대기! (눈에 안 보일 정도로 빠름)
-            StartCoroutine(WaitOneFrameAndRestore());
-        }
+        if (IsServer) StartCoroutine(WaitOneFrameAndRestore());
     }
 
     private IEnumerator WaitOneFrameAndRestore()
     {
-        // 유니티 엔진이 플레이어 스폰 처리를 완료할 수 있도록 딱 1프레임(약 0.01초)만 양보합니다.
         yield return null;
         RestoreItemsFromServer();
     }
@@ -89,16 +84,19 @@ public class PlayerInventory : NetworkBehaviour
 
         if (Physics.Raycast(ray, out RaycastHit hit, interactRange, itemLayer))
         {
-            if (hit.collider.TryGetComponent(out ItemBase targetItem))
+            ItemBase targetItem = hit.collider.GetComponentInParent<ItemBase>();
+            if (targetItem != null && !targetItem.isEquipped)
             {
                 if (lastLookedItem != targetItem)
                 {
                     ClearHighlight();
                     lastLookedItem = targetItem;
-                    if (lastLookedItem.TryGetComponent(out Outline outline)) outline.enabled = true;
+                    Outline outline = lastLookedItem.GetComponentInChildren<Outline>();
+                    if (outline != null) outline.enabled = true;
                 }
                 return;
             }
+
             if (hit.collider.TryGetComponent(out DepartureButton targetButton))
             {
                 if (lastLookedButton != targetButton)
@@ -116,7 +114,8 @@ public class PlayerInventory : NetworkBehaviour
     {
         if (lastLookedItem != null)
         {
-            if (lastLookedItem.TryGetComponent(out Outline outline)) outline.enabled = false;
+            Outline outline = lastLookedItem.GetComponentInChildren<Outline>();
+            if (outline != null) outline.enabled = false;
             lastLookedItem = null;
         }
         lastLookedButton = null;
@@ -124,15 +123,34 @@ public class PlayerInventory : NetworkBehaviour
 
     private void TryPickUpAction()
     {
-        if (lastLookedItem != null) LocalPickUpLogic(lastLookedItem);
+        if (lastLookedItem != null && twoHandedItem == null && !lastLookedItem.isEquipped)
+        {
+            Outline outline = lastLookedItem.GetComponentInChildren<Outline>();
+            if (outline != null) outline.enabled = false;
+
+            RequestPickUpServerRpc(lastLookedItem.NetworkObjectId);
+            lastLookedItem = null;
+        }
     }
 
-    private void LocalPickUpLogic(ItemBase targetItem)
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    private void RequestPickUpServerRpc(ulong itemNetId, RpcParams rpcParams = default)
     {
-        if (targetItem.TryGetComponent(out Outline outline)) outline.enabled = false;
-        lastLookedItem = null;
+        if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(itemNetId, out var netObj)) return;
+        ItemBase item = netObj.GetComponent<ItemBase>();
 
-        if (twoHandedItem != null) return;
+        if (item == null || item.isEquipped) return;
+
+        item.isEquipped = true;
+        item.NetworkObject.ChangeOwnership(rpcParams.Receive.SenderClientId);
+        NotifyPickUpClientRpc(itemNetId);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void NotifyPickUpClientRpc(ulong itemNetId)
+    {
+        if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(itemNetId, out var netObj)) return;
+        ItemBase item = netObj.GetComponent<ItemBase>();
 
         int emptySlotIndex = -1;
         if (slots[currentSlotIndex] == null) emptySlotIndex = currentSlotIndex;
@@ -144,59 +162,95 @@ public class PlayerInventory : NetworkBehaviour
 
         if (emptySlotIndex == -1) return;
 
-        if (targetItem.itemData.handType == HandType.TwoHand)
+        if (item.itemData.handType == HandType.TwoHand)
         {
-            slots[emptySlotIndex] = targetItem;
-            twoHandedItem = targetItem;
-            if (slots[currentSlotIndex] != null && slots[currentSlotIndex] != targetItem)
+            slots[emptySlotIndex] = item;
+            twoHandedItem = item;
+
+            // 💡 [버그 1 해결] 양손 무기를 들면 "모든 화면에서" 1번 아이템을 숨김 처리
+            if (slots[currentSlotIndex] != null && slots[currentSlotIndex] != item)
                 slots[currentSlotIndex].gameObject.SetActive(false);
 
-            targetItem.RequestChangeOwnership(true, bothHandsTransform);
-            OnTwoHandedToggled?.Invoke(true);
+            item.ExecuteChangeOwnership(true, bothHandsTransform);
+            if (IsOwner) OnTwoHandedToggled?.Invoke(true);
         }
         else
         {
-            slots[emptySlotIndex] = targetItem;
-            targetItem.RequestChangeOwnership(true, leftHandTransform);
-            if (emptySlotIndex != currentSlotIndex) targetItem.gameObject.SetActive(false);
+            slots[emptySlotIndex] = item;
+            item.ExecuteChangeOwnership(true, leftHandTransform);
+            if (emptySlotIndex != currentSlotIndex) item.gameObject.SetActive(false);
         }
 
-        OnInventoryUpdated?.Invoke();
+        if (IsOwner) OnInventoryUpdated?.Invoke();
     }
 
     public void RequestDropCurrentItem()
     {
         ItemBase itemToDrop = null;
 
-        if (twoHandedItem != null)
-        {
-            itemToDrop = twoHandedItem;
-            for (int i = 0; i < slots.Length; i++)
-                if (slots[i] == twoHandedItem) { slots[i] = null; break; }
-
-            twoHandedItem = null;
-            OnTwoHandedToggled?.Invoke(false);
-
-            if (slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(true);
-        }
-        else if (slots[currentSlotIndex] != null)
-        {
-            itemToDrop = slots[currentSlotIndex];
-            slots[currentSlotIndex] = null;
-        }
+        if (twoHandedItem != null) itemToDrop = twoHandedItem;
+        else if (slots[currentSlotIndex] != null) itemToDrop = slots[currentSlotIndex];
 
         if (itemToDrop != null)
         {
-            itemToDrop.RequestChangeOwnership(false, null);
-            itemToDrop.transform.position = Camera.main.transform.position + Camera.main.transform.forward;
-            if (itemToDrop.TryGetComponent(out Rigidbody rb))
-            {
-                rb.AddForce((Camera.main.transform.forward + Vector3.up * 0.2f) * throwForce, ForceMode.Impulse);
-                itemToDrop.BeginThrownState();
-            }
-            OnInventoryUpdated?.Invoke();
+            Vector3 dropPos = Camera.main.transform.position + Camera.main.transform.forward;
+            Vector3 throwDir = Camera.main.transform.forward;
+
+            RequestDropServerRpc(itemToDrop.NetworkObjectId, dropPos, throwDir);
         }
     }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    private void RequestDropServerRpc(ulong itemNetId, Vector3 dropPos, Vector3 throwDir)
+    {
+        if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(itemNetId, out var netObj)) return;
+        ItemBase item = netObj.GetComponent<ItemBase>();
+
+        item.NetworkObject.RemoveOwnership();
+        NotifyItemDroppedClientRpc(itemNetId, dropPos, throwDir);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void NotifyItemDroppedClientRpc(ulong itemNetId, Vector3 dropPos, Vector3 throwDir)
+    {
+        if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(itemNetId, out var netObj)) return;
+        ItemBase item = netObj.GetComponent<ItemBase>();
+
+        if (item == twoHandedItem)
+        {
+            twoHandedItem = null;
+            if (IsOwner) OnTwoHandedToggled?.Invoke(false);
+
+            // 💡 [버그 1 해결] 양손 무기를 버리면 "모든 화면에서" 기존 1번 무기를 다시 켬
+            if (slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(true);
+        }
+
+        for (int i = 0; i < slots.Length; i++)
+        {
+            if (slots[i] == item) slots[i] = null;
+        }
+
+        // 💡 [버그 3 해결] 가방 안에서 꺼져(SetActive(false))있던 아이템을 버릴 때 다시 보이게 켬!
+        item.gameObject.SetActive(true);
+
+        item.transform.position = dropPos;
+        item.ExecuteChangeOwnership(false, null);
+
+        if (IsServer)
+        {
+            if (item.TryGetComponent(out Rigidbody rb))
+            {
+                rb.AddForce((throwDir + Vector3.up * 0.2f) * throwForce, ForceMode.Impulse);
+                item.BeginThrownState();
+            }
+        }
+
+        if (IsOwner) OnInventoryUpdated?.Invoke();
+    }
+
+    // ==========================================================
+    // 💡 [버그 2 해결 구역] 마우스 휠 슬롯 변경 동기화
+    // ==========================================================
 
     private void HandleSlotChange()
     {
@@ -205,17 +259,37 @@ public class PlayerInventory : NetworkBehaviour
         float scroll = Mouse.current.scroll.ReadValue().y;
         if (scroll == 0f) return;
 
-        int prev = currentSlotIndex;
-        if (scroll < 0f && currentSlotIndex < slots.Length - 1) currentSlotIndex++;
-        else if (scroll > 0f && currentSlotIndex > 0) currentSlotIndex--;
+        int newIndex = currentSlotIndex;
+        if (scroll < 0f && newIndex < slots.Length - 1) newIndex++;
+        else if (scroll > 0f && newIndex > 0) newIndex--;
 
-        if (prev != currentSlotIndex)
+        if (newIndex != currentSlotIndex)
         {
-            if (slots[prev] != null) slots[prev].gameObject.SetActive(false);
-            if (slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(true);
-            OnSlotChanged?.Invoke(currentSlotIndex);
+            // 혼자만 바꾸지 않고 서버에 "나 슬롯 돌렸어!" 라고 보고합니다.
+            RequestChangeSlotServerRpc(newIndex);
         }
     }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    private void RequestChangeSlotServerRpc(int newIndex)
+    {
+        // 서버가 모든 클라이언트에게 "얘 슬롯 돌렸대! 화면 업데이트 해!" 라고 방송합니다.
+        SyncSlotChangeClientRpc(newIndex);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void SyncSlotChangeClientRpc(int newIndex)
+    {
+        if (slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(false);
+
+        currentSlotIndex = newIndex;
+
+        if (slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(true);
+
+        if (IsOwner) OnSlotChanged?.Invoke(currentSlotIndex);
+    }
+
+    // ==========================================================
 
     private void RestoreItemsFromServer()
     {
@@ -228,7 +302,7 @@ public class PlayerInventory : NetworkBehaviour
                 if (prefab == null) continue;
 
                 ItemBase spawned = Instantiate(prefab);
-                if (spawned is Item_Durability dur) dur.currentDurability = data.stateValues[0];
+                if (spawned is Item_Durability dur) dur.currentDurability = data.stateValue1;
 
                 spawned.NetworkObject.SpawnWithOwnership(myId);
                 SyncRestoredItemClientRpc(new NetworkObjectReference(spawned.NetworkObject), data.slotIndex);
@@ -236,7 +310,7 @@ public class PlayerInventory : NetworkBehaviour
         }
     }
 
-    [ClientRpc]
+    [Rpc(SendTo.Everyone)]
     private void SyncRestoredItemClientRpc(NetworkObjectReference itemRef, int slotIdx)
     {
         if (itemRef.TryGet(out NetworkObject netObj))
