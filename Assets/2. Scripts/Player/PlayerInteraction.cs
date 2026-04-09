@@ -3,7 +3,6 @@ using Unity.Cinemachine;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 
@@ -46,19 +45,19 @@ public class PlayerInteraction : NetworkBehaviour
             FindUIElements(); // 1. 처음 스폰될 때 한 번 찾기
 
             // 2. 씬이 바뀔 때마다 'FindUIElements' 함수를 실행하도록 예약(구독)
-            SceneManager.sceneLoaded += OnSceneLoaded;
+            //SceneManager.sceneLoaded += OnSceneLoaded;
 
             if (playerRotation == null) playerRotation = GetComponent<PlayerRotation>();
         }
     }
 
-    public override void OnNetworkDespawn()
-    {
-        if (IsOwner)
-        {
-            SceneManager.sceneLoaded -= OnSceneLoaded;
-        }
-    }
+    //public override void OnNetworkDespawn()
+    //{
+    //    if (IsOwner)
+    //    {
+    //        SceneManager.sceneLoaded -= OnSceneLoaded;
+    //    }
+    //}
 
     // Update is called once per frame
     void Update()
@@ -116,10 +115,10 @@ public class PlayerInteraction : NetworkBehaviour
         }
     }
 
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        FindUIElements();
-    }
+    //private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    //{
+    //    FindUIElements();
+    //}
 
     public void CheckInteraction()
     {
@@ -159,7 +158,7 @@ public class PlayerInteraction : NetworkBehaviour
         targetPortal = null;
     }
 
-    private void FindUIElements()
+    public void FindUIElements()
     {
         GameObject foundUI = GameObject.Find("Interact_Text");
         GameObject foundRing = GameObject.Find("ProgressRing_Img");
@@ -175,7 +174,7 @@ public class PlayerInteraction : NetworkBehaviour
         }
         else
         {
-            Debug.LogWarning($"[PlayerInteraction] 씬({SceneManager.GetActiveScene().name})에서 UI를 찾을 수 없습니다.");
+            Debug.LogWarning($"[PlayerInteraction] 씬({GameSceneManager.Instance.SceneName()})에서 UI를 찾을 수 없습니다.");
         }
     }
 

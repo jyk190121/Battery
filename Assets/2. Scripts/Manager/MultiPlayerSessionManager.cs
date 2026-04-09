@@ -375,7 +375,6 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         {
             try
             {
-                Debug.Log($"[Multiplayer] 생성 중이던 세션({ActiveSession.Name})을 서버에서 제거합니다.");
                 // 호스트인 경우 세션을 떠나면 일반적으로 세션이 삭제되거나 유효하지 않게 됩니다.
                 await ActiveSession.LeaveAsync();
             }
