@@ -3,6 +3,7 @@ using UnityEngine;
 public class AttackState : MonsterBaseState
 {
     private float attackTimer;
+    private bool isAnimationPlaying;
 
     public AttackState(MonsterController owner) : base(owner) 
     {
@@ -19,6 +20,7 @@ public class AttackState : MonsterBaseState
         //owner.animHandler.SetSpeed(0f);
 
         attackTimer = data.attackCooldown;  // 즉시 공격 가능하게 설정하거나 대기
+        isAnimationPlaying = false;
     }
 
     protected override void OnTick()
@@ -34,11 +36,14 @@ public class AttackState : MonsterBaseState
         // 공격 애니메이션이 끝난 후 사거리 체크
         if (attackTimer >= data.attackAnimDuration)
         {
+            isAnimationPlaying = false;
+
             float sqrDist = (target.position - owner.transform.position).sqrMagnitude;
             float threshold = data.attackRange + 0.5f;
             if (sqrDist > threshold * threshold)
             {
                 owner.ChangeState(MonsterStateType.Chase);
+                return;
             }
         }
     }
@@ -48,24 +53,39 @@ public class AttackState : MonsterBaseState
         base.Update();
         attackTimer += Time.deltaTime;
 
+        Transform target = owner.scanner.CurrentTarget;
+
         // 유도 회전
         if (attackTimer < data.attackAnimDuration)
         {
-            Transform target = owner.scanner.CurrentTarget;
             if (target != null)
             {
-                Vector3 dir = (target.position - owner.transform.position).normalized;
-                Quaternion targetRot = Quaternion.LookRotation(new Vector3(dir.x, 0, dir.z));
-                owner.transform.rotation = Quaternion.Slerp(owner.transform.rotation, targetRot, Time.deltaTime * 8f);
+                LookAtTarget();
             }
         }
 
         // 쿨타임이 차면 공격 '애니메이션'만 실행. 데미지는 주지 않음.
-        if (attackTimer >= data.attackCooldown)
+        if (!isAnimationPlaying && attackTimer >= data.attackCooldown)
         {
-            owner.animHandler.PlayAttack();
-            attackTimer = 0f; // 쿨타임 초기화
+            ExecuteAttack();
         }
+    }
+
+    private void LookAtTarget()
+    {
+        Transform target = owner.scanner.CurrentTarget;
+        if (target == null) return;
+
+        Vector3 dir = (target.position - owner.transform.position).normalized;
+        Quaternion targetRot = Quaternion.LookRotation(new Vector3(dir.x, 0, dir.z));
+        owner.transform.rotation = Quaternion.Slerp(owner.transform.rotation, targetRot, Time.deltaTime * 8f);
+    }
+
+    private void ExecuteAttack()
+    {
+        isAnimationPlaying = true;
+        attackTimer = 0f; // 여기서 리셋해도 이제 OnTick의 조건이 다시 돌아가므로 안전함
+        owner.animHandler.PlayAttack();
     }
 
     // MonsterController에서 애니메이션 이벤트 발생 시 호출하는 함수
