@@ -3,10 +3,10 @@ using UnityEngine.AI;
 
 public class SearchState : MonsterBaseState
 {
-    private float totalSearchTimer;
-    private bool isInvestigating;
-    private float pauseTimer;
-    private int searchAttemptCount;                 // 몇 군데나 찾아봤는지 기록
+    private float totalSearchTimer;             // 전체 수색 시간 제한
+    private bool isInvestigating;               // 특정 지점을 조사 중인지 여부
+    private float pauseTimer;                   // 도착 후 두리번거리는 시간
+    private int searchAttemptCount;             // 수색 시도 횟수
 
     public SearchState(MonsterController owner) : base(owner) { }
 
@@ -17,16 +17,22 @@ public class SearchState : MonsterBaseState
         pauseTimer = 0f;
         searchAttemptCount = 0;
 
-        owner.animHandler.SetSpeed(0f); // 멈춤
-        owner.animHandler.SetSearching(true); // 두리번 애니메이션 시작
+        owner.animHandler.SetSearching(false);
+        owner.animHandler.SetSpeed(1f);
 
         owner.navAgent.speed = data.patrolSpeed;
+        owner.navAgent.isStopped = false; 
 
-        // 우선 마지막으로 본 위치로 이동
+
+        if (owner.scanner.LastSeenPosition == Vector3.zero)
+        {
+            owner.ChangeState(MonsterStateType.Patrol); 
+            return;
+        }
+
         owner.navAgent.SetDestination(owner.scanner.LastSeenPosition);
         Debug.Log($"[수색 시작] 마지막으로 목격된 위치({owner.scanner.LastSeenPosition})로 이동.");
     }
-    
 
     public override void Update()
     {
@@ -48,30 +54,37 @@ public class SearchState : MonsterBaseState
             return;
         }
 
-        // 목적지 도착 시 주변 수색 로직 시작
+        if (owner.CheckAndHandleDoor()) return;
+
+        CheckSearchArrival();
+    }
+
+    private void CheckSearchArrival()
+    {
+        // 목적지에 도달했는지 확인
         if (!owner.navAgent.pathPending && owner.navAgent.remainingDistance <= owner.navAgent.stoppingDistance)
         {
             if (!isInvestigating)
             {
                 pauseTimer += Time.deltaTime;
-                // 도착 후 1.5초간 두리번거리기 (잠시 멈춤)
+                owner.animHandler.SetSpeed(0f); // 조사할 때 잠시 멈춤
+                owner.animHandler.SetSearching(true);
+
+                // 도착 후 설정된 시간(예: 1.5초) 동안 두리번거리기
                 if (pauseTimer > data.searchPauseDuration)
                 {
-                    InvestigateNearby(); // 다른 곳으로 이동
+                    InvestigateNearby(); // 다음 주변 지점으로 이동
                 }
             }
         }
         else
         {
-            // 이동 중일 때는 타이머 초기화
+            // 이동 중일 때는 애니메이션 속도를 걷기로 설정
+            owner.animHandler.SetSpeed(1f);
+            owner.animHandler.SetSearching(false);
             pauseTimer = 0f;
             isInvestigating = false;
         }
-    }
-
-    public override void Exit()
-    {
-        owner.animHandler.SetSearching(false); // 두리번 애니메이션 종료
     }
 
     private void InvestigateNearby()
@@ -90,6 +103,12 @@ public class SearchState : MonsterBaseState
         {
             Debug.Log($"[수색 진행] {searchAttemptCount}번째 탐색 지점으로 이동 중");
             owner.navAgent.SetDestination(hit.position);
+            owner.navAgent.isStopped = false;
         }
+    }
+
+    public override void Exit()
+    {
+        owner.animHandler.SetSearching(false); // 두리번 애니메이션 종료
     }
 }

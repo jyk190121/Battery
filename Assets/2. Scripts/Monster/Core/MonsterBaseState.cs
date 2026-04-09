@@ -7,7 +7,7 @@ public abstract class MonsterBaseState : IState
 
     private float tickTimer;
     // 상태마다 주기를 다르게 설정할 수 있도록 변수화
-    protected float currentTickInterval;
+    protected float currentTickInterval;    // AI 사고 주기 (최적화)
 
     public MonsterBaseState(MonsterController owner)
     {

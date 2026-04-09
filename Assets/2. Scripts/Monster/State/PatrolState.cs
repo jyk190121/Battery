@@ -23,6 +23,7 @@ public class PatrolState : MonsterBaseState
         owner.navAgent.isStopped = false;
         isWaiting = false;
         stuckTimer = 0f; // 이동 시작 시 타이머 초기화
+        owner.animHandler.SetSpeed(1f);
 
         MoveToNextPoint();
     }
@@ -37,14 +38,14 @@ public class PatrolState : MonsterBaseState
             return;
         }
 
-        // 2. 대기 중인지 이동 중인지 판단
-        if (isWaiting)
+        if (!isWaiting)
         {
-            HandleWaiting();
+            if (owner.CheckAndHandleDoor()) return; // 문을 감지했다면 아래 로직을 타지 않음
+            CheckArrival();
         }
         else
         {
-            CheckArrival();
+            HandleWaiting();
         }
     }
 

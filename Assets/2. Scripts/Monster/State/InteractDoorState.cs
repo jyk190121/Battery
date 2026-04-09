@@ -53,7 +53,8 @@ public class InteractDoorState : MonsterBaseState
         if (owner.TargetDoor.CanOpenWithoutKey)
         {
             // 1. 잠기지 않은 일반 문일 경우
-            owner.TargetDoor.TryOpen(""); 
+            owner.TargetDoor.TryOpen("");
+            owner.animHandler.SetSpeed(1f);
             Debug.Log("문을 열었습니다. 추격 재개");
             owner.ChangeState(MonsterStateType.Chase);
         }
