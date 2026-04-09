@@ -7,6 +7,7 @@ using Unity.Netcode;
 public class PlayerInventory : NetworkBehaviour
 {
     public static PlayerInventory LocalInstance { get; private set; }
+    public static bool IsHoldingTwoHanded => LocalInstance?.twoHandedItem != null;
 
     [Header("Inventory Slots")]
     public ItemBase[] slots = new ItemBase[4];
@@ -87,8 +88,8 @@ public class PlayerInventory : NetworkBehaviour
     {
         if (!IsOwner) return;
 
+        //줍기(E), 버리기(G)를 위한 상호작용 체크
         CheckInteraction();
-        HandleSlotChange();
 
         if (Keyboard.current != null)
         {
@@ -100,6 +101,22 @@ public class PlayerInventory : NetworkBehaviour
             }
             if (Keyboard.current[Key.G].wasPressedThisFrame) RequestDropCurrentItem();
         }
+
+        // -------------------------------------------------------------
+        // 폰이 켜져있으면 마우스 입력 차단
+        if (PhoneUIController.Instance != null && PhoneUIController.Instance.isPhoneActive)
+        {
+            return;
+        }
+        // -------------------------------------------------------------
+
+        // 2. [차단 구역] 마우스 입력 (폰이 꺼져있을 때만 도달함)
+        HandleSlotChange(); // 마우스 휠
+
+        //if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        //{
+        //    UseCurrentItem(); // 좌클릭
+        //}
     }
 
     private void CheckInteraction()
@@ -161,6 +178,15 @@ public class PlayerInventory : NetworkBehaviour
             {
                 Debug.LogWarning("가방이 꽉 차서 주울 수 없습니다!");
                 return;
+            }
+
+            if (lastLookedItem.itemData.handType == HandType.TwoHand)
+            {
+                if (PhoneUIController.Instance != null && PhoneUIController.Instance.isPhoneActive)
+                {
+                    Debug.Log("<color=orange>스마트폰을 보고 있어서 양손 아이템을 주울 수 없습니다! 폰을 먼저 끄세요.</color>");
+                    return; // 줍기 진행 안 함
+                }
             }
 
             Outline outline = lastLookedItem.GetComponentInChildren<Outline>();
