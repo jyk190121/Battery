@@ -18,10 +18,20 @@ public class PatrolState : MonsterBaseState
         MoveToNextPoint();
     }
 
+    protected override void OnTick()
+    {
+        // 0.2초마다 한 번만 플레이어 탐색
+        owner.scanner.Tick();
+        if (owner.scanner.CurrentTarget != null)
+        {
+            owner.ChangeState(MonsterStateType.Detect);
+        }
+    }
+
     public override void Update()
     {
         // 1. 감지 체크 (항상 우선)
-        owner.scanner.Tick();
+        base.Update();
         if (owner.scanner.CurrentTarget != null)
         {
             owner.ChangeState(MonsterStateType.Detect);
