@@ -28,6 +28,8 @@ public class PhoneUIController : MonoBehaviour
 
     public event Action OnBackButtonPressed;
 
+    public bool isPhoneActive = false;
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -63,7 +65,16 @@ public class PhoneUIController : MonoBehaviour
         if (Keyboard.current == null) return;
         if (isInputBlocked) return;
 
-        if (Keyboard.current.qKey.wasPressedThisFrame) TogglePhone();
+        if (Keyboard.current.qKey.wasPressedThisFrame)
+        {
+            if (!isPhoneActive && PlayerInventory.IsHoldingTwoHanded)
+            {
+                Debug.Log("양손을 사용중이라 스마트폰 사용이 불가합니다.");
+                return;
+            }
+
+            TogglePhone();
+        }
 
         if (Keyboard.current.cKey.wasPressedThisFrame)
         {
@@ -93,6 +104,7 @@ public class PhoneUIController : MonoBehaviour
             SoundManager.Instance.PlaySfx(SfxSound.PHONE_CLOSE);
         }
         phoneUIParent.SetActive(!isActive);
+        isPhoneActive = !isActive;
     }
 
     public void ShowScreen(int index)
