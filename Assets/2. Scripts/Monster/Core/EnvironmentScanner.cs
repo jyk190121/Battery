@@ -171,19 +171,39 @@ public class EnvironmentScanner : MonoBehaviour
     }
 
     // 장애물 체크만 하는 함수 (360도 시야)
+    //private bool HasLineOfSight(Transform target)
+    //{
+    //    Vector3 startPos = transform.position + (Vector3.up * 1.5f);
+    //    Vector3 targetPos = target.position + (Vector3.up * 1.0f);
+
+    //    Vector3 dir = (targetPos - startPos).normalized;
+    //    float actualDist = Vector3.Distance(startPos, targetPos); // Raycast는 실제 거리가 필수
+
+    //    // 레이가 장애물에 부딪히지 않아야 시야 확보됨
+    //    return !Physics.Raycast(startPos, dir, actualDist, obstacleMask);
+    //}
+
+    // 기즈모를 활용하여 시야 범위와 마지막 목격 위치 시각화
+
     private bool HasLineOfSight(Transform target)
     {
+        // 시작 위치를 몬스터의 '눈' 위치로 (보통 1.5m ~ 1.7m)
         Vector3 startPos = transform.position + (Vector3.up * 1.5f);
+        // 목표 위치를 플레이어의 '가슴' 위치로 (보통 1.0m)
         Vector3 targetPos = target.position + (Vector3.up * 1.0f);
 
         Vector3 dir = (targetPos - startPos).normalized;
-        float actualDist = Vector3.Distance(startPos, targetPos); // Raycast는 실제 거리가 필수
+        float actualDist = Vector3.Distance(startPos, targetPos);
 
-        // 레이가 장애물에 부딪히지 않아야 시야 확보됨
-        return !Physics.Raycast(startPos, dir, actualDist, obstacleMask);
+        // [체크] ObstacleMask에 반드시 Door 레이어가 포함되어 있어야 합니다!
+        if (Physics.Raycast(startPos, dir, out RaycastHit hit, actualDist, obstacleMask))
+        {
+            // 만약 레이저가 플레이어에게 닿기 전에 무언가(문, 벽)에 맞았다면 시야가 가려진 것
+            return false;
+        }
+
+        return true;
     }
-
-    // 기즈모를 활용하여 시야 범위와 마지막 목격 위치 시각화
     private void OnDrawGizmos()
     {
         if (data == null) return;

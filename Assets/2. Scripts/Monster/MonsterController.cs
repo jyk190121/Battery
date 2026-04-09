@@ -135,27 +135,21 @@ public class MonsterController : NetworkBehaviour
 
     public bool CheckAndHandleDoor()
     {
-        // 시작 위치를 몬스터 발 밑이 아닌 가슴 높이로 잡습니다.
-        Vector3 centerPos = transform.position + (Vector3.up * 1.0f);
+        // 몬스터의 중심 위치 (살짝 앞)
+        Vector3 checkPos = transform.position + (Vector3.up * 1.0f);
         int doorLayerMask = 1 << LayerMask.NameToLayer("Door");
 
-        // 주변 문 탐색 (반경 1.5m)
-        Collider[] hitColliders = Physics.OverlapSphere(centerPos, 1.5f, doorLayerMask);
+        // [해결] 반경을 1.8m 정도로 넓히고, '정면 체크(Dot)'를 대폭 완화하거나 제거합니다.
+        Collider[] hitColliders = Physics.OverlapSphere(checkPos, 1.8f, doorLayerMask);
 
         foreach (var hit in hitColliders)
         {
-            // [수정] 내적(Dot) 체크를 제거하거나 아주 낮게(0.0 이상) 설정합니다.
-            // 몬스터가 문을 등지고 있지 않는 한, 앞에 문이 느껴지면 무조건 열게 합니다.
-            Vector3 dirToDoor = (hit.bounds.center - transform.position).normalized;
-            dirToDoor.y = 0;
-
-            float dot = Vector3.Dot(transform.forward, dirToDoor);
-
-            // 0.0f 보다 크면 내 몸의 앞쪽 반구(180도) 안에 문이 있다는 뜻입니다.
-            if (dot > 0.0f)
+            DoorController door = hit.GetComponentInParent<DoorController>();
+            if (door != null && !door.isOpen)
             {
-                DoorController door = hit.GetComponentInParent<DoorController>();
-                if (door != null && !door.isOpen)
+                // 문이 내 뒤에 있는 게 아니라면(옆이나 앞이라면) 무조건 상호작용
+                Vector3 dirToDoor = (hit.bounds.center - transform.position).normalized;
+                if (Vector3.Dot(transform.forward, dirToDoor) > -0.2f) // 거의 180도 이상 감지
                 {
                     this.TargetDoor = door;
                     ChangeState(MonsterStateType.InteractDoor);
