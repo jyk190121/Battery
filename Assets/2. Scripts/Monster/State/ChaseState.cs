@@ -41,58 +41,56 @@ public class ChaseState : MonsterBaseState
     {
         base.Update();
 
-        // 1. 문 감지 (추격 중 문이 닫혀있으면 우선적으로 상호작용)
-        if (owner.CurrentStateNet.Value != MonsterStateType.Chase) return;
+        // 1. 문 감지 (가장 최상단에서 우선 실행)
+        if (owner.CheckAndHandleDoor()) return;
 
         Transform target = owner.scanner.CurrentTarget;
 
         // 2. 타겟을 놓쳤거나 안전구역에 들어갔을 때
         if (target == null || owner.IsInSafeZone(target.gameObject))
         {
-            // 타겟이 안 보일 때는 다시 이동 방향을 바라보도록 설정
             owner.navAgent.updateRotation = true;
 
-            Vector3 destDelta = owner.navAgent.destination - owner.scanner.LastSeenPosition;
-
-            if (destDelta.sqrMagnitude > 0.1f)
+            // [수정 핵심: SetDestination 스팸 방지]
+            // 현재 설정된 목적지가 LastSeenPosition과 다를 때만 '딱 한 번' 경로를 계산합니다.
+            if (Vector3.Distance(owner.navAgent.destination, owner.scanner.LastSeenPosition) > 0.1f)
             {
                 owner.navAgent.SetDestination(owner.scanner.LastSeenPosition);
             }
 
-            // 경로 계산이 끝났을 때 도착 및 끼임 검사
+            // 경로 계산이 완료된 상태에서만 거리 및 끼임 체크 실행
             if (!owner.navAgent.pathPending)
             {
-                // 정상적으로 도착했을 경우
-                if (owner.navAgent.remainingDistance <= owner.navAgent.stoppingDistance + 1.0f)
-                {
-                    Debug.Log("마지막 목격 위치 근처 도착. 시야에 없으므로 수색 전환.");
-                    owner.ChangeState(MonsterStateType.Search);
-                    return;
-                }
-
-                bool isPathBroken = (owner.navAgent.pathStatus == NavMeshPathStatus.PathPartial ||
-                                     owner.navAgent.pathStatus == NavMeshPathStatus.PathInvalid);
-
-                bool isPhysicallyStuck = (owner.navAgent.velocity.sqrMagnitude < 0.1f &&
-                                          owner.navAgent.remainingDistance > 1.0f);
-
-                // 제자리 뛰기 방지 (문이 닫혀있거나 지형에 막혔을 경우)
-                if (isPathBroken || isPhysicallyStuck)
+                // [추가] 물리적 정지 체크 (문에 가로막혀 속도가 안 날 때)
+                if (owner.navAgent.velocity.sqrMagnitude < 0.2f && owner.navAgent.remainingDistance > 0.5f)
                 {
                     stuckTimer += Time.deltaTime;
-                    if (stuckTimer > 1.5f)
+                    // 0.3초만 비비고 있어도 바로 문 감지 실행 (더 예민하게 대응)
+                    if (stuckTimer > 0.3f)
                     {
-                        Debug.LogWarning("열린 문틀에 끼었거나 경로가 막힘. 수색 전환.");
-                        owner.ChangeState(MonsterStateType.Search);
-                        return;
+                        if (owner.CheckAndHandleDoor()) return;
+
+                        // 문도 없고 2초 이상 끼어있으면 수색으로 포기
+                        if (stuckTimer > 2.0f)
+                        {
+                            owner.ChangeState(MonsterStateType.Search);
+                            return;
+                        }
                     }
                 }
                 else
                 {
                     stuckTimer = 0f;
                 }
+
+                // 정상 도착 판정
+                if (owner.navAgent.remainingDistance <= owner.navAgent.stoppingDistance + 1.0f)
+                {
+                    owner.ChangeState(MonsterStateType.Search);
+                    return;
+                }
             }
-            return; 
+            return;
         }
 
         // --- 여기서부터는 플레이어가 시야에 확실히 보일 때의 로직 ---

@@ -135,21 +135,32 @@ public class MonsterController : NetworkBehaviour
 
     public bool CheckAndHandleDoor()
     {
-        // [수정] 가슴 앞쪽(transform.forward)이 아니라, 몬스터의 중심을 기준으로 잡습니다.
+        // 시작 위치를 몬스터 발 밑이 아닌 가슴 높이로 잡습니다.
         Vector3 centerPos = transform.position + (Vector3.up * 1.0f);
         int doorLayerMask = 1 << LayerMask.NameToLayer("Door");
 
-        // [수정] 반경 1.5m 짜리 넓은 구체를 몬스터 몸을 감싸듯 생성합니다 (전후좌우 모두 감지)
+        // 주변 문 탐색 (반경 1.5m)
         Collider[] hitColliders = Physics.OverlapSphere(centerPos, 1.5f, doorLayerMask);
 
-        if (hitColliders.Length > 0)
+        foreach (var hit in hitColliders)
         {
-            DoorController door = hitColliders[0].GetComponentInParent<DoorController>();
-            if (door != null && !door.isOpen)
+            // [수정] 내적(Dot) 체크를 제거하거나 아주 낮게(0.0 이상) 설정합니다.
+            // 몬스터가 문을 등지고 있지 않는 한, 앞에 문이 느껴지면 무조건 열게 합니다.
+            Vector3 dirToDoor = (hit.bounds.center - transform.position).normalized;
+            dirToDoor.y = 0;
+
+            float dot = Vector3.Dot(transform.forward, dirToDoor);
+
+            // 0.0f 보다 크면 내 몸의 앞쪽 반구(180도) 안에 문이 있다는 뜻입니다.
+            if (dot > 0.0f)
             {
-                this.TargetDoor = door;
-                ChangeState(MonsterStateType.InteractDoor);
-                return true;
+                DoorController door = hit.GetComponentInParent<DoorController>();
+                if (door != null && !door.isOpen)
+                {
+                    this.TargetDoor = door;
+                    ChangeState(MonsterStateType.InteractDoor);
+                    return true;
+                }
             }
         }
         return false;
