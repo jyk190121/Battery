@@ -11,7 +11,7 @@ public class GameSceneManager : NetworkBehaviour
     public float LoadingProgress { get; private set; }          // 로딩 진행률을 외부(UI)에서 읽을 수 있도록 공개
 
     [Header("설정")]
-    public string playerPrefabName = "Player_KJY"; // 사용할 플레이어 프리팹 이름
+    public string playerPrefabName = "Player_KJY";              // 사용할 플레이어 프리팹 이름
 
     private void Awake()
     {
@@ -43,7 +43,9 @@ public class GameSceneManager : NetworkBehaviour
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
 
             NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnSceneLoaded;
+
         }
+        NetworkManager.Singleton.SceneManager.OnLoadComplete += OnLocalLoadComplete;
     }
 
     public override void OnNetworkDespawn()
@@ -53,6 +55,10 @@ public class GameSceneManager : NetworkBehaviour
             NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
 
             NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnSceneLoaded;
+        }
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.SceneManager != null)
+        {
+            NetworkManager.Singleton.SceneManager.OnLoadComplete -= OnLocalLoadComplete;
         }
     }
 
@@ -192,6 +198,21 @@ public class GameSceneManager : NetworkBehaviour
         Debug.Log($"[GameSceneManager] 클라이언트 {clientId} 전용 플레이어 생성 및 스폰 완료");
     }
 
+    // 로컬 클라이언트에서 씬 로드가 끝났을 때 실행됨
+    private void OnLocalLoadComplete(ulong clientId, string sceneName, LoadSceneMode loadSceneMode)
+    {
+        // 내 로컬 캐릭터를 찾아서 UI를 다시 연결해줌
+        if (NetworkManager.Singleton.LocalClient != null &&
+            NetworkManager.Singleton.LocalClient.PlayerObject != null)
+        {
+            var interaction = NetworkManager.Singleton.LocalClient.PlayerObject.GetComponent<PlayerInteraction>();
+            if (interaction != null)
+            {
+                interaction.FindUIElements();
+            }
+        }
+    }
+
     // --- 로컬 전용 (필요 시 활용) ---
 
     public void RestartScene()
@@ -284,8 +305,8 @@ public class GameSceneManager : NetworkBehaviour
     //    SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     //}
 
-    //public string SceneName()
-    //{
-    //    return SceneManager.GetActiveScene().name;
-    //}
+    public string SceneName()
+    {
+        return SceneManager.GetActiveScene().name;
+    }
 }
