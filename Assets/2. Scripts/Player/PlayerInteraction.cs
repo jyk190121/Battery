@@ -163,18 +163,26 @@ public class PlayerInteraction : NetworkBehaviour
         GameObject foundUI = GameObject.Find("Interact_Text");
         GameObject foundRing = GameObject.Find("ProgressRing_Img");
 
-        if (foundUI != null && foundRing != null)
+        // 1. 텍스트 UI 처리
+        if (foundUI != null)
         {
             interactUI = foundUI;
             interactText = interactUI.GetComponent<TextMeshProUGUI>();
             interactUI.SetActive(false);
+        }
 
+        // 2. 게이지 링 처리
+        if (foundRing != null)
+        {
             progressImage = foundRing.GetComponent<Image>();
             progressImage.fillAmount = 0f;
         }
-        else
+
+        // 둘 중 하나라도 없으면 경고 (Manager null 체크 포함)
+        if (foundUI == null || foundRing == null)
         {
-            Debug.LogWarning($"[PlayerInteraction] 씬({GameSceneManager.Instance.SceneName()})에서 UI를 찾을 수 없습니다.");
+            string sceneName = (GameSceneManager.Instance != null) ? GameSceneManager.Instance.SceneName() : "Unknown Scene";
+            Debug.LogWarning($"[PlayerInteraction] 씬({sceneName})에서 일부 UI를 찾지 못했습니다. UI: {foundUI}, Ring: {foundRing}");
         }
     }
 
