@@ -8,6 +8,15 @@ public class PatrolState : MonsterBaseState
 
     public PatrolState(MonsterController owner) : base(owner) { }
 
+    protected override void OnTick()
+    {
+        owner.scanner.Tick();
+        if (owner.scanner.CurrentTarget != null)
+        {
+            owner.ChangeState(MonsterStateType.Detect);
+        }
+    }
+
     public override void Enter()
     {
         owner.navAgent.speed = data.patrolSpeed;
@@ -16,16 +25,6 @@ public class PatrolState : MonsterBaseState
         stuckTimer = 0f; // 이동 시작 시 타이머 초기화
 
         MoveToNextPoint();
-    }
-
-    protected override void OnTick()
-    {
-        // 0.2초마다 한 번만 플레이어 탐색
-        owner.scanner.Tick();
-        if (owner.scanner.CurrentTarget != null)
-        {
-            owner.ChangeState(MonsterStateType.Detect);
-        }
     }
 
     public override void Update()
@@ -103,4 +102,6 @@ public class PatrolState : MonsterBaseState
             MoveToNextPoint();
         }
     }
+
+    public override void Exit() { }
 }

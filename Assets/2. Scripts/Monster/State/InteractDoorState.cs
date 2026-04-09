@@ -3,28 +3,38 @@ using UnityEngine;
 public class InteractDoorState : MonsterBaseState
 {
     private float waitTimer;
-    private float randomWaitDuration;
+    private float currentDuration;
 
-    public InteractDoorState(MonsterController owner) : base(owner) { }
+    public InteractDoorState(MonsterController owner) : base(owner) 
+    {
+        this.currentTickInterval = data.fastTickInterval;
+    }
 
     public override void Enter()
     {
+        base.Enter();
         owner.navAgent.isStopped = true; // 문 앞에서 정지
         waitTimer = 0f;
 
-        // 2.0초 ~ 4.0초 사이의 랜덤한 대기 시간 설정
-        randomWaitDuration = Random.Range(0.8f, 3.0f);
+        currentDuration = Random.Range(0.8f, 2.0f);
+    }
 
-        Debug.Log($"[몬스터] 닫힌 문 앞 도착. {randomWaitDuration:F1}초간 문 열기 시도 (쾅쾅!)");
-        // 여기서 문 쾅쾅 치는 애니메이션/사운드를 재생하면 좋음
+    protected override void OnTick()
+    {
+        // 문이 이미 열렸으면 즉시 추격으로 전환
+        if (owner.TargetDoor != null && owner.TargetDoor.isOpen)
+        {
+            owner.ChangeState(MonsterStateType.Chase);
+        }
     }
 
     public override void Update()
     {
+        base.Update();
         waitTimer += Time.deltaTime;
 
         // 랜덤 대기 시간이 끝나면 문 상태를 확인하고 행동 결정
-        if (waitTimer >= randomWaitDuration)
+        if (waitTimer >= currentDuration)
         {
             ProcessDoorInteraction();
         }
@@ -57,4 +67,6 @@ public class InteractDoorState : MonsterBaseState
         // 타겟 문 데이터 초기화
         owner.TargetDoor = null;
     }
+
+    public override void Exit() { }
 }
