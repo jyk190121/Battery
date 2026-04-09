@@ -19,18 +19,21 @@ public class CallUI : ScrollSelectionUI
     {
         if (highlight != null) startPosition = highlight.transform.localPosition;
 
-        if (phoneBookList.Count == 0)
-        {
-            phoneBookList.Add("Player1");
-            phoneBookList.Add("Player2");
-            phoneBookList.Add("Player3");
-            phoneBookList.Add("Player4");
-        }
+        //if (phoneBookList.Count == 0)
+        //{
+        //    phoneBookList.Add("Player1");
+        //    phoneBookList.Add("Player2");
+        //    phoneBookList.Add("Player3");
+        //    phoneBookList.Add("Player4");
+        //}
     }
 
     private void OnEnable()
     {
         if (onCall.activeSelf) onCall.SetActive(false);
+
+        // 실제 입장한 플레이어 목록으로 전화번호부 갱신
+        RefreshPhoneBook();
 
         maxIndex = Mathf.Max(0, phoneBookList.Count - 1);
         currentIndex = 0;
@@ -108,5 +111,34 @@ public class CallUI : ScrollSelectionUI
         }
 
         gameObject.SetActive(false);
+    }
+
+    // 실제 입장한 플레이어 정보를 가져와 리스트를 채우는 함수
+    private void RefreshPhoneBook()
+    {
+        phoneBookList.Clear();
+
+        PlayerNameSync[] players = FindObjectsByType<PlayerNameSync>(FindObjectsSortMode.None);
+
+        System.Array.Sort(players, (a, b) => a.OwnerClientId.CompareTo(b.OwnerClientId));
+
+        foreach (var player in players)
+        {
+            string nick = player.NetworkNickname.Value.ToString();
+
+            // 목록에서 나 자신은 제외하고 싶다면 아래 주석 해제
+            // if (player.IsOwner) continue; 
+
+            if (!string.IsNullOrEmpty(nick))
+            {
+                phoneBookList.Add(nick);
+            }
+        }
+
+        //// 만약 아무도 없다면 (테스트용)
+        //if (phoneBookList.Count == 0)
+        //{
+        //    phoneBookList.Add("No Players Found");
+        //}
     }
 }
