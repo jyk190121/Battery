@@ -3,7 +3,6 @@ using UnityEngine;
 public class AttackState : MonsterBaseState
 {
     private float attackTimer;
-    private readonly float attackAnimDuration = 2f;
 
     public AttackState(MonsterController owner) : base(owner) { }
 
@@ -29,22 +28,23 @@ public class AttackState : MonsterBaseState
     {
         attackTimer += Time.deltaTime;
 
-        if (attackTimer < attackAnimDuration)
+        if (attackTimer < data.attackAnimDuration)
         {
-            if (attackTimer < 0.7f && owner.scanner.CurrentTarget != null)
+            if (attackTimer < data.attackTrackingTime && owner.scanner.CurrentTarget != null)
             {
                 Vector3 dir = (owner.scanner.CurrentTarget.position - owner.transform.position).normalized;
                 Quaternion targetRot = Quaternion.LookRotation(new Vector3(dir.x, 0, dir.z));
                 owner.transform.rotation = Quaternion.Slerp(owner.transform.rotation, targetRot, Time.deltaTime * 8f);
             }
-
             return;
         }
 
         Transform target = owner.scanner.CurrentTarget;
 
+        float chaseThreshold = data.attackRange + 0.5f;
+
         // 타겟이 없거나 사거리 밖이면 다시 추격
-        if (target == null || Vector3.Distance(owner.transform.position, target.position) > data.attackRange + 0.5f)
+        if (target == null || (target.position - owner.transform.position).sqrMagnitude > chaseThreshold * chaseThreshold)
         {
             owner.ChangeState(MonsterStateType.Chase);
             return;
@@ -64,16 +64,10 @@ public class AttackState : MonsterBaseState
         Transform target = owner.scanner.CurrentTarget;
         if (target != null)
         {
-            // 한 번 더 사거리 체크 (애니메이션 재생 도중 도망갔을 수 있으므로)
-            if (Vector3.Distance(owner.transform.position, target.position) <= data.attackRange + 1.0f)
+            float hitThreshold = data.attackRange + 1.0f;
+            if ((target.position - owner.transform.position).sqrMagnitude <= hitThreshold * hitThreshold)
             {
-                // TODO: 플레이어 데미지 처리
-                // target.GetComponent<PlayerHealth>().TakeDamage(data.attackDamage);
-                Debug.Log($"{target.name}에게 {data.attackDamage} 피해 발생");
-            }
-            else
-            {
-                Debug.Log("플레이어가 공격을 피했습니다");
+                Debug.Log($"[데미지 발생] {data.attackDamage} 피해");
             }
         }
     }

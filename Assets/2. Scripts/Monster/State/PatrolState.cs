@@ -4,10 +4,7 @@ public class PatrolState : MonsterBaseState
     private bool isWaiting;
     private float waitTimer;
     private float currentWaitDuration;
-
-    // 끼임 방지용 변수
     private float stuckTimer;
-    private readonly float maxMoveTime = 10f;   // 10초 이상 같은 목적지로 이동하면 끼인 것으로 간주    
 
     public PatrolState(MonsterController owner) : base(owner) { }
 
@@ -54,7 +51,6 @@ public class PatrolState : MonsterBaseState
             owner.navAgent.isStopped = false;
 
             stuckTimer = 0f;    // 새 목적지로 갈 때 끼임 타이머 초기화
-            // 이동 애니메이션 재생 (예: IsWalking = true)
         }
     }
 
@@ -62,7 +58,7 @@ public class PatrolState : MonsterBaseState
     {
         stuckTimer += Time.deltaTime;
 
-        if (stuckTimer >= maxMoveTime)
+        if (stuckTimer >= data.maxPatrolMoveTime)
         {
             Debug.LogWarning("몬스터가 지형에 끼었거나 목적지 도달에 실패했습니다. 새로운 경로를 탐색합니다.");
             MoveToNextPoint(); // 끼임 판정 시 즉시 다른 목적지로 강제 이동
@@ -83,7 +79,7 @@ public class PatrolState : MonsterBaseState
         currentWaitDuration = Random.Range(data.minWaitTime, data.maxWaitTime);
         owner.animHandler.SetSpeed(0f);
 
-        owner.navAgent.isStopped = true;
+        //owner.navAgent.isStopped = true;
     }
 
     private void HandleWaiting()

@@ -4,7 +4,6 @@ using UnityEngine.AI;
 public class SearchState : MonsterBaseState
 {
     private float totalSearchTimer;
-    private readonly float maxSearchDuration = 10f; // 총 5초간 주변 수색
     private bool isInvestigating;
     private float pauseTimer;
     private int searchAttemptCount;                 // 몇 군데나 찾아봤는지 기록
@@ -42,7 +41,7 @@ public class SearchState : MonsterBaseState
 
         totalSearchTimer += Time.deltaTime;
 
-        if (totalSearchTimer >= maxSearchDuration)
+        if (totalSearchTimer >= data.maxSearchDuration)
         {
             Debug.Log("[수색 포기] 아무것도 찾지 못했습니다. 순찰로 돌아갑니다.");
             owner.ChangeState(MonsterStateType.Patrol); // 수색 포기
@@ -56,7 +55,7 @@ public class SearchState : MonsterBaseState
             {
                 pauseTimer += Time.deltaTime;
                 // 도착 후 1.5초간 두리번거리기 (잠시 멈춤)
-                if (pauseTimer > 3f)
+                if (pauseTimer > data.searchPauseDuration)
                 {
                     InvestigateNearby(); // 다른 곳으로 이동
                 }
