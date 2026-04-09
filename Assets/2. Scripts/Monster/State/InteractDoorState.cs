@@ -13,7 +13,7 @@ public class InteractDoorState : MonsterBaseState
         waitTimer = 0f;
 
         // 2.0초 ~ 4.0초 사이의 랜덤한 대기 시간 설정
-        randomWaitDuration = Random.Range(2.0f, 4.0f);
+        randomWaitDuration = Random.Range(0.8f, 3.0f);
 
         Debug.Log($"[몬스터] 닫힌 문 앞 도착. {randomWaitDuration:F1}초간 문 열기 시도 (쾅쾅!)");
         // 여기서 문 쾅쾅 치는 애니메이션/사운드를 재생하면 좋음
