@@ -13,7 +13,7 @@ public class PlayerAnim : MonoBehaviour
     public void UpdateMoveAnimation(float speed)
     {
         // 0.05f 댐핑을 주어 걷기/달리기 전환을 부드럽게 합니다.
-        anim.SetFloat("Speed", speed, 0.05f, Time.deltaTime);
+        anim.SetFloat("Speed", speed, 0f, Time.deltaTime);
     }
 
     // 바닥 상태 업데이트 (IsGrounded 파라미터)
