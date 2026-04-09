@@ -30,14 +30,19 @@ public class ChaseState : MonsterBaseState
     protected override void OnTick()
     {
         owner.scanner.Tick();
+
+        if (owner.CurrentStateNet.Value == MonsterStateType.Chase)
+        {
+            owner.CheckAndHandleDoor();
+        }
     }
 
     public override void Update()
     {
-        base.Update(); 
+        base.Update();
 
         // 1. 문 감지 (추격 중 문이 닫혀있으면 우선적으로 상호작용)
-        if (owner.CheckAndHandleDoor()) return;
+        if (owner.CurrentStateNet.Value != MonsterStateType.Chase) return;
 
         Transform target = owner.scanner.CurrentTarget;
 
@@ -47,8 +52,12 @@ public class ChaseState : MonsterBaseState
             // 타겟이 안 보일 때는 다시 이동 방향을 바라보도록 설정
             owner.navAgent.updateRotation = true;
 
-            // 마지막 목격 위치로 계속 이동 시도
-            owner.navAgent.SetDestination(owner.scanner.LastSeenPosition);
+            Vector3 destDelta = owner.navAgent.destination - owner.scanner.LastSeenPosition;
+
+            if (destDelta.sqrMagnitude > 0.1f)
+            {
+                owner.navAgent.SetDestination(owner.scanner.LastSeenPosition);
+            }
 
             // 경로 계산이 끝났을 때 도착 및 끼임 검사
             if (!owner.navAgent.pathPending)
@@ -61,14 +70,19 @@ public class ChaseState : MonsterBaseState
                     return;
                 }
 
+                bool isPathBroken = (owner.navAgent.pathStatus == NavMeshPathStatus.PathPartial ||
+                                     owner.navAgent.pathStatus == NavMeshPathStatus.PathInvalid);
+
+                bool isPhysicallyStuck = (owner.navAgent.velocity.sqrMagnitude < 0.1f &&
+                                          owner.navAgent.remainingDistance > 1.0f);
+
                 // 제자리 뛰기 방지 (문이 닫혀있거나 지형에 막혔을 경우)
-                if (owner.navAgent.pathStatus == NavMeshPathStatus.PathPartial ||
-                    owner.navAgent.pathStatus == NavMeshPathStatus.PathInvalid)
+                if (isPathBroken || isPhysicallyStuck)
                 {
                     stuckTimer += Time.deltaTime;
                     if (stuckTimer > 1.5f)
                     {
-                        Debug.LogWarning("경로가 막혔습니다. 무한 뜀박질을 멈추고 수색 전환.");
+                        Debug.LogWarning("열린 문틀에 끼었거나 경로가 막힘. 수색 전환.");
                         owner.ChangeState(MonsterStateType.Search);
                         return;
                     }

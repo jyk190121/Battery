@@ -8,15 +8,6 @@ public class PatrolState : MonsterBaseState
 
     public PatrolState(MonsterController owner) : base(owner) { }
 
-    protected override void OnTick()
-    {
-        owner.scanner.Tick();
-        if (owner.scanner.CurrentTarget != null)
-        {
-            owner.ChangeState(MonsterStateType.Detect);
-        }
-    }
-
     public override void Enter()
     {
         owner.navAgent.speed = data.patrolSpeed;
@@ -28,19 +19,30 @@ public class PatrolState : MonsterBaseState
         MoveToNextPoint();
     }
 
-    public override void Update()
+    protected override void OnTick()
     {
-        // 1. 감지 체크 (항상 우선)
-        base.Update();
+        owner.scanner.Tick();
         if (owner.scanner.CurrentTarget != null)
         {
             owner.ChangeState(MonsterStateType.Detect);
             return;
         }
 
+        if (!isWaiting && owner.CurrentStateNet.Value == MonsterStateType.Patrol)
+        {
+            owner.CheckAndHandleDoor();
+        }
+    }
+
+    public override void Update()
+    {
+        // 1. 감지 체크 (항상 우선)
+        base.Update();
+
+        if (owner.CurrentStateNet.Value != MonsterStateType.Patrol) return;
+
         if (!isWaiting)
         {
-            if (owner.CheckAndHandleDoor()) return; // 문을 감지했다면 아래 로직을 타지 않음
             CheckArrival();
         }
         else

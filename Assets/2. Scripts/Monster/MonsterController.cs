@@ -110,24 +110,46 @@ public class MonsterController : NetworkBehaviour
     }
 
     // 문 감지 함수
+    //public bool CheckAndHandleDoor()
+    //{
+    //    RaycastHit hit;
+    //    Vector3 rayStart = transform.position + Vector3.up * 1.5f;
+
+    //    // 레이 길이 2.5m (문 근처에 도달했을 때 감지)
+    //    if (Physics.Raycast(rayStart, transform.forward, out hit, 2.5f))
+    //    {
+    //        // 레이어 이름이 "Door"인 경우
+    //        if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Door"))
+    //        {
+    //            DoorController door = hit.collider.GetComponentInParent<DoorController>();
+    //            if (door != null && !door.isOpen)
+    //            {
+    //                this.TargetDoor = door;
+    //                ChangeState(MonsterStateType.InteractDoor);
+    //                return true; // 문을 발견해서 상태를 전환
+    //            }
+    //        }
+    //    }
+    //    return false;
+    //}
+
     public bool CheckAndHandleDoor()
     {
-        RaycastHit hit;
-        Vector3 rayStart = transform.position + Vector3.up * 1.5f;
+        // [수정] 가슴 앞쪽(transform.forward)이 아니라, 몬스터의 중심을 기준으로 잡습니다.
+        Vector3 centerPos = transform.position + (Vector3.up * 1.0f);
+        int doorLayerMask = 1 << LayerMask.NameToLayer("Door");
 
-        // 레이 길이 2.5m (문 근처에 도달했을 때 감지)
-        if (Physics.Raycast(rayStart, transform.forward, out hit, 2.5f))
+        // [수정] 반경 1.5m 짜리 넓은 구체를 몬스터 몸을 감싸듯 생성합니다 (전후좌우 모두 감지)
+        Collider[] hitColliders = Physics.OverlapSphere(centerPos, 1.5f, doorLayerMask);
+
+        if (hitColliders.Length > 0)
         {
-            // 레이어 이름이 "Door"인 경우
-            if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Door"))
+            DoorController door = hitColliders[0].GetComponentInParent<DoorController>();
+            if (door != null && !door.isOpen)
             {
-                DoorController door = hit.collider.GetComponentInParent<DoorController>();
-                if (door != null && !door.isOpen)
-                {
-                    this.TargetDoor = door;
-                    ChangeState(MonsterStateType.InteractDoor);
-                    return true; // 문을 발견해서 상태를 전환
-                }
+                this.TargetDoor = door;
+                ChangeState(MonsterStateType.InteractDoor);
+                return true;
             }
         }
         return false;

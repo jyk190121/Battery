@@ -67,6 +67,8 @@ public class EnvironmentScanner : MonoBehaviour
         //    LastSeenPosition = CurrentTarget.position;
         //}
 
+        GameObject potentialTargetObj = null;
+
         for (int i = 0; i < hitCount; i++)
         {
             GameObject targetObj = hitColliders[i].gameObject;
@@ -98,8 +100,16 @@ public class EnvironmentScanner : MonoBehaviour
                 if (currentSqrDist < minSqrDistance)
                 {
                     minSqrDistance = currentSqrDist;
-                    bestTarget = targetObj.transform;
+                    potentialTargetObj = targetObj;
                 }
+            }
+        }
+
+        if (potentialTargetObj != null)
+        {
+            if (IsPathReasonable(potentialTargetObj.transform.position, minSqrDistance))
+            {
+                bestTarget = potentialTargetObj.transform;
             }
         }
 

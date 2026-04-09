@@ -12,6 +12,8 @@ public class SearchState : MonsterBaseState
 
     public override void Enter()
     {
+        base.Enter();
+
         totalSearchTimer = 0f;
         isInvestigating = false;
         pauseTimer = 0f;
@@ -34,10 +36,11 @@ public class SearchState : MonsterBaseState
         Debug.Log($"[수색 시작] 마지막으로 목격된 위치({owner.scanner.LastSeenPosition})로 이동.");
     }
 
-    public override void Update()
+    protected override void OnTick()
     {
-        // 수색 중 다시 발견하면 추격
         owner.scanner.Tick();
+
+        // 1. 수색 중 플레이어를 다시 발견하면 추격 전환
         if (owner.scanner.CurrentTarget != null)
         {
             Debug.Log("[수색 성공] 플레이어를 다시 발견. 추격을 재개.");
@@ -45,16 +48,31 @@ public class SearchState : MonsterBaseState
             return;
         }
 
+        // 2. 이동 중일 때 정면에 문이 있는지 감지
+        if (!isInvestigating && owner.CurrentStateNet.Value == MonsterStateType.Search)
+        {
+            owner.CheckAndHandleDoor();
+        }
+    }
+
+    public override void Update()
+    {
+        base.Update();
+
+        if (owner.CurrentStateNet.Value != MonsterStateType.Search) return;
+
+        totalSearchTimer += Time.deltaTime;
+
+        // 수색 중 다시 발견하면 추격
+
         totalSearchTimer += Time.deltaTime;
 
         if (totalSearchTimer >= data.maxSearchDuration)
         {
             Debug.Log("[수색 포기] 아무것도 찾지 못했습니다. 순찰로 돌아갑니다.");
-            owner.ChangeState(MonsterStateType.Patrol); // 수색 포기
+            owner.ChangeState(MonsterStateType.Patrol);
             return;
         }
-
-        if (owner.CheckAndHandleDoor()) return;
 
         CheckSearchArrival();
     }

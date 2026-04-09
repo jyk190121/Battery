@@ -18,7 +18,8 @@ public abstract class MonsterBaseState : IState
 
     public virtual void Enter() 
     {
-        tickTimer = 0f;
+        // 여러 마리의 몬스터가 동일한 프레임에 동시에 연산하는 현상(CPU 스파이크)을 방지
+        tickTimer = Random.Range(0f, currentTickInterval);
     }
 
     public virtual void Update()
