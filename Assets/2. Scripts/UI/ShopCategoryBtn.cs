@@ -7,6 +7,12 @@ public class ShopCategoryBtn : MonoBehaviour
 
     public void OnChangeCategory()
     {
+        if (ShopCategoryPanel.activeSelf) return;
+        ShopCategoryPanel.SetActive(!ShopCategoryPanel.activeSelf);
+    }
+
+    public void OnChangePanel()
+    {
         ShopCategoryPanel.SetActive(!ShopCategoryPanel.activeSelf);
     }
 }
