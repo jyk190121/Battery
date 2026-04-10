@@ -4,7 +4,9 @@ using System.Collections;
 
 public class PlayerStateManager : NetworkBehaviour
 {
-    public Player player;
+    //public Player player;
+    PlayerController controller;
+    public Player player => controller.Data;
 
     // 네트워크 변수: 체력 (서버만 수정 가능, 모두가 읽기 가능)
     public NetworkVariable<float> currentHealth = new NetworkVariable<float>();
@@ -20,6 +22,7 @@ public class PlayerStateManager : NetworkBehaviour
     PlayerMove moveScript;
     public override void OnNetworkSpawn()
     {
+        controller = GetComponent<PlayerController>();
         if (IsServer)
         {
             currentHealth.Value = player.maxHealth;
@@ -85,11 +88,5 @@ public class PlayerStateManager : NetworkBehaviour
         currentStamina = Mathf.Clamp(currentStamina, 0, player.maxStamina);
 
       //  print($"현재 체력 : {currentHealth} , 현재 스테미너 {currentStamina}");
-    }
-
-    [ServerRpc]
-    public void TakeDamageServerRpc(float damage)
-    {
-        currentHealth.Value -= damage;
     }
 }

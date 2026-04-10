@@ -14,7 +14,7 @@ public class Player : ScriptableObject
     public float recoverDelay = 2f;                         // 회복 시작 대기 시간
 
     [Header("Movement Settings")]
-    public float walkSpeed = 3f;
+    public float walkSpeed = 3.5f;
     public float runSpeed = 6f;
     
     public float interactDistance = 1.5f;

@@ -9,7 +9,9 @@ using UnityEngine.UI;
 public class PlayerInteraction : NetworkBehaviour
 {
     [Header("Data & Settings")]
-    public Player data;                                 // 플레이어 SO
+    //public Player data;                                 // 플레이어 SO
+    PlayerController controller;
+    Player data => controller.Data;
     public LayerMask DoorLayer;                         // 문 레이어
     public GameObject interactUI;                       // UI오브젝트
     TextMeshProUGUI interactText;                       // 텍스트
@@ -39,7 +41,7 @@ public class PlayerInteraction : NetworkBehaviour
         //interactText = interactUI.GetComponent<TextMeshProUGUI>();
 
         //interactUI.SetActive(false);
-
+        controller = GetComponent<PlayerController>();
         if (IsOwner)
         {
             FindUIElements(); // 1. 처음 스폰될 때 한 번 찾기
