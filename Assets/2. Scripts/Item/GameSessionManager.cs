@@ -21,55 +21,84 @@ public struct ItemSaveData : INetworkSerializable
     }
 }
 
-public class GameSessionManager : MonoBehaviour
+public class GameSessionManager : NetworkBehaviour
 {
     public static GameSessionManager Instance;
     public int currentMoney = 0;
 
-    [Header("Save Containers")]
+    public int totalPlayersInSession = 4;
+    public int deadPlayersCount = 0;
+
     public List<ItemSaveData> truckItems = new List<ItemSaveData>();
     public Dictionary<ulong, List<ItemSaveData>> playerItems = new Dictionary<ulong, List<ItemSaveData>>();
-
-    [Header("Prefab Database")]
     public List<ItemBase> itemPrefabsDB = new List<ItemBase>();
+
+    //  상점 구매템 + 환원 퀘스트 지급템을 담아갈 택배 리스트
+    public List<int> pendingSpawnItemIDs = new List<int>();
 
     private void Awake()
     {
-        if (Instance == null)
+        if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
+        else Destroy(gameObject);
+    }
+
+    //  구매시 잔액 계산 함수
+    public void AddItemToSpawnQueue(int itemID, int price)
+    {
+        if (currentMoney >= price)
         {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
+            currentMoney -= price;
+            pendingSpawnItemIDs.Add(itemID);
+            Debug.Log($"[Shop] {itemID}번 아이템 구매 완료! (현재 잔액: {currentMoney})");
         }
-        else
+    }
+
+    public void ProcessFinalSettlement(int totalScrapValue, int recoveredPhonesCount)
+    {
+        if (!IsServer) return;
+
+        if (deadPlayersCount >= totalPlayersInSession)
         {
-            Destroy(gameObject);
+            Debug.Log("<color=red><b>[System] 팀 전멸! 1일차로 리셋됩니다.</b></color>");
+            ResetSession();
+            NetworkManager.SceneManager.LoadScene("GameOverScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
+            return;
         }
+
+        int questIncome = QuestManager.Instance.GetCalculatedQuestReward();
+        int grossIncome = totalScrapValue + questIncome;
+
+        int missingPhones = Mathf.Max(0, deadPlayersCount - recoveredPhonesCount);
+        float penaltyMultiplier = 1.0f - (missingPhones * 0.05f);
+
+        int finalNetIncome = Mathf.RoundToInt(grossIncome * penaltyMultiplier);
+        AddMoney(finalNetIncome);
+
+        Debug.Log($"[정산 완료] 폐지 {totalScrapValue} + 퀘스트 {questIncome} | 미회수 폰 {missingPhones}개(-{missingPhones * 5}%) => 입금액: {finalNetIncome}원");
+
+        NetworkManager.SceneManager.LoadScene("LobbyScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
     }
 
     public void AddMoney(int amount)
     {
         currentMoney += amount;
-        Debug.Log($"<color=yellow><b>[Money]</b> 정산 완료: +{amount}원 (현재: {currentMoney}원)</color>");
     }
 
-    // 방이 깨졌을 때 이전 게임의 좀비 데이터를 방지하는 초기화 함수 (필요시 타이틀 화면에서 호출)
     public void ResetSession()
     {
         currentMoney = 0;
         truckItems.Clear();
         playerItems.Clear();
-        Debug.Log("<b>[Session]</b> 게임 세션 데이터가 초기화되었습니다.");
+        deadPlayersCount = 0;
+        pendingSpawnItemIDs.Clear(); //초기화 시 스폰 대기열도 비움
     }
 
     public ItemBase GetPrefab(int id)
     {
         foreach (var item in itemPrefabsDB)
         {
-            if (item == null) continue;
-            if (item.itemData == null) continue;
-            if (item.itemData.itemID == id) return item;
+            if (item != null && item.itemData != null && item.itemData.itemID == id) return item;
         }
-        Debug.LogError($"🚨 [DB 에러] ID {id}번 아이템을 찾을 수 없습니다.");
         return null;
     }
 }
