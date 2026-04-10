@@ -13,9 +13,20 @@ public class DetectState : MonsterBaseState
         owner.navAgent.updateRotation = false;
     }
 
+    protected override void OnTick()
+    {
+        owner.scanner.Tick();
+
+        // 플레이어를 놓쳤는지 확인하는 무거운 로직은 여기서 처리
+        if (owner.scanner.CurrentTarget == null)
+        {
+            owner.Alertness.Value -= 0.1f; // 예시 수치
+            if (owner.Alertness.Value <= 0) owner.ChangeState(MonsterStateType.Patrol);
+        }
+    }
+
     public override void FixedUpdate()
     {
-        owner.scanner.Tick(); // 주변 스캔
         Transform target = owner.scanner.CurrentTarget;
 
         if (target != null)
