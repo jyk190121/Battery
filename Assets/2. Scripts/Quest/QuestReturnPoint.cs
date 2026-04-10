@@ -34,7 +34,7 @@ public class QuestReturnPoint : NetworkBehaviour
         TryReturnServerRpc(player.OwnerClientId);
     }
 
-    [Rpc(SendTo.Server)]
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     private void TryReturnServerRpc(ulong clientId)
     {
         if (isCompleted.Value) return;
