@@ -92,12 +92,19 @@ public class AttackState : MonsterBaseState
     public void ApplyDamageToTarget()
     {
         Transform target = owner.scanner.CurrentTarget;
+        if (target == null) return;
+
         if (target != null)
         {
+
             float hitThreshold = data.attackRange + 1.0f;
             if ((target.position - owner.transform.position).sqrMagnitude <= hitThreshold * hitThreshold)
             {
-                Debug.Log($"[데미지 발생] {data.attackDamage} 피해");
+                if (target.TryGetComponent<PlayerController>(out var controller))
+                {
+                    controller.TakeDamageServerRpc(data.attackDamage);
+                    Debug.Log($"[데미지 발생] {data.attackDamage} 피해 전달됨");
+                }
             }
         }
     }

@@ -2646,6 +2646,8 @@ GameObject:
   - component: {fileID: -3479541866016816257}
   - component: {fileID: 1697737443919903314}
   - component: {fileID: 1274011911571015947}
+  - component: {fileID: 7371181721451138572}
+  - component: {fileID: -8743619242891834833}
   m_Layer: 6
   m_Name: Player_KJY
   m_TagString: Untagged
@@ -2972,7 +2974,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInteraction
   ShowTopMostFoldoutHeaderGroup: 1
-  data: {fileID: 11400000, guid: 51fe10672196c0c4daf37fc48f14bb9a, type: 2}
   DoorLayer:
     serializedVersion: 2
     m_Bits: 512
@@ -2992,7 +2993,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStateManager
   ShowTopMostFoldoutHeaderGroup: 1
-  player: {fileID: 11400000, guid: 51fe10672196c0c4daf37fc48f14bb9a, type: 2}
   currentHealth:
     m_InternalValue: 0
 --- !u!114 &1697737443919903314
@@ -3106,6 +3106,39 @@ MonoBehaviour:
         byte0059: 0
         byte0060: 0
         byte0061: 0
+--- !u!114 &7371181721451138572
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4911454195433589709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1c51e28bc72f434aa9be39a4dc5dcc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerController
+  ShowTopMostFoldoutHeaderGroup: 1
+  _playerData: {fileID: 11400000, guid: 51fe10672196c0c4daf37fc48f14bb9a, type: 2}
+  CurrentHp:
+    m_InternalValue: 0
+--- !u!114 &-8743619242891834833
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4911454195433589709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c8954012d9ccaf418987a9b65dd95cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerUIManager
+  ShowTopMostFoldoutHeaderGroup: 1
+  PlayerHpImage: {fileID: 0}
+  vignetteImage: {fileID: 0}
+  staminaBarImage: {fileID: 0}
+  breathAudio: {fileID: 0}
 --- !u!1 &5047510916941267613
 GameObject:
   m_ObjectHideFlags: 0

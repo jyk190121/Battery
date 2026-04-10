@@ -26,7 +26,7 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
     public static event Action<string> OnCallHungUp;
     public static event Action<string> OnCallBusy;
 
-    public TextMeshProUGUI playerText;
+    //public TextMeshProUGUI playerText;
 
     public bool CanChat => chatClient != null && chatClient.CanChat;
 
@@ -43,7 +43,7 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
 
         chatClient = new ChatClient(this);
         chatClient.Connect(chatAppId, "1.0", new AuthenticationValues(userName));
-        playerText.text = $"Player: {userName}";
+        //playerText.text = $"Player: {userName}";
     }
 
     private void Update()
