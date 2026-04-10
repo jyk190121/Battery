@@ -11,6 +11,8 @@ public class MonsterData : ScriptableObject
     public float viewRange = 12f;           // 시야 사거리
     public float viewAngle = 90f;           // 시야 각
     public float hearingRange = 15f;        // 청각 감지 사거리
+    [Tooltip("플레이어가 시야에서 사라져도 위치를 기억하고 추적하는 시간 (초)")]
+    public float visionMemoryTime = 1.5f;
 
     [Header("Combat")]
     public float attackDamage = 21f;        // 공격력
@@ -45,7 +47,6 @@ public class MonsterData : ScriptableObject
     [Header("Advanced Search Settings")]
     [Tooltip("플레이어의 이동 방향을 토대로 미래 위치를 예측할 시간(초)")]
     public float predictionTime = 1.5f;
-
     [Tooltip("예측 지점 근처에서 수색할 Waypoint를 찾는 반경")]
     public float searchNodeRadius = 15f;
 }

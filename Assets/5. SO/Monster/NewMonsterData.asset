@@ -17,6 +17,7 @@ MonoBehaviour:
   viewRange: 12
   viewAngle: 90
   hearingRange: 15
+  visionMemoryTime: 2
   attackDamage: 21
   attackRange: 2
   attackCooldown: 2.1
@@ -31,3 +32,5 @@ MonoBehaviour:
   fastTickInterval: 0.05
   predictiveChaseTime: 0.8
   pathUpdateThreshold: 1
+  predictionTime: 1.5
+  searchNodeRadius: 15
