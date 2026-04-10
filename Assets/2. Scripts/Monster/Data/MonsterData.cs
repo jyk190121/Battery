@@ -42,7 +42,10 @@ public class MonsterData : ScriptableObject
     [Tooltip("경로 재탐색 기준 거리 (타겟이 이만큼 움직여야 경로를 새로 땀)")]
     public float pathUpdateThreshold = 1.0f;
 
+    [Header("Advanced Search Settings")]
+    [Tooltip("플레이어의 이동 방향을 토대로 미래 위치를 예측할 시간(초)")]
+    public float predictionTime = 1.5f;
 
-
-
+    [Tooltip("예측 지점 근처에서 수색할 Waypoint를 찾는 반경")]
+    public float searchNodeRadius = 15f;
 }

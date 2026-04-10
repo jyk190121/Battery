@@ -139,8 +139,7 @@ public class MonsterController : NetworkBehaviour
         Vector3 checkPos = transform.position + (Vector3.up * 1.0f);
         int doorLayerMask = 1 << LayerMask.NameToLayer("Door");
 
-        // [해결] 반경을 1.8m 정도로 넓히고, '정면 체크(Dot)'를 대폭 완화하거나 제거합니다.
-        Collider[] hitColliders = Physics.OverlapSphere(checkPos, 1.8f, doorLayerMask);
+        Collider[] hitColliders = Physics.OverlapSphere(checkPos, 0.8f, doorLayerMask);
 
         foreach (var hit in hitColliders)
         {

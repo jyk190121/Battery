@@ -15,7 +15,11 @@ public class EnvironmentScanner : MonoBehaviour
     // 현재 유효한 타겟
     public Transform CurrentTarget { get; private set; }
     public Vector3 LastSeenPosition { get; private set; }
-    public Vector3 LastHeardPosition { get; private set; } // 추후 소리 감지용 변수
+    public Vector3 LastHeardPosition { get; private set; }  // 추후 소리 감지용 변수
+
+    public Vector3 LastTargetVelocity { get; private set; } // 타겟의 마지막 속도
+
+    private Vector3 previousTargetPos; // 속도 계산용
 
     // 가비지 컬렉션(GC) 방지를 위한 사전 할당 배열
     // OverlapSphere 대신 NonAlloc을 사용하여 매 프레임 발생하는 메모리 쓰레기를 제거
@@ -118,6 +122,23 @@ public class EnvironmentScanner : MonoBehaviour
         if (CurrentTarget != null)
         {
             LastSeenPosition = CurrentTarget.position;
+        }
+
+        if (CurrentTarget != null)
+        {
+            // 타겟의 실시간 위치 업데이트
+            LastSeenPosition = CurrentTarget.position;
+
+            // [추가] 타겟의 속도 계산 (프레임간 이동 거리 / 시간)
+            if (previousTargetPos != Vector3.zero)
+            {
+                LastTargetVelocity = (CurrentTarget.position - previousTargetPos) / Time.deltaTime;
+            }
+            previousTargetPos = CurrentTarget.position;
+        }
+        else
+        {
+            previousTargetPos = Vector3.zero;
         }
     }
 

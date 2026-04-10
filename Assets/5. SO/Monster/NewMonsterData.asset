@@ -19,8 +19,8 @@ MonoBehaviour:
   hearingRange: 15
   attackDamage: 21
   attackRange: 2
-  attackCooldown: 2.2
-  attackAnimDuration: 2.1
+  attackCooldown: 2.1
+  attackAnimDuration: 2
   attackTrackingTime: 0.7
   minWaitTime: 2
   maxWaitTime: 5

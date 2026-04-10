@@ -14,7 +14,7 @@ public class PatrolState : MonsterBaseState
         owner.navAgent.isStopped = false;
         isWaiting = false;
         stuckTimer = 0f; // 이동 시작 시 타이머 초기화
-        owner.animHandler.SetSpeed(1f);
+        owner.animHandler.SetSpeed(data.patrolSpeed);
 
         MoveToNextPoint();
     }
@@ -54,7 +54,7 @@ public class PatrolState : MonsterBaseState
     private void MoveToNextPoint()
     {
         Transform nextPoint = owner.waypointManager?.GetRandomWaypoint();
-        owner.animHandler.SetSpeed(1f);
+        owner.animHandler.SetSpeed(data.patrolSpeed);
 
         if (nextPoint != null)
         {

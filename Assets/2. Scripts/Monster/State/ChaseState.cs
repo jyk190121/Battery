@@ -18,7 +18,7 @@ public class ChaseState : MonsterBaseState
 
         lastTargetPos = Vector3.positiveInfinity;
         stuckTimer = 0f;
-        owner.animHandler.SetSpeed(2f);
+        owner.animHandler.SetSpeed(data.chaseSpeed);
 
         pathUpdateSqrThreshold = data.pathUpdateThreshold * data.pathUpdateThreshold;
     }
@@ -37,8 +37,7 @@ public class ChaseState : MonsterBaseState
     {
         base.Update();
 
-        // 1. 문 감지 (최우선 순위)
-        // 매 프레임 체크하여 문에 닿는 즉시 Interact 상태로 넘어가게 합니다.
+        // 1. 문 감지
         if (owner.CurrentStateNet.Value == MonsterStateType.Chase)
         {
             if (owner.CheckAndHandleDoor()) return;
@@ -64,7 +63,7 @@ public class ChaseState : MonsterBaseState
     {
         owner.navAgent.updateRotation = true; // 타겟이 없으므로 이동 방향을 바라보게 함
 
-        // [최적화] 목적지가 바뀔 때만 SetDestination 호출
+        // 목적지가 바뀔 때만 SetDestination 호출
         if (Vector3.Distance(owner.navAgent.destination, owner.scanner.LastSeenPosition) > 0.5f)
         {
             owner.navAgent.SetDestination(owner.scanner.LastSeenPosition);
