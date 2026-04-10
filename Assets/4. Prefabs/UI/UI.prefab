@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5213042443106156266}
+  - component: {fileID: 3821792366190672431}
   m_Layer: 0
   m_Name: UI
   m_TagString: Untagged
@@ -33,6 +34,20 @@ Transform:
   - {fileID: 2079889502736506800}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3821792366190672431
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 108984178412236903}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aca8d9b3ddd47ee4e8519891d58da3ae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AutoSceneUIController
+  titleSceneName: KJY_TITLE
+  visualChild: {fileID: 4927526762122445348}
 --- !u!1 &1848704857073512639
 GameObject:
   m_ObjectHideFlags: 0
@@ -559,6 +574,7 @@ MonoBehaviour:
   isInputBlocked: 0
   isCallActive: 0
   isCallRefusing: 0
+  isPhoneActive: 0
 --- !u!1 &6371117345885145589
 GameObject:
   m_ObjectHideFlags: 0
@@ -656,7 +672,7 @@ MonoBehaviour:
   teamChatRoom: {fileID: 7151956893988830046}
   ifConnected: {fileID: 5457140168927015977}
   connectYet: {fileID: 2655669063955554187}
-  playerText: {fileID: 1985596944895219328}
+  playerText: {fileID: 0}
 --- !u!114 &1316322139524623727
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1073,7 +1089,8 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 5033366132800733768, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
@@ -1097,17 +1114,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 8943787794017475069, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
   m_PrefabInstance: {fileID: 7745167247473930096}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1985596944895219328 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8138599868587899376, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
-  m_PrefabInstance: {fileID: 7745167247473930096}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1 &2655669063955554187 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5739424729916043515, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
@@ -1121,6 +1127,11 @@ GameObject:
 --- !u!1 &3362605282208349079 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5032213084006847719, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
+  m_PrefabInstance: {fileID: 7745167247473930096}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &4927526762122445348 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3395234632279944532, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
   m_PrefabInstance: {fileID: 7745167247473930096}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &5457140168927015977 stripped
