@@ -35,6 +35,10 @@ public class PlayerInventory : NetworkBehaviour
     private DepartureButton lastLookedButton;
     private MissionStartButton lastLookedMissionButton;
 
+    // 💡 [추가됨] 문과 환원 지점 인식용 변수
+    private DoorController lastLookedDoor;
+    private QuestReturnPoint lastLookedReturnPoint;
+
     public override void OnNetworkSpawn()
     {
         leftHandTransform = FindChildByName(transform, leftHandName);
@@ -92,12 +96,24 @@ public class PlayerInventory : NetworkBehaviour
             {
                 if (lastLookedButton != null) lastLookedButton.Interact(this);
                 else if (lastLookedMissionButton != null) lastLookedMissionButton.Interact(this);
+                else if (lastLookedReturnPoint != null) lastLookedReturnPoint.Interact(this); // 💡 [추가됨] 환원 지점 상호작용
+                else if (lastLookedDoor != null) // 💡 [추가됨] 문(열쇠) 상호작용
+                {
+                    string myKeyID = "";
+                    ItemBase heldItem = twoHandedItem != null ? twoHandedItem : slots[currentSlotIndex];
+
+                    if (heldItem != null && heldItem.itemData != null && !string.IsNullOrEmpty(heldItem.itemData.keyID))
+                    {
+                        myKeyID = heldItem.itemData.keyID;
+                    }
+                    lastLookedDoor.TryOpen(myKeyID);
+                }
                 else if (lastLookedItem != null) TryPickUpAction();
             }
             if (Keyboard.current[Key.G].wasPressedThisFrame) RequestDropCurrentItem();
         }
 
-        // 폰 켜져있으면 마우스 차단
+        // 폰 켜져있으면 마우스 차단 로직 (필요 시 주석 해제)
         //if (PhoneUIController.Instance != null && PhoneUIController.Instance.isPhoneActive) return;
 
         HandleSlotChange();
@@ -134,6 +150,32 @@ public class PlayerInventory : NetworkBehaviour
                 if (lastLookedMissionButton != mBtn) { ClearHighlight(); lastLookedMissionButton = mBtn; }
                 return;
             }
+
+            // 💡 [추가됨] 환원 지점(투명 큐브) 레이캐스트 인식
+            if (hit.collider.TryGetComponent(out QuestReturnPoint returnPoint))
+            {
+                if (lastLookedReturnPoint != returnPoint)
+                {
+                    ClearHighlight();
+                    lastLookedReturnPoint = returnPoint;
+                    Outline outline = lastLookedReturnPoint.GetComponentInChildren<Outline>();
+                    if (outline != null) outline.enabled = true;
+                }
+                return;
+            }
+
+            // 💡 [추가됨] 문(Door) 레이캐스트 인식
+            if (hit.collider.TryGetComponent(out DoorController door))
+            {
+                if (lastLookedDoor != door)
+                {
+                    ClearHighlight();
+                    lastLookedDoor = door;
+                    Outline outline = lastLookedDoor.GetComponentInChildren<Outline>();
+                    if (outline != null) outline.enabled = true;
+                }
+                return;
+            }
         }
         ClearHighlight();
     }
@@ -146,9 +188,24 @@ public class PlayerInventory : NetworkBehaviour
             if (outline != null) outline.enabled = false;
             lastLookedItem = null;
         }
+        if (lastLookedReturnPoint != null)
+        {
+            Outline outline = lastLookedReturnPoint.GetComponentInChildren<Outline>();
+            if (outline != null) outline.enabled = false;
+            lastLookedReturnPoint = null;
+        }
+        if (lastLookedDoor != null)
+        {
+            Outline outline = lastLookedDoor.GetComponentInChildren<Outline>();
+            if (outline != null) outline.enabled = false;
+            lastLookedDoor = null;
+        }
         lastLookedButton = null;
         lastLookedMissionButton = null;
     }
+
+    // ... (이하 TryPickUpAction 부터 끝까지의 코드는 기존과 100% 동일하므로 생략 없이 그대로 유지하시면 됩니다) ...
+    // ... (HasItem, RemoveItemByServer 함수도 그대로 두시면 됩니다) ...
 
     private void TryPickUpAction()
     {
@@ -158,11 +215,6 @@ public class PlayerInventory : NetworkBehaviour
             foreach (var slot in slots) if (slot == null) hasEmptySlot = true;
 
             if (!hasEmptySlot) return;
-
-            if (lastLookedItem.itemData.handType == HandType.TwoHand)
-            {
-                //if (PhoneUIController.Instance != null && PhoneUIController.Instance.isPhoneActive) return;
-            }
 
             Outline outline = lastLookedItem.GetComponentInChildren<Outline>();
             if (outline != null) outline.enabled = false;
@@ -383,9 +435,6 @@ public class PlayerInventory : NetworkBehaviour
         SyncRestoredItemClientRpc(itemRef, slotIdx);
     }
 
-    // ==========================================================
-    // 💡 환원 퀘스트 연동을 위한 인벤토리 헬퍼 함수 추가
-    // ==========================================================
     public bool HasItem(int itemID)
     {
         if (twoHandedItem != null && twoHandedItem.itemData.itemID == itemID) return true;
