@@ -43,7 +43,7 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
 
         chatClient = new ChatClient(this);
         chatClient.Connect(chatAppId, "1.0", new AuthenticationValues(userName));
-        playerText.text = $"Player: {userName}";
+        //playerText.text = $"Player: {userName}";
     }
 
     private void Update()
