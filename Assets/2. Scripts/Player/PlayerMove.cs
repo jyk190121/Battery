@@ -140,7 +140,7 @@ public class PlayerMove : NetworkBehaviour
 
         if (inputMagnitude > 0.1f && !isCrouching)
         {
-            playerAnim.UpdateStairStatus(isOnStair);
+            //playerAnim.UpdateStairStatus(isOnStair);
 
             // 계단 이용 시 0.8배율로 속도 감소
             float moveSpeedMultiplier = isOnStair ? 0.8f : 1.0f;

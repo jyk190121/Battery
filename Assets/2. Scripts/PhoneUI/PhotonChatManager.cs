@@ -26,7 +26,7 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
     public static event Action<string> OnCallHungUp;
     public static event Action<string> OnCallBusy;
 
-    public TextMeshProUGUI playerText;
+    //public TextMeshProUGUI playerText;
 
     public bool CanChat => chatClient != null && chatClient.CanChat;
 

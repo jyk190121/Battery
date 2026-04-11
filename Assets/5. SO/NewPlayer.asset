@@ -12,4 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ef104983d0f1ff4b82c0fbf533b6c1b, type: 3}
   m_Name: NewPlayer
   m_EditorClassIdentifier: Assembly-CSharp::Player
+  maxHealth: 100
+  maxStamina: 50
+  staminaConsumeRate: 10
+  staminaRecoverRate: 5
+  staminaExhaustedRecoverRate: 2.5
+  recoverDelay: 2
+  walkSpeed: 3.5
+  runSpeed: 6
   interactDistance: 2
