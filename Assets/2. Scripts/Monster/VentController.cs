@@ -23,7 +23,7 @@ public class VentController : NetworkBehaviour
 
         // 3D 사운드 설정 
         localAudioSource.spatialBlend = 1.0f; // 1.0 = 완전한 3D 사운드
-        localAudioSource.maxDistance = 20f;   // 소리가 들리는 최대 거리
+        localAudioSource.maxDistance = 100f;   // 소리가 들리는 최대 거리
     }
 
     public void TriggerSpawn(MonsterData data)
