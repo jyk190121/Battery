@@ -18,19 +18,19 @@ public class PlayerMove : NetworkBehaviour
 
     [Header("바닥 체크 설정")]
     public LayerMask groundLayer;                   // 인스펙터에서 Ground 레이어 선택
-    public float groundCheckDistance = 0.25f;       // 바닥 감지 거리
+    public float groundCheckDistance = 0.3f;       // 바닥 감지 거리
 
     [Header("계단 체크 설정")]
     public LayerMask stairLayer;                    // 인스펙터에서 Stair 레이어 선택
     bool isOnStair = false;                         // 현재 계단 위인지 여부
     bool wasOnStair = false;                        // 이전 프레임의 계단 상태 체크용
 
-    [SerializeField] float stairStepUpForce = 0.3f; // 계단 진입 시 살짝 띄게
-    [SerializeField] float stairDownForce = 10f;    // 계단 내려갈때 중력
+    [SerializeField] float stairStepUpForce = 8.0f; // 계단 진입 시 살짝 띄게
+    [SerializeField] float stairDownForce = 0.1f;    // 계단 내려갈때 중력
 
     [Header("계단 디테일 설정")]
-    public float stepHeight = 0.3f;                 // 올라갈 수 있는 최대 계단 높이
-    public float stepSmoothing = 0.1f;              // 올라가는 부드러움 정도
+    public float stepHeight = 0.35f;                 // 올라갈 수 있는 최대 계단 높이
+    public float stepSmoothing = 0.1f;               // 올라가는 부드러움 정도
 
     // [Header("앉기 체크 설정")]
     bool isCrouching = false;
@@ -52,6 +52,8 @@ public class PlayerMove : NetworkBehaviour
 
         // Rigidbody가 멋대로 회전해서 넘어지는 걸 방지
         //rb.freezeRotation = true;
+
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
     }
 
     // Update is called once per frame
@@ -170,37 +172,34 @@ public class PlayerMove : NetworkBehaviour
         //        playerAnim.UpdateMoveAnimation(0f);
         //        playerAnim.UpdateStairStatus(false);
         //    }
+        Vector3 rayOrigin = transform.position + Vector3.up * 0.1f;
         float rayDistance = 0.1f + groundCheckDistance;
-        if (wasOnStair) rayDistance *= 1.5f;
+        if (wasOnStair) rayDistance *= 1.3f;
 
-        isGrounded = Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, out hit, rayDistance, groundLayer | stairLayer);
+        isGrounded = Physics.Raycast(rayOrigin, Vector3.down, out hit, rayDistance, groundLayer | stairLayer);
 
         if (isGrounded)
         {
             isOnStair = ((1 << hit.collider.gameObject.layer) & stairLayer) != 0;
 
-            // [계단 진입 보정]
-            if (isOnStair && !wasOnStair)
-            {
-                rb.position += Vector3.up * stairStepUpForce;
-            }
-
-            // [핵심: 미끄럼 방지 및 마찰 로직]
-            // 이동 입력이 없고 계단 위라면 IsKinematic을 켜서 물리 연산을 정지(고정)시킵니다.
             if (isOnStair && inputMagnitude < 0.1f)
             {
                 rb.isKinematic = true;
             }
             else
             {
-                // 움직이거나 공중일 때는 다시 물리 연산 활성화
                 rb.isKinematic = false;
             }
 
-            // 계단 내려갈 때 밀착력
+            // --- [하강 보정 수정] ---
+            // 캐릭터가 올라가려는 의지가 없을 때(Y속도가 낮은 상태)만 DownForce 적용
             if (isOnStair && inputMagnitude > 0.1f)
             {
-                rb.linearVelocity = new Vector3(rb.linearVelocity.x, -stairDownForce, rb.linearVelocity.z);
+                // 수직 속도가 거의 없거나 아래쪽일 때만 밀착 (올라가는 중에는 방해 금지)
+                if (rb.linearVelocity.y <= 0.1f)
+                {
+                    rb.linearVelocity = new Vector3(rb.linearVelocity.x, -stairDownForce, rb.linearVelocity.z);
+                }
             }
         }
         else
@@ -216,67 +215,45 @@ public class PlayerMove : NetworkBehaviour
 
     void HandleMovement(float h, float v)
     {
-        if (isCrouching)
-        {
-            playerAnim.UpdateMoveAnimation(0f);
-            return;
-        }
+        if (isCrouching) return;
 
-        if (inputMagnitude > 0.1f && !isCrouching)
+        if (inputMagnitude > 0.1f)
         {
-            float moveSpeedMultiplier = isOnStair ? 0.8f : 1.0f;
+            float moveSpeedMultiplier = isOnStair ? 0.85f : 1.0f;
             bool canRun = Keyboard.current.leftShiftKey.isPressed && isGrounded && !stateManager.IsExhausted;
 
-            if (canRun)
-            {
-                currentSpeed = runSpeed * moveSpeedMultiplier;
-                playerAnim.UpdateMoveAnimation(2.0f);
-            }
-            else if (isGrounded)
-            {
-                currentSpeed = walkSpeed * moveSpeedMultiplier;
-                playerAnim.UpdateMoveAnimation(1.0f);
-            }
+            currentSpeed = (canRun ? runSpeed : walkSpeed) * moveSpeedMultiplier;
+            playerAnim.UpdateMoveAnimation(canRun ? 2.0f : 1.0f);
+
             Move(h, v);
         }
         else
         {
             playerAnim.UpdateMoveAnimation(0f);
-            playerAnim.UpdateStairStatus(false);
+            if (isGrounded && !isOnStair) rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
         }
     }
 
     void HandleActions()
     {
-        // 앉기 상태 체크 (LCtrl 누르고 있는 동안 true)
         isCrouching = Keyboard.current.leftCtrlKey.isPressed && isGrounded;
-
-        // 애니메이터에 전달
         playerAnim.UpdateCrouchStatus(isCrouching);
 
-        if (isCrouching)
-        {
-            playerAnim.StopEmotions();
-            return;
-        }
+        if (isCrouching) return;
 
-        // 점프 (Space) 
         if (Keyboard.current.spaceKey.wasPressedThisFrame && isGrounded)
         {
+            rb.isKinematic = false;
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpForce, rb.linearVelocity.z);
             playerAnim.PlayJump();
-
             playerAnim.StopEmotions();
-            return;
         }
 
-        // 이모션 실행 (바닥 + 정지 상태)
         if (isGrounded && inputMagnitude < 0.1f)
         {
             if (Keyboard.current.digit1Key.wasPressedThisFrame) playerAnim.PlayEmotion1();
             if (Keyboard.current.digit2Key.wasPressedThisFrame) playerAnim.PlayEmotion2();
         }
-        // 이동 중이면 이모션 Bool 강제 리셋 (애니메이션 캔슬용)
         else if (inputMagnitude > 0.1f)
         {
             playerAnim.StopEmotions();
@@ -323,26 +300,37 @@ public class PlayerMove : NetworkBehaviour
         if (moveDir.sqrMagnitude > 1f) moveDir.Normalize();
 
         Vector3 worldMoveDir = transform.TransformDirection(moveDir);
+        bool isStepUpDetected = false;
 
-        // [계단 오르기 보정]
-        if (isOnStair && inputMagnitude > 0.1f)
+        // [계단 오르기 감지 및 처리]
+        if (inputMagnitude > 0.1f)
         {
-            RaycastHit hitStep;
-            Vector3 rayOrigin = transform.position + Vector3.up * 0.1f;
+            RaycastHit hitLower;
+            Vector3 lowerOrigin = transform.position + Vector3.up * 0.1f;
 
-            if (Physics.Raycast(rayOrigin, worldMoveDir, out hitStep, 0.5f, stairLayer))
+            if (Physics.Raycast(lowerOrigin, worldMoveDir, out hitLower, 0.4f, stairLayer))
             {
-                // 이동 중일 때는 Kinematic을 끄고 Y축 속도를 보정
-                rb.isKinematic = false;
-                float smoothY = Mathf.Lerp(rb.linearVelocity.y, stepHeight * currentSpeed * 2f, stepSmoothing);
-                rb.linearVelocity = new Vector3(rb.linearVelocity.x, smoothY, rb.linearVelocity.z);
+                RaycastHit hitUpper;
+                Vector3 upperOrigin = transform.position + Vector3.up * stepHeight;
+
+                if (!Physics.Raycast(upperOrigin, worldMoveDir, out hitUpper, 0.5f, stairLayer))
+                {
+                    // 오르기 상태 감지
+                    isStepUpDetected = true;
+                    rb.isKinematic = false;
+
+                    // 수직으로 밀어 올려 턱을 넘김
+                    rb.position += Vector3.up * stairStepUpForce * Time.fixedDeltaTime;
+
+                    // 오를 때는 하강 관성을 제거하여 부드럽게 상승하게 함
+                    rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
+                }
             }
         }
 
         // 이동 실행
-        if (inputMagnitude > 0.1f)
+        if (!rb.isKinematic)
         {
-            rb.isKinematic = false; // 이동 시작 시 즉시 Kinematic 해제
             Vector3 nextPos = rb.position + worldMoveDir * currentSpeed * Time.fixedDeltaTime;
             rb.MovePosition(nextPos);
         }
@@ -355,6 +343,10 @@ public class PlayerMove : NetworkBehaviour
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.blue;
-        Gizmos.DrawRay(transform.position + Vector3.up * 0.1f, Vector3.down * groundCheckDistance);
+        Gizmos.DrawRay(transform.position + Vector3.up * 0.1f, Vector3.down * (0.1f + groundCheckDistance));
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawRay(transform.position + Vector3.up * 0.1f, transform.forward * 0.5f);
+        Gizmos.DrawRay(transform.position + Vector3.up * stepHeight, transform.forward * 0.6f);
     }
 }
