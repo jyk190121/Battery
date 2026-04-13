@@ -2637,7 +2637,6 @@ GameObject:
   - component: {fileID: 3366771625458936302}
   - component: {fileID: 1166937674116199471}
   - component: {fileID: 8234240459708401988}
-  - component: {fileID: 3046390276159156554}
   - component: {fileID: 865720390472194934}
   - component: {fileID: 9182508245703953868}
   - component: {fileID: 5358241311784179748}
@@ -2648,6 +2647,7 @@ GameObject:
   - component: {fileID: 1274011911571015947}
   - component: {fileID: 7371181721451138572}
   - component: {fileID: -8743619242891834833}
+  - component: {fileID: 8431698971035657743}
   m_Layer: 6
   m_Name: Player_KJY
   m_TagString: Untagged
@@ -2808,29 +2808,8 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 80
   m_CollisionDetection: 2
---- !u!65 &3046390276159156554
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4911454195433589709}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.88121843, y: 1.8848686, z: 0.31425858}
-  m_Center: {x: -0.059390783, y: 0.9864731, z: -0.030620575}
 --- !u!114 &865720390472194934
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2958,8 +2937,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.Components.NetworkRigidbody
   ShowTopMostFoldoutHeaderGroup: 1
   NetworkRigidbodyBaseExpanded: 0
-  UseRigidBodyForMotion: 1
-  AutoUpdateKinematicState: 1
+  UseRigidBodyForMotion: 0
+  AutoUpdateKinematicState: 0
   AutoSetKinematicOnDespawn: 0
 --- !u!114 &8808567715922933914
 MonoBehaviour:
@@ -3138,6 +3117,29 @@ MonoBehaviour:
   breathAudio: {fileID: 0}
   vignetteMaxScale: 3
   vignetteMinScale: 1
+--- !u!136 &8431698971035657743
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4911454195433589709}
+  m_Material: {fileID: 13400000, guid: aad068ac0394e8b4db1619b890df63a7, type: 2}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.24198467
+  m_Height: 1.9966463
+  m_Direction: 1
+  m_Center: {x: 0, y: 0.9734525, z: -0.0012594461}
 --- !u!1 &5047510916941267613
 GameObject:
   m_ObjectHideFlags: 0
