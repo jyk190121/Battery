@@ -140,7 +140,7 @@ public class SearchState : MonsterBaseState
         isInvestigating = true;
         pauseTimer = 0f;
         owner.navAgent.isStopped = true;  // 제자리에 멈춤
-        owner.animHandler.SetSpeed(0f);   // 이동 애니메이션 중지
+        //owner.animHandler.SetSpeed(0f);   // 이동 애니메이션 중지
         owner.animHandler.SetSearching(true); // 두리번거리는 애니메이션 실행
     }
 

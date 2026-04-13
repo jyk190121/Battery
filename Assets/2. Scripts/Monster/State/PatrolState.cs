@@ -14,7 +14,7 @@ public class PatrolState : MonsterBaseState
         owner.navAgent.isStopped = false;
         isWaiting = false;
         stuckTimer = 0f; // 이동 시작 시 타이머 초기화
-        owner.animHandler.SetSpeed(data.patrolSpeed);
+        //owner.animHandler.SetSpeed(data.patrolSpeed);
 
         MoveToNextPoint();
     }
@@ -89,7 +89,7 @@ public class PatrolState : MonsterBaseState
         isWaiting = true;
         waitTimer = 0f;
         currentWaitDuration = Random.Range(data.minWaitTime, data.maxWaitTime);
-        owner.animHandler.SetSpeed(0f);
+        //owner.animHandler.SetSpeed(0f);
 
         //owner.navAgent.isStopped = true;
     }

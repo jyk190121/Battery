@@ -115,6 +115,11 @@ public class PlayerRotation : NetworkBehaviour
                 {
                     vcam.Follow = cameraTarget;
                     vcam.LookAt = cameraTarget;
+
+                    if (_panTilt != null)
+                    {
+                        _panTilt.PanAxis.Value = transform.eulerAngles.y;
+                    }
                 }
             }
         }

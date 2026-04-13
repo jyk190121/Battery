@@ -4855,6 +4855,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameSceneManager
   ShowTopMostFoldoutHeaderGroup: 1
   playerPrefabName: Player_KJY
+  spawnPointName: PlayerSpawnZone
 --- !u!114 &1276800883
 MonoBehaviour:
   m_ObjectHideFlags: 0
