@@ -1,27 +1,41 @@
 using System.Collections.Generic;
 using Unity.Netcode;
+using Unity.Netcode.Components;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UIElements;
 using static Unity.Netcode.Components.AttachableBehaviour;
 
+[RequireComponent(typeof(NavMeshAgent))]
+[RequireComponent(typeof(EnvironmentScanner))]
 public class MonsterController : NetworkBehaviour
 {
     public MonsterData monsterData;
     public EnvironmentScanner scanner;
+    public NavMeshAgent navAgent;
     public MonsterAnimation animHandler; // 별도 분리된 애니메이션 클래스
     public WaypointManager waypointManager;
     public DoorController TargetDoor { get; set; }
 
+    // [기믹 델리게이트] 외부 기믹 스크립트들이 멈춤 여부를 판별해주는 창구
+    public delegate bool GimmickPauseCheck();
+    public GimmickPauseCheck OnCheckGimmickPause;
+
+    [Header("Network Variables")]
     public NetworkVariable<MonsterStateType> CurrentStateNet = new NetworkVariable<MonsterStateType>(MonsterStateType.Idle,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server);
     public NetworkVariable<float> Alertness = new NetworkVariable<float>(0f,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server);
+    public NetworkVariable<bool> IsFrozenNet = new NetworkVariable<bool>(false,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
 
-    public NavMeshAgent navAgent;
     private MonsterStateMachine stateMachine;
     public MonsterStateType PreviousState;
+    private Animator _animator;
+
     private Dictionary<MonsterStateType, IState> states;
 
     public override void OnNetworkSpawn()
@@ -29,16 +43,14 @@ public class MonsterController : NetworkBehaviour
         navAgent = GetComponent<NavMeshAgent>();
         scanner = GetComponent<EnvironmentScanner>();
         animHandler = GetComponentInChildren<MonsterAnimation>();
+        _animator = animHandler.GetComponentInChildren<Animator>();
         scanner.Init(this, monsterData);
 
         waypointManager = Object.FindAnyObjectByType<WaypointManager>();
 
         if (IsServer)
         {
-            //navAgent = GetComponent<NavMeshAgent>();
-            //scanner = GetComponent<EnvironmentScanner>();
-            //scanner.Init(this, monsterData);
-            //waypointManager = Object.FindAnyObjectByType<WaypointManager>();
+            stateMachine = new MonsterStateMachine();
 
             // 상태 인스턴스 생성 및 저장
             states = new Dictionary<MonsterStateType, IState>
@@ -51,28 +63,63 @@ public class MonsterController : NetworkBehaviour
                 { MonsterStateType.InteractDoor, new InteractDoorState(this) }
             };
 
-            stateMachine = new MonsterStateMachine();
             ChangeState(MonsterStateType.Patrol); // 시작 상태
         }
         // 클라이언트에서 상태가 변했을 때 애니메이션/이펙트를 동기화하기 위한 콜백 연결
-        CurrentStateNet.OnValueChanged += OnStateChangedCallback;
+        //CurrentStateNet.OnValueChanged += OnStateChangedCallback;
     }
 
     public override void OnNetworkDespawn()
     {
-        CurrentStateNet.OnValueChanged -= OnStateChangedCallback;
+        //CurrentStateNet.OnValueChanged -= OnStateChangedCallback;
     }
 
     private void Update()
     {
+        if (_animator != null)
+        {
+            _animator.speed = IsFrozenNet.Value ? 0f : 1f;
+        } 
+
         if (!IsServer) return;
+
+        bool shouldPause = false;
+        if (OnCheckGimmickPause != null)
+        {
+            foreach (GimmickPauseCheck checkFunc in OnCheckGimmickPause.GetInvocationList())
+            {
+                if (checkFunc.Invoke())
+                {
+                    shouldPause = true;
+                    break;
+                }
+            }
+        }
+
+        if (IsFrozenNet.Value != shouldPause)
+        {
+            IsFrozenNet.Value = shouldPause;
+        }
+
+        if (shouldPause)
+        {
+            if (!navAgent.isStopped)
+            {
+                navAgent.isStopped = true;
+                navAgent.velocity = Vector3.zero;
+            }
+            return;
+        }
+        else
+        {
+            if (navAgent.isStopped) navAgent.isStopped = false;
+        }
 
         stateMachine?.Update();
 
         if (navAgent != null && animHandler != null)
         {
-            float currentPhysicalSpeed = navAgent.velocity.magnitude;
-            animHandler.SetSpeed(currentPhysicalSpeed);
+            animHandler.SetSpeed(navAgent.velocity.magnitude);
         }
     }
 
@@ -88,18 +135,24 @@ public class MonsterController : NetworkBehaviour
     public void ChangeState(MonsterStateType newState)
     {
         if (!IsServer) return;
+        if (CurrentStateNet.Value == newState) return;
+
         PreviousState = CurrentStateNet.Value;
-        stateMachine?.ChangeState(states[newState]);     // 실제 서버 상태 변경
-        CurrentStateNet.Value = newState;               // 모든 클라이언트에게 상태 동기화
+        CurrentStateNet.Value = newState;                // 모든 클라이언트에게 상태 동기화
+
+        if (states.TryGetValue(newState, out IState stateInstance))
+        {
+            stateMachine.ChangeState(stateInstance);     // 실제 서버 상태 변경
+        }
     }
 
     // 상태 변경 시 클라이언트와 서버 모두 호출되는 이벤트
-    private void OnStateChangedCallback(MonsterStateType previousValue, MonsterStateType newValue)
-    {
-        // 예: 수색 상태 진입 시 클라이언트에서도 기괴한 사운드 재생, 애니메이션 플래그 세팅 등
-        // animHandler를 여기서 제어하여 네트워크 대역폭(RPC)을 절약할 수 있습니다.
-        Debug.Log($"[네트워크 동기화] 몬스터 상태 변경: {previousValue} -> {newValue}");
-    }
+    //private void OnStateChangedCallback(MonsterStateType previousValue, MonsterStateType newValue)
+    //{
+    //    // 예: 수색 상태 진입 시 클라이언트에서도 기괴한 사운드 재생, 애니메이션 플래그 세팅 등
+    //    // animHandler를 여기서 제어하여 네트워크 대역폭(RPC)을 절약할 수 있습니다.
+    //    Debug.Log($"[네트워크 동기화] 몬스터 상태 변경: {previousValue} -> {newValue}");
+    //}
 
     public bool IsInSafeZone(GameObject obj)
     {

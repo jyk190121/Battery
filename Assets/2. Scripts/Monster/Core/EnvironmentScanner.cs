@@ -11,7 +11,7 @@ public class EnvironmentScanner : MonoBehaviour
     public MonsterData data;
 
     [Header("Detection Settings")]
-    [SerializeField] private LayerMask playerMask;
+    //[SerializeField] private LayerMask playerMask;
     [SerializeField] private LayerMask obstacleMask;
 
     // 현재 유효한 타겟 및 위치 정보
@@ -24,7 +24,7 @@ public class EnvironmentScanner : MonoBehaviour
     private Vector3 previousTargetPos;
 
     // 가비지 컬렉션(GC) 방지를 위한 사전 할당 배열 및 경로 변수
-    private Collider[] hitColliders = new Collider[10];
+    //private Collider[] hitColliders = new Collider[10];
     private NavMeshPath path;
     private float viewRangeSqr;
     private float timeLastSeen = 0f;
@@ -43,75 +43,65 @@ public class EnvironmentScanner : MonoBehaviour
     public void Tick()
     {
         // 1. 주변 플레이어 감지
-        int hitCount = Physics.OverlapSphereNonAlloc(transform.position, data.viewRange, hitColliders, playerMask);
+        //int hitCount = Physics.OverlapSphereNonAlloc(transform.position, data.viewRange, hitColliders, playerMask);
 
         Transform bestTarget = null;
         float minSqrDistance = float.MaxValue;
-        GameObject potentialTargetObj = null;
-
+        PlayerController potentialTarget = null;
         bool usingMemoryForTarget = false;
 
-        for (int i = 0; i < hitCount; i++)
+        foreach (PlayerController player in PlayerController.AllPlayers)
         {
-            GameObject targetObj = hitColliders[i].gameObject;
+            if (player == null || !player.gameObject.activeInHierarchy || player.IsDead) continue;
+            if (!IsTargetValid(player.gameObject)) continue;
 
-            // 2단계: 유효성 검사 (안전구역 등)
-            if (!IsTargetValid(targetObj)) continue;
-
-            // 3단계: 높이(층수) 필터링 - 레이캐스트 전 1차 거름망
-            float heightDiff = Mathf.Abs(targetObj.transform.position.y - transform.position.y);
+            float heightDiff = Mathf.Abs(player.transform.position.y - transform.position.y);
             if (heightDiff > 5.0f) continue;
 
-            // 4단계: 거리 체크 
-            Vector3 diff = targetObj.transform.position - transform.position;
+            Vector3 diff = player.transform.position - transform.position;
             float currentSqrDist = diff.sqrMagnitude;
             if (currentSqrDist > viewRangeSqr) continue;
 
-            bool hasLOS = HasLineOfSight(targetObj.transform);
+            bool hasLOS = HasLineOfSight(player.transform);
             bool isRemembered = false;
 
             if (hasLOS)
             {
-                // 타겟이 실제로 보인다면 마지막 목격 시간 갱신
-                if (CurrentTarget == null || targetObj.transform == CurrentTarget)
+                if (CurrentTarget == null || player.transform == CurrentTarget)
                 {
                     timeLastSeen = Time.time;
                 }
             }
             else
             {
-                // 벽/문에 가려졌지만, 방금 전까지 쫓던 타겟이라면?
-                if (CurrentTarget != null && targetObj.transform == CurrentTarget)
+                if (CurrentTarget != null && player.transform == CurrentTarget)
                 {
-                    // 기억 유효 시간(1.5초) 이내라면 강제로 시야에 있는 것으로 판정!
-                    if (Time.time - timeLastSeen <= data.visionMemoryTime)
+                    // 시야에서 사라졌어도 1.5초간은 잔상을 기억하여 끝까지 쫓아감
+                    if (Time.time - timeLastSeen <= 1.5f)
                     {
                         hasLOS = true;
                         isRemembered = true;
                     }
                 }
             }
-            if (hasLOS)
+
+            if (hasLOS && currentSqrDist < minSqrDistance)
             {
-                if (currentSqrDist < minSqrDistance)
-                {
-                    minSqrDistance = currentSqrDist;
-                    potentialTargetObj = targetObj;
-                    usingMemoryForTarget = isRemembered;
-                }
+                minSqrDistance = currentSqrDist;
+                potentialTarget = player;
+                usingMemoryForTarget = isRemembered;
             }
         }
 
-        // 6단계: 도달 가능성 검사 (길이 너무 멀면 포기)
-        if (potentialTargetObj != null)
+        if (potentialTarget != null)
         {
-            if (usingMemoryForTarget || IsPathReasonable(potentialTargetObj.transform.position, minSqrDistance))
+            // 잔상 기억 중이거나, 문 뒤에 숨지 않고 합리적으로 도달 가능할 때만 타겟 확정
+            if (usingMemoryForTarget || IsPathReasonable(potentialTarget.transform.position))
             {
-                bestTarget = potentialTargetObj.transform;
+                bestTarget = potentialTarget.transform;
             }
         }
 
-        // 타겟 정보 및 속도 계산 업데이트
         UpdateTargetData(bestTarget);
     }
 
@@ -146,6 +136,8 @@ public class EnvironmentScanner : MonoBehaviour
         }
     }
 
+
+
     /// <summary>
     /// 소리 감지 훅 함수: 외부 SoundManager 등에서 호출
     /// </summary>
@@ -172,7 +164,7 @@ public class EnvironmentScanner : MonoBehaviour
     /// <summary>
     /// NavMesh를 이용해 타겟까지의 실제 보행 거리가 시야 범위 내인지 확인
     /// </summary>
-    private bool IsPathReasonable(Vector3 targetPos, float directSqrDist)
+    private bool IsPathReasonable(Vector3 targetPos)
     {
         if (NavMesh.CalculatePath(transform.position, targetPos, NavMesh.AllAreas, path))
         {
@@ -183,8 +175,6 @@ public class EnvironmentScanner : MonoBehaviour
             {
                 pathLength += Vector3.Distance(path.corners[i - 1], path.corners[i]);
             }
-
-            // 직선거리보다 너무 많이 돌아가야 하면 부적절한 경로로 판단
             return pathLength < data.viewRange * 1.5f;
         }
         return false;
