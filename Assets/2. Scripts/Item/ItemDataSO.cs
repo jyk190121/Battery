@@ -11,7 +11,8 @@ public enum ItemCategory
     Durability, // 내구도형 (손전등 등)
     Stat,       // 스탯 영구 상승
     Weapon,     // 무기 (야구배트 등)
-    Quest,      // 퀘스트/수집용 (열쇠, USB 등 - 판매불가)
+    Quest,      // 수집/환원 퀘스트용 (트럭에서 환전 불가)
+    Phone,      // 사망자 휴대폰 (회수 패널티 계산용)
     Special     // 기타 특수 아이템
 }
 public enum SpawnLocation
