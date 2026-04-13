@@ -3,86 +3,182 @@ using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.UIElements;
-using static Unity.Netcode.Components.AttachableBehaviour;
 
 [RequireComponent(typeof(NavMeshAgent))]
 [RequireComponent(typeof(EnvironmentScanner))]
 public class MonsterController : NetworkBehaviour
 {
+    [Header("--- Monster Configuration ---")]
+    [Tooltip("몬스터의 기본 스탯 및 설정 데이터 (ScriptableObject)")]
     public MonsterData monsterData;
+
+    [Header("--- Components & References ---")]
+    [Tooltip("주변 환경 감지 시스템")]
     public EnvironmentScanner scanner;
+    [Tooltip("네비게이션 에이전트")]
     public NavMeshAgent navAgent;
-    public MonsterAnimation animHandler; // 별도 분리된 애니메이션 클래스
+    [Tooltip("애니메이션 제어 핸들러")]
+    public MonsterAnimation animHandler;
+    [Tooltip("순찰 경로 매니저")]
     public WaypointManager waypointManager;
+
+    [Header("--- Network Variables (Synced) ---")]
+    [Tooltip("현재 서버에서 동기화 중인 몬스터 상태")]
+    public NetworkVariable<MonsterStateType> CurrentStateNet = new NetworkVariable<MonsterStateType>(
+        MonsterStateType.Idle,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+
+    [Tooltip("플레이어 감지 경계도 (0~1)")]
+    public NetworkVariable<float> Alertness = new NetworkVariable<float>(
+        0f,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+
+    [Tooltip("현재 빙결/스턴 상태 여부")]
+    public NetworkVariable<bool> IsFrozenNet = new NetworkVariable<bool>(
+        false,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+
+    [Header("--- Logic State (Local) ---")]
+    [Tooltip("직전 상태 (상태 전환 로직 처리용)")]
+    public MonsterStateType PreviousState;
+
+    // 내부 캡슐화 변수들
     public DoorController TargetDoor { get; set; }
+    private MonsterStateMachine stateMachine;
+    private Animator _animator;
+    private Dictionary<MonsterStateType, IState> states;
+
+    // [최적화/추가 이유] 가비지 컬렉터(GC) 방지를 위한 NonAlloc용 캐시 배열
+    private Collider[] doorHitColliders = new Collider[5];
 
     // [기믹 델리게이트] 외부 기믹 스크립트들이 멈춤 여부를 판별해주는 창구
     public delegate bool GimmickPauseCheck();
+    [Header("--- Gimmick Events ---")]
     public GimmickPauseCheck OnCheckGimmickPause;
 
-    [Header("Network Variables")]
-    public NetworkVariable<MonsterStateType> CurrentStateNet = new NetworkVariable<MonsterStateType>(MonsterStateType.Idle,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server);
-    public NetworkVariable<float> Alertness = new NetworkVariable<float>(0f,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server);
-    public NetworkVariable<bool> IsFrozenNet = new NetworkVariable<bool>(false,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server);
+    private void Awake()
+    {
+        // [최적화/수정 이유] 서버/클라이언트 모두 로컬 FSM 인스턴스가 필요하므로 Awake에서 공통 초기화
+        stateMachine = new MonsterStateMachine();
 
-    private MonsterStateMachine stateMachine;
-    public MonsterStateType PreviousState;
-    private Animator _animator;
-
-    private Dictionary<MonsterStateType, IState> states;
+        // 상태 인스턴스 미리 생성 (Flyweight 패턴으로 메모리 재사용)
+        states = new Dictionary<MonsterStateType, IState>
+        {
+            { MonsterStateType.Patrol, new PatrolState(this) },
+            { MonsterStateType.Detect, new DetectState(this) },
+            { MonsterStateType.Chase, new ChaseState(this) },
+            { MonsterStateType.Search, new SearchState(this) },
+            { MonsterStateType.Attack, new AttackState(this) },
+            { MonsterStateType.InteractDoor, new InteractDoorState(this) },
+            { MonsterStateType.Idle, new PatrolState(this) }
+        };
+    }
 
     public override void OnNetworkSpawn()
     {
+        // 컴포넌트 자동 할당 및 초기화
         navAgent = GetComponent<NavMeshAgent>();
         scanner = GetComponent<EnvironmentScanner>();
         animHandler = GetComponentInChildren<MonsterAnimation>();
-        _animator = animHandler.GetComponentInChildren<Animator>();
-        scanner.Init(this, monsterData);
+        if (animHandler != null) _animator = animHandler.GetComponentInChildren<Animator>();
 
+        scanner.Init(this, monsterData);
         waypointManager = Object.FindAnyObjectByType<WaypointManager>();
+
+        // [최적화/추가 이유] 네트워크 변수 변경 감지 이벤트 구독 (서버-클라이언트 싱크)
+        CurrentStateNet.OnValueChanged += OnStateChangedCallback;
+        IsFrozenNet.OnValueChanged += OnFrozenNetworkChanged;
 
         if (IsServer)
         {
-            stateMachine = new MonsterStateMachine();
-
-            // 상태 인스턴스 생성 및 저장
-            states = new Dictionary<MonsterStateType, IState>
-            {
-                { MonsterStateType.Patrol, new PatrolState(this) },
-                { MonsterStateType.Detect, new DetectState(this) },
-                { MonsterStateType.Chase, new ChaseState(this) },
-                { MonsterStateType.Search, new SearchState(this) },
-                { MonsterStateType.Attack, new AttackState(this) },
-                { MonsterStateType.InteractDoor, new InteractDoorState(this) }
-            };
-
-            ChangeState(MonsterStateType.Patrol); // 시작 상태
+            ChangeState(MonsterStateType.Patrol); // 초기 상태 설정
         }
-        // 클라이언트에서 상태가 변했을 때 애니메이션/이펙트를 동기화하기 위한 콜백 연결
-        //CurrentStateNet.OnValueChanged += OnStateChangedCallback;
+        else
+        {
+            ApplyStateLocal(CurrentStateNet.Value); // 클라이언트 초기 싱크
+        }
     }
 
     public override void OnNetworkDespawn()
     {
-        //CurrentStateNet.OnValueChanged -= OnStateChangedCallback;
+        // 이벤트 구독 해제 (메모리 누수 방지)
+        CurrentStateNet.OnValueChanged -= OnStateChangedCallback;
+        IsFrozenNet.OnValueChanged -= OnFrozenNetworkChanged;
     }
 
     private void Update()
     {
+        // [서버 전용 로직] 기믹 체크 및 스턴 관리
+        if (IsServer)
+        {
+            HandleGimmickAndFrozenLogic();
+        }
+
+        // 빙결 상태라면 이후 AI 로직(FSM) 업데이트 중단
+        if (IsFrozenNet.Value) return;
+
+        // FSM 업데이트
+        stateMachine?.Update();
+
+        // 애니메이션 속도 업데이트 (서버/클라이언트 공통 시각적 효과)
+        if (navAgent != null && animHandler != null)
+        {
+            animHandler.SetSpeed(navAgent.velocity.magnitude);
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        if (!IsServer || IsFrozenNet.Value) return;
+        stateMachine?.FixedUpdate();
+    }
+
+    /// <summary>
+    /// 서버에서 몬스터의 상태를 변경하고 모든 클라이언트에게 전파합니다.
+    /// </summary>
+    public void ChangeState(MonsterStateType newState)
+    {
+        if (!IsServer) return;
+        if (CurrentStateNet.Value == newState) return;
+
+        // NetworkVariable 변경 시 OnStateChangedCallback이 모든 유저에게 호출됨
+        CurrentStateNet.Value = newState;
+    }
+
+    // --- 네트워크 콜백 및 내부 동기화 로직 ---
+
+    private void OnStateChangedCallback(MonsterStateType previousValue, MonsterStateType newValue)
+    {
+        PreviousState = previousValue;
+        ApplyStateLocal(newValue);
+        Debug.Log($"[Sync] {gameObject.name} State: {previousValue} -> {newValue}");
+    }
+
+    private void ApplyStateLocal(MonsterStateType newState)
+    {
+        if (states.TryGetValue(newState, out IState stateInstance))
+        {
+            stateMachine.ChangeState(stateInstance);
+        }
+    }
+
+    private void OnFrozenNetworkChanged(bool previous, bool current)
+    {
+        // 애니메이터 속도 조절 (0이면 정지)
         if (_animator != null)
         {
-            _animator.speed = IsFrozenNet.Value ? 0f : 1f;
-        } 
+            _animator.speed = current ? 0f : 1f;
+        }
+    }
 
-        if (!IsServer) return;
-
+    /// <summary>
+    /// 외부 기믹(예: 손전등, 특정 아이템)에 의한 빙결 상태를 서버에서 계산합니다.
+    /// </summary>
+    private void HandleGimmickAndFrozenLogic()
+    {
         bool shouldPause = false;
         if (OnCheckGimmickPause != null)
         {
@@ -96,11 +192,13 @@ public class MonsterController : NetworkBehaviour
             }
         }
 
+        // 상태가 변할 때만 네트워크 변수 업데이트
         if (IsFrozenNet.Value != shouldPause)
         {
             IsFrozenNet.Value = shouldPause;
         }
 
+        // 물리적 정지 처리
         if (shouldPause)
         {
             if (!navAgent.isStopped)
@@ -108,107 +206,50 @@ public class MonsterController : NetworkBehaviour
                 navAgent.isStopped = true;
                 navAgent.velocity = Vector3.zero;
             }
-            return;
         }
         else
         {
             if (navAgent.isStopped) navAgent.isStopped = false;
         }
-
-        stateMachine?.Update();
-
-        if (navAgent != null && animHandler != null)
-        {
-            animHandler.SetSpeed(navAgent.velocity.magnitude);
-        }
     }
 
-    private void FixedUpdate()
-    {
-        if (!IsServer) return;
-        stateMachine?.FixedUpdate();
-
-        // 클라이언트를 위한 데이터 동기화 (최적화를 위해 변화가 있을 때만 처리 가능)
-        // 예: animHandler.UpdateParams(navAgent.velocity.magnitude, Alertness.Value);
-    }
-
-    public void ChangeState(MonsterStateType newState)
-    {
-        if (!IsServer) return;
-        if (CurrentStateNet.Value == newState) return;
-
-        PreviousState = CurrentStateNet.Value;
-        CurrentStateNet.Value = newState;                // 모든 클라이언트에게 상태 동기화
-
-        if (states.TryGetValue(newState, out IState stateInstance))
-        {
-            stateMachine.ChangeState(stateInstance);     // 실제 서버 상태 변경
-        }
-    }
-
-    // 상태 변경 시 클라이언트와 서버 모두 호출되는 이벤트
-    //private void OnStateChangedCallback(MonsterStateType previousValue, MonsterStateType newValue)
-    //{
-    //    // 예: 수색 상태 진입 시 클라이언트에서도 기괴한 사운드 재생, 애니메이션 플래그 세팅 등
-    //    // animHandler를 여기서 제어하여 네트워크 대역폭(RPC)을 절약할 수 있습니다.
-    //    Debug.Log($"[네트워크 동기화] 몬스터 상태 변경: {previousValue} -> {newValue}");
-    //}
+    // --- 헬퍼 및 전투 함수 ---
 
     public bool IsInSafeZone(GameObject obj)
     {
-        // 레이어 체크 또는 트리거 체크 로직
         return (1 << obj.layer & LayerMask.GetMask("SafeZone")) != 0;
     }
 
     public void ExecuteAttackDamage()
     {
-        // 현재 상태가 AttackState인지 확인
         if (stateMachine.CurrentState is AttackState attackState)
         {
             attackState.ApplyDamageToTarget();
         }
     }
 
-    // 문 감지 함수
-    //public bool CheckAndHandleDoor()
-    //{
-    //    RaycastHit hit;
-    //    Vector3 rayStart = transform.position + Vector3.up * 1.5f;
-
-    //    // 레이 길이 2.5m (문 근처에 도달했을 때 감지)
-    //    if (Physics.Raycast(rayStart, transform.forward, out hit, 2.5f))
-    //    {
-    //        // 레이어 이름이 "Door"인 경우
-    //        if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Door"))
-    //        {
-    //            DoorController door = hit.collider.GetComponentInParent<DoorController>();
-    //            if (door != null && !door.isOpen)
-    //            {
-    //                this.TargetDoor = door;
-    //                ChangeState(MonsterStateType.InteractDoor);
-    //                return true; // 문을 발견해서 상태를 전환
-    //            }
-    //        }
-    //    }
-    //    return false;
-    //}
-
+    /// <summary>
+    /// 주변의 문을 탐색하고 상호작용 상태로 전환합니다. 
+    /// </summary>
     public bool CheckAndHandleDoor()
     {
-        // 몬스터의 중심 위치 (살짝 앞)
+        if (!IsServer) return false;
+
         Vector3 checkPos = transform.position + (Vector3.up * 1.0f);
         int doorLayerMask = 1 << LayerMask.NameToLayer("Door");
 
-        Collider[] hitColliders = Physics.OverlapSphere(checkPos, 0.8f, doorLayerMask);
+        int hitCount = Physics.OverlapSphereNonAlloc(checkPos, 1.2f, doorHitColliders, doorLayerMask);
 
-        foreach (var hit in hitColliders)
+        for (int i = 0; i < hitCount; i++)
         {
+            var hit = doorHitColliders[i];
             DoorController door = hit.GetComponentInParent<DoorController>();
+
             if (door != null && !door.isOpen)
             {
-                // 문이 내 뒤에 있는 게 아니라면(옆이나 앞이라면) 무조건 상호작용
                 Vector3 dirToDoor = (hit.bounds.center - transform.position).normalized;
-                if (Vector3.Dot(transform.forward, dirToDoor) > -0.2f) // 거의 180도 이상 감지
+                // 문이 전방 180도 내에 있다면 상호작용 시도
+                if (Vector3.Dot(transform.forward, dirToDoor) > -0.2f)
                 {
                     this.TargetDoor = door;
                     ChangeState(MonsterStateType.InteractDoor);

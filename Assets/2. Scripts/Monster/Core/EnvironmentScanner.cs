@@ -77,7 +77,7 @@ public class EnvironmentScanner : MonoBehaviour
                 if (CurrentTarget != null && player.transform == CurrentTarget)
                 {
                     // 시야에서 사라졌어도 1.5초간은 잔상을 기억하여 끝까지 쫓아감
-                    if (Time.time - timeLastSeen <= 1.5f)
+                    if (Time.time - timeLastSeen <= data.visionMemoryTime)
                     {
                         hasLOS = true;
                         isRemembered = true;
