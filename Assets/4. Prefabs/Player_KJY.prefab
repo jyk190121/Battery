@@ -2942,7 +2942,7 @@ MonoBehaviour:
   UseHalfFloatPrecision: 0
   InLocalSpace: 0
   SwitchTransformSpaceWhenParented: 0
-  Interpolate: 1
+  Interpolate: 0
   SlerpPosition: 0
 --- !u!114 &8091833355368807864
 MonoBehaviour:
@@ -2958,9 +2958,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.Components.NetworkRigidbody
   ShowTopMostFoldoutHeaderGroup: 1
   NetworkRigidbodyBaseExpanded: 0
-  UseRigidBodyForMotion: 0
+  UseRigidBodyForMotion: 1
   AutoUpdateKinematicState: 1
-  AutoSetKinematicOnDespawn: 1
+  AutoSetKinematicOnDespawn: 0
 --- !u!114 &8808567715922933914
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3120,8 +3120,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   ShowTopMostFoldoutHeaderGroup: 1
   _playerData: {fileID: 11400000, guid: 51fe10672196c0c4daf37fc48f14bb9a, type: 2}
-  CurrentHp:
-    m_InternalValue: 0
 --- !u!114 &-8743619242891834833
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3135,10 +3133,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerUIManager
   ShowTopMostFoldoutHeaderGroup: 1
-  PlayerHpImage: {fileID: 0}
+  playerHpImage: {fileID: 0}
   vignetteImage: {fileID: 0}
-  staminaBarImage: {fileID: 0}
   breathAudio: {fileID: 0}
+  vignetteMaxScale: 3
+  vignetteMinScale: 1
 --- !u!1 &5047510916941267613
 GameObject:
   m_ObjectHideFlags: 0
