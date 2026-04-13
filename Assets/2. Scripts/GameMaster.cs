@@ -20,7 +20,7 @@ public class GameMaster : NetworkBehaviour
 
     private void Awake()
     {
-        if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
+        if (Instance == null) { Instance = this; }
         else Destroy(gameObject);
 
         if(economyManager == null) economyManager = GetComponent<EconomyManager>();
