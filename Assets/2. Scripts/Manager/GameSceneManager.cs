@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
+using Unity.Netcode.Components;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -12,6 +13,9 @@ public class GameSceneManager : NetworkBehaviour
 
     [Header("설정")]
     public string playerPrefabName = "Player_KJY";              // 사용할 플레이어 프리팹 이름
+    public string spawnPointName = "PlayerSpawnZone";           // Lobby Scene
+
+    Transform[] spawnPoints;                                    // 씬에서 찾은 스폰포인트들 저장
 
     private void Awake()
     {
@@ -26,16 +30,6 @@ public class GameSceneManager : NetworkBehaviour
             Destroy(gameObject);                                // 중복 생성된 객체는 제거
         }
     }
-
-
-    //public override void OnNetworkSpawn()
-    //{
-    //    // 서버(호스트)에서만 씬 로드 완료 이벤트를 감시합니다.
-    //    if (IsServer)
-    //    {
-    //        NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnAllClientsLoaded;
-    //    }
-    //}
     public override void OnNetworkSpawn()
     {
         if (IsServer)
@@ -126,53 +120,12 @@ public class GameSceneManager : NetworkBehaviour
 
     void SpawnPlayerAtPosition(ulong clientId)
     {
-        //// 서버가 해당 클라이언트를 위해 플레이어 생성
-        //// 만약 NetworkManager에 PlayerPrefab이 등록되어 있다면:
-        //NetworkManager.Singleton.GetNetworkPrefabOverride(NetworkManager.Singleton.NetworkConfig.PlayerPrefab);
-
-        //// 로딩 완료 후 해당 위치로 '텔레포트' 시키는 방식이 가장 에러가 적습니다.
-
-        //if (!IsServer) return;
-
-        //// 1. 이미 스폰된 플레이어 객체가 있는지 확인
-        //var client = NetworkManager.Singleton.ConnectedClients[clientId];
-        //GameObject playerObj = client.PlayerObject != null ? client.PlayerObject.gameObject : null;
-
-        //// 정해진 스폰 위치
-        //Vector3 spawnPos = new Vector3(40.14f, 0.66f, 67.41f);
-        //Quaternion spawnRot = Quaternion.identity;
-
-        //// 2. 만약 플레이어 오브젝트가 없다면 새로 생성 (수동 스폰)
-        //if (playerObj == null)
-        //{
-        //    // NetworkManager에 등록된 기본 플레이어 프리팹을 가져와서 서버에서 생성
-        //    playerObj = Instantiate(NetworkManager.Singleton.NetworkConfig.PlayerPrefab, spawnPos, spawnRot);
-
-        //    // 중요: 네트워크 상에 해당 클라이언트 소유로 스폰함을 선언
-        //    var networkObj = playerObj.GetComponent<NetworkObject>();
-        //    networkObj.SpawnAsPlayerObject(clientId);
-
-        //    Debug.Log($"[GameSceneManager] {clientId}번 클라이언트 플레이어 신규 생성 완료");
-        //}
-        //else
-        //{
-        //    // 3. 이미 플레이어 객체가 있다면 해당 위치로 텔레포트
-        //    // NetworkTransform이 붙어있다면 서버에서 위치만 바꿔주면 동기화됩니다.
-        //    playerObj.transform.position = spawnPos;
-        //    playerObj.transform.rotation = spawnRot;
-
-        //    Debug.Log($"[GameSceneManager] {clientId}번 클라이언트 플레이어 위치 재설정 완료");
-        //}
-
         if (!IsServer) return;
 
         // 1. 이미 이 클라이언트를 위한 플레이어 객체가 있는지 확인 (중복 스폰 방지)
         var clientData = NetworkManager.Singleton.ConnectedClients[clientId];
-        if (clientData.PlayerObject != null)
-        {
-            Debug.Log($"[GameSceneManager] 클라이언트 {clientId}는 이미 플레이어 객체가 존재합니다.");
-            return;
-        }
+
+        if (clientData.PlayerObject != null) return;
 
         // 2. 이름으로 프리팹 찾기
         var networkPrefab = NetworkManager.Singleton.NetworkConfig.Prefabs.Prefabs
@@ -185,17 +138,58 @@ public class GameSceneManager : NetworkBehaviour
         }
 
         // 3. 스폰 위치 설정 (동일 위치면 겹치므로 필요시 약간의 오프셋을 줄 수 있습니다)
-        Vector3 spawnPos = new Vector3(100f, 1f, 135f);
-        Quaternion spawnRot = Quaternion.identity;
 
-        // 4. 서버에서 인스턴스화 및 네트워크 스폰
-        GameObject playerObj = Instantiate(networkPrefab.Prefab, spawnPos, spawnRot);
-        var networkObj = playerObj.GetComponent<NetworkObject>();
+        // 스폰 포인트 정보 갱신 (없을 경우에만)
+        if (spawnPoints == null || spawnPoints.Length == 0) UpdateSpawnPoints();
+
+        int spawnIndex = 0;
+        for (int i = 0; i < NetworkManager.Singleton.ConnectedClientsList.Count; i++)
+        {
+            if (NetworkManager.Singleton.ConnectedClientsList[i] == clientData)
+            {
+                spawnIndex = i;
+                break;
+            }
+        }
+
+        if (spawnPoints != null && spawnPoints.Length > 0)
+        {
+            // 포인트 개수보다 플레이어가 많으면 처음부터 순환 (Index % Length)
+            Transform targetPoint = spawnPoints[spawnIndex % spawnPoints.Length];
+            Vector3 spawnPos = targetPoint.position;
+            Quaternion spawnRot = targetPoint.rotation;
+
+            GameObject playerObj = Instantiate(networkPrefab.Prefab, spawnPos, spawnRot);
+            var networkObj = playerObj.GetComponent<NetworkObject>();
+            networkObj.SpawnAsPlayerObject(clientId);
+
+            if(spawnIndex == 0 || spawnIndex == 2)
+            {
+                playerObj.transform.rotation = Quaternion.Euler(0, 180f, 0);
+
+                //var nt = networkObj.GetComponent<NetworkTransform>();
+                //if (nt != null) nt.Teleport(spawnPos, Quaternion.Euler(0, 180f, 0), playerObj.transform.localScale);
+            }
+
+        }
+        else
+        {
+            // 예외 상황: 스폰 포인트가 없을 때 기본 위치 생성
+            GameObject playerObj = Instantiate(networkPrefab.Prefab, new Vector3(0, 1, 0), Quaternion.identity);
+            playerObj.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
+        }
+
+        //Vector3 spawnPos = new Vector3(100f, 1f, 135f);
+        //Quaternion spawnRot = Quaternion.identity;
+
+        //// 4. 서버에서 인스턴스화 및 네트워크 스폰
+        //GameObject playerObj = Instantiate(networkPrefab.Prefab, spawnPos, spawnRot);
+        //var networkObj = playerObj.GetComponent<NetworkObject>();
 
         // 중요: 이 함수를 통해 해당 clientId가 이 객체의 주인임을 선언합니다.
-        networkObj.SpawnAsPlayerObject(clientId);
+        //networkObj.SpawnAsPlayerObject(clientId);
 
-        Debug.Log($"[GameSceneManager] 클라이언트 {clientId} 전용 플레이어 생성 및 스폰 완료");
+        //Debug.Log($"[GameSceneManager] 클라이언트 {clientId} 전용 플레이어 생성 및 스폰 완료");
     }
 
     // 로컬 클라이언트에서 씬 로드가 끝났을 때 실행됨
@@ -211,6 +205,20 @@ public class GameSceneManager : NetworkBehaviour
                 interaction.FindUIElements();
             }
         }
+    }
+
+    void UpdateSpawnPoints()
+    {
+        GameObject playerSpawnArray = GameObject.Find(spawnPointName);
+
+        if (playerSpawnArray != null)
+        {
+            spawnPoints = playerSpawnArray.GetComponentsInChildren<Transform>()
+                .Where(t => t != playerSpawnArray.transform) // 부모 자신은 제외
+                .OrderBy(t => $"Spawn{t.name}")              // 이름순 정렬
+                .ToArray();
+        }
+
     }
 
     // --- 로컬 전용 (필요 시 활용) ---
