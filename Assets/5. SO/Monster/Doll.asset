@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
   patrolSpeed: 3.5
   chaseSpeed: 10
-  viewRange: 12
+  viewRange: 30
   viewAngle: 90
-  hearingRange: 15
+  hearingRange: 35
   visionMemoryTime: 3
   attackDamage: 21
   attackRange: 2
