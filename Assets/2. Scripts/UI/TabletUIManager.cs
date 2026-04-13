@@ -1,57 +1,105 @@
 using UnityEngine;
-using UnityEngine.UI; // Image(게이지바) 사용을 위해 필요
+using UnityEngine.UI;
 using TMPro;
 using Unity.Netcode;
+using UnityEngine.InputSystem;
 
 public class TabletUIManager : MonoBehaviour
 {
+    [Header("UI Parent Panel")]
+    // 중요: 스크립트가 붙은 오브젝트 자체를 끄지 말고, 
+    // 실제 UI 요소들이 담긴 자식 Panel 오브젝트를 여기에 연결하세요.
+    public GameObject tabletUIPanel;
+
     [Header("UI 텍스트 연결")]
-    public TextMeshProUGUI loanLimitText;     // 1. 대출 가능 금액
-    public TextMeshProUGUI weeklyQuotaText;   // 2. 주간 할당량
-    public TextMeshProUGUI dailyMinimumText;  // 3. 일일 할당량
+    public TextMeshProUGUI loanLimitText;
+    public TextMeshProUGUI weeklyQuotaText;
+    public TextMeshProUGUI dailyMinimumText;
 
     [Header("UI 프로그레스 바 연결")]
-    public Image quotaProgressBar;            // 4. 달성 정도 (0.0 ~ 1.0)
-    public TextMeshProUGUI progressPercentText; // (선택) "45%" 같은 텍스트 표시용
+    public Image quotaProgressBar;
+    public TextMeshProUGUI progressPercentText;
+
+    private void Start()
+    {
+        // 처음 시작 시 UI 패널만 숨깁니다. (스크립트는 계속 살아있음)
+        if (tabletUIPanel != null)
+            tabletUIPanel.SetActive(false);
+
+        ResetUI();
+    }
 
     private void Update()
     {
-        // 서버에 연결되지 않았거나 GameMaster가 없으면 UI 갱신 중지
+        // UI가 켜져 있을 때만 ESC 키 체크 및 데이터 갱신
+        if (tabletUIPanel == null || !tabletUIPanel.activeSelf) return;
+
+        RefreshData();
+
+        if (Keyboard.current.escapeKey.wasPressedThisFrame)
+        {
+            CloseTabletUI();
+        }
+    }
+
+    // 외부(PlayerInteraction)에서 호출할 함수
+    public void OpenTabletUI()
+    {
+        if (tabletUIPanel != null)
+        {
+            tabletUIPanel.SetActive(true);
+            RefreshData(); // 켜지는 순간 즉시 데이터 동기화
+
+            // 마우스 커서 활성화 (필요 시)
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+    }
+
+    public void CloseTabletUI()
+    {
+        if (tabletUIPanel != null)
+        {
+            tabletUIPanel.SetActive(false);
+
+            // 마우스 커서 다시 잠금 (필요 시)
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+    }
+
+    private void RefreshData()
+    {
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening || GameMaster.Instance == null)
             return;
 
         var economy = GameMaster.Instance.economyManager;
         var dayCycle = GameMaster.Instance.dayCycleManager;
 
-        // --- 데이터 가져오기 ---
+        if (economy == null || dayCycle == null) return;
+
+        // 데이터 계산 및 할당
         int loanLimit = economy.availableLoanLimit.Value;
         int currentQuota = economy.dynamicWeeklyQuota.Value;
         int dailyMin = economy.GetDailyMinimumRequired(dayCycle.currentDayIndex.Value);
         int repaidAmount = economy.accumulatedRepayment.Value;
 
-        // 1. 대출 가능 금액
-        loanLimitText.text = $"{loanLimit:N0} G"; // N0는 천 단위 콤마(,)를 찍어줍니다.
+        if (loanLimitText != null) loanLimitText.text = $"{loanLimit:N0} G";
+        if (weeklyQuotaText != null) weeklyQuotaText.text = $"{currentQuota:N0} G";
+        if (dailyMinimumText != null) dailyMinimumText.text = $"{dailyMin:N0} G";
 
-        // 2. 주간 할당량
-        weeklyQuotaText.text = $"{currentQuota:N0} G";
-
-        // 3. 일일 할당량 (오늘 당장 못 갚으면 이자 붙는 금액)
-        dailyMinimumText.text = $"{dailyMin:N0} G";
-
-        // 4. 달성 정도 (0.0 ~ 1.0 계산)
-        // 할당량이 0일 때의 0 나누기 오류 방지
         float progressValue = currentQuota > 0 ? (float)repaidAmount / currentQuota : 0f;
 
-        // 게이지 바 채우기 (0.0 ~ 1.0)
-        if (quotaProgressBar != null)
-        {
-            quotaProgressBar.fillAmount = progressValue;
-        }
+        if (quotaProgressBar != null) quotaProgressBar.fillAmount = progressValue;
+        if (progressPercentText != null) progressPercentText.text = $"{(progressValue * 100):F1}%";
+    }
 
-        // 퍼센트 텍스트 업데이트
-        if (progressPercentText != null)
-        {
-            progressPercentText.text = $"{(progressValue * 100):F1}%"; // 45.2% 형태로 출력
-        }
+    private void ResetUI()
+    {
+        if (loanLimitText != null) loanLimitText.text = "0 G";
+        if (weeklyQuotaText != null) weeklyQuotaText.text = "0 G";
+        if (dailyMinimumText != null) dailyMinimumText.text = "0 G";
+        if (progressPercentText != null) progressPercentText.text = "0%";
+        if (quotaProgressBar != null) quotaProgressBar.fillAmount = 0f;
     }
 }

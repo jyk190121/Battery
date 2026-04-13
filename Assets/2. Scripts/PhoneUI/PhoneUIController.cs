@@ -62,6 +62,7 @@ public class PhoneUIController : MonoBehaviour
 
     private void Update()
     {
+        if(GameMaster.Instance == null) return;
         if (Keyboard.current == null) return;
         if (isInputBlocked) return;
 
@@ -75,6 +76,8 @@ public class PhoneUIController : MonoBehaviour
 
             TogglePhone();
         }
+
+        if (!phoneUIParent.activeSelf) return;
 
         if (Keyboard.current.cKey.wasPressedThisFrame)
         {

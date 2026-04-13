@@ -35,6 +35,15 @@ public class GameMaster : NetworkBehaviour
         }
     }
 
+    // 네트워크 방이 닫히거나 연결이 끊기면 스스로 파괴 (좀비 매니저 방지)
+    public override void OnNetworkDespawn()
+    {
+        if (gameObject != null)
+        {
+            Destroy(gameObject);
+        }
+    }
+
     // --- [게임 흐름 제어 (외부에서 호출)] ---
 
     // 0. 게임 시작 시 호출 (서버에서 자동으로)

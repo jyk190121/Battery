@@ -2,6 +2,7 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Unity.Netcode;
 
 public class CameraUI : MonoBehaviour
 {
@@ -27,9 +28,18 @@ public class CameraUI : MonoBehaviour
 
     private void OnEnable()
     {
+        // 1. 내 로컬 플레이어의 카메라만 정확하게 찾아오기 (매우 중요)
+        if (frontCamera == null || backCamera == null || captureCamera == null)
+        {
+            FindLocalPlayerCameras();
+        }
+
         isFrontMode = false;
-        UpdateCameraState();
         WarningPopup.SetActive(false);
+
+        // 카메라 초기 상태 세팅
+        if (captureCamera != null) captureCamera.enabled = false;
+        UpdateCameraState();
 
         if (PhoneUIController.Instance != null)
             PhoneUIController.Instance.OnBackButtonPressed += HandleBack;
@@ -42,6 +52,41 @@ public class CameraUI : MonoBehaviour
 
         if (PhoneUIController.Instance != null)
             PhoneUIController.Instance.OnBackButtonPressed -= HandleBack;
+    }
+
+    // Netcode 환경에서 내 캐릭터(Local Player)의 카메라 그룹만 찾는 함수
+    private void FindLocalPlayerCameras()
+    {
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsConnectedClient)
+        {
+            // 내 로컬 캐릭터 오브젝트 가져오기
+            var localPlayerObj = NetworkManager.Singleton.LocalClient.PlayerObject;
+
+            if (localPlayerObj != null)
+            {
+                // 내 캐릭터 자식들 중에서 CameraConnect 찾기
+                CameraConnect cameraGroup = localPlayerObj.GetComponentInChildren<CameraConnect>();
+
+                if (cameraGroup != null)
+                {
+                    frontCamera = cameraGroup.FrontCamera;
+                    backCamera = cameraGroup.BackCamera;
+                    captureCamera = cameraGroup.CaptureCamera;
+                    Debug.Log("[CameraUI] 로컬 플레이어의 카메라를 성공적으로 연결했습니다.");
+                }
+            }
+        }
+        else
+        {
+            // 서버 연결 전 테스트용 폴백 (에디터 테스트용)
+            CameraConnect cameraGroup = FindAnyObjectByType<CameraConnect>();
+            if (cameraGroup != null)
+            {
+                frontCamera = cameraGroup.FrontCamera;
+                backCamera = cameraGroup.BackCamera;
+                captureCamera = cameraGroup.CaptureCamera;
+            }
+        }
     }
 
     private void Update()
