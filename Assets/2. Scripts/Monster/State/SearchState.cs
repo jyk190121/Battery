@@ -230,4 +230,18 @@ public class SearchState : MonsterBaseState
             Debug.Log($"[Search] 랜덤 수색 구역 확장: {currentRadius}m");
         }
     }
+
+    public override void Exit()
+    {
+        base.Exit();
+
+        owner.animHandler.SetSearching(false);
+
+        if (owner.navAgent != null && owner.navAgent.isOnNavMesh)
+        {
+            owner.navAgent.isStopped = false;
+        }
+
+        isInvestigating = false;
+    }
 }
