@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: BookHead
+  m_Controller: {fileID: 9100000, guid: 6a40c64075e87f44db36c9488e7a93de, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: a86a1585454dc574db9b4500e2763403, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: a86a1585454dc574db9b4500e2763403, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 824e5a49e5f1d6946aa016b758965900, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 824e5a49e5f1d6946aa016b758965900, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 3e87587745525b34ab73456735d92353, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 3e87587745525b34ab73456735d92353, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 9f9ab8b8a74c8c446bc3de19e1aa887a, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 9f9ab8b8a74c8c446bc3de19e1aa887a, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 003e3ec75a059664e85ca20a6d49ee12, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 003e3ec75a059664e85ca20a6d49ee12, type: 2}

@@ -48,20 +48,36 @@ public class InteractDoorState : MonsterBaseState
             return;
         }
 
-        
-        // CanOpenWithoutKey를 활용한 조건 분기
+        // 문을 열 수 있는 상황일 때
         if (owner.TargetDoor.CanOpenWithoutKey)
         {
-            // 1. 잠기지 않은 일반 문일 경우
             owner.TargetDoor.TryOpen("");
-            owner.animHandler.SetSpeed(1f);
-            Debug.Log("문을 열었습니다. 추격 재개");
-            owner.ChangeState(MonsterStateType.Chase);
+
+            // 타겟 유무와 이전 상태에 따른 지능적 상태 전환
+
+            // 1. 현재 시야에 타겟이 확실히 있는 경우 -> 추격 재개
+            if (owner.scanner.CurrentTarget != null)
+            {
+                Debug.Log("<color=cyan>[Door]</color> 문을 열었습니다. 타겟이 보이므로 추격을 재개합니다.");
+                owner.ChangeState(MonsterStateType.Chase);
+            }
+            // 2. 타겟은 없지만, 이전에 수색 중이었다면 -> 수색 계속 (마지막 위치로 이동)
+            else if (owner.PreviousState == MonsterStateType.Search)
+            {
+                Debug.Log("<color=cyan>[Door]</color> 문을 열었습니다. 수색 중이었으므로 수색을 계속합니다.");
+                owner.ChangeState(MonsterStateType.Search);
+            }
+            // 3. 그 외 (순찰 중이었거나 타겟을 완전히 잃은 경우) -> 정찰 복귀
+            else
+            {
+                Debug.Log("<color=cyan>[Door]</color> 문을 열었습니다. 특별한 타겟이 없으므로 정찰로 복귀합니다.");
+                owner.ChangeState(MonsterStateType.Patrol);
+            }
         }
         else
         {
-            // 2. 열쇠가 필요한 잠긴 문일 경우
-            Debug.Log("문이 잠겨있습니다. 추격을 포기하고 수색합니다.");
+            // 열쇠가 필요한 잠긴 문일 경우 -> 추격을 포기하고 주변 수색
+            Debug.Log("<color=orange>[Door]</color> 문이 잠겨있습니다. 추격을 포기하고 주변을 수색합니다.");
             owner.ChangeState(MonsterStateType.Search);
         }
 

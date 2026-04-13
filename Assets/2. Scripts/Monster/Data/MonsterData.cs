@@ -3,6 +3,14 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "NewMonsterData", menuName = "Monster/MonsterData")]
 public class MonsterData : ScriptableObject
 {
+    [Header("Spawn Settings")]
+    [Tooltip("이 몬스터가 스폰될 때 소모하는 스테이지 예산(점수)")]
+    public int spawnCost = 2;
+    [Tooltip("스폰 확률 가중치 (값이 높을수록 자주 등장함)")]
+    public float spawnWeight = 50f;
+    [Tooltip("이 몬스터의 실제 프리팹 (EnemyManager가 생성할 때 사용)")]
+    public GameObject monsterPrefab;
+
     [Header("Movement")]
     public float patrolSpeed = 3.5f;        // 순찰 속도
     public float chaseSpeed = 4.5f;         // 추격 속도
@@ -12,7 +20,7 @@ public class MonsterData : ScriptableObject
     public float viewAngle = 90f;           // 시야 각
     public float hearingRange = 15f;        // 청각 감지 사거리
     [Tooltip("플레이어가 시야에서 사라져도 위치를 기억하고 추적하는 시간 (초)")]
-    public float visionMemoryTime = 1.5f;
+    public float visionMemoryTime = 3f;
 
     [Header("Combat")]
     public float attackDamage = 21f;        // 공격력
@@ -49,4 +57,8 @@ public class MonsterData : ScriptableObject
     public float predictionTime = 1.5f;
     [Tooltip("예측 지점 근처에서 수색할 Waypoint를 찾는 반경")]
     public float searchNodeRadius = 15f;
+
+    [Header("Gimmick Settings")]
+    [Tooltip("코일헤드처럼 특수 기믹이 플레이어 시야를 감지하는 최대 거리")]
+    public float gimmickCheckDistance = 40f;
 }

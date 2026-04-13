@@ -14,7 +14,7 @@ public class SearchState : MonsterBaseState
     private int searchAttemptCount;             // 랜덤 수색 시도 횟수
 
     private Vector3 predictedPosition;          // 플레이어 이동 방향을 토대로 계산된 예측 지점
-    private List<Transform> nearbyWaypoints = new List<Transform>(); // 주변 수색 후보지들
+    private List<Transform> nearbyWaypoints = new List<Transform>(5); // 주변 수색 후보지들
     private int currentWaypointIndex = 0;       // 현재 몇 번째 후보지를 수색 중인지
 
     public SearchState(MonsterController owner) : base(owner) { }
@@ -42,7 +42,6 @@ public class SearchState : MonsterBaseState
         owner.navAgent.speed = data.patrolSpeed; // 수색 시에는 순찰 속도로 이동
         owner.navAgent.isStopped = false;
         owner.animHandler.SetSearching(false);   // 이동 중에는 수색 애니메이션 끔
-        owner.animHandler.SetSpeed(data.patrolSpeed);          // 걷기 애니메이션 활성화
 
         // 3. 지능적 예측 로직 실행
         CalculatePredictedPosition(); // 플레이어가 도망간 예상 지점 계산
@@ -54,7 +53,7 @@ public class SearchState : MonsterBaseState
     }
 
     /// <summary>
-    /// 플레이어의 마지막 이동 속도와 방향을 이용해 미래 위치를 예측 (Extrapolation)
+    /// 플레이어의 마지막 이동 속도와 방향을 이용해 미래 위치를 예측 
     /// </summary>
     private void CalculatePredictedPosition()
     {
@@ -81,12 +80,41 @@ public class SearchState : MonsterBaseState
         nearbyWaypoints.Clear();
         if (owner.waypointManager == null) return;
 
-        // 맵의 전체 Waypoint 중 예측 지점 반경(searchNodeRadius) 내에 있는 것들을 거리순으로 정렬하여 선택
-        nearbyWaypoints = owner.waypointManager.waypoints
-            .Where(w => Vector3.Distance(w.position, predictedPosition) <= data.searchNodeRadius)
-            .OrderBy(w => Vector3.Distance(w.position, predictedPosition))
-            .Take(3) // 너무 많으면 비효율적이므로 상위 3개만 선정
-            .ToList();
+        if (owner.waypointManager == null || owner.waypointManager.waypoints == null) return;
+
+        float radiusSqr = data.searchNodeRadius * data.searchNodeRadius;
+        var allWaypoints = owner.waypointManager.waypoints;
+
+        for (int i = 0; i < allWaypoints.Count; i++)
+        {
+            Transform wp = allWaypoints[i];
+            float distSqr = (wp.position - predictedPosition).sqrMagnitude;
+
+            // 반경 내에 있는 웨이포인트만 필터링
+            if (distSqr <= radiusSqr)
+            {
+                // 상위 3개만 유지하기 위한 삽입 정렬(Insertion Sort) 방식
+                int insertIndex = 0;
+                for (; insertIndex < nearbyWaypoints.Count; insertIndex++)
+                {
+                    float existingDistSqr = (nearbyWaypoints[insertIndex].position - predictedPosition).sqrMagnitude;
+                    if (distSqr < existingDistSqr)
+                    {
+                        break; // 더 가까운 값을 찾으면 해당 위치에 삽입
+                    }
+                }
+
+                // 3개까지만 리스트에 담음
+                if (insertIndex < 3)
+                {
+                    nearbyWaypoints.Insert(insertIndex, wp);
+                    if (nearbyWaypoints.Count > 3)
+                    {
+                        nearbyWaypoints.RemoveAt(3); // 4개가 되면 가장 먼 것을 버림
+                    }
+                }
+            }
+        }
     }
 
     protected override void OnTick()
@@ -101,21 +129,14 @@ public class SearchState : MonsterBaseState
             return;
         }
 
-        // 2. 문 상호작용 체크 (수색 경로 상에 문이 있으면 열기)
-        owner.CheckAndHandleDoor();
-
-        // 3. 전체 수색 시간 초과 시 포기하고 순찰로 복귀
-        totalSearchTimer += currentTickInterval;
-        if (totalSearchTimer >= data.maxSearchDuration)
-        {
-            Debug.Log($"[Search] 수색 시간 초과로 순찰로 복귀합니다.");
-            owner.ChangeState(MonsterStateType.Patrol);
-        }
+        if (owner.CheckAndHandleDoor()) return;
     }
 
     public override void Update()
     {
         base.Update();
+
+        if (owner.CurrentStateNet.Value != MonsterStateType.Search) return;
 
         // [도착 확인 로직]
         // 경로 계산 중이 아니고, 목적지까지의 거리가 정지 거리 이내일 때
@@ -130,6 +151,13 @@ public class SearchState : MonsterBaseState
                 HandleInvestigation(); // 조사 중 타이머 체크
             }
         }
+
+        totalSearchTimer += Time.deltaTime;
+        if (totalSearchTimer >= data.maxSearchDuration)
+        {
+            owner.ChangeState(MonsterStateType.Patrol);
+            return;
+        }
     }
 
     /// <summary>
@@ -140,7 +168,6 @@ public class SearchState : MonsterBaseState
         isInvestigating = true;
         pauseTimer = 0f;
         owner.navAgent.isStopped = true;  // 제자리에 멈춤
-        //owner.animHandler.SetSpeed(0f);   // 이동 애니메이션 중지
         owner.animHandler.SetSearching(true); // 두리번거리는 애니메이션 실행
     }
 
@@ -184,7 +211,6 @@ public class SearchState : MonsterBaseState
     {
         owner.navAgent.isStopped = false;
         owner.navAgent.SetDestination(pos);
-        owner.animHandler.SetSpeed(data.patrolSpeed);
     }
 
     /// <summary>
@@ -203,5 +229,19 @@ public class SearchState : MonsterBaseState
             MoveToPosition(hit.position);
             Debug.Log($"[Search] 랜덤 수색 구역 확장: {currentRadius}m");
         }
+    }
+
+    public override void Exit()
+    {
+        base.Exit();
+
+        owner.animHandler.SetSearching(false);
+
+        if (owner.navAgent != null && owner.navAgent.isOnNavMesh)
+        {
+            owner.navAgent.isStopped = false;
+        }
+
+        isInvestigating = false;
     }
 }
