@@ -36,7 +36,11 @@ public enum SfxSound
     PHONE_PHOTOMODECHANGE,// 전후면 카메라 전환
     PHONE_PHOTOFULLALERT, // 용량 꽉 찼을 때 팝업 경고음
     PHONE_GALLERYDELETE,  // 우클릭 홀드 중 게이지 차오르는 소리 (지속음)
-    PHONE_GALLERYDELETED  // 삭제 완료 소리
+    PHONE_GALLERYDELETED,  // 삭제 완료 소리
+
+    // 몬스터 관련 사운드
+    // 1. 환경
+    VENT_CREAK            // 환풍구 열리는 소리
 }
 
 public enum BgmSound
@@ -160,6 +164,17 @@ public class SoundManager : MonoBehaviour
     public void StopBgm()
     {
          bgmSource.Stop();
+    }
+
+    // 3D 사운드 재생을 위해 외부에서 오디오 클립만 가져갈 수 있게 
+    public AudioClip GetSfxClip(SfxSound sound)
+    {
+        if (sfxDictionary.TryGetValue(sound, out AudioClip clip))
+        {
+            return clip;
+        }
+        Debug.LogWarning($"SFX Sound {sound} 없음");
+        return null;
     }
 
     #endregion
