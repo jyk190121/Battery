@@ -45,8 +45,12 @@ public class QuestDebugManager : NetworkBehaviour
         // F5: 디버그용 자금 추가
         if (Keyboard.current.f5Key.wasPressedThisFrame)
         {
-            GameSessionManager.Instance.AddMoney(1000);
-            Debug.Log($"<color=green>[DEBUG]</color> 자산 1000원 추가. 현재 잔액: {GameSessionManager.Instance.currentMoney}");
+            // GameMaster를 통해 EconomyManager의 availableLoanLimit을 강제로 올려줍니다.
+            if (GameMaster.Instance != null && GameMaster.Instance.economyManager != null)
+            {
+                GameMaster.Instance.economyManager.availableLoanLimit.Value += 1000;
+                Debug.Log($"<color=green>[DEBUG]</color> 신용 한도 1000 추가! 현재 가용 금액: {GameMaster.Instance.economyManager.availableLoanLimit.Value}");
+            }
         }
     }
 

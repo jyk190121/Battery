@@ -94,4 +94,26 @@ public class QuestManager : NetworkBehaviour
     }
 
     public QuestDataSO GetQuestData(int id) => questDatabase.Find(q => q.questID == id);
+
+
+    public void ResetDailyQuests()
+    {
+        if (!IsServer) return;
+
+        // 서버의 퀘스트 목록 초기화
+        activeQuests.Clear();
+        serverCompletedQuests.Clear();
+
+        Debug.Log("<color=cyan>[Quest]</color> 일일 퀘스트 데이터가 모두 초기화되었습니다.");
+
+        // 클라이언트들의 개인 기록도 비워주기 위해 Rpc 호출
+        ResetLocalQuestsClientRpc();
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void ResetLocalQuestsClientRpc()
+    {
+        // 내(클라이언트)가 오늘 직접 깬 퀘스트 목록 비우기
+        myActuallyDoneQuests.Clear();
+    }
 }

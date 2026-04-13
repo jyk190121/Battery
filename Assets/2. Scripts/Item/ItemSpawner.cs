@@ -5,13 +5,51 @@ using Unity.Netcode;
 public class ItemSpawner : NetworkBehaviour
 {
     public ItemDataSO[] itemDatabase;
-    public int spawnCount = 10;
+
+    [Header("스폰 설정")]
+    public int baseSpawnCount = 10; // 1일차 기본 스폰 개수
+    public int extraSpawnPerDifficulty = 2; // 난이도 1당 추가로 스폰할 개수
 
     [SerializeField] private List<ItemSpawnPoint> areaManagers = new List<ItemSpawnPoint>();
 
-    // 🗑️ Start() 함수와 CheckIsMultiplayer() 함수 완전 삭제 완료
+    // 씬 시작 시: GameMaster 구독
+    public override void OnNetworkSpawn()
+    {
+        if (IsServer)
+        {
+            if (GameMaster.Instance != null)
+            {
+                GameMaster.Instance.OnDayStarted += HandleDayStarted;
+                GameMaster.Instance.StartDay();
+            }
+        }
+    }
 
-    void SpawnRandomItems()
+    // 씬 종료 시: 메모리 누수 및 중복 실행을 막기 위해 반드시 구독 해제
+    public override void OnNetworkDespawn()
+    {
+        if (IsServer)
+        {
+            if (GameMaster.Instance != null)
+            {
+                GameMaster.Instance.OnDayStarted -= HandleDayStarted;
+            }
+        }
+    }
+
+    //아침이 밝으면 GameMaster가 이 함수를 자동으로 실행
+    private void HandleDayStarted(int difficulty)
+    {
+        // 공식: 기본 개수 + (난이도 * 추가 배율)
+        int dynamicSpawnCount = baseSpawnCount + (difficulty * extraSpawnPerDifficulty);
+
+        Debug.Log($"<color=yellow>[Spawner]</color> 아침이 밝았습니다! (난이도: {difficulty}) -> 총 {dynamicSpawnCount}개의 폐지를 스폰합니다.");
+
+        SpawnRandomItems(dynamicSpawnCount);
+    }
+
+    // 목표 개수를 인자로 받도록 수정된 스폰 함수
+    void SpawnRandomItems(int targetSpawnCount)
     {
         if (itemDatabase == null || areaManagers.Count == 0) return;
 
@@ -26,9 +64,9 @@ public class ItemSpawner : NetworkBehaviour
 
         int successCount = 0;
         int attempts = 0;
-        int maxAttempts = spawnCount * 3; // 무한 루프 방지용
+        int maxAttempts = targetSpawnCount * 3; // 무한 루프 방지용
 
-        while (successCount < spawnCount && attempts < maxAttempts)
+        while (successCount < targetSpawnCount && attempts < maxAttempts)
         {
             attempts++;
 
@@ -50,7 +88,7 @@ public class ItemSpawner : NetworkBehaviour
                 successCount++;
             }
         }
-        Debug.Log($"[Spawner] {successCount}개 아이템 스폰 완료. (총 시도 횟수: {attempts})");
+        Debug.Log($"[Spawner] {successCount}/{targetSpawnCount}개 스폰 완료. (시도 횟수: {attempts})");
     }
 
     [ContextMenu("Bake: 모든 지역 관리자 동기화")]
@@ -72,16 +110,6 @@ public class ItemSpawner : NetworkBehaviour
 
     private void HandleNetworkSpawn(GameObject obj)
     {
-        // 💡 [수정됨] 싱글/멀티 구분을 없애고, 무조건 서버(Host) 권한으로만 스폰
         if (IsServer) obj.GetComponent<NetworkObject>()?.Spawn();
-    }
-
-    public override void OnNetworkSpawn()
-    {
-        // 💡 [수정됨] 방장이 방을 생성했을 때 1회 스폰
-        if (IsServer)
-        {
-            SpawnRandomItems();
-        }
     }
 }

@@ -3,13 +3,10 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Netcode;
 
-
-
-
 [RequireComponent(typeof(BoxCollider))]
 public class SettlementZone : NetworkBehaviour
 {
-
+    private bool isTransitioning = false;
     public Transform anchor;
 
     public Transform deliveryDropPoint; // 트럭 외부 (상점템+퀘스트템 스폰 위치)
@@ -19,24 +16,61 @@ public class SettlementZone : NetworkBehaviour
 
     public void ExecuteTransition(PlayerInventory player, string targetScene, bool doSettlement)
     {
-        if (!IsSpawned) return;
-        if (IsServer) PerformTransitionLogic(player, targetScene, doSettlement);
-        else RequestTransitionServerRpc(targetScene, doSettlement);
+        // 이미 이동 중이거나 스폰되지 않았으면 무시 (연타 방지)
+        if (!IsSpawned || isTransitioning) return;
+
+        string cleanedScene = targetScene.Trim();
+        Debug.Log($"<color=cyan><b>[Ship System]</b> 이동 요청 접수 (목적지: {cleanedScene} / 정산여부: {doSettlement})</color>");
+
+        // 자물쇠 잠그기
+        isTransitioning = true;
+
+        if (IsServer)
+        {
+            PerformTransitionLogic(player, cleanedScene, doSettlement);
+        }
+        else
+        {
+            RequestTransitionServerRpc(cleanedScene, doSettlement);
+        }
     }
 
-    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    [Rpc(SendTo.Server)]
     private void RequestTransitionServerRpc(string targetScene, bool doSettlement, RpcParams rpcParams = default)
     {
-        ulong realSenderId = rpcParams.Receive.SenderClientId;
-        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(realSenderId, out var client))
-        {
-            var p = client.PlayerObject.GetComponent<PlayerInventory>();
-            if (p != null) PerformTransitionLogic(p, targetScene, doSettlement);
-        }
+        var clientId = rpcParams.Receive.SenderClientId;
+        var playerObj = NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject;
+        var playerInv = playerObj.GetComponent<PlayerInventory>();
+
+        PerformTransitionLogic(playerInv, targetScene, doSettlement);
     }
 
     private void PerformTransitionLogic(PlayerInventory callerPlayer, string targetScene, bool doSettlement)
     {
+        // ==========================================================
+        // 💡 [절대 방어선] 필수 매니저들이 씬에 제대로 있는지부터 검사합니다!
+        // ==========================================================
+        if (GameSessionManager.Instance == null || QuestManager.Instance == null || GameMaster.Instance == null)
+        {
+            Debug.LogError("<color=red><b>🚨 [치명적 오류] 씬 이동을 위한 필수 매니저가 씬에 없습니다!</b></color>");
+            if (GameSessionManager.Instance == null) Debug.LogError("➡️ 원인: GameSessionManager가 씬에 없음");
+            if (QuestManager.Instance == null) Debug.LogError("➡️ 원인: QuestManager가 씬에 없음");
+            if (GameMaster.Instance == null) Debug.LogError("➡️ 원인: GameMaster가 씬에 없음");
+
+            isTransitioning = false; // 에러가 났으니 다음 번에 다시 누를 수 있게 자물쇠 풀기
+            return; // 💥 튕기기 전에 함수 강제 종료
+        }
+
+        if (GameMaster.Instance.economyManager == null || GameMaster.Instance.dayCycleManager == null)
+        {
+            Debug.LogError("<color=red><b>🚨 GameMaster 하위에 EconomyManager 또는 DayCycleManager가 연결되지 않았습니다!</b></color>");
+            isTransitioning = false;
+            return;
+        }
+
+        // ==========================================================
+        // 여기서부터는 안전이 보장된 상태로 정산 로직이 돌아갑니다.
+        // ==========================================================
         GameSessionManager.Instance.truckItems.Clear();
         GameSessionManager.Instance.playerItems.Clear();
 
@@ -131,19 +165,30 @@ public class SettlementZone : NetworkBehaviour
         {
             if (leftoverItem != null && leftoverItem.NetworkObject != null && leftoverItem.NetworkObject.IsSpawned) leftoverItem.NetworkObject.Despawn();
         }
-
 #if UNITY_EDITOR
         UnityEditor.Selection.activeGameObject = null;
 #endif
 
         if (doSettlement)
         {
-            GameSessionManager.Instance.ProcessFinalSettlement(totalScrapValue, recoveredPhonesCount);
+            int questIncome = QuestManager.Instance.GetCalculatedQuestReward();
+            int finalDailyIncome = totalScrapValue + questIncome;
+
+            int missingPhones = Mathf.Max(0, GameSessionManager.Instance.deadPlayersCount - recoveredPhonesCount);
+            float penaltyMultiplier = 1.0f - (missingPhones * 0.05f);
+            int finalNetIncome = Mathf.RoundToInt(finalDailyIncome * penaltyMultiplier);
+
+            bool isWipedOut = GameSessionManager.Instance.deadPlayersCount >= GameSessionManager.Instance.totalPlayersInSession;
+
+            // 중앙 통제실 보고
+            GameMaster.Instance.EndDay(isWipedOut, finalNetIncome);
+
+            // 퀘스트 초기화
+            QuestManager.Instance.ResetDailyQuests();
         }
-        else
-        {
-            NetworkManager.Singleton.SceneManager.LoadScene(targetScene, UnityEngine.SceneManagement.LoadSceneMode.Single);
-        }
+
+        // 마지막 씬 이동
+        NetworkManager.Singleton.SceneManager.LoadScene(targetScene, UnityEngine.SceneManagement.LoadSceneMode.Single);
     }
 
     private void SaveToTruck(ItemBase item)
@@ -161,7 +206,6 @@ public class SettlementZone : NetworkBehaviour
     {
         if (!IsServer || GameSessionManager.Instance == null) return;
 
-        // 1. 기존 트럭에 보존해둔 장비들 스폰 (트럭 내부 anchor 기준)
         foreach (var d in GameSessionManager.Instance.truckItems)
         {
             ItemBase prefab = GameSessionManager.Instance.GetPrefab(d.itemID);
@@ -171,7 +215,6 @@ public class SettlementZone : NetworkBehaviour
             spawned.GetComponent<NetworkObject>().Spawn();
         }
 
-        // 💡 2. 상점 구매템 + 퀘스트 지급템 스폰 (트럭 외부 deliveryDropPoint 기준)
         if (deliveryDropPoint != null)
         {
             foreach (int itemID in GameSessionManager.Instance.pendingSpawnItemIDs)
@@ -179,7 +222,6 @@ public class SettlementZone : NetworkBehaviour
                 ItemBase prefab = GameSessionManager.Instance.GetPrefab(itemID);
                 if (prefab != null)
                 {
-                    // dropRadius 반경 내에서 겹치지 않게 랜덤하게 흩뿌림
                     Vector2 randomCircle = Random.insideUnitCircle * dropRadius;
                     Vector3 randomOffset = new Vector3(randomCircle.x, 0.5f, randomCircle.y);
 
@@ -193,16 +235,14 @@ public class SettlementZone : NetworkBehaviour
             Debug.LogWarning("[SettlementZone] 택배를 내릴 deliveryDropPoint가 지정되지 않았습니다!");
         }
 
-        // 스폰 완료 후 대기열 비우기
         GameSessionManager.Instance.pendingSpawnItemIDs.Clear();
     }
 
-    //  유니티 에디터에서 배달 구역을 눈으로 볼 수 있게 해주는 기능
     private void OnDrawGizmos()
     {
         if (deliveryDropPoint != null)
         {
-            Gizmos.color = new Color(0, 1, 0, 0.3f); // 반투명한 초록색
+            Gizmos.color = new Color(0, 1, 0, 0.3f);
             Gizmos.DrawSphere(deliveryDropPoint.position, dropRadius);
         }
     }
