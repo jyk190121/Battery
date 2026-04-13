@@ -66,13 +66,20 @@ public class MonsterController : NetworkBehaviour
     private void Update()
     {
         if (!IsServer) return;
-        stateMachine.Update();
+
+        stateMachine?.Update();
+
+        if (navAgent != null && animHandler != null)
+        {
+            float currentPhysicalSpeed = navAgent.velocity.magnitude;
+            animHandler.SetSpeed(currentPhysicalSpeed);
+        }
     }
 
     private void FixedUpdate()
     {
         if (!IsServer) return;
-        stateMachine.FixedUpdate();
+        stateMachine?.FixedUpdate();
 
         // 클라이언트를 위한 데이터 동기화 (최적화를 위해 변화가 있을 때만 처리 가능)
         // 예: animHandler.UpdateParams(navAgent.velocity.magnitude, Alertness.Value);
@@ -82,7 +89,7 @@ public class MonsterController : NetworkBehaviour
     {
         if (!IsServer) return;
         PreviousState = CurrentStateNet.Value;
-        stateMachine.ChangeState(states[newState]);     // 실제 서버 상태 변경
+        stateMachine?.ChangeState(states[newState]);     // 실제 서버 상태 변경
         CurrentStateNet.Value = newState;               // 모든 클라이언트에게 상태 동기화
     }
 
