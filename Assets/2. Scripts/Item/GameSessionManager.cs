@@ -21,55 +21,62 @@ public struct ItemSaveData : INetworkSerializable
     }
 }
 
-public class GameSessionManager : MonoBehaviour
+public class GameSessionManager : NetworkBehaviour
 {
     public static GameSessionManager Instance;
-    public int currentMoney = 0;
 
-    [Header("Save Containers")]
+
+    public int totalPlayersInSession = 4;
+    public int deadPlayersCount = 0;
+
+
     public List<ItemSaveData> truckItems = new List<ItemSaveData>();
     public Dictionary<ulong, List<ItemSaveData>> playerItems = new Dictionary<ulong, List<ItemSaveData>>();
-
-    [Header("Prefab Database")]
     public List<ItemBase> itemPrefabsDB = new List<ItemBase>();
+
+    // 상점 구매템 + 환원 퀘스트 지급템을 담아갈 택배 리스트
+    public List<int> pendingSpawnItemIDs = new List<int>();
 
     private void Awake()
     {
-        if (Instance == null)
+        if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
+        else Destroy(gameObject);
+    }
+
+    // 상점 구매 로직: 내 지갑이 아니라 GameMaster(신용한도)에게 결제 요청
+    public void AddItemToSpawnQueue(int itemID, int price)
+    {
+        if (!IsServer) return;
+
+        // GameMaster를 통해 EconomyManager의 '남은 신용 한도'로 결제가 되는지 확인
+        if (GameMaster.Instance != null && GameMaster.Instance.RequestPurchase(price))
         {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
+            pendingSpawnItemIDs.Add(itemID);
+            Debug.Log($"<color=green>[Shop]</color> {itemID}번 아이템 구매 승인! (스폰 대기열 등록)");
         }
         else
         {
-            Destroy(gameObject);
+            Debug.LogWarning($"<color=red>[Shop]</color> 신용 한도가 부족하여 {itemID}번 아이템을 결제할 수 없습니다.");
         }
     }
 
-    public void AddMoney(int amount)
-    {
-        currentMoney += amount;
-        Debug.Log($"<color=yellow><b>[Money]</b> 정산 완료: +{amount}원 (현재: {currentMoney}원)</color>");
-    }
-
-    // 방이 깨졌을 때 이전 게임의 좀비 데이터를 방지하는 초기화 함수 (필요시 타이틀 화면에서 호출)
+    
+    // 세션 리셋: 돈은 건드리지 않고, 오직 아이템/플레이어 상태만 초기화
     public void ResetSession()
     {
-        currentMoney = 0;
         truckItems.Clear();
         playerItems.Clear();
-        Debug.Log("<b>[Session]</b> 게임 세션 데이터가 초기화되었습니다.");
+        deadPlayersCount = 0;
+        pendingSpawnItemIDs.Clear();
+        Debug.Log("[GameSessionManager] 아이템 및 스폰 데이터 초기화 완료.");
     }
 
     public ItemBase GetPrefab(int id)
     {
         foreach (var item in itemPrefabsDB)
         {
-            if (item == null) continue;
-            if (item.itemData == null) continue;
-            if (item.itemData.itemID == id) return item;
+            if (item != null && item.itemData != null && item.itemData.itemID == id) return item;
         }
-        Debug.LogError($"🚨 [DB 에러] ID {id}번 아이템을 찾을 수 없습니다.");
         return null;
     }
 }
