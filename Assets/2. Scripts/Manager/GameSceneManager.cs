@@ -82,13 +82,13 @@ public class GameSceneManager : NetworkBehaviour
     //        }
     //    }
     //}
-
+    
     private void OnClientConnected(ulong clientId)
     {
         // 현재 로비 씬인 경우에만 즉시 스폰을 시도합니다.
-        if (SceneManager.GetActiveScene().name == "KJY_Lobby")
+        if (SceneManager.GetActiveScene().name == "KJY_Lobby" || SceneManager.GetActiveScene().name == "KJY_Player")
         {
-            Debug.Log($"[GameSceneManager] 클라이언트 {clientId} 접속 감지. 스폰 시도.");
+            Debug.Log($"[GameSceneManager] 클라이언트 {clientId} 접속 감지. 스폰 시도");
             SpawnPlayerAtPosition(clientId);
         }
     }
@@ -96,7 +96,7 @@ public class GameSceneManager : NetworkBehaviour
     {
         if (sceneName == "KJY_Lobby")
         {
-            Debug.Log("[GameSceneManager] 로비 씬 로드 완료. 현재 접속된 모든 인원 스폰 시도.");
+            Debug.Log("[GameSceneManager] 로비 씬 로드 완료. 현재 접속된 모든 인원 스폰 시도");
             foreach (var clientId in clientsCompleted)
             {
                 SpawnPlayerAtPosition(clientId);
