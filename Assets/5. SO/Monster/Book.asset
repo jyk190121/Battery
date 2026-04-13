@@ -12,6 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bbc6e2eecad55246b69d412d02592b9, type: 3}
   m_Name: Book
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
+  spawnCost: 5
+  spawnWeight: 50
+  monsterPrefab: {fileID: 4028298238803213267, guid: 7728c90956fe89247b8f2eaeaa61bd67, type: 3}
   patrolSpeed: 3.5
   chaseSpeed: 4.5
   viewRange: 12
@@ -34,3 +37,4 @@ MonoBehaviour:
   pathUpdateThreshold: 1
   predictionTime: 1.5
   searchNodeRadius: 15
+  gimmickCheckDistance: 40

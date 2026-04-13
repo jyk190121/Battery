@@ -12,6 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bbc6e2eecad55246b69d412d02592b9, type: 3}
   m_Name: Doll
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
+  spawnCost: 5
+  spawnWeight: 50
+  monsterPrefab: {fileID: 852133620718461397, guid: dc12781b9407826418d53477881fc9e2, type: 3}
   patrolSpeed: 3.5
   chaseSpeed: 10
   viewRange: 30

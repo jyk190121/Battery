@@ -104,9 +104,16 @@ public class MonsterController : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
+        if (IsServer && EnemyManager.Instance != null)
+        {
+            EnemyManager.Instance.UnregisterEnemy(this.monsterData.spawnCost);
+        }
+
         // 이벤트 구독 해제 (메모리 누수 방지)
         CurrentStateNet.OnValueChanged -= OnStateChangedCallback;
         IsFrozenNet.OnValueChanged -= OnFrozenNetworkChanged;
+
+        base.OnNetworkDespawn();
     }
 
     private void Update()

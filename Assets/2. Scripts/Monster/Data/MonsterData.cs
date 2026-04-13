@@ -3,6 +3,14 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "NewMonsterData", menuName = "Monster/MonsterData")]
 public class MonsterData : ScriptableObject
 {
+    [Header("Spawn Settings")]
+    [Tooltip("이 몬스터가 스폰될 때 소모하는 스테이지 예산(점수)")]
+    public int spawnCost = 2;
+    [Tooltip("스폰 확률 가중치 (값이 높을수록 자주 등장함)")]
+    public float spawnWeight = 50f;
+    [Tooltip("이 몬스터의 실제 프리팹 (EnemyManager가 생성할 때 사용)")]
+    public GameObject monsterPrefab;
+
     [Header("Movement")]
     public float patrolSpeed = 3.5f;        // 순찰 속도
     public float chaseSpeed = 4.5f;         // 추격 속도
