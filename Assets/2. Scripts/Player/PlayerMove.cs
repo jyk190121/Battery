@@ -49,9 +49,9 @@ public class PlayerMove : NetworkBehaviour
         stateManager = GetComponent<PlayerStateManager>();
 
         currentSpeed = walkSpeed;
-        
+
         // Rigidbody가 멋대로 회전해서 넘어지는 걸 방지
-        rb.freezeRotation = true;
+        //rb.freezeRotation = true;
     }
 
     // Update is called once per frame
@@ -66,7 +66,6 @@ public class PlayerMove : NetworkBehaviour
         inputMagnitude = new Vector2(h, v).magnitude;
 
         CheckGroundStatus();
-        //HandleMovement(h, v);
         HandleActions();
     }
 
@@ -86,49 +85,135 @@ public class PlayerMove : NetworkBehaviour
 
         // 이전프레임 계단 저장 [추가]
         wasOnStair = isOnStair;
-        // 바닥 체크 레이를 조금 더 길게 쏩니다 (내려가는 계단 감지용)
-        float checkDist = groundCheckDistance;
-        // 계단 위일 때는 레이를 2배 길게 쏴서 다음 칸을 미리 찾음
-        if (wasOnStair) checkDist *= 2.0f; 
+        //    // 바닥 체크 레이를 조금 더 길게 쏩니다 (내려가는 계단 감지용)
+        //    float checkDist = groundCheckDistance;
+        //    // 계단 위일 때는 레이를 2배 길게 쏴서 다음 칸을 미리 찾음
+        //    if (wasOnStair) checkDist *= 2.0f; 
 
-        // 캐릭터 발밑으로 레이를 쏘아 바닥인지 확인
-        // CapsuleCollider를 사용 중이라면 위치 보정이 필요할 수 있습니다.
-        //isGrounded = Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, groundCheckDistance, groundLayer);
-        isGrounded = Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, out hit, groundCheckDistance, groundLayer);
+        //    // 캐릭터 발밑으로 레이를 쏘아 바닥인지 확인
+        //    // CapsuleCollider를 사용 중이라면 위치 보정이 필요할 수 있습니다.
+        //    //isGrounded = Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, groundCheckDistance, groundLayer);
+        //    isGrounded = Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, out hit, groundCheckDistance, groundLayer);
 
-        // 애니메이터에 바닥 상태 전달 (Landing 애니메이션 전환용)
-        //anim.SetBool("IsGrounded", isGrounded);
+        //    // 애니메이터에 바닥 상태 전달 (Landing 애니메이션 전환용)
+        //    //anim.SetBool("IsGrounded", isGrounded);
 
-        //playerAnim.UpdateGroundStatus(isGrounded);
+        //    //playerAnim.UpdateGroundStatus(isGrounded);
+
+        //    if (isGrounded)
+        //    {
+        //        isOnStair = (stairLayer.value & (1 << hit.collider.gameObject.layer)) > 0;
+
+        //        // 이전에 계단이 아니었으나 지금 계단이라면 [추가]
+        //        // 올라가는 순간 보정 (진입 시)
+        //        if (isOnStair && !wasOnStair)
+        //        {
+        //            transform.position += Vector3.up * stairStepUpForce;
+        //        }
+
+        //        // 내려가는 중 보정
+        //        // 계단 위에서 이동 중일 때, 캐릭터가 공중에 뜨지 않게 아래로 밀어줌
+        //        if (isOnStair && inputMagnitude > 0.1f)
+        //        {
+        //            // 리지드바디에 아래 방향으로 지속적인 힘을 가함 (Velocity 조절)
+        //            rb.linearVelocity = new Vector3(rb.linearVelocity.x, -stairDownForce, rb.linearVelocity.z);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        isOnStair = false;
+        //    }
+
+        //    // 애니메이터에 상태 전달
+        //    playerAnim.UpdateGroundStatus(isGrounded);
+        //    playerAnim.UpdateStairStatus(isOnStair);
+        //}
+        //void HandleMovement(float h, float v)
+        //{
+        //    if (isCrouching)
+        //    {
+        //        playerAnim.UpdateMoveAnimation(0f);
+        //        return;
+        //    }
+
+
+        //    if (inputMagnitude > 0.1f && !isCrouching)
+        //    {
+        //        //playerAnim.UpdateStairStatus(isOnStair);
+
+        //        // 계단 이용 시 0.8배율로 속도 감소
+        //        float moveSpeedMultiplier = isOnStair ? 0.8f : 1.0f;
+
+        //        // 스테미너 값에 따른 달리기 여부
+        //        bool canRun = Keyboard.current.leftShiftKey.isPressed && isGrounded && !stateManager.IsExhausted;
+
+        //        // 이동 중일 때만 쉬프트 체크
+        //        if (canRun)
+        //        {
+        //            currentSpeed = runSpeed * moveSpeedMultiplier;
+        //            playerAnim.UpdateMoveAnimation(2.0f);
+        //            //currentSpeed = runSpeed;
+        //            //anim.SetFloat("Speed", 2.0f, 0.05f, Time.deltaTime); // 아주 약간의 댐핑을 주면 더 부드럽습니다.
+        //            //playerAnim.UpdateMoveAnimation(2.0f);
+        //        }
+        //        else if(isGrounded)
+        //        {
+        //            currentSpeed = walkSpeed * moveSpeedMultiplier;
+        //            //anim.SetFloat("Speed", 1.0f, 0.05f, Time.deltaTime);
+        //            playerAnim.UpdateMoveAnimation(1.0f);
+        //        }
+        //        Move(h, v);
+        //    }
+        //    else
+        //    {
+        //        //anim.SetFloat("Speed", 0f, 0.05f, Time.deltaTime);
+        //        playerAnim.UpdateMoveAnimation(0f);
+        //        playerAnim.UpdateStairStatus(false);
+        //    }
+        float rayDistance = 0.1f + groundCheckDistance;
+        if (wasOnStair) rayDistance *= 1.5f;
+
+        isGrounded = Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, out hit, rayDistance, groundLayer | stairLayer);
 
         if (isGrounded)
         {
-            isOnStair = (stairLayer.value & (1 << hit.collider.gameObject.layer)) > 0;
+            isOnStair = ((1 << hit.collider.gameObject.layer) & stairLayer) != 0;
 
-            // 이전에 계단이 아니었으나 지금 계단이라면 [추가]
-            // 올라가는 순간 보정 (진입 시)
+            // [계단 진입 보정]
             if (isOnStair && !wasOnStair)
             {
-                transform.position += Vector3.up * stairStepUpForce;
+                rb.position += Vector3.up * stairStepUpForce;
             }
 
-            // 내려가는 중 보정
-            // 계단 위에서 이동 중일 때, 캐릭터가 공중에 뜨지 않게 아래로 밀어줌
+            // [핵심: 미끄럼 방지 및 마찰 로직]
+            // 이동 입력이 없고 계단 위라면 IsKinematic을 켜서 물리 연산을 정지(고정)시킵니다.
+            if (isOnStair && inputMagnitude < 0.1f)
+            {
+                rb.isKinematic = true;
+            }
+            else
+            {
+                // 움직이거나 공중일 때는 다시 물리 연산 활성화
+                rb.isKinematic = false;
+            }
+
+            // 계단 내려갈 때 밀착력
             if (isOnStair && inputMagnitude > 0.1f)
             {
-                // 리지드바디에 아래 방향으로 지속적인 힘을 가함 (Velocity 조절)
                 rb.linearVelocity = new Vector3(rb.linearVelocity.x, -stairDownForce, rb.linearVelocity.z);
             }
         }
         else
         {
             isOnStair = false;
+            rb.isKinematic = false;
         }
 
-        // 애니메이터에 상태 전달
         playerAnim.UpdateGroundStatus(isGrounded);
         playerAnim.UpdateStairStatus(isOnStair);
+
     }
+
     void HandleMovement(float h, float v)
     {
         if (isCrouching)
@@ -137,37 +222,25 @@ public class PlayerMove : NetworkBehaviour
             return;
         }
 
-
         if (inputMagnitude > 0.1f && !isCrouching)
         {
-            //playerAnim.UpdateStairStatus(isOnStair);
-
-            // 계단 이용 시 0.8배율로 속도 감소
             float moveSpeedMultiplier = isOnStair ? 0.8f : 1.0f;
-
-            // 스테미너 값에 따른 달리기 여부
             bool canRun = Keyboard.current.leftShiftKey.isPressed && isGrounded && !stateManager.IsExhausted;
 
-            // 이동 중일 때만 쉬프트 체크
             if (canRun)
             {
                 currentSpeed = runSpeed * moveSpeedMultiplier;
                 playerAnim.UpdateMoveAnimation(2.0f);
-                //currentSpeed = runSpeed;
-                //anim.SetFloat("Speed", 2.0f, 0.05f, Time.deltaTime); // 아주 약간의 댐핑을 주면 더 부드럽습니다.
-                //playerAnim.UpdateMoveAnimation(2.0f);
             }
-            else if(isGrounded)
+            else if (isGrounded)
             {
                 currentSpeed = walkSpeed * moveSpeedMultiplier;
-                //anim.SetFloat("Speed", 1.0f, 0.05f, Time.deltaTime);
                 playerAnim.UpdateMoveAnimation(1.0f);
             }
             Move(h, v);
         }
         else
         {
-            //anim.SetFloat("Speed", 0f, 0.05f, Time.deltaTime);
             playerAnim.UpdateMoveAnimation(0f);
             playerAnim.UpdateStairStatus(false);
         }
@@ -212,39 +285,67 @@ public class PlayerMove : NetworkBehaviour
 
     void Move(float h, float v)
     {
+        //Vector3 moveDir = new Vector3(h, 0, v);
+
+        //if (moveDir.sqrMagnitude > 1f)
+        //{
+        //    moveDir.Normalize();
+        //}
+
+        ////transform.Translate(moveDir * moveSpeed * Time.deltaTime, Space.World);
+        ////transform.Translate(moveDir * moveSpeed * Time.deltaTime, Space.Self);
+
+        ////print(currentSpeed);
+
+        //Vector3 worldMoveDir = transform.TransformDirection(moveDir);
+        //Vector3 targetVelocity = worldMoveDir * currentSpeed;
+
+        //// [개선]
+        //if (isOnStair && inputMagnitude > 0.1f)
+        //{
+        //    RaycastHit hitStep;
+        //    // 레이 높이를 조금 더 세밀하게 조정 (stepHeight의 절반 정도)
+        //    Vector3 rayOrigin = transform.position + Vector3.up * 0.1f;
+
+        //    if (Physics.Raycast(rayOrigin, worldMoveDir, out hitStep, 0.5f, stairLayer))
+        //    {
+        //        // 직접 position을 더하기보다 Y축 속도를 부드럽게 제어
+        //        float smoothY = Mathf.Lerp(rb.linearVelocity.y, stepHeight * currentSpeed, stepSmoothing);
+        //        rb.linearVelocity = new Vector3(rb.linearVelocity.x, smoothY, rb.linearVelocity.z);
+        //    }
+        //}
+
+        ////transform.position += worldMoveDir * currentSpeed * Time.deltaTime;
+        //Vector3 nextPos = rb.position + worldMoveDir * currentSpeed * Time.fixedDeltaTime;
+        //rb.MovePosition(nextPos);
+
         Vector3 moveDir = new Vector3(h, 0, v);
-
-        if (moveDir.sqrMagnitude > 1f)
-        {
-            moveDir.Normalize();
-        }
-
-        //transform.Translate(moveDir * moveSpeed * Time.deltaTime, Space.World);
-        //transform.Translate(moveDir * moveSpeed * Time.deltaTime, Space.Self);
-
-        //print(currentSpeed);
+        if (moveDir.sqrMagnitude > 1f) moveDir.Normalize();
 
         Vector3 worldMoveDir = transform.TransformDirection(moveDir);
-        Vector3 targetVelocity = worldMoveDir * currentSpeed;
 
-        // [개선]
+        // [계단 오르기 보정]
         if (isOnStair && inputMagnitude > 0.1f)
         {
             RaycastHit hitStep;
-            // 레이 높이를 조금 더 세밀하게 조정 (stepHeight의 절반 정도)
             Vector3 rayOrigin = transform.position + Vector3.up * 0.1f;
 
             if (Physics.Raycast(rayOrigin, worldMoveDir, out hitStep, 0.5f, stairLayer))
             {
-                // 직접 position을 더하기보다 Y축 속도를 부드럽게 제어
-                float smoothY = Mathf.Lerp(rb.linearVelocity.y, stepHeight * currentSpeed, stepSmoothing);
+                // 이동 중일 때는 Kinematic을 끄고 Y축 속도를 보정
+                rb.isKinematic = false;
+                float smoothY = Mathf.Lerp(rb.linearVelocity.y, stepHeight * currentSpeed * 2f, stepSmoothing);
                 rb.linearVelocity = new Vector3(rb.linearVelocity.x, smoothY, rb.linearVelocity.z);
             }
         }
 
-        //transform.position += worldMoveDir * currentSpeed * Time.deltaTime;
-        Vector3 nextPos = rb.position + worldMoveDir * currentSpeed * Time.fixedDeltaTime;
-        rb.MovePosition(nextPos);
+        // 이동 실행
+        if (inputMagnitude > 0.1f)
+        {
+            rb.isKinematic = false; // 이동 시작 시 즉시 Kinematic 해제
+            Vector3 nextPos = rb.position + worldMoveDir * currentSpeed * Time.fixedDeltaTime;
+            rb.MovePosition(nextPos);
+        }
     }
 
     // 외부에서 이동 여부를 확인하기 위한 프로퍼티
