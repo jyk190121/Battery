@@ -13,6 +13,7 @@ public class PlayerInteraction : NetworkBehaviour
     PlayerController controller;
     Player data => controller.Data;
     public LayerMask DoorLayer;                         // 문 레이어
+    public LayerMask TabletLayer;                       // 태블릿 레이어
     public GameObject interactUI;                       // UI오브젝트
     TextMeshProUGUI interactText;                       // 텍스트
     public Image progressImage;
@@ -30,6 +31,7 @@ public class PlayerInteraction : NetworkBehaviour
 
     private DoorController targetDoor = null;
     private PortalController targetPortal = null;
+    private TabletUIManager targetTabletUI = null;
 
     public override void OnNetworkSpawn()
     {
@@ -109,6 +111,13 @@ public class PlayerInteraction : NetworkBehaviour
                     targetDoor.TryOpen(testKeyID);
                 }
             }
+            else if(targetTabletUI != null)
+            {
+                if (Keyboard.current.eKey.wasPressedThisFrame)
+                {
+                    targetTabletUI.OpenTabletUI();
+                }
+            }
         }
         else
         {
@@ -129,18 +138,22 @@ public class PlayerInteraction : NetworkBehaviour
 
         RaycastHit hit;
 
-        if (Physics.Raycast(camTransform.position, camTransform.forward, out hit, data.interactDistance, DoorLayer))
+        LayerMask combinedLayer = DoorLayer | TabletLayer;
+
+        if (Physics.Raycast(camTransform.position, camTransform.forward, out hit, data.interactDistance, combinedLayer))
         {
             // 타겟 갱신
             targetDoor = hit.collider.GetComponentInParent<DoorController>();
             targetPortal = hit.collider.GetComponentInParent<PortalController>();
 
-            if (targetDoor != null || targetPortal != null)
+            targetTabletUI = hit.collider.GetComponentInChildren<TabletUIManager>();
+            if (targetTabletUI == null) targetTabletUI = hit.collider.GetComponentInParent<TabletUIManager>();
+
+            if (targetDoor != null || targetPortal != null || targetTabletUI != null)
             {
                 if (!isLookingAtInteractable) interactUI.SetActive(true);
                 isLookingAtInteractable = true;
 
-                // 텍스트 설정
                 if (targetDoor != null)
                 {
                     interactText.text = (targetDoor.isLocked && !targetDoor.isOpen) ? "Locked (E)" : (targetDoor.isOpen ? "Close (E)" : "Open (E)");
@@ -149,15 +162,20 @@ public class PlayerInteraction : NetworkBehaviour
                 {
                     interactText.text = targetPortal.GetInteractText();
                 }
-                return;
+                else if (targetTabletUI != null)
+                {
+                    interactText.text = "Use Tablet (E)";
+                }
+                return; // 찾았으므로 종료
             }
-        }
+        }  
 
         // 아무것도 보지 않을 때
         if (isLookingAtInteractable) interactUI.SetActive(false);
         isLookingAtInteractable = false;
         targetDoor = null;
         targetPortal = null;
+        targetTabletUI = null;
     }
 
     public void FindUIElements()

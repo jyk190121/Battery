@@ -20,7 +20,7 @@ public class GameMaster : NetworkBehaviour
 
     private void Awake()
     {
-        if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
+        if (Instance == null) { Instance = this; }
         else Destroy(gameObject);
 
         if(economyManager == null) economyManager = GetComponent<EconomyManager>();
@@ -32,6 +32,15 @@ public class GameMaster : NetworkBehaviour
         if(IsServer)
         {
             StartNewGame();
+        }
+    }
+
+    // 네트워크 방이 닫히거나 연결이 끊기면 스스로 파괴 (좀비 매니저 방지)
+    public override void OnNetworkDespawn()
+    {
+        if (gameObject != null)
+        {
+            Destroy(gameObject);
         }
     }
 

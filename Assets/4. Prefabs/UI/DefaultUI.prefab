@@ -588,6 +588,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 9110059613720074729}
     m_Modifications:
+    - target: {fileID: 2926232348981535841, guid: dbb05df9cb540f0449d641eefdfc5909, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3309698278608175959, guid: dbb05df9cb540f0449d641eefdfc5909, type: 3}
       propertyPath: m_Name
       value: Phone
