@@ -40,6 +40,13 @@ public class ItemSpawner : NetworkBehaviour
     //아침이 밝으면 GameMaster가 이 함수를 자동으로 실행
     private void HandleDayStarted(int difficulty)
     {
+        RefreshSpawnPoints();
+
+        if (areaManagers.Count == 0)
+        {
+            Debug.LogWarning("[Spawner] 현재 씬에 스폰 지점이 없어 스폰을 건너뜁니다.");
+            return;
+        }
         // 공식: 기본 개수 + (난이도 * 추가 배율)
         int dynamicSpawnCount = baseSpawnCount + (difficulty * extraSpawnPerDifficulty);
 
