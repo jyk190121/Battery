@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,11 @@ public class GameSceneManager : NetworkBehaviour
     public string spawnPointName = "PlayerSpawnZone";           // Lobby Scene
 
     Transform[] spawnPoints;                                    // 씬에서 찾은 스폰포인트들 저장
+
+    // 게임 세션 시작을 알리는 이벤트
+    public event Action OnGameSessionRequest;
+
+    public bool IsSessionInitialized { get; private set; }
 
     private void Awake()
     {
@@ -101,6 +107,7 @@ public class GameSceneManager : NetworkBehaviour
             {
                 SpawnPlayerAtPosition(clientId);
             }
+            RequestStartGameServerRpc();
         }
     }
 
@@ -219,6 +226,20 @@ public class GameSceneManager : NetworkBehaviour
                 .ToArray();
         }
 
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void RequestStartGameServerRpc()
+    {
+        if (!IsServer) return;
+
+        IsSessionInitialized = true;
+        OnGameSessionRequest?.Invoke();
+    }
+
+    public void ResetSessionState()
+    {
+        IsSessionInitialized = false;
     }
 
     // --- 로컬 전용 (필요 시 활용) ---
