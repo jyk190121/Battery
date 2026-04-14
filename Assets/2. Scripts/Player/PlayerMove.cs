@@ -10,6 +10,7 @@ public class PlayerMove : NetworkBehaviour
     [Header("이동 설정")]
     public float walkSpeed = 3.5f;                  // 기본 걷기 속도
     public float runSpeed = 6.0f;                   // 달리기 속도
+    public float crouchSpeed = 1.5f;                // 추가: 앉았을 때 속도
     public float currentSpeed;                      // 현재 적용될 속도
     float inputMagnitude;                           // 실시간 입력
 
@@ -32,8 +33,19 @@ public class PlayerMove : NetworkBehaviour
     public float stepHeight = 0.35f;                 // 올라갈 수 있는 최대 계단 높이
     public float stepSmoothing = 0.1f;               // 올라가는 부드러움 정도
 
+    [Header("콜라이더 설정")]
+    private CapsuleCollider col;
+    bool lastCrouchState = false;
+    private float initialHeight;
+    private Vector3 initialCenter;
+
+    [SerializeField] float crouchHeight = 1.2f; // 앉았을 때 높이 (캐릭터에 맞춰 조절)
+    [SerializeField] Vector3 crouchCenter = new Vector3(0, 0.6f, 0); // 앉았을 때 중심점
+
     // [Header("앉기 체크 설정")]
     bool isCrouching = false;
+
+    public bool IsCrouching => isCrouching;
 
     Rigidbody rb;
     bool isGrounded = false;
@@ -43,6 +55,11 @@ public class PlayerMove : NetworkBehaviour
 
     void Start()
     {
+        col = GetComponent<CapsuleCollider>();
+
+        initialHeight = col.height;
+        initialCenter = col.center;
+
         rb = GetComponent<Rigidbody>();
         //anim = GetComponent<Animator>();
         playerAnim = GetComponent<PlayerAnim>();
@@ -53,7 +70,7 @@ public class PlayerMove : NetworkBehaviour
         // Rigidbody가 멋대로 회전해서 넘어지는 걸 방지
         //rb.freezeRotation = true;
 
-        rb.interpolation = RigidbodyInterpolation.Interpolate;
+        //rb.interpolation = RigidbodyInterpolation.Interpolate;
     }
 
     // Update is called once per frame
@@ -78,6 +95,8 @@ public class PlayerMove : NetworkBehaviour
         // 이동 핸들링을 FixedUpdate로 이동
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
+
+        UpdateCollider();
         HandleMovement(h, v);
     }
 
@@ -216,15 +235,29 @@ public class PlayerMove : NetworkBehaviour
 
     void HandleMovement(float h, float v)
     {
-        if (isCrouching) return;
+        //if (isCrouching) return;
 
         if (inputMagnitude > 0.1f)
         {
             float moveSpeedMultiplier = isOnStair ? 0.85f : 1.0f;
-            bool canRun = Keyboard.current.leftShiftKey.isPressed && isGrounded && !stateManager.IsExhausted;
 
-            currentSpeed = (canRun ? runSpeed : walkSpeed) * moveSpeedMultiplier;
-            playerAnim.UpdateMoveAnimation(canRun ? 2.0f : 1.0f);
+            if (isCrouching)
+            {
+                currentSpeed = crouchSpeed; // 1.5f 적용
+            }
+            else
+            {
+                bool canRun = Keyboard.current.leftShiftKey.isPressed && isGrounded && !stateManager.IsExhausted;
+                currentSpeed = canRun ? runSpeed : walkSpeed;
+            }
+
+            //bool canRun = Keyboard.current.leftShiftKey.isPressed && isGrounded && !stateManager.IsExhausted;
+
+            //currentSpeed = (canRun ? runSpeed : walkSpeed) * moveSpeedMultiplier;
+
+            currentSpeed *= moveSpeedMultiplier;
+            bool isRunning = Keyboard.current.leftShiftKey.isPressed && !isCrouching && isGrounded && !stateManager.IsExhausted;
+            playerAnim.UpdateMoveAnimation(isRunning ? 2.0f : 1.0f);
 
             Move(h, v);
         }
@@ -238,7 +271,11 @@ public class PlayerMove : NetworkBehaviour
     void HandleActions()
     {
         isCrouching = Keyboard.current.leftCtrlKey.isPressed && isGrounded;
-        playerAnim.UpdateCrouchStatus(isCrouching);
+
+        //playerAnim.UpdateCrouchStatus(isCrouching);
+
+       playerAnim.UpdateCrouchStatus(isCrouching);
+
 
         if (isCrouching) return;
 
@@ -349,5 +386,29 @@ public class PlayerMove : NetworkBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawRay(transform.position + Vector3.up * 0.1f, transform.forward * 0.5f);
         Gizmos.DrawRay(transform.position + Vector3.up * stepHeight, transform.forward * 0.6f);
+    }
+
+    void UpdateCollider()
+    {
+        if (isCrouching != lastCrouchState)
+        {
+            if (isCrouching)
+            {
+                col.height = crouchHeight;
+                // 캡슐의 밑면을 발바닥(0)에 맞추는 계산식
+                col.center = new Vector3(initialCenter.x, crouchHeight / 2f, initialCenter.z);
+            }
+            else
+            {
+                col.height = initialHeight;
+                // 서 있을 때도 마찬가지로 높이의 절반을 센터로 잡음
+                col.center = new Vector3(initialCenter.x, initialHeight / 2f, initialCenter.z);
+            }
+
+            lastCrouchState = isCrouching;
+
+            // 보정 후 물리 엔진이 즉시 인지하도록 강제 업데이트
+            rb.WakeUp();
+        }
     }
 }
