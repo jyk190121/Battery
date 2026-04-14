@@ -2934,6 +2934,7 @@ MonoBehaviour:
   walkYPos: 0.1
   runYPos: 0.4
   transitionSpeed: 10
+  crouchYPos: -0.5
 --- !u!114 &1166937674116199471
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2949,6 +2950,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   walkSpeed: 3.5
   runSpeed: 6
+  crouchSpeed: 1.5
   currentSpeed: 0
   jumpForce: 5
   groundLayer:
@@ -2962,6 +2964,8 @@ MonoBehaviour:
   stairDownForce: 0.1
   stepHeight: 0.35
   stepSmoothing: 0.1
+  crouchHeight: 1.2
+  crouchCenter: {x: 0, y: 0.6, z: 0}
 --- !u!54 &8234240459708401988
 Rigidbody:
   m_ObjectHideFlags: 0
