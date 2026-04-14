@@ -23,8 +23,10 @@ public struct ItemSaveData : INetworkSerializable
 
 public class GameSessionManager : NetworkBehaviour
 {
+    private bool isStartingGame = false;
 
-     private void Start()
+
+    private void Start()
     {
         NetworkObject.Spawn(this);
     }
@@ -70,6 +72,7 @@ public class GameSessionManager : NetworkBehaviour
     // 세션 리셋: 돈은 건드리지 않고, 오직 아이템/플레이어 상태만 초기화
     public void ResetSession()
     {
+        isStartingGame = false; // 다음 판을 위해 자물쇠 초기화
         truckItems.Clear();
         playerItems.Clear();
         deadPlayersCount = 0;
@@ -86,10 +89,10 @@ public class GameSessionManager : NetworkBehaviour
         return null;
     }
 
-    [ServerRpc(RequireOwnership = false)] // 💡 누구나 호출할 수 있게 설정
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)] // 누구나 호출할 수 있게 설정
     public void RequestStartGameServerRpc(string sceneName)
     {
-        if (!IsServer) return;
+        if(!IsServer || isStartingGame) return; // 자물쇠가 잠겼으면 무시
 
         Debug.Log($"<color=yellow>[GameSessionManager]</color> 서버에서 시작 시퀀스 가동: {sceneName}");
 
