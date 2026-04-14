@@ -104,56 +104,56 @@ public class PlayerUIManager : NetworkBehaviour
     {
         if (stateManager == null || playerHpImage == null) return;
 
-        //float r = 0f;
-        //float g = 0f;
-        //float b = 0f;
-        //float a = 1f; // 알파는 항상 100% (보이게)
+        float r = 0f;
+        float g = 0f;
+        float b = 0f;
+        float a = 1f; // 알파는 항상 100% (보이게)
 
-        //// Unity의 Color는 0~255가 아닌 0.0 ~ 1.0f를 사용합니다.
-        //if (hp >= 50f)
-        //{
-        //    // 50 ~ 100 구간: G가 0에서 1(255)로 점점 증가
-        //    g = (hp - 50f) / 50f;
-        //    r = 0f;
-        //}
-        //else
-        //{
-        //    // 0 ~ 49 구간: R이 서서히 증가
-        //    // R이 100(%)으로 색이 변한다고 하셨으므로 최대 1.0f(255)로 맵핑했습니다.
-        //    // (만약 유니티의 0~255 수치 중 진짜 "100"을 의미하신 거라면 r = ((50f - hp) / 50f) * (100f/255f); 로 수정하시면 됩니다.)
-        //    r = (50f - hp) / 50f;
-        //    g = 0f;
-        //}
-
-        //playerHpImage.color = new Color(r, g, b, a);
-
-        hp = stateManager.currentHealth.Value;
-        Color healthColor;
-
-        // --- 기획 수치 반영 로직 ---
-        if (hp >= 100f)
+        // Unity의 Color는 0~255가 아닌 0.0 ~ 1.0f를 사용합니다.
+        if (hp >= 50f)
         {
-            healthColor = Color.white; // 양호
-        }
-        else if (hp >= 51f)
-        {
-            healthColor = Color.yellow; // 경상
-        }
-        else if (hp >= 21f)
-        {
-            healthColor = new Color(1f, 0.5f, 0f); // 중상 (주황색 직접 정의)
-        }
-        else if (hp >= 1f)
-        {
-            healthColor = Color.red; // 위험
+            // 50 ~ 100 구간: G가 0에서 1(255)로 점점 증가
+            g = (hp - 50f) / 50f;
+            r = 0f;
         }
         else
         {
-            healthColor = Color.gray; // 사망 시 (선택 사항)
+            // 0 ~ 49 구간: R이 서서히 증가
+            // R이 100(%)으로 색이 변한다고 하셨으므로 최대 1.0f(255)로 맵핑했습니다.
+            // (만약 유니티의 0~255 수치 중 진짜 "100"을 의미하신 거라면 r = ((50f - hp) / 50f) * (100f/255f); 로 수정하시면 됩니다.)
+            r = (50f - hp) / 50f;
+            g = 0f;
         }
 
-        // 실제 이미지 색상 변경
-        playerHpImage.color = healthColor;
+        playerHpImage.color = new Color(r, g, b, a);
+
+        //hp = stateManager.currentHealth.Value;
+        //Color healthColor;
+
+        //// --- 기획 수치 반영 로직 ---
+        //if (hp >= 100f)
+        //{
+        //    healthColor = Color.white; // 양호
+        //}
+        //else if (hp >= 51f)
+        //{
+        //    healthColor = Color.yellow; // 경상
+        //}
+        //else if (hp >= 21f)
+        //{
+        //    healthColor = new Color(1f, 0.5f, 0f); // 중상 (주황색 직접 정의)
+        //}
+        //else if (hp >= 1f)
+        //{
+        //    healthColor = Color.red; // 위험
+        //}
+        //else
+        //{
+        //    healthColor = Color.gray; // 사망 시 (선택 사항)
+        //}
+
+        //// 실제 이미지 색상 변경
+        //playerHpImage.color = healthColor;
     }
 
     // --- 스태미나 관련 (매 프레임 실행되어 자연스럽게 조여옴) ---
