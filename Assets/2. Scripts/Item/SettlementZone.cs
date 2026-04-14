@@ -58,6 +58,7 @@ public class SettlementZone : NetworkBehaviour
             if (GameMaster.Instance == null) Debug.LogError("➡️ 원인: GameMaster가 씬에 없음");
 
             isTransitioning = false; // 에러가 났으니 다음 번에 다시 누를 수 있게 자물쇠 풀기
+            return; //  튕기기 전에 함수 강제 종료
         }
 
         if (GameMaster.Instance.economyManager == null || GameMaster.Instance.dayCycleManager == null)
