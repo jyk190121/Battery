@@ -23,6 +23,14 @@ public struct ItemSaveData : INetworkSerializable
 
 public class GameSessionManager : NetworkBehaviour
 {
+    private bool isStartingGame = false;
+
+
+    private void Start()
+    {
+        NetworkObject.Spawn(this);
+    }
+
     public static GameSessionManager Instance;
 
 
@@ -64,6 +72,7 @@ public class GameSessionManager : NetworkBehaviour
     // 세션 리셋: 돈은 건드리지 않고, 오직 아이템/플레이어 상태만 초기화
     public void ResetSession()
     {
+        isStartingGame = false; // 다음 판을 위해 자물쇠 초기화
         truckItems.Clear();
         playerItems.Clear();
         deadPlayersCount = 0;
@@ -78,5 +87,37 @@ public class GameSessionManager : NetworkBehaviour
             if (item != null && item.itemData != null && item.itemData.itemID == id) return item;
         }
         return null;
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)] // 누구나 호출할 수 있게 설정
+    public void RequestStartGameServerRpc(string sceneName)
+    {
+        if(!IsServer || isStartingGame) return; // 자물쇠가 잠겼으면 무시
+
+        Debug.Log($"<color=yellow>[GameSessionManager]</color> 서버에서 시작 시퀀스 가동: {sceneName}");
+
+        // 1. 퀘스트 아이템 적재 (기존 버튼에 있던 로직을 여기로 가져옴)
+        PrepareReturnQuestItems();
+
+        // 2. 씬 이동 실행
+        if (NetworkManager.Singleton.SceneManager != null)
+        {
+            NetworkManager.Singleton.SceneManager.LoadScene(sceneName, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        }
+    }
+
+    private void PrepareReturnQuestItems()
+    {
+        if (QuestManager.Instance == null) return;
+
+        foreach (int qId in QuestManager.Instance.activeQuests)
+        {
+            var qData = QuestManager.Instance.GetQuestData(qId);
+            if (qData != null && qData.type == QuestType.Return)
+            {
+                pendingSpawnItemIDs.Add(qData.targetItemID);
+                Debug.Log($"<color=green>[Quest]</color> 환원 목표({qData.targetItemID}) 적재 완료.");
+            }
+        }
     }
 }
