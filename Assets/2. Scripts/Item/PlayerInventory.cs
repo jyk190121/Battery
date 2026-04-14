@@ -114,7 +114,7 @@ public class PlayerInventory : NetworkBehaviour
         }
 
         // 폰 켜져있으면 마우스 차단 로직 (필요 시 주석 해제)
-        //if (PhoneUIController.Instance != null && PhoneUIController.Instance.isPhoneActive) return;
+        if (PhoneUIController.Instance != null && PhoneUIController.Instance.isPhoneActive) return;
 
         HandleSlotChange();
     }
