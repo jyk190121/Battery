@@ -45,13 +45,38 @@ public class EnemyManager : NetworkBehaviour
         if (!IsServer) return;
         if (GameMaster.Instance != null)
         {
+            //GameMaster.Instance.OnDayStarted += StartSpawnCycle;
+            //GameMaster.Instance.OnDayEnded += StopSpawnCycle;
+
+            GameMaster.Instance.OnDayStarted -= StartSpawnCycle;
             GameMaster.Instance.OnDayStarted += StartSpawnCycle;
+
+            GameMaster.Instance.OnDayEnded -= StopSpawnCycle;
             GameMaster.Instance.OnDayEnded += StopSpawnCycle;
+        }
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        if (!IsServer) return;
+
+        if (GameMaster.Instance != null)
+        {
+            GameMaster.Instance.OnDayStarted -= StartSpawnCycle;
+            GameMaster.Instance.OnDayEnded -= StopSpawnCycle;
+        }
+
+        if (spawnRoutine != null)
+        {
+            StopCoroutine(spawnRoutine);
+            spawnRoutine = null;
         }
     }
 
     public void StartSpawnCycle(int difficulty)
     {
+        if (this == null) return;
+
         isDayActive = true;
         // 오늘의 난이도에 맞춰 총 예산 책정 (예: 기본 10 + 난이도 5 * 2 = 20점)
         totalMaxBudget = baseMaxBudget + (difficulty * budgetPerDifficulty);
@@ -62,8 +87,21 @@ public class EnemyManager : NetworkBehaviour
         // GameMaster의 OnDayStarted 이벤트에 클라이언트의 SoundManager가 직접 리스닝하는 것도 좋습니다.
         //PlayGlobalWarningClientRpc();
 
-        if (spawnRoutine != null) StopCoroutine(spawnRoutine);
-        spawnRoutine = StartCoroutine(SpawnRoutine());
+        //if (spawnRoutine != null) StopCoroutine(spawnRoutine);
+        //spawnRoutine = StartCoroutine(SpawnRoutine());
+
+        // routine 변수만 있고 실제 코루틴이 돌지 않는 경우를 대비
+        if (spawnRoutine != null)
+        {
+            StopCoroutine(spawnRoutine);
+            spawnRoutine = null;
+        }
+
+        // 서버이고 활성화 상태일 때만 실행
+        if (gameObject.activeInHierarchy)
+        {
+            spawnRoutine = StartCoroutine(SpawnRoutine());
+        }
     }
 
     //[ClientRpc]
