@@ -20,27 +20,50 @@ public class GameMaster : NetworkBehaviour
 
     private void Awake()
     {
-        if (Instance == null) { Instance = this; }
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
         else Destroy(gameObject);
 
         if(economyManager == null) economyManager = GetComponent<EconomyManager>();
         if(dayCycleManager == null) dayCycleManager = GetComponent<DayCycleManager>();
     }
 
+    private void Start()
+    {
+        NetworkObject.Spawn(this);    
+    }
+
     public override void OnNetworkSpawn()
     {
-        if(IsServer)
+        if (IsServer)
         {
-            StartNewGame();
+            // GameSceneManager가 이미 존재한다면 이벤트를 구독합니다.
+            if (GameSceneManager.Instance != null)
+            {
+                GameSceneManager.Instance.OnGameSessionRequest += StartNewGame;
+
+                if (GameSceneManager.Instance.IsSessionInitialized)
+                {
+                    StartNewGame();
+                }
+            }
         }
+
     }
 
     // 네트워크 방이 닫히거나 연결이 끊기면 스스로 파괴 (좀비 매니저 방지)
     public override void OnNetworkDespawn()
     {
-        if (gameObject != null)
+        //if (gameObject != null)
+        //{
+        //    NetworkObject.Despawn(gameObject);
+        //}
+        if (IsServer && GameSceneManager.Instance != null)
         {
-            Destroy(gameObject);
+            GameSceneManager.Instance.OnGameSessionRequest -= StartNewGame;
         }
     }
 
@@ -52,6 +75,8 @@ public class GameMaster : NetworkBehaviour
         if (!IsServer) return;
         dayCycleManager.StartNewSession();
         economyManager.ResetEconomyData();
+
+        completedCycleCount.Value = 0;
 
         Debug.Log("<color=cyan>새로운 게임 세션이 시작되었습니다!</color>");
     }
