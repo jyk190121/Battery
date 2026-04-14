@@ -33,6 +33,8 @@ public class EnemyManager : NetworkBehaviour
 
     // 퇴근(DayEnded) 시 맵에 남은 몬스터들을 일괄 삭제하기 위한 명부
     private List<NetworkObject> activeMonsters = new List<NetworkObject>();
+    // 몬스터 종류별로 현재 스폰(예약)된 마리 수를 추적하는 사전
+    private Dictionary<MonsterData, int> currentSpawnCounts = new Dictionary<MonsterData, int>();
 
     private void Awake()
     {
@@ -45,14 +47,14 @@ public class EnemyManager : NetworkBehaviour
         if (!IsServer) return;
         if (GameMaster.Instance != null)
         {
-            //GameMaster.Instance.OnDayStarted += StartSpawnCycle;
-            //GameMaster.Instance.OnDayEnded += StopSpawnCycle;
-
-            GameMaster.Instance.OnDayStarted -= StartSpawnCycle;
             GameMaster.Instance.OnDayStarted += StartSpawnCycle;
-
-            GameMaster.Instance.OnDayEnded -= StopSpawnCycle;
             GameMaster.Instance.OnDayEnded += StopSpawnCycle;
+
+            //GameMaster.Instance.OnDayStarted -= StartSpawnCycle;
+            //GameMaster.Instance.OnDayStarted += StartSpawnCycle;
+
+            //GameMaster.Instance.OnDayEnded -= StopSpawnCycle;
+            //GameMaster.Instance.OnDayEnded += StopSpawnCycle;
         }
     }
 
@@ -89,6 +91,12 @@ public class EnemyManager : NetworkBehaviour
 
         //if (spawnRoutine != null) StopCoroutine(spawnRoutine);
         //spawnRoutine = StartCoroutine(SpawnRoutine());
+
+        currentSpawnCounts.Clear();
+        foreach (var monster in availableMonsters)
+        {
+            currentSpawnCounts[monster] = 0;
+        }
 
         // routine 변수만 있고 실제 코루틴이 돌지 않는 경우를 대비
         if (spawnRoutine != null)
@@ -131,18 +139,38 @@ public class EnemyManager : NetworkBehaviour
 
         int remainingBudget = totalMaxBudget - currentSpentBudget;
 
-        var affordable = availableMonsters.Where(m => m.spawnCost <= remainingBudget).ToList();
+        var affordable = availableMonsters.Where(m =>
+            m.spawnCost <= remainingBudget &&
+            currentSpawnCounts.GetValueOrDefault(m, 0) < m.maxSpawnCount
+        ).ToList();
         if (affordable.Count == 0) return;
 
-        // 가중치 랜덤 
-        // 현재는 임시로 무조건 리스트의 0번째 몬스터를 뽑습니다.
-        // 추후 이 부분을 'GetRandomMonsterByWeight()' 같은 가중치 랜덤 함수로 교체해야 완벽
-        MonsterData selected = affordable[0]; // 임시
+        MonsterData selected = GetRandomMonsterByWeight(affordable);
 
         if (selected != null)
         {
             SpawnMonster(selected);
         }
+    }
+
+    /// <summary>
+    /// 후보 리스트 중에서 가중치(spawnWeight)를 기반으로 랜덤하게 하나를 뽑습니다.
+    /// </summary>
+    private MonsterData GetRandomMonsterByWeight(List<MonsterData> candidates)
+    {
+        float totalWeight = candidates.Sum(m => m.spawnWeight);
+        float randomValue = Random.Range(0, totalWeight);
+        float currentWeight = 0;
+
+        foreach (var monster in candidates)
+        {
+            currentWeight += monster.spawnWeight;
+            if (randomValue <= currentWeight)
+            {
+                return monster;
+            }
+        }
+        return candidates.LastOrDefault(); // 안전장치
     }
 
     public void SpawnMonster(MonsterData data, bool ignoreBudget = false)
@@ -158,6 +186,8 @@ public class EnemyManager : NetworkBehaviour
 
         VentController selectedVent = availableVents[Random.Range(0, availableVents.Count)];
         selectedVent.TriggerSpawn(data);
+
+        currentSpawnCounts[data] = currentSpawnCounts.GetValueOrDefault(data, 0) + 1; 
 
         if (!ignoreBudget)
         {
@@ -178,10 +208,21 @@ public class EnemyManager : NetworkBehaviour
         }
     }
 
-    public void UnregisterEnemy(int cost)
+    // MonsterData를 통째로 받아서 마리 수까지 깎아줍니다.
+    public void UnregisterEnemy(MonsterData data)
     {
-        if (!IsServer) return;
-        currentSpentBudget = Mathf.Max(0, currentSpentBudget - cost);
+        if (!IsServer || data == null) return;
+
+        // 1. 예산 반환
+        currentSpentBudget = Mathf.Max(0, currentSpentBudget - data.spawnCost);
+
+        // 2. 마리 수 반환
+        if (currentSpawnCounts.ContainsKey(data))
+        {
+            currentSpawnCounts[data] = Mathf.Max(0, currentSpawnCounts[data] - 1);
+        }
+
+        Debug.Log($"[EnemyManager] {data.name} 사망/삭제. 예산 복구됨. (현재 마리수: {currentSpawnCounts[data]})");
     }
 
     private void StopSpawnCycle(bool isWipedOut, int dailyIncome)

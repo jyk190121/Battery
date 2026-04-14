@@ -16,7 +16,7 @@ public class AttackState : MonsterBaseState
         base.Enter();
         owner.navAgent.isStopped = true;    // 공격 시 멈춤
         //owner.navAgent.ResetPath();
-        //owner.navAgent.velocity = Vector3.zero;
+        owner.navAgent.velocity = Vector3.zero;
         //owner.animHandler.SetSpeed(0f);
 
         attackTimer = data.attackCooldown;  // 즉시 공격 가능하게 설정하거나 대기
