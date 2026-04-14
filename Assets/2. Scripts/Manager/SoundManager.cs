@@ -73,7 +73,7 @@ public class SoundManager : MonoBehaviour
 
     [Header("Audio Sources")]
     [SerializeField] private AudioSource sfxSource;       // 단발성 효과음 재생용 (UI 클릭, 문자 입력 등)
-    [SerializeField] private AudioSource loopSfxSource;   // 반복성/제어필요 사운드 (벨소리, 다이얼 등)
+    [SerializeField] private AudioSource loopSfxSource;   // 반복성/제어필요 사운드 (벨소리, 다이얼 등) 
     [SerializeField] private AudioSource bgmSource;       // 배경음악 재생용
 
     private Dictionary<SfxSound, AudioClip> sfxDictionary = new Dictionary<SfxSound, AudioClip>();
