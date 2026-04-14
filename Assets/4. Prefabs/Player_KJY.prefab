@@ -3309,7 +3309,7 @@ CapsuleCollider:
   m_Material: {fileID: 13400000, guid: aad068ac0394e8b4db1619b890df63a7, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 131072
