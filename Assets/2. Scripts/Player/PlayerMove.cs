@@ -201,6 +201,7 @@ public class PlayerMove : NetworkBehaviour
                     rb.linearVelocity = new Vector3(rb.linearVelocity.x, -stairDownForce, rb.linearVelocity.z);
                 }
             }
+
         }
         else
         {
@@ -300,7 +301,7 @@ public class PlayerMove : NetworkBehaviour
         if (moveDir.sqrMagnitude > 1f) moveDir.Normalize();
 
         Vector3 worldMoveDir = transform.TransformDirection(moveDir);
-        bool isStepUpDetected = false;
+        //bool isStepUpDetected = false;
 
         // [계단 오르기 감지 및 처리]
         if (inputMagnitude > 0.1f)
@@ -316,7 +317,7 @@ public class PlayerMove : NetworkBehaviour
                 if (!Physics.Raycast(upperOrigin, worldMoveDir, out hitUpper, 0.5f, stairLayer))
                 {
                     // 오르기 상태 감지
-                    isStepUpDetected = true;
+                    //isStepUpDetected = true;
                     rb.isKinematic = false;
 
                     // 수직으로 밀어 올려 턱을 넘김
