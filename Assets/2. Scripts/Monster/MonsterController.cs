@@ -58,6 +58,7 @@ public class MonsterController : NetworkBehaviour
     public delegate bool GimmickPauseCheck();
     [Header("--- Gimmick Events ---")]
     public GimmickPauseCheck OnCheckGimmickPause;
+    private bool wasStoppedBeforeFreeze;
 
     private void Awake()
     {
@@ -133,7 +134,14 @@ public class MonsterController : NetworkBehaviour
         // 애니메이션 속도 업데이트 (서버/클라이언트 공통 시각적 효과)
         if (navAgent != null && animHandler != null)
         {
-            animHandler.SetSpeed(navAgent.velocity.magnitude);
+            // 실제 물리 속도(magnitude) 대신, 
+            // 내비게이션 시스템이 내고자 하는 의도된 속도(desiredVelocity.magnitude)를 전달해 보세요.
+            animHandler.SetVisualSpeed(
+                navAgent.desiredVelocity.magnitude,
+                monsterData.patrolSpeed,
+                monsterData.chaseSpeed,
+                CurrentStateNet.Value
+            );
         }
     }
 
@@ -161,6 +169,16 @@ public class MonsterController : NetworkBehaviour
     {
         PreviousState = previousValue;
         ApplyStateLocal(newValue);
+
+        // 공격 상태에서 다른 상태(Chase, Search 등)로 강제 전환되었다면 애니메이션 취소
+        if (previousValue == MonsterStateType.Attack && newValue != MonsterStateType.Attack)
+        {
+            if (animHandler != null)
+            {
+                animHandler.CancelAttack();
+            }
+        }
+
         Debug.Log($"[Sync] {gameObject.name} State: {previousValue} -> {newValue}");
     }
 
@@ -191,32 +209,55 @@ public class MonsterController : NetworkBehaviour
         {
             foreach (GimmickPauseCheck checkFunc in OnCheckGimmickPause.GetInvocationList())
             {
-                if (checkFunc.Invoke())
-                {
-                    shouldPause = true;
-                    break;
-                }
+                if (checkFunc.Invoke()) { shouldPause = true; break; }
             }
         }
 
-        // 상태가 변할 때만 네트워크 변수 업데이트
         if (IsFrozenNet.Value != shouldPause)
         {
             IsFrozenNet.Value = shouldPause;
-        }
 
-        // 물리적 정지 처리
-        if (shouldPause)
-        {
-            if (!navAgent.isStopped)
+            if (shouldPause)
             {
-                navAgent.isStopped = true;
-                navAgent.velocity = Vector3.zero;
+                wasStoppedBeforeFreeze = navAgent.isStopped;
+                if (navAgent.isOnNavMesh)
+                {
+                    navAgent.isStopped = true;
+                    navAgent.velocity = Vector3.zero;
+                }
             }
-        }
-        else
-        {
-            if (navAgent.isStopped) navAgent.isStopped = false;
+            else
+            {
+                // 1. 얼어붙음이 풀릴 때 원래 상태(정지/이동) 복구
+                if (navAgent.isOnNavMesh)
+                {
+                    navAgent.isStopped = wasStoppedBeforeFreeze;
+                }
+
+                // [추가된 핵심 로직] 만약 공격 중이었다면 거리를 재평가!
+                if (CurrentStateNet.Value == MonsterStateType.Attack)
+                {
+                    Transform target = scanner.CurrentTarget;
+                    if (target != null)
+                    {
+                        float sqrDist = (target.position - transform.position).sqrMagnitude;
+                        float hitThreshold = monsterData.attackRange + 0.5f;
+
+                        // 플레이어가 멀리 도망갔다면 공격을 즉시 취소하고 추격 시작
+                        if (sqrDist > hitThreshold * hitThreshold)
+                        {
+                            // 서버에서 상태를 Chase로 변경하면, OnStateChangedCallback을 통해 모든 유저의 애니메이션이 취소됨
+                            ChangeState(MonsterStateType.Chase);
+                        }
+                        // 여전히 사거리 안이라면 아무것도 안 함 -> 멈춰있던 AttackState가 마저 진행됨 (그대로 공격!)
+                    }
+                    else
+                    {
+                        // 타겟이 아예 시야에서 사라졌을 때
+                        ChangeState(MonsterStateType.Search);
+                    }
+                }
+            }
         }
     }
 

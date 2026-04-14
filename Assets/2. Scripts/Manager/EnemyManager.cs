@@ -45,14 +45,14 @@ public class EnemyManager : NetworkBehaviour
         if (!IsServer) return;
         if (GameMaster.Instance != null)
         {
-            //GameMaster.Instance.OnDayStarted += StartSpawnCycle;
-            //GameMaster.Instance.OnDayEnded += StopSpawnCycle;
-
-            GameMaster.Instance.OnDayStarted -= StartSpawnCycle;
             GameMaster.Instance.OnDayStarted += StartSpawnCycle;
-
-            GameMaster.Instance.OnDayEnded -= StopSpawnCycle;
             GameMaster.Instance.OnDayEnded += StopSpawnCycle;
+
+            //GameMaster.Instance.OnDayStarted -= StartSpawnCycle;
+            //GameMaster.Instance.OnDayStarted += StartSpawnCycle;
+
+            //GameMaster.Instance.OnDayEnded -= StopSpawnCycle;
+            //GameMaster.Instance.OnDayEnded += StopSpawnCycle;
         }
     }
 
