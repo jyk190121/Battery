@@ -33,7 +33,6 @@ public class PlayerInventory : NetworkBehaviour
 
     private ItemBase lastLookedItem;
     private DepartureButton lastLookedButton;
-    private MissionStartButton lastLookedMissionButton;
 
     // 💡 [추가됨] 문과 환원 지점 인식용 변수
     private DoorController lastLookedDoor;
@@ -95,7 +94,6 @@ public class PlayerInventory : NetworkBehaviour
             if (Keyboard.current[Key.E].wasPressedThisFrame)
             {
                 if (lastLookedButton != null) lastLookedButton.Interact(this);
-                else if (lastLookedMissionButton != null) lastLookedMissionButton.Interact(this);
                 else if (lastLookedReturnPoint != null) lastLookedReturnPoint.Interact(this); // 💡 [추가됨] 환원 지점 상호작용
                 else if (lastLookedDoor != null) // 💡 [추가됨] 문(열쇠) 상호작용
                 {
@@ -114,7 +112,7 @@ public class PlayerInventory : NetworkBehaviour
         }
 
         // 폰 켜져있으면 마우스 차단 로직 (필요 시 주석 해제)
-        //if (PhoneUIController.Instance != null && PhoneUIController.Instance.isPhoneActive) return;
+        if (PhoneUIController.Instance != null && PhoneUIController.Instance.isPhoneActive) return;
 
         HandleSlotChange();
     }
@@ -145,11 +143,7 @@ public class PlayerInventory : NetworkBehaviour
                 return;
             }
 
-            if (hit.collider.TryGetComponent(out MissionStartButton mBtn))
-            {
-                if (lastLookedMissionButton != mBtn) { ClearHighlight(); lastLookedMissionButton = mBtn; }
-                return;
-            }
+          
 
             // 💡 [추가됨] 환원 지점(투명 큐브) 레이캐스트 인식
             if (hit.collider.TryGetComponent(out QuestReturnPoint returnPoint))
@@ -201,7 +195,6 @@ public class PlayerInventory : NetworkBehaviour
             lastLookedDoor = null;
         }
         lastLookedButton = null;
-        lastLookedMissionButton = null;
     }
 
     // ... (이하 TryPickUpAction 부터 끝까지의 코드는 기존과 100% 동일하므로 생략 없이 그대로 유지하시면 됩니다) ...

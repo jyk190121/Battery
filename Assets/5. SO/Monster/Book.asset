@@ -15,7 +15,7 @@ MonoBehaviour:
   spawnCost: 5
   spawnWeight: 50
   monsterPrefab: {fileID: 4028298238803213267, guid: 7728c90956fe89247b8f2eaeaa61bd67, type: 3}
-  patrolSpeed: 3.5
+  patrolSpeed: 2.5
   chaseSpeed: 4.5
   viewRange: 12
   viewAngle: 90

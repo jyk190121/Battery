@@ -51,9 +51,37 @@ public class MonsterAnimation : MonoBehaviour
     /// <summary>
     /// 이동 속도를 설정합니다.
     /// </summary>
-    public void SetSpeed(float speed)
-    { 
-        targetSpeed = speed;
+    public void SetVisualSpeed(float currentVelocity, float patrolSpeed, float chaseSpeed, MonsterStateType currentState)
+    {
+        float targetNormalizedValue = 0f;
+
+        // [해결 2] 상태에 따라 애니메이션 보간 속도를 동적으로 조절
+        if (currentState == MonsterStateType.Chase || currentState == MonsterStateType.Attack)
+        {
+            // 추격하거나 공격/정지할 때는 애니메이션이 즉각적으로 반응하도록 속도업
+            animationBlendSpeed = 15f;
+        }
+        else
+        {
+            // 순찰, 수색 등 평상시에는 부드럽게 전환
+            animationBlendSpeed = 5f;
+        }
+
+        if (currentVelocity < 0.05f)
+        {
+            targetNormalizedValue = 0f;
+        }
+        else if (currentState == MonsterStateType.Patrol || currentState == MonsterStateType.Search)
+        {
+            targetNormalizedValue = Mathf.Lerp(0f, 0.5f, currentVelocity / patrolSpeed);
+        }
+        else
+        {
+            float chaseRatio = currentVelocity / chaseSpeed;
+            targetNormalizedValue = Mathf.Lerp(0.5f, 1.0f, chaseRatio);
+        }
+
+        targetSpeed = Mathf.Clamp01(targetNormalizedValue);
     }
 
     /// <summary>
@@ -84,6 +112,17 @@ public class MonsterAnimation : MonoBehaviour
         if (controller != null && controller.IsServer)
         {
             controller.ExecuteAttackDamage(); // 본체에 데미지 실행 명령 전달
+        }
+    }
+
+    // 공격 모션 취소 함수
+    public void CancelAttack()
+    {
+        if (animator != null)
+        {
+            animator.ResetTrigger(AttackHash); // 남아있을지 모르는 트리거 큐 삭제
+
+            animator.CrossFade("Locomotion", 0.1f);
         }
     }
 }

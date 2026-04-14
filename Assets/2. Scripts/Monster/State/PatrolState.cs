@@ -54,7 +54,6 @@ public class PatrolState : MonsterBaseState
     private void MoveToNextPoint()
     {
         Transform nextPoint = owner.waypointManager?.GetRandomWaypoint();
-        owner.animHandler.SetSpeed(data.patrolSpeed);
 
         if (nextPoint != null)
         {

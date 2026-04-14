@@ -8,6 +8,8 @@ public class MonsterData : ScriptableObject
     public int spawnCost = 2;
     [Tooltip("스폰 확률 가중치 (값이 높을수록 자주 등장함)")]
     public float spawnWeight = 50f;
+    [Tooltip("맵에 동시에 존재할 수 있는 최대 마리 수")]
+    public int maxSpawnCount = 2;
     [Tooltip("이 몬스터의 실제 프리팹 (EnemyManager가 생성할 때 사용)")]
     public GameObject monsterPrefab;
 
