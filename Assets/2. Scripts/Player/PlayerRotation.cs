@@ -17,32 +17,9 @@ public class PlayerRotation : NetworkBehaviour
     public float walkYPos = 0.1f;           // 평소(걷기) Z 위치
     public float runYPos = 0.4f;            // 달리기 시 Z 위치 (입안이 안 보이게 앞으로 밀기)
     public float transitionSpeed = 10f;     // 위치 전환 부드러움 정도
+    public float crouchYPos = -0.5f;        // 추가: 앉았을 때 카메라 높이 (필요에 따라 조절)
 
     private CinemachinePanTilt _panTilt;
-
-    //void Start()
-    //{
-    //    if (vcam != null)
-    //    {
-    //        _panTilt = vcam.GetComponent<CinemachinePanTilt>();
-    //    }
-
-    //    if(playerMove == null)
-    //    {
-    //        playerMove = GetComponent<PlayerMove>();
-    //    }
-
-    //    // 초기 위치 설정
-    //    if (cameraTarget != null)
-    //    {
-    //        Vector3 pos = cameraTarget.localPosition;
-    //        cameraTarget.localPosition = new Vector3(pos.x, walkYPos + originYoffset, pos.z);
-    //    }
-
-    //    // 마우스 커서를 화면 중앙에 고정하고 숨깁니다.
-    //    Cursor.lockState = CursorLockMode.Locked;
-    //    Cursor.visible = false;
-    //}
 
     public override void OnNetworkSpawn()
     {
@@ -50,54 +27,6 @@ public class PlayerRotation : NetworkBehaviour
         {
             playerMove = GetComponent<PlayerMove>();
         }
-        //if(vcam == null)
-        //{
-        //    vcam = FindAnyObjectByType<CinemachineCamera>();
-        //}
-
-        //if (vcam != null)
-        //{
-        //    _panTilt = vcam.GetComponent<CinemachinePanTilt>();
-        //}
-
-        //vcam = FindAnyObjectByType<CinemachineCamera>();
-
-        //if (vcam != null)
-        //{
-        //    _panTilt = vcam.GetComponent<CinemachinePanTilt>();
-        //}
-
-        //if (IsOwner)
-        //{
-        //    // [에러 해결] .Enabled 대신 .enabled 사용 (소문자)
-        //    if (vcam != null)
-        //    {
-        //        vcam.Priority = 10;
-        //        vcam.enabled = true;
-
-        //        // 혹은 게임 오브젝트 전체를 끄고 켜는 방식이 가장 확실합니다.
-        //        // vcam.gameObject.SetActive(true);
-        //    }
-
-        //    // 초기 위치 설정
-        //    if (cameraTarget != null)
-        //    {
-        //        Vector3 pos = cameraTarget.localPosition;
-        //        cameraTarget.localPosition = new Vector3(pos.x, walkYPos + originYoffset, pos.z);
-        //    }
-
-        //    Cursor.lockState = CursorLockMode.Locked;
-        //    Cursor.visible = false;
-        //}
-        //else
-        //{
-        //    // 내 캐릭터가 아니라면 카메라 컴포넌트 비활성화
-        //    if (vcam != null)
-        //    {
-        //        vcam.enabled = false;
-        //        // vcam.gameObject.SetActive(false); // 추천: 카메라 오브젝트 자체를 끄기
-        //    }
-        //}
 
         TryFindCamera();
     }
@@ -132,55 +61,63 @@ public class PlayerRotation : NetworkBehaviour
         // 만약 Spawn 시점에 못 찾았다면 여기서 다시 시도 (성능을 위해 null일 때만)
         if (vcam == null) TryFindCamera();
         if (_panTilt == null) return;
-        
-        //Vector2 mouseDelta = Input.GetMouseDelta();
 
         //if (_panTilt != null)
         //{
+        //    Vector2 mouseDelta = Input.GetMouseDelta();
 
-        //    // 1. 좌우 회전은 자유롭게 (0~360도)
+        //    // 1. 좌우 회전 (Pan)
         //    _panTilt.PanAxis.Value += mouseDelta.x * sensitivity;
 
-        //    // 2. 상하 회전값 계산
+        //    // 2. 상하 회전 (Tilt) 및 제한
         //    float newTilt = _panTilt.TiltAxis.Value - (mouseDelta.y * sensitivity);
-
-        //    // 3. Mathf.Clamp를 사용하여 범위를 제한 (-70도 ~ 70도)
-        //    // 위로 70도(-70), 아래로 30도(30)
         //    _panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, -70f, 70f);
 
-        //    // 4. 본체 회전 동기화
+        //    // 3. 본체 회전 동기화 (Y축만)
         //    transform.rotation = Quaternion.Euler(0, _panTilt.PanAxis.Value, 0);
 
         //    UpdateCameraPosition();
         //}
 
-        if (_panTilt != null)
+        Vector2 mouseDelta = Input.GetMouseDelta();
+
+        // 1. 좌우 회전 (Pan) - 언제나 가능
+        _panTilt.PanAxis.Value += mouseDelta.x * sensitivity;
+
+        // 2. 상하 회전 (Tilt) - 앉아있을 때는 입력을 무시함
+        // PlayerMove의 isCrouching 변수가 private이라면 public bool IsCrouching => isCrouching; 등으로 공개되어 있어야 합니다.
+        if (playerMove != null && !playerMove.IsCrouching)
         {
-            Vector2 mouseDelta = Input.GetMouseDelta();
-
-            // 1. 좌우 회전 (Pan)
-            _panTilt.PanAxis.Value += mouseDelta.x * sensitivity;
-
-            // 2. 상하 회전 (Tilt) 및 제한
             float newTilt = _panTilt.TiltAxis.Value - (mouseDelta.y * sensitivity);
             _panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, -70f, 70f);
-
-            // 3. 본체 회전 동기화 (Y축만)
-            transform.rotation = Quaternion.Euler(0, _panTilt.PanAxis.Value, 0);
-
-            UpdateCameraPosition();
         }
+        else if (playerMove != null && playerMove.IsCrouching)
+        {
+            // 앉았을 때 정면을 보게 강제하고 싶다면 아래 주석 해제 (부드럽게 정렬됨)
+            // _panTilt.TiltAxis.Value = Mathf.Lerp(_panTilt.TiltAxis.Value, 0, Time.deltaTime * transitionSpeed);
+        }
+
+        // 3. 본체 회전 동기화
+        transform.rotation = Quaternion.Euler(0, _panTilt.PanAxis.Value, 0);
+
+        UpdateCameraPosition();
     }
 
     void UpdateCameraPosition()
     {
         if (cameraTarget == null || playerMove == null) return;
 
-        // 현재 속도가 걷기 속도(3.5)보다 크면 달리는 것으로 판단
-        // (PlayerMove 스크립트의 currentSpeed가 public이어야 합니다)
+        bool isCrouching = playerMove.IsCrouching;
+
         bool isRunning = playerMove.currentSpeed > playerMove.walkSpeed + 0.1f;
 
-        float targetY = isRunning ? runYPos : walkYPos;
+        //float targetY = isRunning ? runYPos : walkYPos;
+
+        // 타겟 Y값 결정 (우선순위: 앉기 > 달리기 > 걷기)
+        float targetY = walkYPos;
+        if (isCrouching) targetY = crouchYPos;
+        else if (isRunning) targetY = runYPos;
+
 
         // 현재 로컬 위치 가져오기
         Vector3 currentPos = cameraTarget.localPosition;
