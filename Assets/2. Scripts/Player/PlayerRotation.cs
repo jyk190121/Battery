@@ -8,6 +8,7 @@ public class PlayerRotation : NetworkBehaviour
     public CinemachineCamera vcam;  // 인스펙터에서 시네머신 카메라 할당
     public Transform cameraTarget;  // eye_Cinemachine 오브젝트를 여기에 할당
     public PlayerMove playerMove;   // 이동 속도를 체크하기 위해 참조
+    public GameObject CameraGroup;  
 
     [Header("설정")]
     public float sensitivity = 0.1f;
