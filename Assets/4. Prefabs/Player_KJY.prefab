@@ -2825,6 +2825,7 @@ GameObject:
   - component: {fileID: 1274011911571015947}
   - component: {fileID: 7371181721451138572}
   - component: {fileID: -8743619242891834833}
+  - component: {fileID: 7772676231503934991}
   - component: {fileID: 8431698971035657743}
   m_Layer: 6
   m_Name: Player_KJY
@@ -2900,7 +2901,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 405663255
+  GlobalObjectIdHash: 6777840
   InScenePlacedSourceGlobalObjectIdHash: 6777840
   DeferredDespawnTick: 0
   Ownership: 1
@@ -2937,7 +2938,7 @@ MonoBehaviour:
   transitionSpeed: 10
   crouchZPos: 0
   walkZPos: 0.1
-  crouchYPos: 1
+  crouchYPos: 0.6
 --- !u!114 &1166937674116199471
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3060,6 +3061,10 @@ MonoBehaviour:
       ParameterType: 4
     - name: IsStair
       NameHash: 428241794
+      Synchronize: 1
+      ParameterType: 4
+    - name: isUsingPhone
+      NameHash: 2106452502
       Synchronize: 1
       ParameterType: 4
   AnimatorParametersExpanded: 0
@@ -3306,6 +3311,22 @@ MonoBehaviour:
   breathAudio: {fileID: 0}
   vignetteMaxScale: 3
   vignetteMinScale: 1
+  blindImage: {fileID: 0}
+--- !u!114 &7772676231503934991
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4911454195433589709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a98728e1539253d4db63154028675029, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerEquipment
+  ShowTopMostFoldoutHeaderGroup: 1
+  smartphoneModel: {fileID: 3256090640262015324, guid: cc39fda2988cc3448ae96fd3980cf44f, type: 3}
+  handSocket: {fileID: 7494339301542819785}
 --- !u!136 &8431698971035657743
 CapsuleCollider:
   m_ObjectHideFlags: 0

@@ -59,4 +59,46 @@ public class PlayerAnim : MonoBehaviour
     {
         anim.SetBool("IsStair", isStair);
     }
+
+    // 손 올리기 동작
+    //public void SetLayerWeight(string layerName, float weight)
+    //{
+    //    if (anim == null) anim = GetComponent<Animator>();
+
+    //    // 만약 여전히 null이라면 (Animator 컴포넌트가 없을 때) 리턴하여 에러 방지
+    //    if (anim == null) return;
+
+    //    int layerIndex = anim.GetLayerIndex(layerName);
+    //    if (layerIndex != -1)
+    //    {
+    //        anim.SetLayerWeight(layerIndex, weight);
+    //    }
+    //    else
+    //    {
+    //        Debug.LogWarning($"{layerName} 레이어를 찾을 수 없습니다. Animator 이름을 확인하세요.");
+    //    }
+    //}
+
+    public void UpdatePhoneAnimation(bool isUsing)
+    {
+        if (anim == null) anim = GetComponent<Animator>();
+
+        // 1. 애니메이터의 파라미터 값을 변경 (Transition이 발생하도록)
+        anim.SetBool("isUsingPhone", isUsing);
+
+        // 2. 레이어 가중치 조절 (레이어 이름이 정확히 "RightHand"여야 함)
+        SetLayerWeight("RightHand", isUsing ? 1f : 0f);
+    }
+
+    public void SetLayerWeight(string layerName, float weight)
+    {
+        if (anim == null) anim = GetComponent<Animator>();
+        if (anim == null) return;
+
+        int layerIndex = anim.GetLayerIndex(layerName);
+        if (layerIndex != -1)
+        {
+            anim.SetLayerWeight(layerIndex, weight);
+        }
+    }
 }
