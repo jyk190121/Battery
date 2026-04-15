@@ -8,7 +8,7 @@ public class PlayerRotation : NetworkBehaviour
     public CinemachineCamera vcam;  // 인스펙터에서 시네머신 카메라 할당
     public Transform cameraTarget;  // eye_Cinemachine 오브젝트를 여기에 할당
     public PlayerMove playerMove;   // 이동 속도를 체크하기 위해 참조
-    public GameObject CameraGroup;  
+    public GameObject CameraGroup;  // 휴대폰 촬영용 카메라도 같이 회전 처리
 
     [Header("설정")]
     public float sensitivity = 0.1f;
@@ -78,6 +78,7 @@ public class PlayerRotation : NetworkBehaviour
         {
             float newTilt = _panTilt.TiltAxis.Value - (mouseDelta.y * sensitivity);
             _panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, -70f, 70f);
+             
         }
         else if (playerMove != null && playerMove.IsCrouching)
         {
@@ -91,6 +92,8 @@ public class PlayerRotation : NetworkBehaviour
             // Lerp 대신 직접 값을 대입해서 변화가 있는지 먼저 확인하세요.
             _panTilt.TiltAxis.Value = crouchViewOffset;
         }
+
+        CameraGroup.transform.rotation = Quaternion.Euler(_panTilt.TiltAxis.Value, _panTilt.PanAxis.Value, 0);
 
         // 3. 본체 회전 동기화
         transform.rotation = Quaternion.Euler(0, _panTilt.PanAxis.Value, 0);

@@ -2900,7 +2900,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 405663255
+  GlobalObjectIdHash: 6777840
   InScenePlacedSourceGlobalObjectIdHash: 6777840
   DeferredDespawnTick: 0
   Ownership: 1
@@ -2929,7 +2929,7 @@ MonoBehaviour:
   vcam: {fileID: 0}
   cameraTarget: {fileID: 8435035688047205567}
   playerMove: {fileID: 1166937674116199471}
-  CameraGroup: {fileID: 0}
+  CameraGroup: {fileID: 643760621317042792}
   sensitivity: 0.02
   originYoffset: 0.0961
   walkYPos: 0.1
