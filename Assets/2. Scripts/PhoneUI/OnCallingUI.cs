@@ -21,12 +21,7 @@ public class OnCallingUI : MonoBehaviour
     private string currentTargetName = "";
     private bool isIncomingCall = false;
 
-    private Recorder myRecorder;
-
-    private void Start()
-    {
-        myRecorder = FindAnyObjectByType<Recorder>();
-    }
+    // [수정] myRecorder 변수 선언 삭제 (더 이상 쓰지 않음)
 
     private void Awake()
     {
@@ -48,12 +43,11 @@ public class OnCallingUI : MonoBehaviour
     {
         if (PhoneUIController.Instance != null)
             PhoneUIController.Instance.OnBackButtonPressed += HandleBack;
-        // OnCalling 화면을 보면 전화 알림 끄기
+
         if (PhoneUIController.Instance.callNotificationObj != null)
         {
             PhoneUIController.Instance.callNotificationObj.SetActive(false);
         }
-
     }
 
     private void OnDisable()
@@ -61,7 +55,11 @@ public class OnCallingUI : MonoBehaviour
         if (PhoneUIController.Instance != null)
             PhoneUIController.Instance.OnBackButtonPressed -= HandleBack;
 
-        if (myRecorder != null) myRecorder.TransmitEnabled = false;
+        // [핵심] 전화가 끊기거나 화면이 꺼지면 전화용 마이크만 확실히 끕니다.
+        if (VoiceRoomManager.Instance != null && VoiceRoomManager.Instance.callRecorder != null)
+        {
+            VoiceRoomManager.Instance.callRecorder.TransmitEnabled = false;
+        }
     }
 
     private void Update()
@@ -73,13 +71,14 @@ public class OnCallingUI : MonoBehaviour
             if (isIncomingCall && !isTimerRunning) AcceptCall();
         }
 
-        if (myRecorder != null)
+        // [핵심] 엉뚱한 마이크를 건드리지 않고, 전화용 마이크만 제어합니다.
+        if (VoiceRoomManager.Instance != null && VoiceRoomManager.Instance.callRecorder != null)
         {
             bool shouldTransmit = isTimerRunning && Keyboard.current.vKey.isPressed;
 
-            if (myRecorder.TransmitEnabled != shouldTransmit)
+            if (VoiceRoomManager.Instance.callRecorder.TransmitEnabled != shouldTransmit)
             {
-                myRecorder.TransmitEnabled = shouldTransmit;
+                VoiceRoomManager.Instance.callRecorder.TransmitEnabled = shouldTransmit;
             }
         }
 

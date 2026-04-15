@@ -48,6 +48,135 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AutoSceneUIController
   titleSceneName: KJY_TITLE
   visualChild: {fileID: 4927526762122445348}
+--- !u!1 &829000818441891300
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6703633515090867512}
+  - component: {fileID: 5146883445117055760}
+  - component: {fileID: 785662038164424389}
+  - component: {fileID: 3789166952560705026}
+  m_Layer: 0
+  m_Name: GlobalVoiceManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6703633515090867512
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 829000818441891300}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2079889502736506800}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5146883445117055760
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 829000818441891300}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 697c1cda529a1419782f2a2e3afe37a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonVoice::Photon.Voice.Unity.UnityVoiceClient
+  DisconnectAfterKeepAlive: 0
+  KeepAliveInBackground: 60000
+  ApplyDontDestroyOnLoad: 1
+  runInBackground: 1
+  statsResetInterval: 1000
+  speakerPrefab: {fileID: 0}
+  primaryRecorder: {fileID: 0}
+  usePrimaryRecorder: 0
+  cppCompatibilityMode: 0
+  Settings:
+    AppIdRealtime: 
+    AppIdFusion: 
+    AppIdChat: 
+    AppIdVoice: 3eae6fb5-7a1d-4f59-a79f-130b1959cf99
+    AppVersion: 
+    UseNameServer: 1
+    FixedRegion: 
+    Server: 
+    Port: 0
+    ProxyServer: 
+    Protocol: 0
+    EnableProtocolFallback: 1
+    AuthMode: 0
+    EnableLobbyStatistics: 0
+    NetworkLogging: 1
+  ShowSettings: 1
+  UseVoiceAppSettings: 0
+--- !u!114 &785662038164424389
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 829000818441891300}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91175dcc15224463780e01a8a98b1b60, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonVoice::Photon.Voice.Unity.Recorder
+  voiceDetection: 0
+  voiceDetectionThreshold: 0.01
+  voiceDetectionDelayMs: 500
+  interestGroup: 0
+  useTargetPlayers: 0
+  targetPlayers: 
+  debugEchoMode: 0
+  reliableMode: 0
+  encrypt: 0
+  transmitEnabled: 1
+  samplingRate: 24000
+  frameDuration: 40000
+  bitrate: 30000
+  sourceType: 0
+  microphoneType: 0
+  audioClip: {fileID: 0}
+  loopAudioClip: 1
+  recordingEnabled: 1
+  audioSessionParameters:
+    Category: 4
+    Mode: 1
+    CategoryOptions: 0800000004000000
+  editorAudioSessionPreset: 1
+  androidMicrophoneSettings:
+    EnableAEC: 1
+    EnableAGC: 1
+    EnableNS: 1
+  stopRecordingWhenPaused: 0
+  useOnAudioFilterRead: 0
+  useMicrophoneTypeFallback: 1
+  recordWhenJoined: 1
+--- !u!114 &3789166952560705026
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 829000818441891300}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d5fbfe567b8d6f44883849fa21c5899, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GlobalVoiceManager
+  globalVoiceClient: {fileID: 5146883445117055760}
 --- !u!1 &1848704857073512639
 GameObject:
   m_ObjectHideFlags: 0
@@ -469,6 +598,7 @@ Transform:
   - {fileID: 785779497585896769}
   - {fileID: 8764509516570760643}
   - {fileID: 7832746162952629189}
+  - {fileID: 6703633515090867512}
   m_Father: {fileID: 5213042443106156266}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5440378645317192274
@@ -672,7 +802,6 @@ MonoBehaviour:
   teamChatRoom: {fileID: 7151956893988830046}
   ifConnected: {fileID: 5457140168927015977}
   connectYet: {fileID: 2655669063955554187}
-  playerText: {fileID: 0}
 --- !u!114 &1316322139524623727
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -825,8 +954,12 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: c61d30e6a459e8c43b000be3c74baf01, type: 2}
     - target: {fileID: 1532259765991530465, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
+      propertyPath: m_sharedMaterial
+      value: 
+      objectReference: {fileID: -5514379908419441289, guid: c61d30e6a459e8c43b000be3c74baf01, type: 2}
+    - target: {fileID: 1532259765991530465, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
       propertyPath: m_hasFontAssetChanged
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2500810964890218847, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
       propertyPath: m_fontAsset
@@ -893,8 +1026,12 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: c61d30e6a459e8c43b000be3c74baf01, type: 2}
     - target: {fileID: 4123757872864483507, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
+      propertyPath: m_sharedMaterial
+      value: 
+      objectReference: {fileID: -5514379908419441289, guid: c61d30e6a459e8c43b000be3c74baf01, type: 2}
+    - target: {fileID: 4123757872864483507, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
       propertyPath: m_hasFontAssetChanged
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4580483219751218095, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
       propertyPath: m_fontAsset
