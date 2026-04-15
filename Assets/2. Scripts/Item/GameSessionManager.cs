@@ -108,7 +108,8 @@ public class GameSessionManager : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
-        // 매니저 파괴 시 이벤트 구독을 해제하여 메모리 누수를 막습니다.
+        if (Instance == this) Instance = null;
+
         if (IsServer && NetworkManager.Singleton != null && NetworkManager.Singleton.SceneManager != null)
         {
             NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnSceneLoadComplete;

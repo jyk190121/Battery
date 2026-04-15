@@ -207,7 +207,7 @@ public class MultiPlayerSessionManager : NetworkBehaviour
                 GameSessionManager.SpawnManager(gameSessionManagerPrefab);
             }
 
-            if (gameSessionManagerPrefab != null)
+            if (gameManager_ServerPrefab != null)
             {
                 GameMaster.SpawnManager(gameManager_ServerPrefab);
             }
