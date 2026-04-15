@@ -15,7 +15,7 @@ MonoBehaviour:
   maxHealth: 100
   spawnCost: 2
   spawnWeight: 50
-  maxSpawnCount: 2
+  maxSpawnCount: 3
   monsterPrefab: {fileID: 6795600985661558741, guid: 1ffc4bfca66552f46b2f109fffb2a0da, type: 3}
   patrolSpeed: 3
   chaseSpeed: 8
