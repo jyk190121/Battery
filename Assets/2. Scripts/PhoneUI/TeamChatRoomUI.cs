@@ -64,9 +64,9 @@ public class TeamChatRoomUI : MonoBehaviour
         if (Keyboard.current == null || Mouse.current == null) return;
 
         bool isEnterPressed = Keyboard.current.enterKey.wasPressedThisFrame || Keyboard.current.numpadEnterKey.wasPressedThisFrame;
-        bool isRightClicked = Mouse.current.rightButton.wasPressedThisFrame;
+        bool isLeftClicked = Mouse.current.leftButton.wasPressedThisFrame;
 
-        if (isEnterPressed || isRightClicked)
+        if (isEnterPressed || isLeftClicked)
         {
             if (!chatInputField.gameObject.activeSelf)
             {
