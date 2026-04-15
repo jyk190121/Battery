@@ -22,6 +22,13 @@ public class MonsterController : NetworkBehaviour
     [Tooltip("순찰 경로 매니저")]
     public WaypointManager waypointManager;
 
+    [Header("--- Health System ---")]
+    [Tooltip("몬스터의 현재 체력을 서버에서 관리하고 모든 클라이언트가 알 수 있게 합니다.")]
+    public NetworkVariable<float> CurrentHealth = new NetworkVariable<float>(
+    0f,
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server);
+
     [Header("--- Network Variables (Synced) ---")]
     [Tooltip("현재 서버에서 동기화 중인 몬스터 상태")]
     public NetworkVariable<MonsterStateType> CurrentStateNet = new NetworkVariable<MonsterStateType>(
@@ -95,6 +102,7 @@ public class MonsterController : NetworkBehaviour
 
         if (IsServer)
         {
+            CurrentHealth.Value = monsterData.maxHealth;
             ChangeState(MonsterStateType.Patrol); // 초기 상태 설정
         }
         else
@@ -306,5 +314,39 @@ public class MonsterController : NetworkBehaviour
             }
         }
         return false;
+    }
+
+    /// <summary>
+    /// 외부(플레이어의 무기 등)에서 몬스터에게 데미지를 줄 때 호출하는 창구
+    /// </summary>
+    public void TakeDamage(float damage)
+    {
+        if (!IsServer) return;
+
+        if (CurrentStateNet.Value == MonsterStateType.Dead) return;
+
+        CurrentHealth.Value -= damage;
+        Debug.Log($"<color=red>[몬스터 피격]</color> {gameObject.name} 남은 체력: {CurrentHealth.Value}");
+
+        // 체력이 0 이하라면 사망 상태로 전환
+        if (CurrentHealth.Value <= 0)
+        {
+            CurrentHealth.Value = 0;
+            ChangeState(MonsterStateType.Dead);
+            return;
+        }
+
+        // 만약 머리에 붙어있는 상태(Attached)에서 맞았다면 즉시 도망(Flee) 상태로 전환
+        if (CurrentStateNet.Value == MonsterStateType.Attached)
+        {
+            ChangeState(MonsterStateType.Flee);
+        }
+    }
+
+    // [테스트용] 
+    [ContextMenu("Test Damage (10)")]
+    public void TestDamage()
+    {
+        if (IsServer) TakeDamage(10f);
     }
 }

@@ -3,6 +3,10 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "NewMonsterData", menuName = "Monster/MonsterData")]
 public class MonsterData : ScriptableObject
 {
+    [Header("Health Settings")]
+    [Tooltip("몬스터의 기본 최대 체력")]
+    public float maxHealth = 100f;
+
     [Header("Spawn Settings")]
     [Tooltip("이 몬스터가 스폰될 때 소모하는 스테이지 예산(점수)")]
     public int spawnCost = 2;
