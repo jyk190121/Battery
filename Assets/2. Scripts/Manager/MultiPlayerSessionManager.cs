@@ -16,6 +16,9 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     private const string LOBBY_SCENE_NAME = "KJY_Lobby";
     private const string START_SCENE_NAME = "KJY_TITLE";
 
+    [Header("매니저 프리팹")]
+    public GameObject gameSessionManagerPrefab;
+    public GameObject gameManager_ServerPrefab;
     // 현재 활성화된 세션 정보
     public ISession ActiveSession { get; private set; }
 
@@ -198,6 +201,16 @@ public class MultiPlayerSessionManager : NetworkBehaviour
 
             NetworkManager.Singleton.StartHost();
             Debug.Log($"[Multiplayer] 호스트 시작 성공! 코드: {joinCode}");
+
+            if (gameSessionManagerPrefab != null)
+            {
+                GameSessionManager.SpawnManager(gameSessionManagerPrefab);
+            }
+
+            if (gameSessionManagerPrefab != null)
+            {
+                GameMaster.SpawnManager(gameManager_ServerPrefab);
+            }
 
             if (GameSceneManager.Instance != null) GameSceneManager.Instance.LoadNetworkScene(LOBBY_SCENE_NAME);
         }

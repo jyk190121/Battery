@@ -72,10 +72,15 @@ public class PlayerInventory : NetworkBehaviour
 
     private IEnumerator WaitOneFrameAndRestore()
     {
-        yield return null;
+        // 매니저가 씬에 완벽히 스폰될 때까지 무한정 기다립니다.
+        while (GameSessionManager.Instance == null)
+        {
+            yield return null;
+        }
+
+        // 매니저가 확인되면 그제야 아이템 복구 시작!
         RestoreItemsFromServer();
     }
-
     private Transform FindChildByName(Transform parent, string targetName)
     {
         foreach (Transform child in parent.GetComponentsInChildren<Transform>(true))
