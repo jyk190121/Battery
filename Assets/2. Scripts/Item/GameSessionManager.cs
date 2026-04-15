@@ -21,102 +21,199 @@ public struct ItemSaveData : INetworkSerializable
     }
 }
 
+/// <summary>
+/// 게임 내 아이템, 플레이어 접속 상태, 다음 씬으로 가져갈 데이터들을 총괄합니다.
+/// 게임 씬이 넘어가도 파괴되지 않으며, 서버(Host)가 주도적으로 통제합니다.
+/// </summary>
 public class GameSessionManager : NetworkBehaviour
 {
-    private bool isStartingGame = false;
-
-
-    private void Start()
-    {
-        NetworkObject.Spawn(this);
-    }
-
     public static GameSessionManager Instance;
 
-
-    public int totalPlayersInSession = 4;
+    [Header("Session State (세션 상태)")]
+    [Tooltip("현재 방에 접속한 플레이어 중 사망한 사람의 수")]
     public int deadPlayersCount = 0;
 
+    //연타 방지용 내부 자물쇠 변수
+    private bool isStartSequenceActive = false;
 
+    [Header("Session Data (보존 데이터)")]
+    [Tooltip("트럭(정산 구역)에 저장된 아이템 목록")]
     public List<ItemSaveData> truckItems = new List<ItemSaveData>();
-    public Dictionary<ulong, List<ItemSaveData>> playerItems = new Dictionary<ulong, List<ItemSaveData>>();
-    public List<ItemBase> itemPrefabsDB = new List<ItemBase>();
 
-    // 상점 구매템 + 환원 퀘스트 지급템을 담아갈 택배 리스트
+    [Tooltip("플레이어별 인벤토리에 보존된 아이템 목록 (Key: ClientID)")]
+    public Dictionary<ulong, List<ItemSaveData>> playerItems = new Dictionary<ulong, List<ItemSaveData>>();
+
+    [Tooltip("상점 구매 및 퀘스트 보상으로 다음 씬에서 트럭에 스폰될 아이템 ID 대기열")]
     public List<int> pendingSpawnItemIDs = new List<int>();
 
+    [Header("Database (데이터베이스)")]
+    [Tooltip("게임 내 존재하는 모든 아이템 프리팹 원본 목록")]
+    public List<ItemBase> itemPrefabsDB = new List<ItemBase>();
+
+  
     private void Awake()
     {
-        if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
-        else Destroy(gameObject);
-    }
-
-    // 상점 구매 로직: 내 지갑이 아니라 GameMaster(신용한도)에게 결제 요청
-    public void AddItemToSpawnQueue(int itemID, int price)
-    {
-        if (!IsServer) return;
-
-        // GameMaster를 통해 EconomyManager의 '남은 신용 한도'로 결제가 되는지 확인
-        if (GameMaster.Instance != null && GameMaster.Instance.RequestPurchase(price))
+        if (Instance == null)
         {
-            pendingSpawnItemIDs.Add(itemID);
-            Debug.Log($"<color=green>[Shop]</color> {itemID}번 아이템 구매 승인! (스폰 대기열 등록)");
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
-            Debug.LogWarning($"<color=red>[Shop]</color> 신용 한도가 부족하여 {itemID}번 아이템을 결제할 수 없습니다.");
+            Destroy(gameObject);
         }
     }
 
-    
-    // 세션 리셋: 돈은 건드리지 않고, 오직 아이템/플레이어 상태만 초기화
-    public void ResetSession()
+    private void Start()
     {
-        isStartingGame = false; // 다음 판을 위해 자물쇠 초기화
-        truckItems.Clear();
-        playerItems.Clear();
-        deadPlayersCount = 0;
-        pendingSpawnItemIDs.Clear();
-        Debug.Log("[GameSessionManager] 아이템 및 스폰 데이터 초기화 완료.");
+        // 오직 서버(Host)만이 이 매니저를 네트워크에 등록(Spawn)할 수 있습니다.Host가 아니라면 자동생성되어야함.
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+        {
+            if (!NetworkObject.IsSpawned)
+            {
+                NetworkObject.Spawn(this);
+                Debug.Log("<color=green>[GameSessionManager]</color> 서버 주도로 네트워크 스폰 완료.");
+            }
+        }
     }
 
-    public ItemBase GetPrefab(int id)
+    // ==========================================================
+    // 생명주기 및 이벤트 등록 
+    // ==========================================================
+    public override void OnNetworkSpawn()
     {
-        foreach (var item in itemPrefabsDB)
+        // 서버(방장)만 씬 로딩 완료 이벤트를 구독합니다.
+        if (IsServer && NetworkManager.Singleton.SceneManager != null)
         {
-            if (item != null && item.itemData != null && item.itemData.itemID == id) return item;
+            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnSceneLoadComplete;
+        }
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        // 매니저 파괴 시 이벤트 구독을 해제하여 메모리 누수를 막습니다.
+        if (IsServer && NetworkManager.Singleton != null && NetworkManager.Singleton.SceneManager != null)
+        {
+            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnSceneLoadComplete;
+        }
+    }
+
+    /// <summary>
+    /// 씬 로딩이 완전히 끝났을 때 자동으로 호출됩니다.
+    /// </summary>
+    private void OnSceneLoadComplete(string sceneName, UnityEngine.SceneManagement.LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
+    {
+        //  씬 이동이 끝났으므로 다음 출발을 위해 자물쇠를 풀어줍니다!
+        isStartSequenceActive = false;
+
+        Debug.Log($"<color=lime>[GameSessionManager]</color> {sceneName} 씬 로드 완료. 출발 자물쇠 해제.");
+    }
+
+    // ==========================================================
+    // 외부 제공 유틸리티 (Utilities)
+    // ==========================================================
+    /// <summary>
+    /// 현재 네트워크 방에 접속해 있는 실제 플레이어의 총 인원수를 반환합니다.
+    /// </summary>
+    public int GetTotalPlayers()
+    {
+        if (NetworkManager.Singleton != null)
+            return NetworkManager.Singleton.ConnectedClientsIds.Count;
+        return 1;
+    }
+
+    /// <summary>
+    /// 아이템 ID를 입력받아 데이터베이스에서 해당 프리팹 원본을 찾아 반환합니다.
+    /// </summary>
+    public ItemBase GetPrefab(int targetItemID)
+    {
+        foreach (ItemBase item in itemPrefabsDB)
+        {
+            if (item != null && item.itemData != null && item.itemData.itemID == targetItemID)
+                return item;
         }
         return null;
     }
 
-    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)] // 누구나 호출할 수 있게 설정
-    public void RequestStartGameServerRpc(string sceneName)
+    // ==========================================================
+    // 시스템 제어 (System Control)
+    // ==========================================================
+    /// <summary>
+    /// [로비/상점 전용] 결제를 요청하고 성공 시 다음 씬 스폰 대기열에 추가합니다.
+    /// </summary>
+    public void AddItemToSpawnQueue(int itemID, int price)
     {
-        if(!IsServer || isStartingGame) return; // 자물쇠가 잠겼으면 무시
+        if (!IsServer) return;
 
-        Debug.Log($"<color=yellow>[GameSessionManager]</color> 서버에서 시작 시퀀스 가동: {sceneName}");
+        // 다른 매니저(GameMaster)에게 결제만 위임하여 결합도를 낮춤
+        bool isPurchaseApproved = GameMaster.Instance != null && GameMaster.Instance.RequestPurchase(price);
 
-        // 1. 퀘스트 아이템 적재 (기존 버튼에 있던 로직을 여기로 가져옴)
-        PrepareReturnQuestItems();
-
-        // 2. 씬 이동 실행
-        if (NetworkManager.Singleton.SceneManager != null)
+        if (isPurchaseApproved)
         {
-            NetworkManager.Singleton.SceneManager.LoadScene(sceneName, UnityEngine.SceneManagement.LoadSceneMode.Single);
+            pendingSpawnItemIDs.Add(itemID);
+            Debug.Log($"<color=green>[Shop]</color> {itemID}번 아이템 결제 승인. 스폰 대기열 등록 완료.");
+        }
+        else
+        {
+            Debug.LogWarning($"<color=red>[Shop]</color> 잔액 부족. {itemID}번 아이템 결제 실패.");
         }
     }
 
+    /// <summary>
+    /// 새로운 세션(1일차) 시작 시 데이터베이스를 제외한 모든 임시 데이터를 초기화합니다.
+    /// </summary>
+    public void ResetSession()
+    {
+        isStartSequenceActive = false; // 시작 자물쇠 해제
+        deadPlayersCount = 0;
+
+        truckItems.Clear();
+        playerItems.Clear();
+        pendingSpawnItemIDs.Clear();
+
+        Debug.Log("[GameSessionManager] 세션 임시 데이터 초기화 완료.");
+    }
+
+    // ==========================================================
+    // 네트워크 통신 (RPCs)
+    // ==========================================================
+    /// <summary>
+    /// [StartButton 호출] 누구나 서버에게 게임 씬으로의 이동을 요청할 수 있습니다.
+    /// </summary>
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void RequestStartGameServerRpc(string targetSceneName, RpcParams rpcParams = default)
+    {
+        // 1. 보안 및 연타 방어
+        if (!IsServer || isStartSequenceActive) return;
+
+        isStartSequenceActive = true;
+        Debug.Log($"<color=yellow>[GameSessionManager]</color> 시작 시퀀스 가동. 목적지: {targetSceneName}");
+
+        // 2. 출발 전 짐 싸기 (의존성 분리: 퀘스트 관련은 QuestManager에게 위임)
+        PrepareReturnQuestItems();
+
+        // 3. 씬 이동 (모든 클라이언트 동기화)
+        if (NetworkManager.Singleton.SceneManager != null)
+        {
+            NetworkManager.Singleton.SceneManager.LoadScene(targetSceneName, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        }
+    }
+
+    /// <summary>
+    /// 현재 활성화된 환원 퀘스트(Return)를 확인하여 필요한 아이템을 스폰 대기열에 넣습니다.
+    /// </summary>
     private void PrepareReturnQuestItems()
     {
         if (QuestManager.Instance == null) return;
 
-        foreach (int qId in QuestManager.Instance.activeQuests)
+        foreach (int questID in QuestManager.Instance.activeQuests)
         {
-            var qData = QuestManager.Instance.GetQuestData(qId);
-            if (qData != null && qData.type == QuestType.Return)
+            QuestDataSO questData = QuestManager.Instance.GetQuestData(questID);
+
+            if (questData != null && questData.type == QuestType.Return)
             {
-                pendingSpawnItemIDs.Add(qData.targetItemID);
-                Debug.Log($"<color=green>[Quest]</color> 환원 목표({qData.targetItemID}) 적재 완료.");
+                pendingSpawnItemIDs.Add(questData.targetItemID);
+                Debug.Log($"<color=green>[Quest]</color> 환원 퀘스트 지급품({questData.targetItemID}) 적재 완료.");
             }
         }
     }
