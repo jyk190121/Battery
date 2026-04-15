@@ -68,7 +68,7 @@ public class PlayerStateManager : NetworkBehaviour
                                           player.staminaExhaustedRecoverRate :
                                           player.staminaRecoverRate;
 
-                currentStamina += actualRecoverRate * Time.deltaTime;
+                currentStamina += 2f * actualRecoverRate * Time.deltaTime;
 
                 // 지침 상태 해제 (예: 최소 20%는 차야 다시 뛸 수 있음)
                 if (isExhausted && currentStamina >= player.maxStamina * 0.2f)
