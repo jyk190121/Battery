@@ -15,12 +15,12 @@ public class GalleryUI : ScrollSelectionUI
 
     private Vector3 startPosition;
 
-    private bool isHoldingRightClick = false;
+    private bool isHoldingLeftClick = false;
     private float currentHoldTime = 0f;
     public GameObject deletePopup;
     public Image deleteGauge;
 
-    private bool isRightClickBlocked = true;
+    private bool isLeftClickBlocked = true;
 
     private void Awake()
     {
@@ -38,12 +38,12 @@ public class GalleryUI : ScrollSelectionUI
         UpdateHighlightVisuals();
         UpdateMainDisplay();
 
-        isHoldingRightClick = false;
+        isHoldingLeftClick = false;
         currentHoldTime = 0f;
         if (deletePopup != null) deletePopup.SetActive(false);
         if (deleteGauge != null) deleteGauge.fillAmount = 0f;
 
-        isRightClickBlocked = true;
+        isLeftClickBlocked = true;
 
         if (PhoneUIController.Instance != null)
             PhoneUIController.Instance.OnBackButtonPressed += HandleBack;
@@ -51,7 +51,7 @@ public class GalleryUI : ScrollSelectionUI
 
     private void OnDisable()
     {
-        isHoldingRightClick = false;
+        isHoldingLeftClick = false;
         currentHoldTime = 0f;
 
         if (PhoneUIController.Instance != null)
@@ -89,7 +89,7 @@ public class GalleryUI : ScrollSelectionUI
     protected override void OnIndexChanged()
     {
         UpdateMainDisplay();
-        isHoldingRightClick = false;
+        isHoldingLeftClick = false;
         currentHoldTime = 0f;
     }
 
@@ -134,23 +134,23 @@ public class GalleryUI : ScrollSelectionUI
     #region 우클릭 삭제 (Hold to Delete)
     private void HandleDelete()
     {
-        if (isRightClickBlocked)
+        if (isLeftClickBlocked)
         {
-            if (!Mouse.current.rightButton.isPressed) isRightClickBlocked = false;
+            if (!Mouse.current.leftButton.isPressed) isLeftClickBlocked = false;
             return;
         }
 
         if (currentIndex >= PhotoDataManager.Instance.currentPhotos.Count) return;
 
-        if (Mouse.current.rightButton.isPressed)
+        if (Mouse.current.leftButton.isPressed)
         {
-            if (!isHoldingRightClick)
+            if (!isHoldingLeftClick)
             {
                 // 누르기 시작할 때 삭제 게이지 소리 
                 SoundManager.Instance.PlaySfx(SfxSound.PHONE_GALLERYDELETE);
             }
 
-            isHoldingRightClick = true;
+            isHoldingLeftClick = true;
             deletePopup.SetActive(true);
             currentHoldTime += Time.deltaTime;
 
@@ -161,18 +161,18 @@ public class GalleryUI : ScrollSelectionUI
             {
                 DeleteCurrentPhoto();
 
-                isHoldingRightClick = false;
+                isHoldingLeftClick = false;
                 currentHoldTime = 0f;
 
                 deleteGauge.fillAmount = 0f;
                 deletePopup.SetActive(false);
             }
         }
-        else if (Mouse.current.rightButton.wasReleasedThisFrame)
+        else if (Mouse.current.leftButton.wasReleasedThisFrame)
         {
-            if (isHoldingRightClick)
+            if (isHoldingLeftClick)
             {
-                isHoldingRightClick = false;
+                isHoldingLeftClick = false;
                 currentHoldTime = 0f;
 
                 deleteGauge.fillAmount = 0f;

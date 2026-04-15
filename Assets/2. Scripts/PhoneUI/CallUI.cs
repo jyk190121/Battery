@@ -55,7 +55,7 @@ public class CallUI : ScrollSelectionUI
 
         HandleScroll();
 
-        if (Mouse.current.rightButton.wasPressedThisFrame) StartCall();
+        if (Mouse.current.leftButton.wasPressedThisFrame) StartCall();
     }
 
     private void HandleBack()

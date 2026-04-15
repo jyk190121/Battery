@@ -27,6 +27,7 @@ public class PhoneUIController : MonoBehaviour
     public bool isCallRefusing = false;
 
     public event Action OnBackButtonPressed;
+    public event Action OnFlashlightToggleRequested;   // 우클릭: 라이트 토글
 
     public bool isPhoneActive = false;
 
@@ -77,12 +78,21 @@ public class PhoneUIController : MonoBehaviour
             TogglePhone();
         }
 
+        // 휴대폰이 활성화된 상태에서만 작동
         if (!phoneUIParent.activeSelf) return;
 
+        // 1. C 키: 뒤로가기 (앱 종료 등)
         if (Keyboard.current.cKey.wasPressedThisFrame)
         {
             SoundManager.Instance.PlaySfx(SfxSound.PHONE_RETURN);
             OnBackButtonPressed?.Invoke();
+        }
+
+        // 2. 마우스 우클릭: 라이트 토글 이벤트 알림 전송
+        if (Mouse.current.rightButton.wasPressedThisFrame)
+        {
+            // 이 이벤트를 구독하는 다른 스크립트(예: LightController)에서 라이트를 껐다 켭니다.
+            OnFlashlightToggleRequested?.Invoke();
         }
     }
 
