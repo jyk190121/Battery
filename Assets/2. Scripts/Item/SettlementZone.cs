@@ -48,7 +48,7 @@ public class SettlementZone : NetworkBehaviour
     private void PerformTransitionLogic(PlayerInventory callerPlayer, string targetScene, bool doSettlement)
     {
         // ==========================================================
-        // 💡 [절대 방어선] 필수 매니저들이 씬에 제대로 있는지부터 검사합니다!
+        // [절대 방어선] 필수 매니저들이 씬에 제대로 있는지부터 검사
         // ==========================================================
         if (GameSessionManager.Instance == null || QuestManager.Instance == null || GameMaster.Instance == null)
         {
@@ -58,7 +58,7 @@ public class SettlementZone : NetworkBehaviour
             if (GameMaster.Instance == null) Debug.LogError("➡️ 원인: GameMaster가 씬에 없음");
 
             isTransitioning = false; // 에러가 났으니 다음 번에 다시 누를 수 있게 자물쇠 풀기
-            return; // 💥 튕기기 전에 함수 강제 종료
+            return; //  튕기기 전에 함수 강제 종료
         }
 
         if (GameMaster.Instance.economyManager == null || GameMaster.Instance.dayCycleManager == null)
@@ -178,7 +178,7 @@ public class SettlementZone : NetworkBehaviour
             float penaltyMultiplier = 1.0f - (missingPhones * 0.05f);
             int finalNetIncome = Mathf.RoundToInt(finalDailyIncome * penaltyMultiplier);
 
-            bool isWipedOut = GameSessionManager.Instance.deadPlayersCount >= GameSessionManager.Instance.totalPlayersInSession;
+            bool isWipedOut = GameSessionManager.Instance.deadPlayersCount >= GameSessionManager.Instance.GetTotalPlayers();
 
             // 중앙 통제실 보고
             GameMaster.Instance.EndDay(isWipedOut, finalNetIncome);
