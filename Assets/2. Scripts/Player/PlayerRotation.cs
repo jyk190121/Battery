@@ -17,7 +17,11 @@ public class PlayerRotation : NetworkBehaviour
     public float walkYPos = 0.1f;           // 평소(걷기) Z 위치
     public float runYPos = 0.4f;            // 달리기 시 Z 위치 (입안이 안 보이게 앞으로 밀기)
     public float transitionSpeed = 10f;     // 위치 전환 부드러움 정도
-    public float crouchYPos = -0.5f;        // 추가: 앉았을 때 카메라 높이 (필요에 따라 조절)
+    public float crouchZPos = 0f;           // 앉았을 때 눈높이 (수치 최적화 필요)
+
+    [Header("카메라 전방 거리(Z축) 제어")]
+    public float walkZPos = 0.1f;           // 평소 앞뒤 위치
+    public float crouchYPos = 1.0f;         // 앉았을 때 카메라 위치 앞으로 조정
 
     private CinemachinePanTilt _panTilt;
 
@@ -79,6 +83,16 @@ public class PlayerRotation : NetworkBehaviour
         //    UpdateCameraPosition();
         //}
 
+        if (_panTilt != null)
+        {
+            // 앉아있을 때는 시네머신의 자동 입력 처리(상하)를 꺼버림
+            // 만약 시네머신 설정에서 Input Axis를 사용 중이라면 효과적입니다.
+            if (playerMove.IsCrouching)
+            {
+                _panTilt.TiltAxis.Value = Mathf.Lerp(_panTilt.TiltAxis.Value, 0f, Time.deltaTime * transitionSpeed);
+            }
+        }
+
         Vector2 mouseDelta = Input.GetMouseDelta();
 
         // 1. 좌우 회전 (Pan) - 언제나 가능
@@ -94,7 +108,9 @@ public class PlayerRotation : NetworkBehaviour
         else if (playerMove != null && playerMove.IsCrouching)
         {
             // 앉았을 때 정면을 보게 강제하고 싶다면 아래 주석 해제 (부드럽게 정렬됨)
-            // _panTilt.TiltAxis.Value = Mathf.Lerp(_panTilt.TiltAxis.Value, 0, Time.deltaTime * transitionSpeed);
+            _panTilt.TiltAxis.Value = Mathf.Lerp(_panTilt.TiltAxis.Value, 0f, Time.deltaTime * transitionSpeed);
+
+            if (Mathf.Abs(_panTilt.TiltAxis.Value) < 0.1f) _panTilt.TiltAxis.Value = 0f;
         }
 
         // 3. 본체 회전 동기화
@@ -108,24 +124,38 @@ public class PlayerRotation : NetworkBehaviour
         if (cameraTarget == null || playerMove == null) return;
 
         bool isCrouching = playerMove.IsCrouching;
-
         bool isRunning = playerMove.currentSpeed > playerMove.walkSpeed + 0.1f;
 
         //float targetY = isRunning ? runYPos : walkYPos;
 
-        // 타겟 Y값 결정 (우선순위: 앉기 > 달리기 > 걷기)
-        float targetY = walkYPos;
-        if (isCrouching) targetY = crouchYPos;
-        else if (isRunning) targetY = runYPos;
+        float targetHeightX = walkYPos; // 기존의 YPos 수치를 X축(실제 높이)에 사용
+        float targetForwardY = walkZPos; // 기존의 ZPos 수치를 Y축(실제 거리)에 사용
 
+        // 타겟 Y값 결정 (우선순위: 앉기 > 달리기 > 걷기)
+        //float targetY = walkYPos;
+        //if (isCrouching) targetY = crouchYPos;
+        //else if (isRunning) targetY = runYPos;
+
+
+        if (isCrouching)
+        {
+            targetForwardY = crouchYPos; // 앉았을 때 앞으로 밀기
+            targetHeightX = crouchZPos;
+        }
+        else if (isRunning)
+        {
+            targetForwardY = runYPos;
+        }
 
         // 현재 로컬 위치 가져오기
         Vector3 currentPos = cameraTarget.localPosition;
 
+        float newX = Mathf.Lerp(currentPos.x, targetHeightX, Time.deltaTime * transitionSpeed);
+
         // Y값만 부드럽게 보간(Lerp)
-        float newY = Mathf.Lerp(currentPos.y, targetY + originYoffset, Time.deltaTime * transitionSpeed);
+        float newY = Mathf.Lerp(currentPos.y, targetForwardY + originYoffset, Time.deltaTime * transitionSpeed);
 
         // 새로운 위치 적용
-        cameraTarget.localPosition = new Vector3(currentPos.x, newY, currentPos.z);
+        cameraTarget.localPosition = new Vector3(newX, newY, currentPos.z);
     }
 }
