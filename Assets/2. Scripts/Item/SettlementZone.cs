@@ -47,18 +47,15 @@ public class SettlementZone : NetworkBehaviour
 
     private void PerformTransitionLogic(PlayerInventory callerPlayer, string targetScene, bool doSettlement)
     {
-        // ==========================================================
+        // 💡 [방어 코드] 서버에서만 실행되도록 보장
+        if (!IsServer) return;
+
         // [절대 방어선] 필수 매니저들이 씬에 제대로 있는지부터 검사
-        // ==========================================================
         if (GameSessionManager.Instance == null || QuestManager.Instance == null || GameMaster.Instance == null)
         {
             Debug.LogError("<color=red><b>🚨 [치명적 오류] 씬 이동을 위한 필수 매니저가 씬에 없습니다!</b></color>");
-            if (GameSessionManager.Instance == null) Debug.LogError("➡️ 원인: GameSessionManager가 씬에 없음");
-            if (QuestManager.Instance == null) Debug.LogError("➡️ 원인: QuestManager가 씬에 없음");
-            if (GameMaster.Instance == null) Debug.LogError("➡️ 원인: GameMaster가 씬에 없음");
-
-            isTransitioning = false; // 에러가 났으니 다음 번에 다시 누를 수 있게 자물쇠 풀기
-            return; //  튕기기 전에 함수 강제 종료
+            isTransitioning = false;
+            return;
         }
 
         if (GameMaster.Instance.economyManager == null || GameMaster.Instance.dayCycleManager == null)
@@ -69,7 +66,7 @@ public class SettlementZone : NetworkBehaviour
         }
 
         // ==========================================================
-        // 여기서부터는 안전이 보장된 상태로 정산 로직이 돌아갑니다.
+        // 💡 [중복 방지] 저장하기 전, 기존에 담겨있던 명단을 완전히 비웁니다.
         // ==========================================================
         GameSessionManager.Instance.truckItems.Clear();
         GameSessionManager.Instance.playerItems.Clear();
@@ -84,6 +81,7 @@ public class SettlementZone : NetworkBehaviour
         int recoveredPhonesCount = 0;
         List<PlayerInventory> playersInTruck = new List<PlayerInventory>();
 
+        // 1. 트럭 바닥에 있는 아이템 처리
         foreach (var t in targets)
         {
             ItemBase item = t.GetComponentInParent<ItemBase>();
@@ -108,8 +106,12 @@ public class SettlementZone : NetworkBehaviour
                         SaveToTruck(item);
                     }
                 }
-                else { SaveToTruck(item); }
+                else
+                {
+                    SaveToTruck(item);
+                }
 
+                // 정산된 아이템은 제거
                 if (doSettlement && (item.itemData.category == ItemCategory.Scrap || item.itemData.category == ItemCategory.Quest || item.itemData.category == ItemCategory.Phone))
                 {
                     if (item.NetworkObject != null && item.NetworkObject.IsSpawned) item.NetworkObject.Despawn();
@@ -120,6 +122,7 @@ public class SettlementZone : NetworkBehaviour
             if (p != null && !playersInTruck.Contains(p)) playersInTruck.Add(p);
         }
 
+        // 2. 플레이어 인벤토리 아이템 처리
         foreach (var p in playersInTruck)
         {
             for (int i = 0; i < p.slots.Length; i++)
@@ -145,6 +148,7 @@ public class SettlementZone : NetworkBehaviour
                     }
                     else { SaveToPlayer(slotItem, i, p.OwnerClientId); }
 
+                    // 정산 품목은 인벤토리에서도 제거(Despawn)
                     if (doSettlement && (slotItem.itemData.category == ItemCategory.Scrap || slotItem.itemData.category == ItemCategory.Quest || slotItem.itemData.category == ItemCategory.Phone))
                     {
                         if (slotItem.NetworkObject != null && slotItem.NetworkObject.IsSpawned) slotItem.NetworkObject.Despawn();
@@ -160,35 +164,50 @@ public class SettlementZone : NetworkBehaviour
             }
         }
 
+        // 3. 씬에 남아있는 모든 잔여 네트워크 아이템 청소 (중복 생성 방지 핵심)
         ItemBase[] allItemsInScene = FindObjectsByType<ItemBase>(FindObjectsSortMode.None);
         foreach (var leftoverItem in allItemsInScene)
         {
-            if (leftoverItem != null && leftoverItem.NetworkObject != null && leftoverItem.NetworkObject.IsSpawned) leftoverItem.NetworkObject.Despawn();
+            if (leftoverItem != null && leftoverItem.NetworkObject != null && leftoverItem.NetworkObject.IsSpawned)
+                leftoverItem.NetworkObject.Despawn();
         }
+
 #if UNITY_EDITOR
         UnityEditor.Selection.activeGameObject = null;
 #endif
 
+        // 4. 정산 결과 계산 및 보고
         if (doSettlement)
         {
-            int questIncome = QuestManager.Instance.GetCalculatedQuestReward();
-            int finalDailyIncome = totalScrapValue + questIncome;
+            try
+            {
+                int questIncome = QuestManager.Instance.GetCalculatedQuestReward();
+                int finalDailyIncome = totalScrapValue + questIncome;
 
-            int missingPhones = Mathf.Max(0, GameSessionManager.Instance.deadPlayersCount - recoveredPhonesCount);
-            float penaltyMultiplier = 1.0f - (missingPhones * 0.05f);
-            int finalNetIncome = Mathf.RoundToInt(finalDailyIncome * penaltyMultiplier);
+                int missingPhones = Mathf.Max(0, GameSessionManager.Instance.deadPlayersCount - recoveredPhonesCount);
+                float penaltyMultiplier = 1.0f - (missingPhones * 0.05f);
+                int finalNetIncome = Mathf.RoundToInt(finalDailyIncome * penaltyMultiplier);
 
-            bool isWipedOut = GameSessionManager.Instance.deadPlayersCount >= GameSessionManager.Instance.GetTotalPlayers();
+                bool isWipedOut = GameSessionManager.Instance.deadPlayersCount >= GameSessionManager.Instance.GetTotalPlayers();
 
-            // 중앙 통제실 보고
-            GameMaster.Instance.EndDay(isWipedOut, finalNetIncome);
-
-            // 퀘스트 초기화
-            QuestManager.Instance.ResetDailyQuests();
+                GameMaster.Instance.EndDay(isWipedOut, finalNetIncome);
+                QuestManager.Instance.ResetDailyQuests();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[Settlement] 정산 계산 중 오류 발생 (무시하고 이동): {e.Message}");
+            }
         }
 
-        // 마지막 씬 이동
-        NetworkManager.Singleton.SceneManager.LoadScene(targetScene, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        // 5. 💡 최종 씬 이동
+        if (NetworkManager.Singleton.SceneManager != null)
+        {
+            NetworkManager.Singleton.SceneManager.LoadScene(targetScene, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        }
+        else
+        {
+            isTransitioning = false;
+        }
     }
 
     private void SaveToTruck(ItemBase item)
@@ -206,15 +225,24 @@ public class SettlementZone : NetworkBehaviour
     {
         if (!IsServer || GameSessionManager.Instance == null) return;
 
+        Debug.Log($"<color=lime>[SettlementZone]</color> 아이템 복구 시작. 남은 짐 개수: {GameSessionManager.Instance.truckItems.Count}");
+
         foreach (var d in GameSessionManager.Instance.truckItems)
         {
             ItemBase prefab = GameSessionManager.Instance.GetPrefab(d.itemID);
             if (prefab == null || anchor == null) continue;
+
             ItemBase spawned = Instantiate(prefab, anchor.TransformPoint(d.localPos), anchor.rotation * d.localRot);
             if (spawned is Item_Durability dur) dur.currentDurability = d.stateValue1;
+
             spawned.GetComponent<NetworkObject>().Spawn();
         }
 
+        // 씬에 다 뿌렸으므로 트럭 리스트를 비워줍니다. 
+        // 이걸 안 하면 다음 씬 이동 시 "이전 씬 아이템 + 현재 씬 아이템"이 합쳐져서 저장됩니다.
+        GameSessionManager.Instance.truckItems.Clear();
+
+        // (상점/퀘스트 대기열 스폰 로직은 그대로 유지)
         if (deliveryDropPoint != null)
         {
             foreach (int itemID in GameSessionManager.Instance.pendingSpawnItemIDs)
@@ -229,13 +257,8 @@ public class SettlementZone : NetworkBehaviour
                     spawned.GetComponent<NetworkObject>().Spawn();
                 }
             }
+            GameSessionManager.Instance.pendingSpawnItemIDs.Clear();
         }
-        else
-        {
-            Debug.LogWarning("[SettlementZone] 택배를 내릴 deliveryDropPoint가 지정되지 않았습니다!");
-        }
-
-        GameSessionManager.Instance.pendingSpawnItemIDs.Clear();
     }
 
     private void OnDrawGizmos()
