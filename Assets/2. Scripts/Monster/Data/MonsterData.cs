@@ -81,4 +81,6 @@ public class MonsterData : ScriptableObject
     public float snareTickRate = 1.5f;
     [Tooltip("1틱당 들어가는 데미지 량")]
     public float snareTickDamage = 10f;
+    [Tooltip("맞아서 떨어졌을 때 패닉 상태로 도망치는 시간(초)")]
+    public float fleeDuration = 6.0f;
 }

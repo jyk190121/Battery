@@ -343,6 +343,24 @@ public class MonsterController : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// 특정 플레이어에게 시야 차단(또는 해제) UI를 켜라고 지시
+    /// </summary>
+    [Rpc(SendTo.SpecifiedInParams)]
+    public void TriggerSnareBlindRpc(bool isSnared, RpcParams rpcParams = default)
+    {
+        if (isSnared)
+        {
+            Debug.Log("<color=magenta>[UI]</color> 으악! 앞이 안 보여! (시야 차단 UI 켜기)");
+            // UIManager.Instance.ShowBlindScreen(true);
+        }
+        else
+        {
+            Debug.Log("<color=magenta>[UI]</color> 시야 차단 해제!");
+            // UIManager.Instance.ShowBlindScreen(false);
+        }
+    }
+
     // [테스트용] 
     [ContextMenu("Test Damage (10)")]
     public void TestDamage()
