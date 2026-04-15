@@ -213,4 +213,13 @@ public class EnvironmentScanner : MonoBehaviour
             Gizmos.DrawLine(transform.position, LastSeenPosition);
         }
     }
+
+    /// <summary>
+    /// [특수 기믹용] 외부 상태(CeilingWait 등)에서 특정 타겟을 강제로 고정할 때 사용합니다.
+    /// </summary>
+    public void SetForceTarget(Transform newTarget)
+    {
+        UpdateTargetData(newTarget);
+        Debug.Log($"[{owner.name}] 타겟 강제 고정: {newTarget.name}");
+    }
 }

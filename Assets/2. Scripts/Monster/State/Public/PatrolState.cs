@@ -79,6 +79,16 @@ public class PatrolState : MonsterBaseState
         // 목적지에 도착했는지 확인 (remainingDistance가 멈춤 거리보다 작아질 때)
         if (!owner.navAgent.pathPending && owner.navAgent.remainingDistance <= owner.navAgent.stoppingDistance)
         {
+            if (data.ceilingAttachChance > 0f)
+            {
+                // 확률적으로 천장 대기 상태로 돌입
+                if (Random.value <= data.ceilingAttachChance)
+                {
+                    owner.ChangeState(MonsterStateType.CeilingWait);
+                    return; // StartWaiting()으로 넘어가지 않고 여기서 끝냄
+                }
+            }
+            // 일반적인 대기
             StartWaiting();
         }
     }
