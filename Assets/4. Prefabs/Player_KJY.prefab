@@ -2961,7 +2961,7 @@ MonoBehaviour:
   groundCheckDistance: 0.3
   stairLayer:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 640
   stairStepUpForce: 8
   stairDownForce: 0.1
   stepHeight: 0.35

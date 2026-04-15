@@ -47,7 +47,7 @@ public class PlayerRotation : NetworkBehaviour
                 if (IsOwner)
                 {
                     vcam.Follow = cameraTarget;
-                    vcam.LookAt = cameraTarget;
+                    vcam.LookAt = null;
 
                     if (_panTilt != null)
                     {
@@ -66,33 +66,6 @@ public class PlayerRotation : NetworkBehaviour
         if (vcam == null) TryFindCamera();
         if (_panTilt == null) return;
 
-        //if (_panTilt != null)
-        //{
-        //    Vector2 mouseDelta = Input.GetMouseDelta();
-
-        //    // 1. 좌우 회전 (Pan)
-        //    _panTilt.PanAxis.Value += mouseDelta.x * sensitivity;
-
-        //    // 2. 상하 회전 (Tilt) 및 제한
-        //    float newTilt = _panTilt.TiltAxis.Value - (mouseDelta.y * sensitivity);
-        //    _panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, -70f, 70f);
-
-        //    // 3. 본체 회전 동기화 (Y축만)
-        //    transform.rotation = Quaternion.Euler(0, _panTilt.PanAxis.Value, 0);
-
-        //    UpdateCameraPosition();
-        //}
-
-        if (_panTilt != null)
-        {
-            // 앉아있을 때는 시네머신의 자동 입력 처리(상하)를 꺼버림
-            // 만약 시네머신 설정에서 Input Axis를 사용 중이라면 효과적입니다.
-            if (playerMove.IsCrouching)
-            {
-                _panTilt.TiltAxis.Value = Mathf.Lerp(_panTilt.TiltAxis.Value, 0f, Time.deltaTime * transitionSpeed);
-            }
-        }
-
         Vector2 mouseDelta = Input.GetMouseDelta();
 
         // 1. 좌우 회전 (Pan) - 언제나 가능
@@ -107,10 +80,15 @@ public class PlayerRotation : NetworkBehaviour
         }
         else if (playerMove != null && playerMove.IsCrouching)
         {
-            // 앉았을 때 정면을 보게 강제하고 싶다면 아래 주석 해제 (부드럽게 정렬됨)
-            _panTilt.TiltAxis.Value = Mathf.Lerp(_panTilt.TiltAxis.Value, 0f, Time.deltaTime * transitionSpeed);
+            float crouchViewOffset = -20f;
 
-            if (Mathf.Abs(_panTilt.TiltAxis.Value) < 0.1f) _panTilt.TiltAxis.Value = 0f;
+            //// 앉았을 때 정면을 보게 강제하고 싶다면 아래 주석 해제 (부드럽게 정렬됨)
+            //_panTilt.TiltAxis.Value = Mathf.Lerp(_panTilt.TiltAxis.Value, crouchViewOffset, Time.deltaTime * transitionSpeed);
+
+            //if (Mathf.Abs(_panTilt.TiltAxis.Value) < 0.1f) _panTilt.TiltAxis.Value = crouchViewOffset;
+
+            // Lerp 대신 직접 값을 대입해서 변화가 있는지 먼저 확인하세요.
+            _panTilt.TiltAxis.Value = crouchViewOffset;
         }
 
         // 3. 본체 회전 동기화
@@ -150,6 +128,8 @@ public class PlayerRotation : NetworkBehaviour
         // 현재 로컬 위치 가져오기
         Vector3 currentPos = cameraTarget.localPosition;
 
+        //float snapSpeed = isCrouching ? transitionSpeed * 2f : transitionSpeed;
+
         float newX = Mathf.Lerp(currentPos.x, targetHeightX, Time.deltaTime * transitionSpeed);
 
         // Y값만 부드럽게 보간(Lerp)
@@ -157,5 +137,17 @@ public class PlayerRotation : NetworkBehaviour
 
         // 새로운 위치 적용
         cameraTarget.localPosition = new Vector3(newX, newY, currentPos.z);
+        
+        //if (playerMove.IsCrouching)
+        //{
+        //    // 예: 로컬 회전값을 (0, 0, 0) 혹은 정면을 보는 특정 값으로 고정
+        //    // 축이 꼬여있으므로 아래 Euler 값을 조절하며 정면을 찾는 과정이 필요합니다.
+        //    cameraTarget.localRotation = Quaternion.Euler(90, 90, 90);
+        //}
+        //else
+        //{
+        //    // 서 있을 때 기본 회전값 (필요하다면)
+        //    cameraTarget.localRotation = Quaternion.Euler(0, 0, 0);
+        //}
     }
 }

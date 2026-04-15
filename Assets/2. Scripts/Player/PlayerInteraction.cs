@@ -32,6 +32,7 @@ public class PlayerInteraction : NetworkBehaviour
     private DoorController targetDoor = null;
     private PortalController targetPortal = null;
     private TabletUIManager targetTabletUI = null;
+    CarController carDoor = null;
 
     public override void OnNetworkSpawn()
     {
@@ -118,6 +119,15 @@ public class PlayerInteraction : NetworkBehaviour
                     targetTabletUI.OpenTabletUI();
                 }
             }
+            else if (carDoor != null)
+            {
+                if (Keyboard.current.eKey.wasPressedThisFrame)
+                {
+                    string currentKey = "Truck_Zil130_TrailerDoor";
+
+                    carDoor.TryOpen(currentKey);
+                }
+            }
         }
         else
         {
@@ -145,11 +155,12 @@ public class PlayerInteraction : NetworkBehaviour
             // 타겟 갱신
             targetDoor = hit.collider.GetComponentInParent<DoorController>();
             targetPortal = hit.collider.GetComponentInParent<PortalController>();
+            carDoor = hit.collider.GetComponentInParent<CarController>();
 
             targetTabletUI = hit.collider.GetComponentInChildren<TabletUIManager>();
             if (targetTabletUI == null) targetTabletUI = hit.collider.GetComponentInParent<TabletUIManager>();
 
-            if (targetDoor != null || targetPortal != null || targetTabletUI != null)
+            if (targetDoor != null || targetPortal != null || targetTabletUI != null || carDoor != null)
             {
                 if (!isLookingAtInteractable) interactUI.SetActive(true);
                 isLookingAtInteractable = true;
@@ -166,6 +177,10 @@ public class PlayerInteraction : NetworkBehaviour
                 {
                     interactText.text = "Use Tablet (E)";
                 }
+                else if (carDoor != null)
+                {
+                    interactText.text = carDoor.isOpen.Value ? "Close (E)" : "Open (E)";
+                }
                 return; // 찾았으므로 종료
             }
         }  
@@ -176,6 +191,7 @@ public class PlayerInteraction : NetworkBehaviour
         targetDoor = null;
         targetPortal = null;
         targetTabletUI = null;
+        carDoor = null;
     }
 
     public void FindUIElements()
