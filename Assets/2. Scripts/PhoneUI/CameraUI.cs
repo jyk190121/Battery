@@ -136,7 +136,7 @@ public class CameraUI : MonoBehaviour
 
     private void HandleCapture()
     {
-        if (Mouse.current.rightButton.wasPressedThisFrame)
+        if (Mouse.current.leftButton.wasPressedThisFrame)
         {
             // 매니저를 통해 사진 개수 검사
             if (PhotoDataManager.Instance.currentPhotos.Count >= PhotoDataManager.Instance.maxPhotos)

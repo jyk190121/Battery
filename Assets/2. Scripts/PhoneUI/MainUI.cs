@@ -29,7 +29,7 @@ public class MainUI : ScrollSelectionUI
         HandleScroll();
 
         // 우클릭시 해당 화면으로 이동
-        if (Mouse.current.rightButton.wasPressedThisFrame)
+        if (Mouse.current.leftButton.wasPressedThisFrame)
         {
             SoundManager.Instance.PlaySfx(SfxSound.PHONE_SELECT);
             PhoneUIController.Instance.ShowScreen(currentIndex + 1);

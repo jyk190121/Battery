@@ -36,7 +36,7 @@ public class MessageUI : ScrollSelectionUI
         // 채팅방이 안 열려있을 때만 방 목록 스크롤 이동
         if (!isChatOpen) HandleScroll();
 
-        if (Mouse.current.rightButton.wasPressedThisFrame && !isChatOpen)
+        if (Mouse.current.leftButton.wasPressedThisFrame && !isChatOpen)
         {
             OpenChat();
         }

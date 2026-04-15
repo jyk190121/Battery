@@ -68,7 +68,7 @@ public class OnCallingUI : MonoBehaviour
     {
         if (Keyboard.current == null || Mouse.current == null) return;
 
-        if (Mouse.current.rightButton.wasPressedThisFrame)
+        if (Mouse.current.leftButton.wasPressedThisFrame)
         {
             if (isIncomingCall && !isTimerRunning) AcceptCall();
         }
