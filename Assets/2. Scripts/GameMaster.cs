@@ -80,10 +80,9 @@ public class GameMaster : NetworkBehaviour
     // 네트워크 방이 닫히거나 연결이 끊기면 스스로 파괴 (좀비 매니저 방지)
     public override void OnNetworkDespawn()
     {
-        //if (gameObject != null)
-        //{
-        //    NetworkObject.Despawn(gameObject);
-        //}
+
+        if (Instance == this) Instance = null;
+
         if (IsServer && GameSceneManager.Instance != null)
         {
             GameSceneManager.Instance.OnGameSessionRequest -= StartNewGame;
