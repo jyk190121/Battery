@@ -101,8 +101,8 @@ public class PlayerEquipment : NetworkBehaviour
         if (smartphoneModel != null && handSocket != null)
         {
             spawnedPhone = Instantiate(smartphoneModel, handSocket);
-            spawnedPhone.transform.localPosition = Vector3.zero;
-            spawnedPhone.transform.localRotation = Quaternion.identity;
+            spawnedPhone.transform.localPosition = new Vector3(-0.002f, 0.062f, -0.002f);
+            spawnedPhone.transform.localRotation = Quaternion.identity * Quaternion.Euler(0,0,90f);
         }
     }
 

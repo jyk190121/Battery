@@ -3311,6 +3311,7 @@ MonoBehaviour:
   breathAudio: {fileID: 0}
   vignetteMaxScale: 3
   vignetteMinScale: 1
+  blindImage: {fileID: 0}
 --- !u!114 &7772676231503934991
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3325,7 +3326,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerEquipment
   ShowTopMostFoldoutHeaderGroup: 1
   smartphoneModel: {fileID: 3256090640262015324, guid: cc39fda2988cc3448ae96fd3980cf44f, type: 3}
-  handSocket: {fileID: 8437810917414840590}
+  handSocket: {fileID: 7494339301542819785}
 --- !u!136 &8431698971035657743
 CapsuleCollider:
   m_ObjectHideFlags: 0
