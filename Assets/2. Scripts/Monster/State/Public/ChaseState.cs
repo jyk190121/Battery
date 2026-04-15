@@ -116,6 +116,8 @@ public class ChaseState : MonsterBaseState
 
     private void CheckAttackDistance(Transform target)
     {
+        if (data.ceilingAttachChance > 0f) return;
+
         Vector3 offset = target.position - owner.transform.position;
         if (offset.sqrMagnitude <= data.attackRange * data.attackRange)
         {

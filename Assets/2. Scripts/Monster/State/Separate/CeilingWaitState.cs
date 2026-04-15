@@ -113,10 +113,5 @@ public class CeilingWaitState : MonsterBaseState
     {
         base.Exit();
         owner.transform.rotation = Quaternion.Euler(0f, owner.transform.eulerAngles.y, 0f);
-
-        if (owner.navAgent != null && !owner.navAgent.enabled)
-        {
-            owner.navAgent.enabled = true;
-        }
     }
 }

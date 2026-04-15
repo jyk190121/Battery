@@ -69,27 +69,32 @@ public class MonsterController : NetworkBehaviour
 
     private void Awake()
     {
-        // [최적화/수정 이유] 서버/클라이언트 모두 로컬 FSM 인스턴스가 필요하므로 Awake에서 공통 초기화
         stateMachine = new MonsterStateMachine();
 
-        // 상태 인스턴스 미리 생성 (Flyweight 패턴으로 메모리 재사용)
+        // 1. 공통 상태 등록
         states = new Dictionary<MonsterStateType, IState>
         {
             { MonsterStateType.Patrol, new PatrolState(this) },
-            { MonsterStateType.Detect, new DetectState(this) },
-            { MonsterStateType.Chase, new ChaseState(this) },
-            { MonsterStateType.Search, new SearchState(this) },
-            { MonsterStateType.Attack, new AttackState(this) },
             { MonsterStateType.InteractDoor, new InteractDoorState(this) },
             { MonsterStateType.Idle, new PatrolState(this) },
             { MonsterStateType.Dead, new DeadState(this) }
         };
 
+        // 2. 몬스터 타입별 전용 상태 등록
         if (monsterData != null && monsterData.ceilingAttachChance > 0f)
         {
+            // [올무벼룩 전용] 공격 상태 대신 특수 상태들만 넣음
             states.Add(MonsterStateType.CeilingWait, new CeilingWaitState(this));
             states.Add(MonsterStateType.Attached, new AttachedState(this));
             states.Add(MonsterStateType.Flee, new FleeState(this));
+        }
+        else
+        {
+            // [일반 몬스터용] 일반 공격 상태를 여기서 추가
+            states.Add(MonsterStateType.Attack, new AttackState(this));
+            states.Add(MonsterStateType.Detect, new DetectState(this));
+            states.Add(MonsterStateType.Chase, new ChaseState(this));
+            states.Add(MonsterStateType.Search, new SearchState(this));
         }
     }
 

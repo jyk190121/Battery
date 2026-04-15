@@ -26,17 +26,19 @@ public class AttachedState : MonsterBaseState
         // 1. 타겟이 유효한지 1차 검사
         if (snaredPlayer != null && !snaredPlayer.IsDead)
         {
-            Debug.Log($"<color=red>[Snare Flea]</color> {snaredPlayer.name}의 머리에 안착했습니다!");
+            owner.navAgent.enabled = false;
 
             // 2. [네트워크 종속] 몬스터를 플레이어의 자식(Child)으로 설정 (worldPositionStays = false)
             owner.NetworkObject.TrySetParent(snaredPlayer.NetworkObject, false);
 
             // 3. 플레이어 머리 위치(대략 높이 1.6m)로 로컬 위치 고정
-            owner.transform.localPosition = new Vector3(0, 1.6f, 0);
+            owner.transform.localPosition = new Vector3(0, 1.2f, 0);
             owner.transform.localRotation = Quaternion.identity;
 
             // 4. RpcTarget.Single()을 사용하여 타겟 클라이언트에게만 시야 차단 지시
             owner.TriggerSnareBlindRpc(true, owner.RpcTarget.Single(snaredPlayer.OwnerClientId, RpcTargetUse.Temp));
+
+            Debug.Log($"<color=red>[Snare Flea]</color> {snaredPlayer.name}의 머리에 안착했습니다!");
         }
         else
         {
@@ -89,6 +91,8 @@ public class AttachedState : MonsterBaseState
             // 떨어질 때 바닥에 똑바로 안착할 수 있도록 회전값과 Y축 높이를 리셋합니다.
             owner.transform.rotation = Quaternion.Euler(0, owner.transform.eulerAngles.y, 0);
         }
+
+        owner.navAgent.enabled = true;
 
         snaredPlayer = null;
         Debug.Log("<color=yellow>[Snare Flea]</color> 플레이어에게서 분리되었습니다.");
