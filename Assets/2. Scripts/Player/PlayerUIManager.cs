@@ -17,8 +17,13 @@ public class PlayerUIManager : NetworkBehaviour
     [Tooltip("스태미너가 0%일 때 크기 (화면 양옆이 잘리지 않는 마지노선)")]
     public float vignetteMinScale = 25f;
 
+    [Header("Gimmick UI")]
+    public Image blindImage;
+
     private RectTransform vignetteRect;
     private bool isInitialized = false;
+
+    public static PlayerUIManager LocalInstance { get; private set; }
 
     public override void OnNetworkSpawn()
     {
@@ -27,6 +32,7 @@ public class PlayerUIManager : NetworkBehaviour
             this.enabled = false;
             return;
         }
+        LocalInstance = this;
 
         stateManager = GetComponent<PlayerStateManager>();
         InitUI();
@@ -44,6 +50,8 @@ public class PlayerUIManager : NetworkBehaviour
         {
             stateManager.currentHealth.OnValueChanged -= OnHealthChanged;
         }
+
+        if (IsOwner) LocalInstance = null;
     }
 
     void InitUI()
@@ -58,6 +66,16 @@ public class PlayerUIManager : NetworkBehaviour
         {
             GameObject go = GameObject.Find("VignetteImage");
             if (go != null) vignetteImage = go.GetComponent<Image>();
+        }
+
+        if (blindImage == null)
+        {
+            GameObject go = GameObject.Find("BlindImage");
+            if (go != null)
+            {
+                blindImage = go.GetComponent<Image>();
+                blindImage.enabled = false; 
+            }
         }
 
         if (vignetteImage != null)
@@ -147,6 +165,14 @@ public class PlayerUIManager : NetworkBehaviour
         else
         {
             if (breathAudio.isPlaying) breathAudio.Stop();
+        }
+    }
+
+    public void SetBlindScreen(bool isBlind)
+    {
+        if (blindImage != null)
+        {
+            blindImage.enabled = isBlind;
         }
     }
 }

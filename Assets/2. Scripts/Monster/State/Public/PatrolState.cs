@@ -10,11 +10,15 @@ public class PatrolState : MonsterBaseState
 
     public override void Enter()
     {
+        if (owner.navAgent != null && !owner.navAgent.enabled)
+        {
+            owner.navAgent.enabled = true;
+        }
+
         owner.navAgent.speed = data.patrolSpeed;
         owner.navAgent.isStopped = false;
         isWaiting = false;
         stuckTimer = 0f; // 이동 시작 시 타이머 초기화
-        //owner.animHandler.SetSpeed(data.patrolSpeed);
 
         MoveToNextPoint();
     }

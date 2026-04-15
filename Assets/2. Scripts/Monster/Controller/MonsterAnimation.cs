@@ -125,4 +125,13 @@ public class MonsterAnimation : MonoBehaviour
             animator.CrossFade("Locomotion", 0.1f);
         }
     }
+
+    public void TriggerDeath()
+    {
+        if (animator != null)
+        {
+            // 애니메이터에 "Die" 파라미터가 Trigger로 설정되어 있다고 가정
+            animator.SetTrigger("Die");
+        }
+    }
 }

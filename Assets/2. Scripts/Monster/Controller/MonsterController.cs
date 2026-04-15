@@ -81,8 +81,16 @@ public class MonsterController : NetworkBehaviour
             { MonsterStateType.Search, new SearchState(this) },
             { MonsterStateType.Attack, new AttackState(this) },
             { MonsterStateType.InteractDoor, new InteractDoorState(this) },
-            { MonsterStateType.Idle, new PatrolState(this) }
+            { MonsterStateType.Idle, new PatrolState(this) },
+            { MonsterStateType.Dead, new DeadState(this) }
         };
+
+        if (monsterData != null && monsterData.ceilingAttachChance > 0f)
+        {
+            states.Add(MonsterStateType.CeilingWait, new CeilingWaitState(this));
+            states.Add(MonsterStateType.Attached, new AttachedState(this));
+            states.Add(MonsterStateType.Flee, new FleeState(this));
+        }
     }
 
     public override void OnNetworkSpawn()
@@ -349,15 +357,16 @@ public class MonsterController : NetworkBehaviour
     [Rpc(SendTo.SpecifiedInParams)]
     public void TriggerSnareBlindRpc(bool isSnared, RpcParams rpcParams = default)
     {
-        if (isSnared)
+        if (PlayerUIManager.LocalInstance != null)
         {
-            Debug.Log("<color=magenta>[UI]</color> 으악! 앞이 안 보여! (시야 차단 UI 켜기)");
-            // UIManager.Instance.ShowBlindScreen(true);
-        }
-        else
-        {
-            Debug.Log("<color=magenta>[UI]</color> 시야 차단 해제!");
-            // UIManager.Instance.ShowBlindScreen(false);
+            if (isSnared)
+            {
+                PlayerUIManager.LocalInstance.SetBlindScreen(true);
+            }
+            else
+            {
+                PlayerUIManager.LocalInstance.SetBlindScreen(false);
+            }
         }
     }
 
