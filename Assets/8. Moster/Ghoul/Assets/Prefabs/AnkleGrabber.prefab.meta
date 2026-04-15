@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 656835c98f7180548bfc0a3c70bdbd94
+timeCreated: 1498066537
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 92788
+  packageName: Ghoul Anklegrabber
+  packageVersion: 1.0
+  assetPath: Assets/Ghoul/Assets/Prefabs/AnkleGrabber.prefab
+  uploadId: 186173

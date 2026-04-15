@@ -22,6 +22,13 @@ public class MonsterController : NetworkBehaviour
     [Tooltip("순찰 경로 매니저")]
     public WaypointManager waypointManager;
 
+    [Header("--- Health System ---")]
+    [Tooltip("몬스터의 현재 체력을 서버에서 관리하고 모든 클라이언트가 알 수 있게 합니다.")]
+    public NetworkVariable<float> CurrentHealth = new NetworkVariable<float>(
+    0f,
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server);
+
     [Header("--- Network Variables (Synced) ---")]
     [Tooltip("현재 서버에서 동기화 중인 몬스터 상태")]
     public NetworkVariable<MonsterStateType> CurrentStateNet = new NetworkVariable<MonsterStateType>(
@@ -62,20 +69,33 @@ public class MonsterController : NetworkBehaviour
 
     private void Awake()
     {
-        // [최적화/수정 이유] 서버/클라이언트 모두 로컬 FSM 인스턴스가 필요하므로 Awake에서 공통 초기화
         stateMachine = new MonsterStateMachine();
 
-        // 상태 인스턴스 미리 생성 (Flyweight 패턴으로 메모리 재사용)
+        // 1. 공통 상태 등록
         states = new Dictionary<MonsterStateType, IState>
         {
             { MonsterStateType.Patrol, new PatrolState(this) },
-            { MonsterStateType.Detect, new DetectState(this) },
-            { MonsterStateType.Chase, new ChaseState(this) },
-            { MonsterStateType.Search, new SearchState(this) },
-            { MonsterStateType.Attack, new AttackState(this) },
             { MonsterStateType.InteractDoor, new InteractDoorState(this) },
-            { MonsterStateType.Idle, new PatrolState(this) }
+            { MonsterStateType.Idle, new PatrolState(this) },
+            { MonsterStateType.Dead, new DeadState(this) }
         };
+
+        // 2. 몬스터 타입별 전용 상태 등록
+        if (monsterData != null && monsterData.ceilingAttachChance > 0f)
+        {
+            // [올무벼룩 전용] 공격 상태 대신 특수 상태들만 넣음
+            states.Add(MonsterStateType.CeilingWait, new CeilingWaitState(this));
+            states.Add(MonsterStateType.Attached, new AttachedState(this));
+            states.Add(MonsterStateType.Flee, new FleeState(this));
+        }
+        else
+        {
+            // [일반 몬스터용] 일반 공격 상태를 여기서 추가
+            states.Add(MonsterStateType.Attack, new AttackState(this));
+            states.Add(MonsterStateType.Detect, new DetectState(this));
+            states.Add(MonsterStateType.Chase, new ChaseState(this));
+            states.Add(MonsterStateType.Search, new SearchState(this));
+        }
     }
 
     public override void OnNetworkSpawn()
@@ -95,6 +115,7 @@ public class MonsterController : NetworkBehaviour
 
         if (IsServer)
         {
+            CurrentHealth.Value = monsterData.maxHealth;
             ChangeState(MonsterStateType.Patrol); // 초기 상태 설정
         }
         else
@@ -306,5 +327,58 @@ public class MonsterController : NetworkBehaviour
             }
         }
         return false;
+    }
+
+    /// <summary>
+    /// 외부(플레이어의 무기 등)에서 몬스터에게 데미지를 줄 때 호출하는 창구
+    /// </summary>
+    public void TakeDamage(float damage)
+    {
+        if (!IsServer) return;
+
+        if (CurrentStateNet.Value == MonsterStateType.Dead) return;
+
+        CurrentHealth.Value -= damage;
+        Debug.Log($"<color=red>[몬스터 피격]</color> {gameObject.name} 남은 체력: {CurrentHealth.Value}");
+
+        // 체력이 0 이하라면 사망 상태로 전환
+        if (CurrentHealth.Value <= 0)
+        {
+            CurrentHealth.Value = 0;
+            ChangeState(MonsterStateType.Dead);
+            return;
+        }
+
+        // 만약 머리에 붙어있는 상태(Attached)에서 맞았다면 즉시 도망(Flee) 상태로 전환
+        if (CurrentStateNet.Value == MonsterStateType.Attached)
+        {
+            ChangeState(MonsterStateType.Flee);
+        }
+    }
+
+    /// <summary>
+    /// 특정 플레이어에게 시야 차단(또는 해제) UI를 켜라고 지시
+    /// </summary>
+    [Rpc(SendTo.SpecifiedInParams)]
+    public void TriggerSnareBlindRpc(bool isSnared, RpcParams rpcParams = default)
+    {
+        if (PlayerUIManager.LocalInstance != null)
+        {
+            if (isSnared)
+            {
+                PlayerUIManager.LocalInstance.SetBlindScreen(true);
+            }
+            else
+            {
+                PlayerUIManager.LocalInstance.SetBlindScreen(false);
+            }
+        }
+    }
+
+    // [테스트용] 
+    [ContextMenu("Test Damage (10)")]
+    public void TestDamage()
+    {
+        if (IsServer) TakeDamage(10f);
     }
 }

@@ -12,8 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bbc6e2eecad55246b69d412d02592b9, type: 3}
   m_Name: Zombie
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
-  spawnCost: 5
+  maxHealth: 100
+  spawnCost: 2
   spawnWeight: 50
+  maxSpawnCount: 2
   monsterPrefab: {fileID: 6795600985661558741, guid: 1ffc4bfca66552f46b2f109fffb2a0da, type: 3}
   patrolSpeed: 3
   chaseSpeed: 8
@@ -38,3 +40,12 @@ MonoBehaviour:
   predictionTime: 1.5
   searchNodeRadius: 15
   gimmickCheckDistance: 40
+  ceilingCheckDistance: 8
+  dropTriggerRadius: 1.5
+  ceilingLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
+  ceilingAttachChance: 0.5
+  snareTickRate: 1.5
+  snareTickDamage: 10
+  fleeDuration: 6
