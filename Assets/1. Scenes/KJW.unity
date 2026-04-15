@@ -621,7 +621,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0295085471b2bc542b53e8a42f6dc91a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DepartureButton
-  ShowTopMostFoldoutHeaderGroup: 1
   shipZone: {fileID: 1365177702}
   targetSceneName: KJW_Test_Scene
 --- !u!1 &576317264
@@ -1298,6 +1297,30 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 658577172614144005, guid: bdc89a6ba56abf94c808c9d59ce9bdb0, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2022906801399526411, guid: bdc89a6ba56abf94c808c9d59ce9bdb0, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2022906801399526411, guid: bdc89a6ba56abf94c808c9d59ce9bdb0, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2022906801399526411, guid: bdc89a6ba56abf94c808c9d59ce9bdb0, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2022906801399526411, guid: bdc89a6ba56abf94c808c9d59ce9bdb0, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2022906801399526411, guid: bdc89a6ba56abf94c808c9d59ce9bdb0, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2022906801399526411, guid: bdc89a6ba56abf94c808c9d59ce9bdb0, type: 3}
+      propertyPath: m_LocalRotation.z
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4911454195433589709, guid: bdc89a6ba56abf94c808c9d59ce9bdb0, type: 3}
@@ -2175,14 +2198,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameSessionManager
   ShowTopMostFoldoutHeaderGroup: 1
-  totalPlayersInSession: 4
   deadPlayersCount: 0
   truckItems: []
+  pendingSpawnItemIDs: 
   itemPrefabsDB:
   - {fileID: 109360235115839708, guid: f6cdb16393c87e74496bcecc62cb368c, type: 3}
   - {fileID: 5134562728361972797, guid: 2d72ef6ea3227664ca05aac27bf436fd, type: 3}
   - {fileID: 384831874198767449, guid: a0b604afa26cef0499b89e22685cc4ae, type: 3}
-  pendingSpawnItemIDs: 
+  - {fileID: 384831874198767449, guid: a0b604afa26cef0499b89e22685cc4ae, type: 3}
+  - {fileID: -3189906975539164950, guid: 6e75424edaedeb6419c9dd3da010b7cf, type: 3}
 --- !u!4 &1814433157
 Transform:
   m_ObjectHideFlags: 0

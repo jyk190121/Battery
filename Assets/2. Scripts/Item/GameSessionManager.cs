@@ -78,6 +78,38 @@ public class GameSessionManager : NetworkBehaviour
     }
 
     // ==========================================================
+    // 생명주기 및 이벤트 등록 
+    // ==========================================================
+    public override void OnNetworkSpawn()
+    {
+        // 서버(방장)만 씬 로딩 완료 이벤트를 구독합니다.
+        if (IsServer && NetworkManager.Singleton.SceneManager != null)
+        {
+            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnSceneLoadComplete;
+        }
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        // 매니저 파괴 시 이벤트 구독을 해제하여 메모리 누수를 막습니다.
+        if (IsServer && NetworkManager.Singleton != null && NetworkManager.Singleton.SceneManager != null)
+        {
+            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnSceneLoadComplete;
+        }
+    }
+
+    /// <summary>
+    /// 씬 로딩이 완전히 끝났을 때 자동으로 호출됩니다.
+    /// </summary>
+    private void OnSceneLoadComplete(string sceneName, UnityEngine.SceneManagement.LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
+    {
+        //  씬 이동이 끝났으므로 다음 출발을 위해 자물쇠를 풀어줍니다!
+        isStartSequenceActive = false;
+
+        Debug.Log($"<color=lime>[GameSessionManager]</color> {sceneName} 씬 로드 완료. 출발 자물쇠 해제.");
+    }
+
+    // ==========================================================
     // 외부 제공 유틸리티 (Utilities)
     // ==========================================================
     /// <summary>
