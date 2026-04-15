@@ -2934,9 +2934,9 @@ MonoBehaviour:
   walkYPos: 0.1
   runYPos: 0.4
   transitionSpeed: 10
-  crouchYPos: 1
-  walkZPos: 0.1
   crouchZPos: 0
+  walkZPos: 0.1
+  crouchYPos: 1
 --- !u!114 &1166937674116199471
 MonoBehaviour:
   m_ObjectHideFlags: 0
