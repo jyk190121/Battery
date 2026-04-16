@@ -132,7 +132,7 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
-    private IEnumerator StartSpectating()
+    IEnumerator StartSpectating()
     {
         yield return new WaitForSeconds(2.0f); // 사망 애니메이션을 조금 본 뒤 전환
 
@@ -149,14 +149,34 @@ public class PlayerController : NetworkBehaviour
 
         if (targetPlayer != null)
         {
-            // Cinemachine 카메라 대상을 살아있는 플레이어로 교체
-            // PlayerRotation에 있는 vcam 참조를 활용하거나 Camera.main 등 사용
-            var rot = GetComponent<PlayerRotation>();
-            if (rot != null && rot.vcam != null)
+            //if (targetPlayer.TryGetComponent<PlayerRotation>(out var targetRot) &&
+            //    TryGetComponent<PlayerRotation>(out var myRot))
+            //{
+            //    if (myRot.vcam != null)
+            //    {
+            //        myRot.vcam.Follow = targetRot.cameraTarget;
+            //        myRot.vcam.LookAt = targetRot.cameraTarget;
+            //        Debug.Log($"{targetPlayer.gameObject.name}의 시점을 관전합니다.");
+            //    }
+            //}
+
+            if (targetPlayer != null)
             {
-                rot.vcam.Follow = targetPlayer.transform;
-                rot.vcam.LookAt = targetPlayer.transform;
-                Debug.Log($"{targetPlayer.gameObject.name}를 관전합니다.");
+                if (targetPlayer.TryGetComponent<PlayerRotation>(out var targetRot) &&
+                    TryGetComponent<PlayerRotation>(out var myRot))
+                {
+                    if (myRot.vcam != null)
+                    {
+                        // [추가] 내 카메라의 마우스 회전 입력을 끄고 정렬함
+                        myRot.SetSpectatingMode(true);
+
+                        myRot.vcam.Follow = targetRot.cameraTarget;
+                        // LookAt을 빼버리면 카메라가 Follow 대상의 회전(시야 방향)을 그대로 따릅니다.
+                        myRot.vcam.LookAt = null;
+
+                        Debug.Log($"{targetPlayer.gameObject.name}의 시점을 관전합니다.");
+                    }
+                }
             }
         }
     }
@@ -171,8 +191,6 @@ public class PlayerController : NetworkBehaviour
         }
 
         // 2. 물리 및 충돌체 비활성화
-        // Collider를 끄면 바닥을 뚫고 내려갈 수 있으니, 필요에 따라 
-        // 레이어를 'DeadPlayer' 등으로 바꿔 몬스터와만 안 부딪히게 할 수도 있습니다.
         var col = GetComponent<Collider>();
         if (col != null) col.enabled = false;
 
@@ -199,12 +217,12 @@ public class PlayerController : NetworkBehaviour
 
     void PerformReviveEffects()
     {
-        Debug.Log($"{gameObject.name}가 부활하여 컴포넌트를 재활성화합니다.");
+        Debug.Log($"{gameObject.name}가 부활");
 
         // 1. 애니메이션 리셋 (누워있는 상태에서 일어나는 상태로)
         if (TryGetComponent(out PlayerAnim anim))
         {
-            anim.ResetAnimation(); // Rebind()를 호출하여 초기 상태로 돌림
+            anim.ResetAnimation();
         }
 
         // 2. 물리 및 충돌체 다시 켜기
@@ -225,8 +243,13 @@ public class PlayerController : NetworkBehaviour
             // 중요: 관전 중이었다면 카메라 타겟을 다시 나(본인)로 돌려놓아야 함
             if (IsOwner && rot.vcam != null)
             {
-                rot.vcam.Follow = rot.cameraTarget; // 원래 내 눈 위치로
-                rot.vcam.LookAt = null; // 필요에 따라 설정
+                rot.SetSpectatingMode(false);
+
+                rot.vcam.Follow = rot.cameraTarget;
+                rot.vcam.LookAt = null;
+
+                // 부활 시 카메라 회전값을 현재 내 몸의 정면으로 초기화 (선택 사항)
+                //rot.vcam.transform.rotation = transform.rotation;
             }
         }
         if (TryGetComponent(out PlayerInteraction interact)) interact.enabled = true;

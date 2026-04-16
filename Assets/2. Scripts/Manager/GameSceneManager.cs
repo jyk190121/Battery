@@ -130,8 +130,16 @@ public class GameSceneManager : NetworkBehaviour
         if (!IsServer) return;
 
         UpdateSpawnPoints();
+        if (spawnPoints == null || spawnPoints.Length == 0)
+        {
+            Debug.LogWarning("스폰 포인트가 씬에 존재하지 않습니다.");
+            return;
+        }
+
         int spawnIndex = GetSpawnIndex(clientId);
         Transform targetPoint = spawnPoints[spawnIndex % spawnPoints.Length];
+        Vector3 spawnPos = targetPoint.position;
+        Quaternion spawnRot = targetPoint.rotation;
 
         if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client))
         {
@@ -142,12 +150,13 @@ public class GameSceneManager : NetworkBehaviour
                 var networkTransform = client.PlayerObject.GetComponent<NetworkTransform>();
                 if (networkTransform != null)
                 {
-                    networkTransform.Teleport(targetPoint.position, targetPoint.rotation, client.PlayerObject.transform.localScale);
+                    networkTransform.Teleport(spawnPos, spawnRot, client.PlayerObject.transform.localScale);
                 }
                 else
                 {
-                    client.PlayerObject.transform.position = targetPoint.position;
-                    client.PlayerObject.transform.rotation = targetPoint.rotation;
+                    //client.PlayerObject.transform.position = targetPoint.position;
+                    //client.PlayerObject.transform.rotation = targetPoint.rotation;
+                    client.PlayerObject.transform.SetPositionAndRotation(spawnPos, spawnRot);
                 }
 
                 // 필요하다면 체력 리셋 로직도 여기서 호출
@@ -173,56 +182,64 @@ public class GameSceneManager : NetworkBehaviour
         var networkPrefab = NetworkManager.Singleton.NetworkConfig.Prefabs.Prefabs
             .FirstOrDefault(p => p.Prefab.name == playerPrefabName);
 
-        if (networkPrefab == null || networkPrefab.Prefab == null)
+        if(networkPrefab != null && networkPrefab.Prefab != null)
         {
-            Debug.LogError($"[GameSceneManager] 리스트에서 '{playerPrefabName}' 프리팹을 찾을 수 없습니다!");
-            return;
-        }
-
-        UpdateSpawnPoints();
-
-
-        // 스폰 포인트 정보 갱신 (없을 경우에만)
-        if (spawnPoints == null || spawnPoints.Length == 0) UpdateSpawnPoints();
-
-        //int spawnIndex = 0;
-        var connectedList = NetworkManager.Singleton.ConnectedClientsList;
-
-        for (int i = 0; i < connectedList.Count; i++)
-        {
-            if (connectedList[i].ClientId == clientId)
-            {
-                spawnIndex = i;
-                break;
-            }
-        }
-
-        if (spawnPoints != null && spawnPoints.Length > 0)
-        {
-            // 포인트 개수보다 플레이어가 많으면 처음부터 순환 (Index % Length)
-            //Transform targetPoint = spawnPoints[spawnIndex % spawnPoints.Length];
-            Vector3 spawnPos = targetPoint.position;
-            Quaternion spawnRot = targetPoint.rotation;
-
             GameObject playerObj = Instantiate(networkPrefab.Prefab, spawnPos, spawnRot);
             var networkObj = playerObj.GetComponent<NetworkObject>();
             networkObj.SpawnAsPlayerObject(clientId);
-
-            if(spawnIndex == 0 || spawnIndex == 2)
-            {
-                playerObj.transform.rotation = Quaternion.Euler(0, 180f, 0);
-
-                //var nt = networkObj.GetComponent<NetworkTransform>();
-                //if (nt != null) nt.Teleport(spawnPos, Quaternion.Euler(0, 180f, 0), playerObj.transform.localScale);
-            }
-
         }
-        else
-        {
-            // 예외 상황: 스폰 포인트가 없을 때 기본 위치 생성
-            GameObject playerObj = Instantiate(networkPrefab.Prefab, new Vector3(0, 1, 0), Quaternion.identity);
-            playerObj.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
-        }
+
+
+        //if (networkPrefab == null || networkPrefab.Prefab == null)
+        //{
+        //    Debug.LogError($"[GameSceneManager] 리스트에서 '{playerPrefabName}' 프리팹을 찾을 수 없습니다!");
+        //    return;
+        //}
+
+        //UpdateSpawnPoints();
+
+
+        //// 스폰 포인트 정보 갱신 (없을 경우에만)
+        //if (spawnPoints == null || spawnPoints.Length == 0) UpdateSpawnPoints();
+
+        ////int spawnIndex = 0;
+        //var connectedList = NetworkManager.Singleton.ConnectedClientsList;
+
+        //for (int i = 0; i < connectedList.Count; i++)
+        //{
+        //    if (connectedList[i].ClientId == clientId)
+        //    {
+        //        spawnIndex = i;
+        //        break;
+        //    }
+        //}
+
+        //if (spawnPoints != null && spawnPoints.Length > 0)
+        //{
+        //    // 포인트 개수보다 플레이어가 많으면 처음부터 순환 (Index % Length)
+        //    //Transform targetPoint = spawnPoints[spawnIndex % spawnPoints.Length];
+        //    Vector3 spawnPos = targetPoint.position;
+        //    Quaternion spawnRot = targetPoint.rotation;
+
+        //    GameObject playerObj = Instantiate(networkPrefab.Prefab, spawnPos, spawnRot);
+        //    var networkObj = playerObj.GetComponent<NetworkObject>();
+        //    networkObj.SpawnAsPlayerObject(clientId);
+
+        //    if(spawnIndex == 0 || spawnIndex == 2)
+        //    {
+        //        playerObj.transform.rotation = Quaternion.Euler(0, 180f, 0);
+
+        //        //var nt = networkObj.GetComponent<NetworkTransform>();
+        //        //if (nt != null) nt.Teleport(spawnPos, Quaternion.Euler(0, 180f, 0), playerObj.transform.localScale);
+        //    }
+
+        //}
+        //else
+        //{
+        //    // 예외 상황: 스폰 포인트가 없을 때 기본 위치 생성
+        //    GameObject playerObj = Instantiate(networkPrefab.Prefab, new Vector3(0, 1, 0), Quaternion.identity);
+        //    playerObj.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
+        //}
 
         //Vector3 spawnPos = new Vector3(100f, 1f, 135f);
         //Quaternion spawnRot = Quaternion.identity;

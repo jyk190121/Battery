@@ -2902,7 +2902,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 6777840
+  GlobalObjectIdHash: 405663255
   InScenePlacedSourceGlobalObjectIdHash: 6777840
   DeferredDespawnTick: 0
   Ownership: 1
@@ -3034,6 +3034,13 @@ MonoBehaviour:
     TransitionDuration: 0.25
     TriggerNameHash: 125937960
     TransitionIndex: 1
+  - IsCrossFadeExit: 0
+    Layer: 0
+    OriginatingState: 2081823275
+    DestinationState: -1325047641
+    TransitionDuration: 0.25
+    TriggerNameHash: 1270110494
+    TransitionIndex: 5
   AnimatorParameterEntries:
     ParameterEntries:
     - name: Speed
@@ -3068,6 +3075,10 @@ MonoBehaviour:
       NameHash: 2106452502
       Synchronize: 1
       ParameterType: 4
+    - name: IsDead
+      NameHash: 1270110494
+      Synchronize: 1
+      ParameterType: 9
   AnimatorParametersExpanded: 0
 --- !u!114 &5358241311784179748
 MonoBehaviour:
@@ -3294,6 +3305,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   ShowTopMostFoldoutHeaderGroup: 1
   _playerData: {fileID: 11400000, guid: 51fe10672196c0c4daf37fc48f14bb9a, type: 2}
+  isDead:
+    m_InternalValue: 0
 --- !u!114 &-8743619242891834833
 MonoBehaviour:
   m_ObjectHideFlags: 0
