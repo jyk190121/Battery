@@ -1568,7 +1568,7 @@ MonoBehaviour:
   data: {fileID: 11400000, guid: c489b05a84b76f24d8dcc01b8971822b, type: 2}
   obstacleMask:
     serializedVersion: 2
-    m_Bits: 1288
+    m_Bits: 1800
 --- !u!65 &2463115333531814365
 BoxCollider:
   m_ObjectHideFlags: 0

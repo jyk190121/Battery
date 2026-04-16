@@ -79,10 +79,13 @@ public class EnvironmentScanner : MonoBehaviour
 
             if (hasLOS)
             {
-                if (currentSqrDist < minSqrDistance)
+                if (IsPathReasonable(player.transform.position))
                 {
-                    minSqrDistance = currentSqrDist;
-                    bestTarget = player.transform;
+                    if (currentSqrDist < minSqrDistance)
+                    {
+                        minSqrDistance = currentSqrDist;
+                        bestTarget = player.transform;
+                    }
                 }
             }
         }
