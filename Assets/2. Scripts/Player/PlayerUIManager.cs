@@ -39,8 +39,13 @@ public class PlayerUIManager : NetworkBehaviour
 
         if (stateManager != null)
         {
-            stateManager.currentHealth.OnValueChanged += OnHealthChanged;
+            //stateManager.currentHealth.OnValueChanged += OnHealthChanged;
+            //UpdateHealthUI(0f, stateManager.currentHealth.Value);
+
             UpdateHealthUI(0f, stateManager.currentHealth.Value);
+
+            // 이벤트 구독
+            stateManager.currentHealth.OnValueChanged += OnHealthChanged;
         }
     }
 

@@ -32,34 +32,64 @@ public class PlayerController : NetworkBehaviour
             AllPlayers.Add(this);
             Debug.Log($"[서버 알림] 플레이어 접속: 현재 인원 {AllPlayers.Count}명");
         }
+
+        StateManager.currentHealth.OnValueChanged += OnHealthChanged;
+        
+        if (IsServer)
+        {
+            // 로비 리셋 로직
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "KJY_Lobby")
+            {
+                isDead.Value = false;
+                StateManager.currentHealth.Value = Data.maxHealth;
+            }
+        }
         isDead.OnValueChanged += OnDeadStatusChanged;
     }
 
     // 플레이어가 튕기거나 방을 나갈 때 출석부에서 제거합니다.
     public override void OnNetworkDespawn()
     {
-        if (AllPlayers.Contains(this))
+        //if (AllPlayers.Contains(this))
+        //{
+        //    AllPlayers.Remove(this);
+        //    Debug.Log($"[서버 알림] 플레이어 퇴장: 남은 인원 {AllPlayers.Count}명");
+        //}
+
+        //base.OnNetworkDespawn();
+
+        StateManager.currentHealth.OnValueChanged -= OnHealthChanged;
+        isDead.OnValueChanged -= OnDeadStatusChanged;
+        base.OnNetworkDespawn();
+    }
+    void OnHealthChanged(float oldValue, float newValue)
+    {
+        // 서버에서만 사망 판정
+        if (IsServer)
         {
-            AllPlayers.Remove(this);
-            Debug.Log($"[서버 알림] 플레이어 퇴장: 남은 인원 {AllPlayers.Count}명");
+            if (!isDead.Value && newValue <= 0)
+            {
+                Die();
+            }
         }
 
-        base.OnNetworkDespawn();
+        // UI 업데이트는 PlayerUIManager에서 이 이벤트를 별도로 구독하고 있으므로 
+        // 여기서 직접 UI를 건드릴 필요는 없으나, OnNetworkSpawn에서 구독이 잘 되었는지 확인이 필요합니다.
     }
 
     // [ServerRpc] 외부(몬스터 등)에서 데미지를 줄 때 호출
-    [ServerRpc]
+    [ServerRpc(RequireOwnership = false)]
     public void TakeDamageServerRpc(float damage)
     {
         if (isDead.Value) return;
 
         StateManager.currentHealth.Value -= damage;
 
-        if (StateManager.currentHealth.Value <= 0)
-        {
-            StateManager.currentHealth.Value = 0;
-            Die();
-        }
+        //if (StateManager.currentHealth.Value <= 0)
+        //{
+        //    StateManager.currentHealth.Value = 0;
+        //    Die();
+        //}
     }
 
     private void Die()
@@ -95,21 +125,43 @@ public class PlayerController : NetworkBehaviour
     IEnumerator ReturnToLobbyWithDelay()
     {
         yield return new WaitForSeconds(3f);
-        // 모든 플레이어 부활 처리 (로비 가기 전 데이터 세팅)
-        foreach (var player in AllPlayers)
+
+        if (IsServer)
         {
-            player.RevivePlayer();
+            // 1. 모든 몬스터 정리 (로비 가기 전 서버에서 실행)
+            MonsterController[] remainingMonsters = FindObjectsByType<MonsterController>(FindObjectsSortMode.None);
+            foreach (var monster in remainingMonsters)
+            {
+                if (monster.NetworkObject != null && monster.NetworkObject.IsSpawned)
+                {
+                    monster.NetworkObject.Despawn(); // 서버에서 디스폰하면 모든 클라에서 사라짐
+                }
+            }
+
+            // 2. 모든 플레이어 부활 처리
+            foreach (var player in AllPlayers)
+            {
+                player.RevivePlayer();
+            }
+
+            // 3. 로비 씬으로 이동
+            GameSceneManager.Instance.LoadNetworkScene("KJY_Lobby");
         }
-        // 로비 씬으로 이동 (NetworkSceneManager 사용 권장)
-        //NetworkManager.SceneManager.LoadScene("KJY_Lobby", UnityEngine.SceneManagement.LoadSceneMode.Single);
-        GameSceneManager.Instance.LoadNetworkScene("KJY_Lobby");
+        //// 모든 플레이어 부활 처리 (로비 가기 전 데이터 세팅)
+        //foreach (var player in AllPlayers)
+        //{
+        //    player.RevivePlayer();
+        //}
+        //// 로비 씬으로 이동 (NetworkSceneManager 사용 권장)
+        ////NetworkManager.SceneManager.LoadScene("KJY_Lobby", UnityEngine.SceneManagement.LoadSceneMode.Single);
+        //GameSceneManager.Instance.LoadNetworkScene("KJY_Lobby");
     }
 
     public void RevivePlayer()
     {
         if (!IsServer) return;
         isDead.Value = false;
-        StateManager.ResetStatus(); // 체력 등 초기화
+        StateManager.ResetStatus();
     }
     
     // 사망 상태가 변했을 때 호출되는 함수
@@ -159,7 +211,6 @@ public class PlayerController : NetworkBehaviour
             //        Debug.Log($"{targetPlayer.gameObject.name}의 시점을 관전합니다.");
             //    }
             //}
-
             if (targetPlayer != null)
             {
                 if (targetPlayer.TryGetComponent<PlayerRotation>(out var targetRot) &&
@@ -230,7 +281,11 @@ public class PlayerController : NetworkBehaviour
         if (col != null) col.enabled = true;
 
         var rb = GetComponent<Rigidbody>();
-        if (rb != null) rb.isKinematic = false; // 물리 다시 적용
+        if (rb != null)
+        { 
+            rb.isKinematic = false;
+            rb.linearVelocity = Vector3.zero;
+        }
 
         // 3. 레이어 복구 (몬스터가 다시 감지할 수 있게)
         gameObject.layer = LayerMask.NameToLayer("Player");
@@ -240,17 +295,20 @@ public class PlayerController : NetworkBehaviour
         if (TryGetComponent(out PlayerRotation rot))
         {
             rot.enabled = true;
+
+            if (IsOwner) rot.SetSpectatingMode(false);
+
             // 중요: 관전 중이었다면 카메라 타겟을 다시 나(본인)로 돌려놓아야 함
-            if (IsOwner && rot.vcam != null)
-            {
-                rot.SetSpectatingMode(false);
+            //if (IsOwner && rot.vcam != null)
+            //{
+            //    rot.SetSpectatingMode(false);
 
-                rot.vcam.Follow = rot.cameraTarget;
-                rot.vcam.LookAt = null;
+            //    rot.vcam.Follow = rot.cameraTarget;
+            //    rot.vcam.LookAt = null;
 
-                // 부활 시 카메라 회전값을 현재 내 몸의 정면으로 초기화 (선택 사항)
-                //rot.vcam.transform.rotation = transform.rotation;
-            }
+            //    // 부활 시 카메라 회전값을 현재 내 몸의 정면으로 초기화 (선택 사항)
+            //    //rot.vcam.transform.rotation = transform.rotation;
+            //}
         }
         if (TryGetComponent(out PlayerInteraction interact)) interact.enabled = true;
         if (TryGetComponent(out PlayerEquipment equip)) equip.enabled = true;
@@ -261,6 +319,26 @@ public class PlayerController : NetworkBehaviour
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
             // "사망" UI가 있었다면 여기서 끄기
+        }
+    }
+
+    [ClientRpc]
+    public void TeleportToSpawnClientRpc(Vector3 position, Quaternion rotation)
+    {
+        // Owner(본인)만 본인의 위치를 제어할 수 있는 권한이 있음
+        if (IsOwner)
+        {
+            if (TryGetComponent(out Unity.Netcode.Components.NetworkTransform nt))
+            {
+                // 본인이 호출하므로 에러가 발생하지 않음
+                nt.Teleport(position, rotation, transform.localScale);
+            }
+            else
+            {
+                // NetworkTransform이 없다면 일반 transform 수정
+                transform.position = position;
+                transform.rotation = rotation;
+            }
         }
     }
 }
