@@ -4858,6 +4858,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MultiPlayerSessionManager
   ShowTopMostFoldoutHeaderGroup: 1
+  gameSessionManagerPrefab: {fileID: 1063555221024840097, guid: 0d8454b7ac758cc4096b31cd167b8918, type: 3}
+  gameManager_ServerPrefab: {fileID: 6890585928531599505, guid: 45f17c94393237146885318c531ed481, type: 3}
 --- !u!114 &1276800882
 MonoBehaviour:
   m_ObjectHideFlags: 0

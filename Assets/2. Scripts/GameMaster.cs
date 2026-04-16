@@ -23,17 +23,40 @@ public class GameMaster : NetworkBehaviour
         if (Instance == null)
         {
             Instance = this;
+            transform.SetParent(null);
             DontDestroyOnLoad(gameObject);
         }
-        else Destroy(gameObject);
-
-        if(economyManager == null) economyManager = GetComponent<EconomyManager>();
-        if(dayCycleManager == null) dayCycleManager = GetComponent<DayCycleManager>();
+        else if (Instance != this)
+        {
+            // Destroy 대신 조용히 비활성화해야 클라이언트가 튕기지 않습니다!
+            gameObject.SetActive(false);
+            return;
+        }
+        // (GameMaster의 경우 하단에 있는 economyManager 등 GetComponent 코드는 그대로 유지)
     }
-
-    private void Start()
+    public static void SpawnManager(GameObject prefab)
     {
-        NetworkObject.Spawn(this);    
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return;
+
+        if (Instance != null)
+        {
+            NetworkObject oldNetObj = Instance.GetComponent<NetworkObject>();
+            if (oldNetObj != null && !oldNetObj.IsSpawned)
+            {
+                Destroy(Instance.gameObject);
+                Instance = null;
+            }
+            else return;
+        }
+
+        GameObject go = Instantiate(prefab);
+        NetworkObject netObj = go.GetComponent<NetworkObject>();
+
+        if (netObj != null)
+        {
+            netObj.Spawn();
+            Debug.Log($"<color=lime>[GameMaster]</color> 프리팹 기반 런타임 스폰 완료.");
+        }
     }
 
     public override void OnNetworkSpawn()
@@ -57,10 +80,9 @@ public class GameMaster : NetworkBehaviour
     // 네트워크 방이 닫히거나 연결이 끊기면 스스로 파괴 (좀비 매니저 방지)
     public override void OnNetworkDespawn()
     {
-        //if (gameObject != null)
-        //{
-        //    NetworkObject.Despawn(gameObject);
-        //}
+
+        if (Instance == this) Instance = null;
+
         if (IsServer && GameSceneManager.Instance != null)
         {
             GameSceneManager.Instance.OnGameSessionRequest -= StartNewGame;

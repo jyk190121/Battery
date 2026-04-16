@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: f1d49a48557517047a7e24b4ef17f2fa
+timeCreated: 1497186726
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 92788
+  packageName: Ghoul Anklegrabber
+  packageVersion: 1.0
+  assetPath: Assets/Ghoul/Assets/Materials/AnkleBiter.mat
+  uploadId: 186173

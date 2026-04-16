@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Netcode;
@@ -33,8 +34,6 @@ public class PlayerInventory : NetworkBehaviour
 
     private ItemBase lastLookedItem;
     private DepartureButton lastLookedButton;
-
-    // 💡 [추가됨] 문과 환원 지점 인식용 변수
     private DoorController lastLookedDoor;
     private QuestReturnPoint lastLookedReturnPoint;
 
@@ -65,14 +64,14 @@ public class PlayerInventory : NetworkBehaviour
         }
     }
 
-    private void OnSceneLoaded(string sceneName, UnityEngine.SceneManagement.LoadSceneMode loadSceneMode, System.Collections.Generic.List<ulong> clientsCompleted, System.Collections.Generic.List<ulong> clientsTimedOut)
+    private void OnSceneLoaded(string sceneName, UnityEngine.SceneManagement.LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
     {
         RestoreItemsFromServer();
     }
 
     private IEnumerator WaitOneFrameAndRestore()
     {
-        yield return null;
+        while (GameSessionManager.Instance == null) yield return null;
         RestoreItemsFromServer();
     }
 
@@ -81,6 +80,28 @@ public class PlayerInventory : NetworkBehaviour
         foreach (Transform child in parent.GetComponentsInChildren<Transform>(true))
             if (child.name == targetName) return child;
         return null;
+    }
+
+    // 💡 [수정됨] 콜라이더를 끄는 대신 Trigger와 레이어를 제어합니다.
+    private void SetItemPhysicsAndLayer(ItemBase item, bool equipped)
+    {
+        if (item == null) return;
+
+        // 자식까지 포함하여 콜라이더를 찾아 Trigger 상태를 동기화합니다.
+        Collider col = item.GetComponentInChildren<Collider>();
+        if (col != null)
+        {
+            col.isTrigger = equipped;
+        }
+
+        // 물리 연산 중단/재개
+        if (item.TryGetComponent(out Rigidbody rb))
+        {
+            rb.isKinematic = equipped;
+        }
+
+        // 레이어 변경 (EquippedItem <-> Item)
+        item.gameObject.layer = LayerMask.NameToLayer(equipped ? "EquippedItem" : "Item");
     }
 
     void Update()
@@ -94,16 +115,13 @@ public class PlayerInventory : NetworkBehaviour
             if (Keyboard.current[Key.E].wasPressedThisFrame)
             {
                 if (lastLookedButton != null) lastLookedButton.Interact(this);
-                else if (lastLookedReturnPoint != null) lastLookedReturnPoint.Interact(this); // 💡 [추가됨] 환원 지점 상호작용
-                else if (lastLookedDoor != null) // 💡 [추가됨] 문(열쇠) 상호작용
+                else if (lastLookedReturnPoint != null) lastLookedReturnPoint.Interact(this);
+                else if (lastLookedDoor != null)
                 {
                     string myKeyID = "";
                     ItemBase heldItem = twoHandedItem != null ? twoHandedItem : slots[currentSlotIndex];
-
                     if (heldItem != null && heldItem.itemData != null && !string.IsNullOrEmpty(heldItem.itemData.keyID))
-                    {
                         myKeyID = heldItem.itemData.keyID;
-                    }
                     lastLookedDoor.TryOpen(myKeyID);
                 }
                 else if (lastLookedItem != null) TryPickUpAction();
@@ -111,7 +129,6 @@ public class PlayerInventory : NetworkBehaviour
             if (Keyboard.current[Key.G].wasPressedThisFrame) RequestDropCurrentItem();
         }
 
-        // 폰 켜져있으면 마우스 차단 로직 (필요 시 주석 해제)
         if (PhoneUIController.Instance != null && PhoneUIController.Instance.isPhoneActive) return;
 
         HandleSlotChange();
@@ -143,9 +160,6 @@ public class PlayerInventory : NetworkBehaviour
                 return;
             }
 
-          
-
-            // 💡 [추가됨] 환원 지점(투명 큐브) 레이캐스트 인식
             if (hit.collider.TryGetComponent(out QuestReturnPoint returnPoint))
             {
                 if (lastLookedReturnPoint != returnPoint)
@@ -158,7 +172,6 @@ public class PlayerInventory : NetworkBehaviour
                 return;
             }
 
-            // 💡 [추가됨] 문(Door) 레이캐스트 인식
             if (hit.collider.TryGetComponent(out DoorController door))
             {
                 if (lastLookedDoor != door)
@@ -197,16 +210,12 @@ public class PlayerInventory : NetworkBehaviour
         lastLookedButton = null;
     }
 
-    // ... (이하 TryPickUpAction 부터 끝까지의 코드는 기존과 100% 동일하므로 생략 없이 그대로 유지하시면 됩니다) ...
-    // ... (HasItem, RemoveItemByServer 함수도 그대로 두시면 됩니다) ...
-
     private void TryPickUpAction()
     {
         if (lastLookedItem != null && twoHandedItem == null && !lastLookedItem.isEquipped)
         {
             bool hasEmptySlot = false;
             foreach (var slot in slots) if (slot == null) hasEmptySlot = true;
-
             if (!hasEmptySlot) return;
 
             Outline outline = lastLookedItem.GetComponentInChildren<Outline>();
@@ -222,7 +231,6 @@ public class PlayerInventory : NetworkBehaviour
     {
         if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(itemNetId, out var netObj)) return;
         ItemBase item = netObj.GetComponent<ItemBase>();
-
         if (item == null || item.isEquipped) return;
 
         item.isEquipped = true;
@@ -246,10 +254,15 @@ public class PlayerInventory : NetworkBehaviour
 
         if (emptySlotIndex == -1) return;
 
+        // 💡 콜라이더를 끄는 대신 Trigger 상태로 전환
+        SetItemPhysicsAndLayer(item, true);
+
         if (item.itemData.handType == HandType.TwoHand)
         {
             slots[emptySlotIndex] = item;
             twoHandedItem = item;
+
+            // 두 손 아이템 장착 시 기존 한 손 아이템만 시각적으로 비활성화 (물리는 Trigger 유지)
             if (slots[currentSlotIndex] != null && slots[currentSlotIndex] != item)
                 slots[currentSlotIndex].gameObject.SetActive(false);
 
@@ -260,6 +273,8 @@ public class PlayerInventory : NetworkBehaviour
         {
             slots[emptySlotIndex] = item;
             item.ExecuteChangeOwnership(true, leftHandTransform);
+
+            // 현재 슬롯이 아니면 시각적으로만 비활성화
             if (emptySlotIndex != currentSlotIndex) item.gameObject.SetActive(false);
         }
 
@@ -275,11 +290,10 @@ public class PlayerInventory : NetworkBehaviour
         if (itemToDrop != null)
         {
             Transform camTransform = Camera.main.transform;
-            Vector3 startPos = camTransform.position;
             Vector3 throwDir = camTransform.forward;
-            Vector3 dropPos = startPos + throwDir * 1.5f;
+            Vector3 dropPos = camTransform.position + throwDir * 1.5f;
 
-            if (Physics.Raycast(startPos, throwDir, out RaycastHit hit, 1.5f))
+            if (Physics.Raycast(camTransform.position, throwDir, out RaycastHit hit, 1.5f))
             {
                 if (hit.collider.gameObject != this.gameObject)
                     dropPos = hit.point - throwDir * 0.2f;
@@ -294,7 +308,6 @@ public class PlayerInventory : NetworkBehaviour
     {
         if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(itemNetId, out var netObj)) return;
         ItemBase item = netObj.GetComponent<ItemBase>();
-
         item.NetworkObject.RemoveOwnership();
         NotifyItemDroppedClientRpc(itemNetId, dropPos, throwDir);
     }
@@ -313,9 +326,10 @@ public class PlayerInventory : NetworkBehaviour
         }
 
         for (int i = 0; i < slots.Length; i++)
-        {
             if (slots[i] == item) slots[i] = null;
-        }
+
+        // 💡 버릴 때 다시 일반 콜라이더 및 레이어로 복구
+        SetItemPhysicsAndLayer(item, false);
 
         item.gameObject.SetActive(true);
         item.transform.position = dropPos;
@@ -352,6 +366,7 @@ public class PlayerInventory : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void SyncSlotChangeClientRpc(int newIndex)
     {
+        // 💡 여기서 SetActive(false/true)를 수행하지만, 콜라이더를 명시적으로 끄는 코드는 삭제되었습니다.
         if (slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(false);
         currentSlotIndex = newIndex;
         if (slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(true);
@@ -385,6 +400,9 @@ public class PlayerInventory : NetworkBehaviour
         {
             ItemBase item = netObj.GetComponent<ItemBase>();
             slots[slotIdx] = item;
+
+            // 복구 시에도 물리 상태 설정
+            SetItemPhysicsAndLayer(item, true);
 
             Transform targetHand = (item.itemData.handType == HandType.TwoHand) ? bothHandsTransform : leftHandTransform;
             item.ExecuteChangeOwnership(true, targetHand);
@@ -432,9 +450,7 @@ public class PlayerInventory : NetworkBehaviour
     {
         if (twoHandedItem != null && twoHandedItem.itemData.itemID == itemID) return true;
         for (int i = 0; i < slots.Length; i++)
-        {
             if (slots[i] != null && slots[i].itemData.itemID == itemID) return true;
-        }
         return false;
     }
 

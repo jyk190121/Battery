@@ -50,32 +50,49 @@ public class GameSessionManager : NetworkBehaviour
     [Tooltip("게임 내 존재하는 모든 아이템 프리팹 원본 목록")]
     public List<ItemBase> itemPrefabsDB = new List<ItemBase>();
 
-  
+
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
+            transform.SetParent(null);
             DontDestroyOnLoad(gameObject);
         }
-        else
+        else if (Instance != this)
         {
-            Destroy(gameObject);
+            // Destroy 대신 조용히 비활성화해야 클라이언트가 튕기지 않습니다!
+            gameObject.SetActive(false);
+            return;
+        }
+        // (GameMaster의 경우 하단에 있는 economyManager 등 GetComponent 코드는 그대로 유지)
+    }
+    public static void SpawnManager(GameObject prefab)
+    {
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return;
+
+        // 이전 방의 껍데기(좀비)가 남아있다면 부수고 새로 만듭니다.
+        if (Instance != null)
+        {
+            NetworkObject oldNetObj = Instance.GetComponent<NetworkObject>();
+            if (oldNetObj != null && !oldNetObj.IsSpawned)
+            {
+                Destroy(Instance.gameObject);
+                Instance = null;
+            }
+            else return; // 정상적으로 살아있다면 중복 생성 방지
+        }
+
+        GameObject go = Instantiate(prefab);
+        NetworkObject netObj = go.GetComponent<NetworkObject>();
+
+        if (netObj != null)
+        {
+            netObj.Spawn();
+            Debug.Log($"<color=lime>[GameSessionManager]</color> 프리팹 기반 런타임 스폰 완료.");
         }
     }
 
-    private void Start()
-    {
-        // 오직 서버(Host)만이 이 매니저를 네트워크에 등록(Spawn)할 수 있습니다.Host가 아니라면 자동생성되어야함.
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
-        {
-            if (!NetworkObject.IsSpawned)
-            {
-                NetworkObject.Spawn(this);
-                Debug.Log("<color=green>[GameSessionManager]</color> 서버 주도로 네트워크 스폰 완료.");
-            }
-        }
-    }
 
     // ==========================================================
     // 생명주기 및 이벤트 등록 
@@ -91,7 +108,8 @@ public class GameSessionManager : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
-        // 매니저 파괴 시 이벤트 구독을 해제하여 메모리 누수를 막습니다.
+        if (Instance == this) Instance = null;
+
         if (IsServer && NetworkManager.Singleton != null && NetworkManager.Singleton.SceneManager != null)
         {
             NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnSceneLoadComplete;

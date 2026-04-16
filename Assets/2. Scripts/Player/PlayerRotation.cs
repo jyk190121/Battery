@@ -22,7 +22,7 @@ public class PlayerRotation : NetworkBehaviour
 
     [Header("카메라 전방 거리(Z축) 제어")]
     public float walkZPos = 0.1f;           // 평소 앞뒤 위치
-    public float crouchYPos = 1.0f;         // 앉았을 때 카메라 위치 앞으로 조정
+    public float crouchYPos = 0.6f;         // 앉았을 때 카메라 위치 앞으로 조정
 
     private CinemachinePanTilt _panTilt;
 
@@ -82,7 +82,7 @@ public class PlayerRotation : NetworkBehaviour
         }
         else if (playerMove != null && playerMove.IsCrouching)
         {
-            float crouchViewOffset = -20f;
+            float crouchViewOffset = -10f;
 
             //// 앉았을 때 정면을 보게 강제하고 싶다면 아래 주석 해제 (부드럽게 정렬됨)
             //_panTilt.TiltAxis.Value = Mathf.Lerp(_panTilt.TiltAxis.Value, crouchViewOffset, Time.deltaTime * transitionSpeed);
