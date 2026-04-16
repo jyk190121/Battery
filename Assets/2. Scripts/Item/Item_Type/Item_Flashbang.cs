@@ -76,7 +76,14 @@ public class Item_Flashbang : ItemBase
         int objLayerMask = 1 << targetObj.layer;
         if ((objLayerMask & playerLayer) != 0)
         {
-            if (targetObj.GetComponent<NetworkObject>().IsOwner) Debug.Log("Local Player Blinded");
+            if (targetObj.GetComponent<NetworkObject>().IsOwner)
+            {
+                // 캐릭터에 붙은 연출 스크립트를 찾아 실행
+                if (targetObj.TryGetComponent(out FlashEffect effect))
+                {
+                    effect.TriggerFlash(3.0f); // 3초간 시야 방해
+                }
+            }
         }
         else if ((objLayerMask & monsterLayer) != 0)
         {
