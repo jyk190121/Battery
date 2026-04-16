@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Audio;
 
 public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmakingCallbacks
 {
@@ -12,6 +13,9 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
     public UnityVoiceClient globalVoiceClient;
     public Recorder globalRecorder;
     private string globalRoomName = "Global_Main_Room";
+
+    [Header("Audio Settings")]
+    public AudioMixerGroup phoneMixerGroup;
 
     // AudioSource 대신 복제 스크립트(VoiceCopier)를 저장합니다.
     private Dictionary<string, VoiceCopier> playerVoices = new Dictionary<string, VoiceCopier>();
@@ -91,7 +95,7 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
 
         // 투 트랙 출력을 위해 복제 컴포넌트를 달아줍니다.
         VoiceCopier copier = speaker.gameObject.AddComponent<VoiceCopier>();
-        copier.Init(aud3D);
+        copier.Init(aud3D, phoneMixerGroup);
 
         StartCoroutine(AttachSpeakerToPlayer(speaker, playerId, copier));
     }
@@ -213,15 +217,27 @@ public class VoiceCopier : MonoBehaviour
 {
     private AudioSource aud3D;
     private AudioSource aud2D;
+    private AudioListener localListener;
+    private bool isCalling = false;
 
-    public void Init(AudioSource main3D)
+    // 더킹 설정값 : 거리 2m 이하에서는 2D 볼륨이 0, 15m 이상에서는 1, 그 사이에서는 선형 보간
+    private const float MIN_DUCK_DIST = 2f;  // 2m 이하일 때 2D 볼륨은 0
+    private const float MAX_DUCK_DIST = 15f; // 15m 이상일 때 2D 볼륨은 1
+
+    public void Init(AudioSource main3D, AudioMixerGroup mixerGroup)
     {
         aud3D = main3D;
-
-        // 2D 전용 스피커를 하나 더 만듭니다.
         aud2D = gameObject.AddComponent<AudioSource>();
-        aud2D.spatialBlend = 0f; // 완벽한 2D 평면 소리
-        aud2D.volume = 0f;       // 기본적으로는 꺼둠 (전화 올 때만 켜짐)
+        aud2D.spatialBlend = 0f;
+        aud2D.volume = 0f;
+
+        // 2D 스피커의 출력 포트에 전화기 필터(PhoneVoice)를 꽂아줍니다!
+        if (mixerGroup != null)
+        {
+            aud2D.outputAudioMixerGroup = mixerGroup;
+        }
+
+        localListener = FindFirstObjectByType<AudioListener>();
     }
 
     void Update()
@@ -243,6 +259,21 @@ public class VoiceCopier : MonoBehaviour
             {
                 aud2D.timeSamples = aud3D.timeSamples;
             }
+        }
+
+        if (isCalling && localListener != null)
+        {
+            float distance = Vector3.Distance(transform.position, localListener.transform.position);
+
+            // 거리에 따른 0 ~ 1 사이의 볼륨 비율 계산
+            // (가까울수록 0에 가깝고, 멀수록 1에 가깝게)
+            float duckVolume = Mathf.InverseLerp(MIN_DUCK_DIST, MAX_DUCK_DIST, distance);
+
+            aud2D.volume = duckVolume;
+        }
+        else if (!isCalling)
+        {
+            aud2D.volume = 0f;
         }
     }
 

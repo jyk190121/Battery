@@ -1045,9 +1045,25 @@ PrefabInstance:
       value: UI
       objectReference: {fileID: 0}
     - target: {fileID: 785662038164424389, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
-      propertyPath: frameDuration
-      value: 5000
+      propertyPath: bitrate
+      value: 64000
       objectReference: {fileID: 0}
+    - target: {fileID: 785662038164424389, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+      propertyPath: samplingRate
+      value: 48000
+      objectReference: {fileID: 0}
+    - target: {fileID: 785662038164424389, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+      propertyPath: frameDuration
+      value: 20000
+      objectReference: {fileID: 0}
+    - target: {fileID: 785662038164424389, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+      propertyPath: microphoneType
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3789166952560705026, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+      propertyPath: phoneMixerGroup
+      value: 
+      objectReference: {fileID: -6641118869394587661, guid: b5242f4e9a7190c44a2eeaf43ce36f51, type: 2}
     - target: {fileID: 5213042443106156266, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
       propertyPath: m_LocalPosition.x
       value: 850.6606
