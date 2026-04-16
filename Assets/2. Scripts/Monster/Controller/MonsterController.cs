@@ -113,6 +113,10 @@ public class MonsterController : NetworkBehaviour
         CurrentStateNet.OnValueChanged += OnStateChangedCallback;
         IsFrozenNet.OnValueChanged += OnFrozenNetworkChanged;
 
+        if (!IsServer)
+        {
+            navAgent.enabled = false;
+        }
         if (IsServer)
         {
             CurrentHealth.Value = monsterData.maxHealth;
