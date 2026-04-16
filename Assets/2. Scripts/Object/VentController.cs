@@ -42,12 +42,10 @@ public class VentController : NetworkBehaviour
 
         if (data.monsterPrefab != null)
         {
-            GameObject monsterObj = Instantiate(data.monsterPrefab, transform.position, transform.rotation);
-            NetworkObject netObj = monsterObj.GetComponent<NetworkObject>();
+            NetworkObject netObj = MonsterPool.Instance.GetMonster(data.monsterPrefab, transform.position, transform.rotation);
 
             if (netObj != null)
             {
-                netObj.Spawn(true);
                 EnemyManager.Instance.RegisterActiveMonster(netObj);
             }
         }

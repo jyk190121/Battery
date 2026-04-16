@@ -58,6 +58,10 @@ public class MonsterController : NetworkBehaviour
     private Animator _animator;
     private Dictionary<MonsterStateType, IState> states;
 
+    private float serverAlertness = 0f;
+    private float lastSyncedAlertness = 0f;
+    private float alertnessSyncTimer = 0f;
+
     // [최적화/추가 이유] 가비지 컬렉터(GC) 방지를 위한 NonAlloc용 캐시 배열
     private Collider[] doorHitColliders = new Collider[5];
 
@@ -100,7 +104,6 @@ public class MonsterController : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        // 컴포넌트 자동 할당 및 초기화
         navAgent = GetComponent<NavMeshAgent>();
         scanner = GetComponent<EnvironmentScanner>();
         animHandler = GetComponentInChildren<MonsterAnimation>();
@@ -109,7 +112,6 @@ public class MonsterController : NetworkBehaviour
         scanner.Init(this, monsterData);
         waypointManager = Object.FindAnyObjectByType<WaypointManager>();
 
-        // [최적화/추가 이유] 네트워크 변수 변경 감지 이벤트 구독 (서버-클라이언트 싱크)
         CurrentStateNet.OnValueChanged += OnStateChangedCallback;
         IsFrozenNet.OnValueChanged += OnFrozenNetworkChanged;
 
@@ -117,15 +119,8 @@ public class MonsterController : NetworkBehaviour
         {
             navAgent.enabled = false;
         }
-        if (IsServer)
-        {
-            CurrentHealth.Value = monsterData.maxHealth;
-            ChangeState(MonsterStateType.Patrol); // 초기 상태 설정
-        }
-        else
-        {
-            ApplyStateLocal(CurrentStateNet.Value); // 클라이언트 초기 싱크
-        }
+
+        ResetMonsterState();
     }
 
     public override void OnNetworkDespawn()
@@ -144,10 +139,13 @@ public class MonsterController : NetworkBehaviour
 
     private void Update()
     {
+        if (CurrentStateNet.Value == MonsterStateType.Dead) return;
+
         // [서버 전용 로직] 기믹 체크 및 스턴 관리
         if (IsServer)
         {
             HandleGimmickAndFrozenLogic();
+            SyncAlertnessOptimized();
         }
 
         // 빙결 상태라면 이후 AI 로직(FSM) 업데이트 중단
@@ -225,6 +223,57 @@ public class MonsterController : NetworkBehaviour
     }
 
     /// <summary>
+    /// 창고에서 다시 꺼내질 때 체력, 타겟, 상태를 새것처럼 초기화합니다.
+    /// </summary>
+    private void ResetMonsterState()
+    {
+        if (IsServer)
+        {
+            CurrentHealth.Value = monsterData.maxHealth;
+            ServerAlertness = 0f;
+            Alertness.Value = 0f;
+            IsFrozenNet.Value = false;
+            TargetDoor = null;
+
+            // 콜라이더와 에이전트 복구 (Dead 상태에서 꺼졌을 수 있으므로)
+            if (TryGetComponent<Collider>(out var col)) col.enabled = true;
+            EnableAgentSafely(); // (이전에 알려드린 안전한 에이전트 활성화 함수)
+
+            // 무조건 순찰 상태로 깔끔하게 시작
+            ChangeState(MonsterStateType.Patrol);
+        }
+        else
+        {
+            ApplyStateLocal(CurrentStateNet.Value);
+        }
+    }
+
+    /// <summary>
+    /// 에이전트를 켜기 전에 현재 위치가 NavMesh 위인지 확인하고, 
+    /// 공중이나 격벽이라면 가장 가까운 바닥으로 위치를 보정합니다.
+    /// </summary>
+    public void EnableAgentSafely()
+    {
+        if (navAgent == null) return;
+
+        // 반경 3m 내에 있는 가장 가까운 NavMesh 바닥을 찾습니다.
+        if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 3.0f, NavMesh.AllAreas))
+        {
+            // 찾은 안전한 바닥으로 몬스터를 살짝 이동시킵니다.
+            transform.position = hit.position;
+            navAgent.enabled = true; // 이제 안전하게 에이전트를 켭니다.
+        }
+        else
+        {
+            // 주변 3m 안에 바닥이 아예 없다면 경고를 띄우고 에이전트를 켜지 않습니다. (에러 방지)
+            Debug.LogWarning($"<color=orange>[MonsterController]</color> {gameObject.name} 주변에 NavMesh가 없습니다! 에이전트를 켤 수 없습니다.");
+
+            // 필요하다면 여기서 일정 시간 뒤에 다시 시도하는 코루틴을 부르거나, 
+            // 기본 스폰 지점으로 강제 텔레포트 시킬 수 있습니다.
+        }
+    }
+
+    /// <summary>
     /// 외부 기믹(예: 손전등, 특정 아이템)에 의한 빙결 상태를 서버에서 계산합니다.
     /// </summary>
     private void HandleGimmickAndFrozenLogic()
@@ -244,9 +293,9 @@ public class MonsterController : NetworkBehaviour
 
             if (shouldPause)
             {
-                wasStoppedBeforeFreeze = navAgent.isStopped;
-                if (navAgent.isOnNavMesh)
+                if (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
                 {
+                    wasStoppedBeforeFreeze = navAgent.isStopped;
                     navAgent.isStopped = true;
                     navAgent.velocity = Vector3.zero;
                 }
@@ -379,10 +428,31 @@ public class MonsterController : NetworkBehaviour
         }
     }
 
+    public float ServerAlertness
+    {
+        get => serverAlertness;
+        set => serverAlertness = Mathf.Clamp01(value);
+    }
+
+    private void SyncAlertnessOptimized()
+    {
+        alertnessSyncTimer += Time.deltaTime;
+
+        float diff = Mathf.Abs(serverAlertness - lastSyncedAlertness);
+
+        // MonsterData에 옮겨둔 최적화 세팅값을 참조합니다!
+        if (diff >= monsterData.alertnessThreshold || alertnessSyncTimer >= monsterData.alertnessSyncInterval)
+        {
+            Alertness.Value = serverAlertness;
+            lastSyncedAlertness = serverAlertness;
+            alertnessSyncTimer = 0f;
+        }
+    }
+
     // [테스트용] 
     [ContextMenu("Test Damage (10)")]
     public void TestDamage()
     {
-        if (IsServer) TakeDamage(10f);
+        if (IsServer) TakeDamage(50f);
     }
 }
