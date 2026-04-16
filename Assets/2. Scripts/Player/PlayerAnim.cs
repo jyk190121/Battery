@@ -81,7 +81,7 @@ public class PlayerAnim : MonoBehaviour
 
     public void UpdatePhoneAnimation(bool isUsing)
     {
-        if (anim == null) anim = GetComponent<Animator>();
+        if (anim == null) return;
 
         // 1. 애니메이터의 파라미터 값을 변경 (Transition이 발생하도록)
         anim.SetBool("isUsingPhone", isUsing);
@@ -92,7 +92,6 @@ public class PlayerAnim : MonoBehaviour
 
     public void SetLayerWeight(string layerName, float weight)
     {
-        if (anim == null) anim = GetComponent<Animator>();
         if (anim == null) return;
 
         int layerIndex = anim.GetLayerIndex(layerName);
@@ -100,5 +99,15 @@ public class PlayerAnim : MonoBehaviour
         {
             anim.SetLayerWeight(layerIndex, weight);
         }
+    }
+
+    public void PlayDead()
+    {
+        anim.SetTrigger("IsDead");
+    }
+
+    public void ResetAnimation()
+    {
+        anim.Rebind();
     }
 }
