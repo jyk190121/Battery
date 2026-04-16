@@ -99,8 +99,8 @@ MonoBehaviour:
   ApplyDontDestroyOnLoad: 1
   runInBackground: 1
   statsResetInterval: 1000
-  speakerPrefab: {fileID: 0}
-  primaryRecorder: {fileID: 0}
+  speakerPrefab: {fileID: 1170424731464680681, guid: 8da02f6a157eff3459ee07bd901781fd, type: 3}
+  primaryRecorder: {fileID: 785662038164424389}
   usePrimaryRecorder: 0
   cppCompatibilityMode: 0
   Settings:
@@ -142,7 +142,7 @@ MonoBehaviour:
   debugEchoMode: 0
   reliableMode: 0
   encrypt: 0
-  transmitEnabled: 1
+  transmitEnabled: 0
   samplingRate: 24000
   frameDuration: 40000
   bitrate: 30000
@@ -177,6 +177,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GlobalVoiceManager
   globalVoiceClient: {fileID: 5146883445117055760}
+  globalRecorder: {fileID: 785662038164424389}
 --- !u!1 &1848704857073512639
 GameObject:
   m_ObjectHideFlags: 0
@@ -760,9 +761,6 @@ GameObject:
   m_Component:
   - component: {fileID: 785779497585896769}
   - component: {fileID: 8872909475001312011}
-  - component: {fileID: 1316322139524623727}
-  - component: {fileID: 7842780041019227790}
-  - component: {fileID: 5344534286921836065}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -802,101 +800,6 @@ MonoBehaviour:
   teamChatRoom: {fileID: 7151956893988830046}
   ifConnected: {fileID: 5457140168927015977}
   connectYet: {fileID: 2655669063955554187}
---- !u!114 &1316322139524623727
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8680230105859507785}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 697c1cda529a1419782f2a2e3afe37a2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: PhotonVoice::Photon.Voice.Unity.UnityVoiceClient
-  DisconnectAfterKeepAlive: 0
-  KeepAliveInBackground: 60000
-  ApplyDontDestroyOnLoad: 1
-  runInBackground: 1
-  statsResetInterval: 1000
-  speakerPrefab: {fileID: 1170424731464680681, guid: 8da02f6a157eff3459ee07bd901781fd, type: 3}
-  primaryRecorder: {fileID: 7842780041019227790}
-  usePrimaryRecorder: 0
-  cppCompatibilityMode: 0
-  Settings:
-    AppIdRealtime: 
-    AppIdFusion: 
-    AppIdChat: 
-    AppIdVoice: 3eae6fb5-7a1d-4f59-a79f-130b1959cf99
-    AppVersion: 
-    UseNameServer: 1
-    FixedRegion: 
-    Server: 
-    Port: 0
-    ProxyServer: 
-    Protocol: 0
-    EnableProtocolFallback: 1
-    AuthMode: 0
-    EnableLobbyStatistics: 0
-    NetworkLogging: 1
-  ShowSettings: 1
-  UseVoiceAppSettings: 0
---- !u!114 &7842780041019227790
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8680230105859507785}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 91175dcc15224463780e01a8a98b1b60, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: PhotonVoice::Photon.Voice.Unity.Recorder
-  voiceDetection: 0
-  voiceDetectionThreshold: 0.01
-  voiceDetectionDelayMs: 500
-  interestGroup: 0
-  useTargetPlayers: 0
-  targetPlayers: 
-  debugEchoMode: 0
-  reliableMode: 0
-  encrypt: 0
-  transmitEnabled: 0
-  samplingRate: 24000
-  frameDuration: 20000
-  bitrate: 30000
-  sourceType: 0
-  microphoneType: 0
-  audioClip: {fileID: 0}
-  loopAudioClip: 1
-  recordingEnabled: 1
-  audioSessionParameters:
-    Category: 4
-    Mode: 1
-    CategoryOptions: 0800000004000000
-  editorAudioSessionPreset: 1
-  androidMicrophoneSettings:
-    EnableAEC: 1
-    EnableAGC: 1
-    EnableNS: 1
-  stopRecordingWhenPaused: 0
-  useOnAudioFilterRead: 0
-  useMicrophoneTypeFallback: 1
-  recordWhenJoined: 0
---- !u!114 &5344534286921836065
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8680230105859507785}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bcd52e3e58c32e5449c85ebd0ec9de89, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VoiceRoomManager
-  voiceClient: {fileID: 1316322139524623727}
 --- !u!1001 &7745167247473930096
 PrefabInstance:
   m_ObjectHideFlags: 0

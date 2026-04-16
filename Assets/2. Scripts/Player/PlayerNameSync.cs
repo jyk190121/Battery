@@ -1,6 +1,7 @@
 using System.Globalization;
 using Unity.Collections;
 using Unity.Netcode;
+using UnityEngine;
 
 public class PlayerNameSync : NetworkBehaviour
 {
@@ -12,6 +13,14 @@ public class PlayerNameSync : NetworkBehaviour
         if (IsOwner)
         {
             NetworkNickname.Value = MultiPlayerSessionManager.Instance.PlayerNickname;
+            
+            if(GlobalVoiceManager.Instance != null)
+            {
+                string safeNick = NetworkNickname.Value.ToString().Replace("\0", "").Trim(); 
+                GlobalVoiceManager.Instance.ConnectVoice(safeNick);
+                Debug.Log($"[PlayerNameSync] 플레이어 '{safeNick}'의 닉네임으로 보이스 채팅 서버에 연결 요청을 보냈습니다.");
+            }
+
         }
 
         // 변수가 바뀌면 UI 매니저에게 갱신 요청

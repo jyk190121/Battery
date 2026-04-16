@@ -1045,25 +1045,9 @@ PrefabInstance:
       value: UI
       objectReference: {fileID: 0}
     - target: {fileID: 785662038164424389, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
-      propertyPath: transmitEnabled
-      value: 0
+      propertyPath: frameDuration
+      value: 5000
       objectReference: {fileID: 0}
-    - target: {fileID: 1316322139524623727, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
-      propertyPath: primaryRecorder
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 3789166952560705026, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
-      propertyPath: globalRecorder
-      value: 
-      objectReference: {fileID: 904575436}
-    - target: {fileID: 5146883445117055760, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
-      propertyPath: speakerPrefab
-      value: 
-      objectReference: {fileID: 1170424731464680681, guid: 8da02f6a157eff3459ee07bd901781fd, type: 3}
-    - target: {fileID: 5146883445117055760, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
-      propertyPath: primaryRecorder
-      value: 
-      objectReference: {fileID: 904575436}
     - target: {fileID: 5213042443106156266, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
       propertyPath: m_LocalPosition.x
       value: 850.6606
@@ -1104,34 +1088,7 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5344534286921836065, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
-      propertyPath: callRecorder
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 5928667287793088451, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
-      propertyPath: m_sharedMaterial
-      value: 
-      objectReference: {fileID: -5514379908419441289, guid: c61d30e6a459e8c43b000be3c74baf01, type: 2}
-    - target: {fileID: 5928667287793088451, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
-      propertyPath: m_hasFontAssetChanged
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8872909475001312011, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
-      propertyPath: playerText
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 9097256613800063121, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
-      propertyPath: m_sharedMaterial
-      value: 
-      objectReference: {fileID: -5514379908419441289, guid: c61d30e6a459e8c43b000be3c74baf01, type: 2}
-    - target: {fileID: 9097256613800063121, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
-      propertyPath: m_hasFontAssetChanged
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 5344534286921836065, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
-    - {fileID: 7842780041019227790, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
-    - {fileID: 1316322139524623727, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -3501,17 +3458,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 861537367}
   m_CullTransparentMesh: 1
---- !u!114 &904575436 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 785662038164424389, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
-  m_PrefabInstance: {fileID: 308376624}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 91175dcc15224463780e01a8a98b1b60, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: PhotonVoice::Photon.Voice.Unity.Recorder
 --- !u!1 &918046309
 GameObject:
   m_ObjectHideFlags: 0
