@@ -202,7 +202,11 @@ public class EnemyManager : NetworkBehaviour
             var netObj = activeMonsters[i];
             if (netObj != null && netObj.IsSpawned)
             {
-                netObj.Despawn(true);
+                if (netObj.TryGetComponent<MonsterController>(out var controller))
+                {
+                    // Despawn(true) 대신 창고로
+                    MonsterPool.Instance.ReturnMonster(controller.monsterData.monsterPrefab, netObj);
+                }
             }
         }
         activeMonsters.Clear();

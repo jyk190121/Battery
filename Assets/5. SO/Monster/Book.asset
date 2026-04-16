@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bbc6e2eecad55246b69d412d02592b9, type: 3}
   m_Name: Book
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
-  maxHealth: 100
+  maxHealth: 200
   spawnCost: 2
   spawnWeight: 50
   maxSpawnCount: 2

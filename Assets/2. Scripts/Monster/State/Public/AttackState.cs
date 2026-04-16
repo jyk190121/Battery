@@ -5,6 +5,7 @@ public class AttackState : MonsterBaseState
     private float attackTimer;
     private bool isAnimationPlaying;
 
+    private bool isExiting;
     public AttackState(MonsterController owner) : base(owner) 
     {
         // 공격은 찰나의 순간이 중요하므로 0.05초 주기로 생각하게 함
@@ -15,16 +16,18 @@ public class AttackState : MonsterBaseState
     {
         base.Enter();
         owner.navAgent.isStopped = true;    // 공격 시 멈춤
-        //owner.navAgent.ResetPath();
+        owner.navAgent.ResetPath();
         owner.navAgent.velocity = Vector3.zero;
-        //owner.animHandler.SetSpeed(0f);
 
         attackTimer = data.attackCooldown;  // 즉시 공격 가능하게 설정하거나 대기
         isAnimationPlaying = false;
+        isExiting = false;
     }
 
     protected override void OnTick()
     {
+        if (isExiting || owner.CurrentStateNet.Value != MonsterStateType.Attack) return;
+
         // 공격 중에도 타겟이 사거리를 벗어났는지 아주 빠르게(0.05초마다) 체크
         Transform target = owner.scanner.CurrentTarget;
         if (target == null)
@@ -36,14 +39,20 @@ public class AttackState : MonsterBaseState
         // 공격 애니메이션이 끝난 후 사거리 체크
         if (attackTimer >= data.attackAnimDuration)
         {
-            isAnimationPlaying = false;
-
             float sqrDist = (target.position - owner.transform.position).sqrMagnitude;
             float threshold = data.attackRange + 0.5f;
+
+            // 플레이어가 도망가서 사거리 밖이라면?
             if (sqrDist > threshold * threshold)
             {
-                owner.ChangeState(MonsterStateType.Chase);
+                ExitToChase();
                 return;
+            }
+            else
+            {
+                // [버그 수정 3] 여전히 사거리 안에 있을 때만 다음 공격을 위해 락(Lock)을 풀어줍니다.
+                // (도망갔는데 풀어버리면 Update에서 공격을 또 실행해버리는 버그 방지)
+                isAnimationPlaying = false;
             }
         }
     }
@@ -107,5 +116,14 @@ public class AttackState : MonsterBaseState
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// 안전하게 추격 상태로 넘어가는 헬퍼 함수
+    /// </summary>
+    private void ExitToChase()
+    {
+        isExiting = true;
+        owner.ChangeState(MonsterStateType.Chase);
     }
 }
