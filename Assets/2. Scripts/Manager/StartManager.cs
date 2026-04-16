@@ -174,9 +174,9 @@ public class StartManager : MonoBehaviour
         }
 
         // 세션 매니저에 닉네임 저장 (이후 게임 내내 사용됨)
-        MultiPlayerSessionManager.Instance.PlayerNickname = nicknameInput.text;
-
-        photonChatManager.SetUp();
+        // 닉네임 뒤에 랜덤 태그 붙이기 (예: Player#1234) - 중복 방지용
+        int randomTag = UnityEngine.Random.Range(1000, 10000);
+        MultiPlayerSessionManager.Instance.PlayerNickname = $"{nicknameInput.text}#{randomTag}";
 
         // 메인 패널로 전환
         ShowPanel(mainPanel);

@@ -86,7 +86,7 @@ public class OnCallingUI : MonoBehaviour
     public void StartOutgoingCall(string target)
     {
         currentTargetName = target;
-        targetName.text = target;
+        targetName.text = target.Split('#')[0];
         timer = 0f;
         minutes = 0;
         isTimerRunning = false;
@@ -119,7 +119,7 @@ public class OnCallingUI : MonoBehaviour
     {
         currentTargetName = callerName;
         SetReceiverMode();
-        targetName.text = callerName;
+        targetName.text = callerName.Split('#')[0];
         timerText.text = $"Incoming...";
 
         SoundManager.Instance.PlayLoopSfx(SfxSound.PHONE_CALLALARM);
