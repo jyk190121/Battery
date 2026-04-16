@@ -129,10 +129,45 @@ public class GameSceneManager : NetworkBehaviour
     {
         if (!IsServer) return;
 
-        // 1. 이미 이 클라이언트를 위한 플레이어 객체가 있는지 확인 (중복 스폰 방지)
-        var clientData = NetworkManager.Singleton.ConnectedClients[clientId];
+        UpdateSpawnPoints();
+        int spawnIndex = GetSpawnIndex(clientId);
+        Transform targetPoint = spawnPoints[spawnIndex % spawnPoints.Length];
 
-        if (clientData.PlayerObject != null) return;
+        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client))
+        {
+            // 기존 객체가 있다면? 위치만 옮겨주고 종료 (부활 처리)
+            if (client.PlayerObject != null)
+            {
+                // NetworkTransform을 사용하는 경우 Teleport 기능을 사용해야 부드럽게 동기화됩니다.
+                var networkTransform = client.PlayerObject.GetComponent<NetworkTransform>();
+                if (networkTransform != null)
+                {
+                    networkTransform.Teleport(targetPoint.position, targetPoint.rotation, client.PlayerObject.transform.localScale);
+                }
+                else
+                {
+                    client.PlayerObject.transform.position = targetPoint.position;
+                    client.PlayerObject.transform.rotation = targetPoint.rotation;
+                }
+
+                // 필요하다면 체력 리셋 로직도 여기서 호출
+                // client.PlayerObject.GetComponent<PlayerStateManager>().ResetHealth();
+                return;
+            }
+        }
+
+        // 1. 이미 이 클라이언트를 위한 플레이어 객체가 있는지 확인 (중복 스폰 방지)
+        //var clientData = NetworkManager.Singleton.ConnectedClients[clientId];
+        //if (clientData.PlayerObject != null) return;
+
+        //if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client))
+        //{
+        //    if (client.PlayerObject != null)
+        //    {
+        //        // 이미 씬에 플레이어 객체가 있다면 다시 소환하지 않음
+        //        return;
+        //    }
+        //}
 
         // 2. 이름으로 프리팹 찾기
         var networkPrefab = NetworkManager.Singleton.NetworkConfig.Prefabs.Prefabs
@@ -144,15 +179,18 @@ public class GameSceneManager : NetworkBehaviour
             return;
         }
 
-        // 3. 스폰 위치 설정 (동일 위치면 겹치므로 필요시 약간의 오프셋을 줄 수 있습니다)
+        UpdateSpawnPoints();
+
 
         // 스폰 포인트 정보 갱신 (없을 경우에만)
         if (spawnPoints == null || spawnPoints.Length == 0) UpdateSpawnPoints();
 
-        int spawnIndex = 0;
-        for (int i = 0; i < NetworkManager.Singleton.ConnectedClientsList.Count; i++)
+        //int spawnIndex = 0;
+        var connectedList = NetworkManager.Singleton.ConnectedClientsList;
+
+        for (int i = 0; i < connectedList.Count; i++)
         {
-            if (NetworkManager.Singleton.ConnectedClientsList[i] == clientData)
+            if (connectedList[i].ClientId == clientId)
             {
                 spawnIndex = i;
                 break;
@@ -162,7 +200,7 @@ public class GameSceneManager : NetworkBehaviour
         if (spawnPoints != null && spawnPoints.Length > 0)
         {
             // 포인트 개수보다 플레이어가 많으면 처음부터 순환 (Index % Length)
-            Transform targetPoint = spawnPoints[spawnIndex % spawnPoints.Length];
+            //Transform targetPoint = spawnPoints[spawnIndex % spawnPoints.Length];
             Vector3 spawnPos = targetPoint.position;
             Quaternion spawnRot = targetPoint.rotation;
 
@@ -227,6 +265,21 @@ public class GameSceneManager : NetworkBehaviour
         }
 
     }
+    int GetSpawnIndex(ulong clientId)
+    {
+        var connectedList = NetworkManager.Singleton.ConnectedClientsList;
+
+        for (int i = 0; i < connectedList.Count; i++)
+        {
+            if (connectedList[i].ClientId == clientId)
+            {
+                return i;
+            }
+        }
+
+        return 0; // 찾지 못했을 경우 기본값
+    }
+
 
     [ServerRpc(RequireOwnership = false)]
     public void RequestStartGameServerRpc()
