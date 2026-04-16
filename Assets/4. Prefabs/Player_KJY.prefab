@@ -2827,6 +2827,7 @@ GameObject:
   - component: {fileID: -8743619242891834833}
   - component: {fileID: 7772676231503934991}
   - component: {fileID: 8431698971035657743}
+  - component: {fileID: 5913926616795169307}
   m_Layer: 6
   m_Name: Player_KJY
   m_TagString: Untagged
@@ -2902,7 +2903,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 405663255
+  GlobalObjectIdHash: 6777840
   InScenePlacedSourceGlobalObjectIdHash: 6777840
   DeferredDespawnTick: 0
   Ownership: 1
@@ -3364,6 +3365,18 @@ CapsuleCollider:
   m_Height: 1.9966463
   m_Direction: 1
   m_Center: {x: 0, y: 0.9734525, z: -0.0012594461}
+--- !u!114 &5913926616795169307
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4911454195433589709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f47de1467ca92524ab7f196eec7d8164, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FlashEffect
 --- !u!1 &5047510916941267613
 GameObject:
   m_ObjectHideFlags: 0
