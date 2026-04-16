@@ -48,7 +48,7 @@ public class CoilHeadMechanic : NetworkBehaviour
         foreach (PlayerController player in PlayerController.AllPlayers)
         {
             // 죽은 플레이어나 비활성화된 플레이어는 시야 판정에서 제외
-            if (player == null || !player.gameObject.activeInHierarchy || player.IsDead) continue;
+            if (player == null || !player.gameObject.activeInHierarchy || player.isDead.Value) continue;
 
             // 임시로 플레이어의 몸통 위치와 정면(Forward)을 시야 기준으로 잡습니다.
             // (나중에 플레이어 카메라나 머리 Transform을 연결해 주시면 더 정교해집니다)

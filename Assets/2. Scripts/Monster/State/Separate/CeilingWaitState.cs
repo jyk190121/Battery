@@ -69,7 +69,7 @@ public class CeilingWaitState : MonsterBaseState
 
         foreach (var player in PlayerController.AllPlayers)
         {
-            if (player == null || !player.gameObject.activeInHierarchy || player.IsDead) continue;
+            if (player == null || !player.gameObject.activeInHierarchy || player.isDead.Value) continue;
 
             // 1. 수평 거리와 수직 거리 체크 (벼룩 아래에 있는지 확인)
             Vector3 fleaPos = owner.transform.position;

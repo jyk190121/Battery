@@ -52,7 +52,7 @@ public class EnvironmentScanner : MonoBehaviour
 
         foreach (PlayerController player in PlayerController.AllPlayers)
         {
-            if (player == null || !player.gameObject.activeInHierarchy || player.IsDead) continue;
+            if (player == null || !player.gameObject.activeInHierarchy || player.isDead.Value) continue;
             if (!IsTargetValid(player.gameObject)) continue;
 
             Vector3 diff = player.transform.position - transform.position;
