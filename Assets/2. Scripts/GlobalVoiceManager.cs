@@ -211,18 +211,12 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
 }
 
 // ========================================================================
-// 3D 오디오 스트림을 2D 스피커로 복제해주는 컴포넌트
+// 3D 오디오 스트림을 2D 스피커로 복제해주는 컴포넌트 (원상 복구)
 // ========================================================================
 public class VoiceCopier : MonoBehaviour
 {
     private AudioSource aud3D;
     private AudioSource aud2D;
-    private AudioListener localListener;
-    private bool isCalling = false;
-
-    // 더킹 설정값 : 거리 2m 이하에서는 2D 볼륨이 0, 15m 이상에서는 1, 그 사이에서는 선형 보간
-    private const float MIN_DUCK_DIST = 2f;  // 2m 이하일 때 2D 볼륨은 0
-    private const float MAX_DUCK_DIST = 15f; // 15m 이상일 때 2D 볼륨은 1
 
     public void Init(AudioSource main3D, AudioMixerGroup mixerGroup)
     {
@@ -231,13 +225,11 @@ public class VoiceCopier : MonoBehaviour
         aud2D.spatialBlend = 0f;
         aud2D.volume = 0f;
 
-        // 2D 스피커의 출력 포트에 전화기 필터(PhoneVoice)를 꽂아줍니다!
+        // 2D 스피커의 출력 포트에 전화기 필터를 꽂아줍니다.
         if (mixerGroup != null)
         {
             aud2D.outputAudioMixerGroup = mixerGroup;
         }
-
-        localListener = FindFirstObjectByType<AudioListener>();
     }
 
     void Update()
@@ -260,26 +252,11 @@ public class VoiceCopier : MonoBehaviour
                 aud2D.timeSamples = aud3D.timeSamples;
             }
         }
-
-        if (isCalling && localListener != null)
-        {
-            float distance = Vector3.Distance(transform.position, localListener.transform.position);
-
-            // 거리에 따른 0 ~ 1 사이의 볼륨 비율 계산
-            // (가까울수록 0에 가깝고, 멀수록 1에 가깝게)
-            float duckVolume = Mathf.InverseLerp(MIN_DUCK_DIST, MAX_DUCK_DIST, distance);
-
-            aud2D.volume = duckVolume;
-        }
-        else if (!isCalling)
-        {
-            aud2D.volume = 0f;
-        }
     }
 
     public void SetCall(bool isCalling)
     {
-        // 볼륨 조절 없이 100% 출력
+        // 볼륨 조절 없이 즉시 100% 출력 또는 음소거
         if (aud2D != null) aud2D.volume = isCalling ? 1f : 0f;
     }
 }
