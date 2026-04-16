@@ -1409,7 +1409,7 @@ GameObject:
   - component: {fileID: 8990760709538554811}
   - component: {fileID: 505200396310082917}
   - component: {fileID: 2463115333531814365}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Root_Monster
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1466,7 +1466,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2944052459
+  GlobalObjectIdHash: 239064266
   InScenePlacedSourceGlobalObjectIdHash: 239064266
   DeferredDespawnTick: 0
   Ownership: 1
@@ -1543,6 +1543,8 @@ MonoBehaviour:
   navAgent: {fileID: 4186773354342019165}
   animHandler: {fileID: 1827414708699773800}
   waypointManager: {fileID: 0}
+  CurrentHealth:
+    m_InternalValue: 0
   CurrentStateNet:
     m_InternalValue: 0
   Alertness:
