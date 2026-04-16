@@ -18,7 +18,6 @@ public class ChaseState : MonsterBaseState
 
         lastTargetPos = Vector3.positiveInfinity;
         stuckTimer = 0f;
-        //owner.animHandler.SetSpeed(data.chaseSpeed);
 
         pathUpdateSqrThreshold = data.pathUpdateThreshold * data.pathUpdateThreshold;
     }
@@ -26,6 +25,9 @@ public class ChaseState : MonsterBaseState
     protected override void OnTick()
     {
         owner.scanner.Tick();
+
+        if (!owner.IsServer) return;
+
         // 0.2초마다 문 체크 (Update에서도 하므로 보조 역할)
         if (owner.CurrentStateNet.Value == MonsterStateType.Chase)
         {
@@ -36,6 +38,8 @@ public class ChaseState : MonsterBaseState
     public override void Update()
     {
         base.Update();
+
+        if (!owner.IsServer) return;
 
         // 1. 문 감지
         if (owner.CurrentStateNet.Value == MonsterStateType.Chase)

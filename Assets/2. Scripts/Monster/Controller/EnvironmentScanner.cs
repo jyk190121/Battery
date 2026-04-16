@@ -42,64 +42,54 @@ public class EnvironmentScanner : MonoBehaviour
     /// </summary>
     public void Tick()
     {
-        // 1. 주변 플레이어 감지
-        //int hitCount = Physics.OverlapSphereNonAlloc(transform.position, data.viewRange, hitColliders, playerMask);
+        if (!owner.IsServer) return;
 
         Transform bestTarget = null;
         float minSqrDistance = float.MaxValue;
-        PlayerController potentialTarget = null;
-        bool usingMemoryForTarget = false;
+
+        // 현재 타겟이 있다면 우선권을 줍니다.
+        float targetStickiness = 2.0f; // 현재 타겟은 2m 더 멀리 있어도 유지함
 
         foreach (PlayerController player in PlayerController.AllPlayers)
         {
-            if (player == null || !player.gameObject.activeInHierarchy || player.IsDead) continue;
+            if (player == null || !player.gameObject.activeInHierarchy || player.isDead.Value) continue;
             if (!IsTargetValid(player.gameObject)) continue;
-
-            float heightDiff = Mathf.Abs(player.transform.position.y - transform.position.y);
-            if (heightDiff > 5.0f) continue;
 
             Vector3 diff = player.transform.position - transform.position;
             float currentSqrDist = diff.sqrMagnitude;
+
+            // 현재 타겟이라면 거리 판정을 더 후하게 줌 (타겟 고정 효과)
+            if (CurrentTarget != null && player.transform == CurrentTarget)
+            {
+                currentSqrDist -= (targetStickiness * targetStickiness);
+            }
+
             if (currentSqrDist > viewRangeSqr) continue;
 
             bool hasLOS = HasLineOfSight(player.transform);
-            bool isRemembered = false;
+
+            // 시야에서 잠깐 사라져도 기억함
+            if (!hasLOS && CurrentTarget != null && player.transform == CurrentTarget)
+            {
+                if (Time.time - timeLastSeen <= data.visionMemoryTime)
+                {
+                    hasLOS = true;
+                }
+            }
 
             if (hasLOS)
             {
-                if (CurrentTarget == null || player.transform == CurrentTarget)
+                if (currentSqrDist < minSqrDistance)
                 {
-                    timeLastSeen = Time.time;
+                    minSqrDistance = currentSqrDist;
+                    bestTarget = player.transform;
                 }
-            }
-            else
-            {
-                if (CurrentTarget != null && player.transform == CurrentTarget)
-                {
-                    // 시야에서 사라졌어도 1.5초간은 잔상을 기억하여 끝까지 쫓아감
-                    if (Time.time - timeLastSeen <= data.visionMemoryTime)
-                    {
-                        hasLOS = true;
-                        isRemembered = true;
-                    }
-                }
-            }
-
-            if (hasLOS && currentSqrDist < minSqrDistance)
-            {
-                minSqrDistance = currentSqrDist;
-                potentialTarget = player;
-                usingMemoryForTarget = isRemembered;
             }
         }
 
-        if (potentialTarget != null)
+        if (bestTarget != null && bestTarget != CurrentTarget)
         {
-            // 잔상 기억 중이거나, 문 뒤에 숨지 않고 합리적으로 도달 가능할 때만 타겟 확정
-            if (usingMemoryForTarget || IsPathReasonable(potentialTarget.transform.position))
-            {
-                bestTarget = potentialTarget.transform;
-            }
+            timeLastSeen = Time.time;
         }
 
         UpdateTargetData(bestTarget);

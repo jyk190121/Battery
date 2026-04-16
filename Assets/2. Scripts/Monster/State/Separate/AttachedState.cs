@@ -1,5 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
+using System.Collections;
 
 public class AttachedState : MonsterBaseState
 {
@@ -24,27 +25,31 @@ public class AttachedState : MonsterBaseState
         }
 
         // 1. 타겟이 유효한지 1차 검사
-        if (snaredPlayer != null && !snaredPlayer.IsDead)
+        if (snaredPlayer != null && !snaredPlayer.isDead.Value)
         {
+            // 1. 에이전트와 물리 충돌을 꺼서 윗층 점프 방지
             owner.navAgent.enabled = false;
+            //if (owner.TryGetComponent<Collider>(out var col)) col.enabled = false;
 
-            // 2. [네트워크 종속] 몬스터를 플레이어의 자식(Child)으로 설정 (worldPositionStays = false)
+            // 2. 부모 설정
             owner.NetworkObject.TrySetParent(snaredPlayer.NetworkObject, false);
 
-            // 3. 플레이어 머리 위치(대략 높이 1.6m)로 로컬 위치 고정
-            owner.transform.localPosition = new Vector3(0, 1.2f, 0);
-            owner.transform.localRotation = Quaternion.identity;
+            // 3. 한 프레임 뒤에 위치를 다시 고정 (부모 설정 싱크 때문)
+            owner.StartCoroutine(FixPositionNextFrame());
 
-            // 4. RpcTarget.Single()을 사용하여 타겟 클라이언트에게만 시야 차단 지시
             owner.TriggerSnareBlindRpc(true, owner.RpcTarget.Single(snaredPlayer.OwnerClientId, RpcTargetUse.Temp));
-
-            Debug.Log($"<color=red>[Snare Flea]</color> {snaredPlayer.name}의 머리에 안착했습니다!");
         }
         else
         {
-            // 타겟이 이미 도망갔거나 죽었다면 즉시 순찰로 복귀
             owner.ChangeState(MonsterStateType.Patrol);
         }
+    }
+
+    private IEnumerator FixPositionNextFrame()
+    {
+        yield return null;
+        owner.transform.localPosition = new Vector3(0, 1.2f, 0); // 머리 위 높이
+        owner.transform.localRotation = Quaternion.identity;
     }
 
     public override void Update()
@@ -52,7 +57,7 @@ public class AttachedState : MonsterBaseState
         base.Update();
 
         // 1. 사망/로그아웃 체크
-        if (snaredPlayer == null || snaredPlayer.IsDead)
+        if (snaredPlayer == null || snaredPlayer.isDead.Value)
         {
             Debug.Log("<color=yellow>[Snare Flea]</color> 숙주가 사망했습니다. 바닥으로 떨어집니다.");
 
@@ -92,7 +97,8 @@ public class AttachedState : MonsterBaseState
             owner.transform.rotation = Quaternion.Euler(0, owner.transform.eulerAngles.y, 0);
         }
 
-        owner.navAgent.enabled = true;
+        owner.navAgent.enabled = owner.IsServer;
+        //if (owner.TryGetComponent<Collider>(out var col)) col.enabled = true;
 
         snaredPlayer = null;
         Debug.Log("<color=yellow>[Snare Flea]</color> 플레이어에게서 분리되었습니다.");

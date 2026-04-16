@@ -8,7 +8,9 @@ public class PlayerController : NetworkBehaviour
     [Header("Base Data")]
     [SerializeField] private Player _playerData; // SO 데이터
     public Player Data => _playerData; // 읽기 전용 프로퍼티
-    public bool IsDead { get; private set; }
+    //public bool IsDead { get; private set; }
+    // 네트워크 플레이어 사망 여부 체크
+    public NetworkVariable<bool> isDead = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     // 컴포넌트들을 미리 캐싱하여 다른 곳에서 쉽게 찾게 할 수도 있습니다.
     public PlayerStateManager StateManager { get; private set; }
@@ -30,12 +32,7 @@ public class PlayerController : NetworkBehaviour
             AllPlayers.Add(this);
             Debug.Log($"[서버 알림] 플레이어 접속: 현재 인원 {AllPlayers.Count}명");
         }
-
-        if (IsServer)
-        {
-            // 게임 시작 시 SO의 원본 값을 복사해 현재 HP로 설정
-            StateManager.currentHealth.Value = _playerData.maxHealth;
-        }
+        isDead.OnValueChanged += OnDeadStatusChanged;
     }
 
     // 플레이어가 튕기거나 방을 나갈 때 출석부에서 제거합니다.
@@ -54,7 +51,7 @@ public class PlayerController : NetworkBehaviour
     [ServerRpc]
     public void TakeDamageServerRpc(float damage)
     {
-        if (IsDead) return;
+        if (isDead.Value) return;
 
         StateManager.currentHealth.Value -= damage;
 
@@ -67,8 +64,180 @@ public class PlayerController : NetworkBehaviour
 
     private void Die()
     {
-        IsDead = true;
+        isDead.Value = true;
         Debug.Log($"{gameObject.name}가 사망했습니다.");
+
         // 사망 애니메이션 실행, 콜라이더 끄기, 리스폰 로직 등 처리
+        CheckAllPlayersDead();
+    }
+
+
+    void CheckAllPlayersDead()
+    {
+        if (!IsServer) return;
+
+        bool areAllDead = true;
+        foreach (var player in AllPlayers)
+        {
+            if (!player.isDead.Value)
+            {
+                areAllDead = false;
+                break;
+            }
+        }
+
+        if (areAllDead)
+        {
+            Debug.Log("모든 플레이어 사망. 3초 후 로비로 이동합니다.");
+            StartCoroutine(ReturnToLobbyWithDelay());
+        }
+    }
+    IEnumerator ReturnToLobbyWithDelay()
+    {
+        yield return new WaitForSeconds(3f);
+        // 모든 플레이어 부활 처리 (로비 가기 전 데이터 세팅)
+        foreach (var player in AllPlayers)
+        {
+            player.RevivePlayer();
+        }
+        // 로비 씬으로 이동 (NetworkSceneManager 사용 권장)
+        //NetworkManager.SceneManager.LoadScene("KJY_Lobby", UnityEngine.SceneManagement.LoadSceneMode.Single);
+        GameSceneManager.Instance.LoadNetworkScene("KJY_Lobby");
+    }
+
+    public void RevivePlayer()
+    {
+        if (!IsServer) return;
+        isDead.Value = false;
+        StateManager.ResetStatus(); // 체력 등 초기화
+    }
+    
+    // 사망 상태가 변했을 때 호출되는 함수
+
+    void OnDeadStatusChanged(bool previousValue, bool newValue)
+    {
+        if (newValue == true)
+        {
+            PerformDeathEffects();
+
+            // 관전 모드 시작 (본인인 경우에만)
+            if (IsOwner)
+            {
+                StartCoroutine(StartSpectating());
+            }
+        }
+        else // 부활 시 (isDead.Value가 true -> false가 되었을 때)
+        {
+            PerformReviveEffects();
+        }
+    }
+
+    private IEnumerator StartSpectating()
+    {
+        yield return new WaitForSeconds(2.0f); // 사망 애니메이션을 조금 본 뒤 전환
+
+        // 살아있는 다른 플레이어 찾기
+        PlayerController targetPlayer = null;
+        foreach (var p in AllPlayers)
+        {
+            if (p != this && !p.isDead.Value)
+            {
+                targetPlayer = p;
+                break;
+            }
+        }
+
+        if (targetPlayer != null)
+        {
+            // Cinemachine 카메라 대상을 살아있는 플레이어로 교체
+            // PlayerRotation에 있는 vcam 참조를 활용하거나 Camera.main 등 사용
+            var rot = GetComponent<PlayerRotation>();
+            if (rot != null && rot.vcam != null)
+            {
+                rot.vcam.Follow = targetPlayer.transform;
+                rot.vcam.LookAt = targetPlayer.transform;
+                Debug.Log($"{targetPlayer.gameObject.name}를 관전합니다.");
+            }
+        }
+    }
+
+
+    void PerformDeathEffects()
+    {
+        // 1. 사망 애니메이션 실행
+        if (GetComponent<PlayerAnim>() != null)
+        {
+            GetComponent<PlayerAnim>().PlayDead();
+        }
+
+        // 2. 물리 및 충돌체 비활성화
+        // Collider를 끄면 바닥을 뚫고 내려갈 수 있으니, 필요에 따라 
+        // 레이어를 'DeadPlayer' 등으로 바꿔 몬스터와만 안 부딪히게 할 수도 있습니다.
+        var col = GetComponent<Collider>();
+        if (col != null) col.enabled = false;
+
+        var rb = GetComponent<Rigidbody>();
+        if (rb != null) rb.isKinematic = true; // 물리 엔진 영향 중단
+
+        // 3. 조작 스크립트들 비활성화
+        if (TryGetComponent(out PlayerMove move)) move.enabled = false;
+        if (TryGetComponent(out PlayerRotation rot)) rot.enabled = false;
+        if (TryGetComponent(out PlayerInteraction interact)) interact.enabled = false;
+        if (TryGetComponent(out PlayerEquipment equip)) equip.enabled = false;
+
+        // 몬스터가 사망한 플레이어 찾지않도록 레이어 수정
+        gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+
+        // 4. (본인인 경우) 마우스 커서 잠금 해제 및 UI 처리
+        if (IsOwner)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            // 여기에 "사망하셨습니다" 같은 UI 띄우기 가능
+        }
+    }
+
+    void PerformReviveEffects()
+    {
+        Debug.Log($"{gameObject.name}가 부활하여 컴포넌트를 재활성화합니다.");
+
+        // 1. 애니메이션 리셋 (누워있는 상태에서 일어나는 상태로)
+        if (TryGetComponent(out PlayerAnim anim))
+        {
+            anim.ResetAnimation(); // Rebind()를 호출하여 초기 상태로 돌림
+        }
+
+        // 2. 물리 및 충돌체 다시 켜기
+        var col = GetComponent<Collider>();
+        if (col != null) col.enabled = true;
+
+        var rb = GetComponent<Rigidbody>();
+        if (rb != null) rb.isKinematic = false; // 물리 다시 적용
+
+        // 3. 레이어 복구 (몬스터가 다시 감지할 수 있게)
+        gameObject.layer = LayerMask.NameToLayer("Player");
+
+        // 4. 모든 조작 스크립트 재활성화
+        if (TryGetComponent(out PlayerMove move)) move.enabled = true;
+        if (TryGetComponent(out PlayerRotation rot))
+        {
+            rot.enabled = true;
+            // 중요: 관전 중이었다면 카메라 타겟을 다시 나(본인)로 돌려놓아야 함
+            if (IsOwner && rot.vcam != null)
+            {
+                rot.vcam.Follow = rot.cameraTarget; // 원래 내 눈 위치로
+                rot.vcam.LookAt = null; // 필요에 따라 설정
+            }
+        }
+        if (TryGetComponent(out PlayerInteraction interact)) interact.enabled = true;
+        if (TryGetComponent(out PlayerEquipment equip)) equip.enabled = true;
+
+        // 5. 본인인 경우 UI 및 커서 복구
+        if (IsOwner)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            // "사망" UI가 있었다면 여기서 끄기
+        }
     }
 }
