@@ -18,7 +18,6 @@ public class ChaseState : MonsterBaseState
 
         lastTargetPos = Vector3.positiveInfinity;
         stuckTimer = 0f;
-        //owner.animHandler.SetSpeed(data.chaseSpeed);
 
         pathUpdateSqrThreshold = data.pathUpdateThreshold * data.pathUpdateThreshold;
     }

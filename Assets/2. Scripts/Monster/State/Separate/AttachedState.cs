@@ -29,12 +29,12 @@ public class AttachedState : MonsterBaseState
         {
             // 1. 에이전트와 물리 충돌을 꺼서 윗층 점프 방지
             owner.navAgent.enabled = false;
-            if (owner.TryGetComponent<Collider>(out var col)) col.enabled = false;
+            //if (owner.TryGetComponent<Collider>(out var col)) col.enabled = false;
 
             // 2. 부모 설정
             owner.NetworkObject.TrySetParent(snaredPlayer.NetworkObject, false);
 
-            // 3. [멀티플레이 핵심] 한 프레임 뒤에 위치를 다시 고정 (부모 설정 싱크 때문)
+            // 3. 한 프레임 뒤에 위치를 다시 고정 (부모 설정 싱크 때문)
             owner.StartCoroutine(FixPositionNextFrame());
 
             owner.TriggerSnareBlindRpc(true, owner.RpcTarget.Single(snaredPlayer.OwnerClientId, RpcTargetUse.Temp));
@@ -97,7 +97,8 @@ public class AttachedState : MonsterBaseState
             owner.transform.rotation = Quaternion.Euler(0, owner.transform.eulerAngles.y, 0);
         }
 
-        owner.navAgent.enabled = true;
+        owner.navAgent.enabled = owner.IsServer;
+        //if (owner.TryGetComponent<Collider>(out var col)) col.enabled = true;
 
         snaredPlayer = null;
         Debug.Log("<color=yellow>[Snare Flea]</color> 플레이어에게서 분리되었습니다.");
