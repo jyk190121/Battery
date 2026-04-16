@@ -51,7 +51,7 @@ public class DeadState : MonsterBaseState
         // 5. 서버 한정: 몬스터 매니저에서 완전히 등록 해제
         if (owner.IsServer && EnemyManager.Instance != null)
         {
-            EnemyManager.Instance.UnregisterEnemy(owner.monsterData);
+            EnemyManager.Instance.UnregisterEnemy(owner.monsterData, owner.NetworkObject);
         }
     }
 
