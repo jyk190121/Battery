@@ -40,12 +40,12 @@ MonoBehaviour:
   predictionTime: 1.5
   searchNodeRadius: 15
   gimmickCheckDistance: 40
-  ceilingCheckDistance: 8
-  dropTriggerRadius: 1.5
+  ceilingCheckDistance: 0
+  dropTriggerRadius: 0
   ceilingLayerMask:
     serializedVersion: 2
     m_Bits: 0
-  ceilingAttachChance: 0.5
-  snareTickRate: 1.5
-  snareTickDamage: 10
-  fleeDuration: 6
+  ceilingAttachChance: 0
+  snareTickRate: 0
+  snareTickDamage: 0
+  fleeDuration: 0
