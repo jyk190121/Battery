@@ -151,4 +151,28 @@ public class PlayerRotation : NetworkBehaviour
         //    cameraTarget.localRotation = Quaternion.Euler(0, 0, 0);
         //}
     }
+
+    // 관전 모드 시 회전 막기
+    public void SetSpectatingMode(bool isSpectating)
+    {
+        if (vcam == null) return;
+
+        // 시네머신의 마우스 입력 컴포넌트 (POV 혹은 PanTilt)를 가져옵니다.
+        var panTilt = vcam.GetComponent<CinemachinePanTilt>();
+
+        if (isSpectating)
+        {
+            // 1. 마우스 입력 끄기
+            if (panTilt != null) panTilt.enabled = false;
+
+            // 2. 카메라의 로컬 회전값을 0으로 리셋 (부모인 cameraTarget과 일치하게 함)
+            // 이렇게 해야 대상의 시야와 정확히 일치하는 정면을 봅니다.
+            vcam.transform.localRotation = Quaternion.identity;
+        }
+        else
+        {
+            // 부활 시 다시 마우스 입력 켜기
+            if (panTilt != null) panTilt.enabled = true;
+        }
+    }
 }
