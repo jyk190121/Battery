@@ -84,9 +84,8 @@ public class AttachedState : MonsterBaseState
     {
         base.Exit();
 
-        if (snaredPlayer != null)
+        if (snaredPlayer != null && snaredPlayer.IsSpawned)
         {
-            // 1. 관전 화면이 먹통이 되지 않도록 확실하게 시야 차단 해제(false)
             owner.TriggerSnareBlindRpc(false, owner.RpcTarget.Single(snaredPlayer.OwnerClientId, RpcTargetUse.Temp));
         }
 

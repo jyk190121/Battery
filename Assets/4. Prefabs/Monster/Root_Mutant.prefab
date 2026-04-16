@@ -1524,7 +1524,7 @@ GameObject:
   - component: {fileID: 6547144161281229859}
   - component: {fileID: 6989157162148910897}
   - component: {fileID: 1307118925453876743}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Root_Mutant
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1587,7 +1587,7 @@ NavMeshAgent:
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 1
-  m_BaseOffset: 0
+  m_BaseOffset: -0.3
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
 --- !u!114 &5114539361244873638
@@ -1602,7 +1602,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 4171306496
+  GlobalObjectIdHash: 464821039
   InScenePlacedSourceGlobalObjectIdHash: 464821039
   DeferredDespawnTick: 0
   Ownership: 1
@@ -1677,7 +1677,7 @@ MonoBehaviour:
   data: {fileID: 11400000, guid: 81314b9114b578548987c8f97d679cad, type: 2}
   obstacleMask:
     serializedVersion: 2
-    m_Bits: 1288
+    m_Bits: 1800
 --- !u!114 &6989157162148910897
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1696,6 +1696,8 @@ MonoBehaviour:
   navAgent: {fileID: 1983274844971976530}
   animHandler: {fileID: 1804527276294227049}
   waypointManager: {fileID: 0}
+  CurrentHealth:
+    m_InternalValue: 0
   CurrentStateNet:
     m_InternalValue: 0
   Alertness:
@@ -1719,7 +1721,7 @@ MonoBehaviour:
   fieldOfViewThreshold: 0.5
   obstacleMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1928
 --- !u!1 &6861388131376512302
 GameObject:
   m_ObjectHideFlags: 0

@@ -110,6 +110,11 @@ public class PlayerInventory : NetworkBehaviour
 
         CheckInteraction();
 
+        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            HandleItemUse();
+        }
+
         if (Keyboard.current != null)
         {
             if (Keyboard.current[Key.E].wasPressedThisFrame)
@@ -134,6 +139,48 @@ public class PlayerInventory : NetworkBehaviour
         HandleSlotChange();
     }
 
+    private void HandleItemUse()
+    {
+        // 현재 손에 든 아이템 확인
+        ItemBase heldItem = twoHandedItem != null ? twoHandedItem : slots[currentSlotIndex];
+
+        if (heldItem != null)
+        {
+            // 카메라가 바라보는 방향을 매개변수로 전달합니다.
+            Vector3 lookDir = Camera.main.transform.forward;
+            heldItem.RequestUseItem(lookDir);
+
+            // 2. 소모품 처리 (섬광탄인 경우 인벤토리에서 즉시 제거)
+            if (heldItem is Item_Flashbang)
+            {
+                ConsumeItemFromInventory(heldItem);
+            }
+        }
+    }
+
+    private void ConsumeItemFromInventory(ItemBase item)
+    {
+        // 소유자 클라이언트의 인벤토리 배열에서만 비워줌 
+        // (실제 오브젝트는 섬광탄 스크립트의 Despawn에 의해 파괴됨)
+        if (item == twoHandedItem)
+        {
+            twoHandedItem = null;
+            OnTwoHandedToggled?.Invoke(false);
+        }
+
+        for (int i = 0; i < slots.Length; i++)
+        {
+            if (slots[i] == item)
+            {
+                slots[i] = null;
+                break;
+            }
+        }
+
+        OnInventoryUpdated?.Invoke();
+        // UI 업데이트를 위해 슬롯 변경 이벤트 한 번 더 호출 가능
+        OnSlotChanged?.Invoke(currentSlotIndex);
+    }
     private void CheckInteraction()
     {
         if (Camera.main == null) return;

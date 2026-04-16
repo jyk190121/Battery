@@ -2827,6 +2827,7 @@ GameObject:
   - component: {fileID: -8743619242891834833}
   - component: {fileID: 7772676231503934991}
   - component: {fileID: 8431698971035657743}
+  - component: {fileID: 5913926616795169307}
   m_Layer: 6
   m_Name: Player_KJY
   m_TagString: Untagged
@@ -3034,6 +3035,13 @@ MonoBehaviour:
     TransitionDuration: 0.25
     TriggerNameHash: 125937960
     TransitionIndex: 1
+  - IsCrossFadeExit: 0
+    Layer: 0
+    OriginatingState: 2081823275
+    DestinationState: -1325047641
+    TransitionDuration: 0.25
+    TriggerNameHash: 1270110494
+    TransitionIndex: 5
   AnimatorParameterEntries:
     ParameterEntries:
     - name: Speed
@@ -3068,6 +3076,10 @@ MonoBehaviour:
       NameHash: 2106452502
       Synchronize: 1
       ParameterType: 4
+    - name: IsDead
+      NameHash: 1270110494
+      Synchronize: 1
+      ParameterType: 9
   AnimatorParametersExpanded: 0
 --- !u!114 &5358241311784179748
 MonoBehaviour:
@@ -3294,6 +3306,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   ShowTopMostFoldoutHeaderGroup: 1
   _playerData: {fileID: 11400000, guid: 51fe10672196c0c4daf37fc48f14bb9a, type: 2}
+  isDead:
+    m_InternalValue: 0
 --- !u!114 &-8743619242891834833
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3351,6 +3365,18 @@ CapsuleCollider:
   m_Height: 1.9966463
   m_Direction: 1
   m_Center: {x: 0, y: 0.9734525, z: -0.0012594461}
+--- !u!114 &5913926616795169307
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4911454195433589709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f47de1467ca92524ab7f196eec7d8164, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FlashEffect
 --- !u!1 &5047510916941267613
 GameObject:
   m_ObjectHideFlags: 0
