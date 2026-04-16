@@ -42,7 +42,7 @@ public abstract class ItemBase : NetworkBehaviour
                 itemPhysicsRigidbody.angularVelocity = Vector3.zero;
                 itemPhysicsRigidbody.isKinematic = true;
             }
-            if (itemPhysicalCollider != null) itemPhysicalCollider.enabled = false;
+            //if (itemPhysicalCollider != null) itemPhysicalCollider.enabled = false;
             if (netTransform != null) netTransform.enabled = false;
 
             if (IsServer)
@@ -61,7 +61,7 @@ public abstract class ItemBase : NetworkBehaviour
 
             if (netTransform != null) netTransform.enabled = true;
             if (itemPhysicsRigidbody != null) itemPhysicsRigidbody.isKinematic = false;
-            if (itemPhysicalCollider != null) itemPhysicalCollider.enabled = true;
+            //if (itemPhysicalCollider != null) itemPhysicalCollider.enabled = true;
         }
     }
 
