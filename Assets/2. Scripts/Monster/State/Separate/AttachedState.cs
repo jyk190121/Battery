@@ -25,7 +25,7 @@ public class AttachedState : MonsterBaseState
         }
 
         // 1. 타겟이 유효한지 1차 검사
-        if (snaredPlayer != null && !snaredPlayer.IsDead)
+        if (snaredPlayer != null && !snaredPlayer.isDead.Value)
         {
             // 1. 에이전트와 물리 충돌을 꺼서 윗층 점프 방지
             owner.navAgent.enabled = false;
@@ -57,7 +57,7 @@ public class AttachedState : MonsterBaseState
         base.Update();
 
         // 1. 사망/로그아웃 체크
-        if (snaredPlayer == null || snaredPlayer.IsDead)
+        if (snaredPlayer == null || snaredPlayer.isDead.Value)
         {
             Debug.Log("<color=yellow>[Snare Flea]</color> 숙주가 사망했습니다. 바닥으로 떨어집니다.");
 
