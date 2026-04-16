@@ -22,6 +22,9 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     // 현재 활성화된 세션 정보
     public ISession ActiveSession { get; private set; }
 
+    // 포톤에서 가져다 쓸 순수 문자열 ID
+    public string CurrentChannelId { get; private set; } = "LobbyChannel";
+
     // 로컬 플레이어 닉네임 (UI에서 입력받아 설정)
     private string _playerNickname = "Guest"; // 기본값 설정
 
@@ -189,6 +192,8 @@ public class MultiPlayerSessionManager : NetworkBehaviour
                 return;
             }
 
+            CurrentChannelId = ActiveSession.Id;
+
             // 중요: 별도의 Relay 할당 코드를 작성하지 마세요. 
             // ActiveSession.Code에 이미 Relay 코드가 담겨 있습니다.
             string joinCode = ActiveSession.Code;
@@ -335,6 +340,8 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         _sessionCancelSource = new CancellationTokenSource();
         var token = _sessionCancelSource.Token;
 
+        CurrentChannelId = session.Id;
+
         try
         {
             await EnsureSignedInAsync();
@@ -375,6 +382,8 @@ public class MultiPlayerSessionManager : NetworkBehaviour
 
     public async void CancelSessionOperations()
     {
+        CurrentChannelId = "LobbyChannel";
+
         if (_sessionCancelSource != null)
         {
             _sessionCancelSource.Cancel();

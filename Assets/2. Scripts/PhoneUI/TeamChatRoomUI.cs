@@ -123,8 +123,11 @@ public class TeamChatRoomUI : MonoBehaviour
     // 포톤 매니저가 서버로부터 메시지를 받았을 때 호출하는 함수
     public void ReceiveMessage(string senderName, string messageText, bool isMine)
     {
-        // 4명 중 누가 보냈는지 알 수 있도록 닉네임 결합
-        string formattedMessage = isMine ? messageText : $"<b>{senderName}</b>\n{messageText}";
+        // '#'을 기준으로 문자열을 잘라 앞부분(순수 닉네임)만 가져옵니다.
+        string displayNickname = senderName.Split('#')[0];
+
+        // senderName 대신 displayNickname을 사용
+        string formattedMessage = isMine ? messageText : $"<b>{displayNickname}</b>\n{messageText}";
 
         GameObject prefabToUse = isMine ? myBubblePrefab : otherBubblePrefab;
         CreateSpeechBubble(prefabToUse, formattedMessage);
