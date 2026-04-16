@@ -1409,7 +1409,7 @@ GameObject:
   - component: {fileID: 8990760709538554811}
   - component: {fileID: 505200396310082917}
   - component: {fileID: 2463115333531814365}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Root_Monster
   m_TagString: Untagged
   m_Icon: {fileID: 0}

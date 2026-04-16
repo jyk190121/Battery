@@ -104,23 +104,24 @@ public abstract class ItemBase : NetworkBehaviour
         if (NetworkObject.IsSpawned) NetworkObject.Despawn();
     }
 
-    public virtual void RequestUseItem()
+    public virtual void RequestUseItem(Vector3 direction = default)
     {
-        if (IsSpawned && IsOwner) RequestUseItemServerRpc();
-        else if (!IsSpawned) ExecuteUseItem();
+        if (IsSpawned && IsOwner) RequestUseItemServerRpc(direction);
+        else if (!IsSpawned) ExecuteUseItem(direction);
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
-    private void RequestUseItemServerRpc()
+    private void RequestUseItemServerRpc(Vector3 direction)
     {
-        ExecuteUseItemClientRpc();
+        ExecuteUseItemClientRpc(direction);
     }
 
     [Rpc(SendTo.Everyone)]
-    private void ExecuteUseItemClientRpc()
+    private void ExecuteUseItemClientRpc(Vector3 direction)
     {
-        ExecuteUseItem();
+        ExecuteUseItem(direction);
     }
 
-    public virtual void ExecuteUseItem() { }
+    // 매개변수로 direction을 받도록 수정
+    public virtual void ExecuteUseItem(Vector3 direction) { }
 }

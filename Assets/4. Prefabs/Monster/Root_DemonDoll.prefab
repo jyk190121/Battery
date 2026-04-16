@@ -179,7 +179,7 @@ GameObject:
   - component: {fileID: 842562996264730044}
   - component: {fileID: 7186904827903415909}
   - component: {fileID: 8438742417523883526}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Root_DemonDoll
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -242,7 +242,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1589286670
+  GlobalObjectIdHash: 1613376877
   InScenePlacedSourceGlobalObjectIdHash: 1613376877
   DeferredDespawnTick: 0
   Ownership: 1
@@ -336,6 +336,8 @@ MonoBehaviour:
   navAgent: {fileID: 7382415178479257519}
   animHandler: {fileID: 901539538357058754}
   waypointManager: {fileID: 0}
+  CurrentHealth:
+    m_InternalValue: 0
   CurrentStateNet:
     m_InternalValue: 0
   Alertness:

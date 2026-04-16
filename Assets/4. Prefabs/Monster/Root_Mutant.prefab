@@ -1524,7 +1524,7 @@ GameObject:
   - component: {fileID: 6547144161281229859}
   - component: {fileID: 6989157162148910897}
   - component: {fileID: 1307118925453876743}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Root_Mutant
   m_TagString: Untagged
   m_Icon: {fileID: 0}
