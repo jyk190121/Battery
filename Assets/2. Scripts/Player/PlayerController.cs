@@ -101,7 +101,8 @@ public class PlayerController : NetworkBehaviour
             player.RevivePlayer();
         }
         // 로비 씬으로 이동 (NetworkSceneManager 사용 권장)
-        NetworkManager.SceneManager.LoadScene("LobbyScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
+        //NetworkManager.SceneManager.LoadScene("KJY_Lobby", UnityEngine.SceneManagement.LoadSceneMode.Single);
+        GameSceneManager.Instance.LoadNetworkScene("KJY_Lobby");
     }
 
     public void RevivePlayer()
@@ -124,6 +125,10 @@ public class PlayerController : NetworkBehaviour
             {
                 StartCoroutine(StartSpectating());
             }
+        }
+        else // 부활 시 (isDead.Value가 true -> false가 되었을 때)
+        {
+            PerformReviveEffects();
         }
     }
 
@@ -157,7 +162,7 @@ public class PlayerController : NetworkBehaviour
     }
 
 
-    private void PerformDeathEffects()
+    void PerformDeathEffects()
     {
         // 1. 사망 애니메이션 실행
         if (GetComponent<PlayerAnim>() != null)
@@ -180,6 +185,9 @@ public class PlayerController : NetworkBehaviour
         if (TryGetComponent(out PlayerInteraction interact)) interact.enabled = false;
         if (TryGetComponent(out PlayerEquipment equip)) equip.enabled = false;
 
+        // 몬스터가 사망한 플레이어 찾지않도록 레이어 수정
+        gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+
         // 4. (본인인 경우) 마우스 커서 잠금 해제 및 UI 처리
         if (IsOwner)
         {
@@ -189,5 +197,47 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
+    void PerformReviveEffects()
+    {
+        Debug.Log($"{gameObject.name}가 부활하여 컴포넌트를 재활성화합니다.");
 
+        // 1. 애니메이션 리셋 (누워있는 상태에서 일어나는 상태로)
+        if (TryGetComponent(out PlayerAnim anim))
+        {
+            anim.ResetAnimation(); // Rebind()를 호출하여 초기 상태로 돌림
+        }
+
+        // 2. 물리 및 충돌체 다시 켜기
+        var col = GetComponent<Collider>();
+        if (col != null) col.enabled = true;
+
+        var rb = GetComponent<Rigidbody>();
+        if (rb != null) rb.isKinematic = false; // 물리 다시 적용
+
+        // 3. 레이어 복구 (몬스터가 다시 감지할 수 있게)
+        gameObject.layer = LayerMask.NameToLayer("Player");
+
+        // 4. 모든 조작 스크립트 재활성화
+        if (TryGetComponent(out PlayerMove move)) move.enabled = true;
+        if (TryGetComponent(out PlayerRotation rot))
+        {
+            rot.enabled = true;
+            // 중요: 관전 중이었다면 카메라 타겟을 다시 나(본인)로 돌려놓아야 함
+            if (IsOwner && rot.vcam != null)
+            {
+                rot.vcam.Follow = rot.cameraTarget; // 원래 내 눈 위치로
+                rot.vcam.LookAt = null; // 필요에 따라 설정
+            }
+        }
+        if (TryGetComponent(out PlayerInteraction interact)) interact.enabled = true;
+        if (TryGetComponent(out PlayerEquipment equip)) equip.enabled = true;
+
+        // 5. 본인인 경우 UI 및 커서 복구
+        if (IsOwner)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            // "사망" UI가 있었다면 여기서 끄기
+        }
+    }
 }

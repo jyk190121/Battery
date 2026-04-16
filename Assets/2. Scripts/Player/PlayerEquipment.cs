@@ -81,17 +81,6 @@ public class PlayerEquipment : NetworkBehaviour
             DestroySmartPhoneModel();
         }
 
-
-        // UI 제어 (본인인 경우에만)
-        if (IsOwner && PhoneUIController.Instance != null)
-        {
-            if (PhoneUIController.Instance.phoneUIParent != null)
-            {
-                PhoneUIController.Instance.phoneUIParent.SetActive(isShowing);
-                PhoneUIController.Instance.isPhoneActive = isShowing;
-                if (isShowing) PhoneUIController.Instance.ShowScreen(0);
-            }
-        }
     }
 
     public void CreateSmartPhoneModel()
