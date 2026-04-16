@@ -103,17 +103,14 @@ public class AttackState : MonsterBaseState
         Transform target = owner.scanner.CurrentTarget;
         if (target == null) return;
 
-        if (target != null)
+        float hitThreshold = data.attackRange + 1.0f;
+        if ((target.position - owner.transform.position).sqrMagnitude <= hitThreshold * hitThreshold)
         {
-
-            float hitThreshold = data.attackRange + 1.0f;
-            if ((target.position - owner.transform.position).sqrMagnitude <= hitThreshold * hitThreshold)
+            if (target.TryGetComponent<PlayerController>(out var player))
             {
-                if (target.TryGetComponent<PlayerController>(out var controller))
-                {
-                    controller.TakeDamageServerRpc(data.attackDamage);
-                    Debug.Log($"[데미지 발생] {data.attackDamage} 피해 전달됨");
-                }
+                // [수정] snareTickDamage가 아니라 attackDamage를 주어야 합니다.
+                player.TakeDamageServerRpc(data.attackDamage);
+                Debug.Log($"[데미지 발생] {data.attackDamage} 피해 전달됨");
             }
         }
     }

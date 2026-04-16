@@ -109,5 +109,6 @@ public class PlayerAnim : MonoBehaviour
     public void ResetAnimation()
     {
         anim.Rebind();
+        anim.ResetTrigger("IsDead");
     }
 }

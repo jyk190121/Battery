@@ -261,6 +261,19 @@ public class SettlementZone : NetworkBehaviour
         }
     }
 
+    // 플레이어 되살리기 로직 실행
+    [ServerRpc(RequireOwnership = false)]
+    public void RequestReviveAllPlayersServerRpc()
+    {
+        if (!IsServer) return;
+
+        foreach (var player in PlayerController.AllPlayers)
+        {
+            player.RevivePlayer();
+        }
+    }
+
+
     private void OnDrawGizmos()
     {
         if (deliveryDropPoint != null)
