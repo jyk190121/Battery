@@ -29,6 +29,7 @@ public class PlayerStateManager : NetworkBehaviour
         }
         currentStamina = player.maxStamina;
         moveScript = GetComponent<PlayerMove>();
+
     }
 
     void Update()
@@ -87,6 +88,14 @@ public class PlayerStateManager : NetworkBehaviour
 
         currentStamina = Mathf.Clamp(currentStamina, 0, player.maxStamina);
 
-      //  print($"현재 체력 : {currentHealth} , 현재 스테미너 {currentStamina}");
+        //  print($"현재 체력 : {currentHealth} , 현재 스테미너 {currentStamina}");
+    }
+
+    // 플레이어 초기화
+    public void ResetStatus()
+    {
+        if (!IsServer) return;
+
+        currentHealth.Value = player.maxHealth;
     }
 }
