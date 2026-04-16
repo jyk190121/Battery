@@ -39,7 +39,7 @@ MonoBehaviour:
   pathUpdateThreshold: 1
   predictionTime: 1.5
   searchNodeRadius: 15
-  gimmickCheckDistance: 40
+  gimmickCheckDistance: 0
   ceilingCheckDistance: 0
   dropTriggerRadius: 0
   ceilingLayerMask:
