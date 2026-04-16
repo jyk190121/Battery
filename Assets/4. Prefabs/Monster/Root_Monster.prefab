@@ -1466,7 +1466,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2944052459
+  GlobalObjectIdHash: 239064266
   InScenePlacedSourceGlobalObjectIdHash: 239064266
   DeferredDespawnTick: 0
   Ownership: 1
@@ -1543,6 +1543,8 @@ MonoBehaviour:
   navAgent: {fileID: 4186773354342019165}
   animHandler: {fileID: 1827414708699773800}
   waypointManager: {fileID: 0}
+  CurrentHealth:
+    m_InternalValue: 0
   CurrentStateNet:
     m_InternalValue: 0
   Alertness:
@@ -1566,7 +1568,7 @@ MonoBehaviour:
   data: {fileID: 11400000, guid: c489b05a84b76f24d8dcc01b8971822b, type: 2}
   obstacleMask:
     serializedVersion: 2
-    m_Bits: 1288
+    m_Bits: 1800
 --- !u!65 &2463115333531814365
 BoxCollider:
   m_ObjectHideFlags: 0

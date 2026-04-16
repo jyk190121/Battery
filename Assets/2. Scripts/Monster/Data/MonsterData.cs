@@ -64,6 +64,19 @@ public class MonsterData : ScriptableObject
     [Tooltip("예측 지점 근처에서 수색할 Waypoint를 찾는 반경")]
     public float searchNodeRadius = 15f;
 
+    [Header("Alertness & Optimization")]
+    [Tooltip("경계도가 0에서 1까지 차오르는 속도 배율")]
+    public float alertnessIncreaseRate = 1.5f;
+    [Tooltip("플레이어를 놓쳤을 때 경계도가 떨어지는 속도 배율")]
+    public float alertnessDecreaseRate = 0.5f;
+
+    [Tooltip("경계도 네트워크 동기화 주기 (초)")]
+    public float alertnessSyncInterval = 0.2f;
+    [Tooltip("경계도 변화가 이 수치 이상일 때만 강제 동기화 (네트워크 최적화용)")]
+    public float alertnessThreshold = 0.05f;
+
+    // ----- 기믹 몬스터 설정
+
     [Header("Gimmick Settings")]
     [Tooltip("코일헤드처럼 특수 기믹이 플레이어 시야를 감지하는 최대 거리")]
     public float gimmickCheckDistance = 40f;

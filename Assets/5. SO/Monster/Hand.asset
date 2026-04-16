@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1bbc6e2eecad55246b69d412d02592b9, type: 3}
+  m_Name: Hand
+  m_EditorClassIdentifier: Assembly-CSharp::MonsterData
+  maxHealth: 100
+  spawnCost: 2
+  spawnWeight: 50
+  maxSpawnCount: 2
+  monsterPrefab: {fileID: 842040150485019925, guid: 714c259c1a711ee4380b7c545e2de700, type: 3}
+  patrolSpeed: 3.5
+  chaseSpeed: 4.5
+  viewRange: 12
+  viewAngle: 90
+  hearingRange: 15
+  visionMemoryTime: 3
+  attackDamage: 21
+  attackRange: 2
+  attackCooldown: 1.5
+  attackAnimDuration: 2
+  attackTrackingTime: 0.7
+  minWaitTime: 2
+  maxWaitTime: 5
+  maxPatrolMoveTime: 10
+  maxSearchDuration: 15
+  searchPauseDuration: 3
+  aiTickInterval: 0.2
+  fastTickInterval: 0.05
+  predictiveChaseTime: 0.8
+  pathUpdateThreshold: 1
+  predictionTime: 1.5
+  searchNodeRadius: 15
+  gimmickCheckDistance: 40
+  ceilingCheckDistance: 20
+  dropTriggerRadius: 2
+  ceilingLayerMask:
+    serializedVersion: 2
+    m_Bits: 1032
+  ceilingAttachChance: 1
+  snareTickRate: 1.5
+  snareTickDamage: 10
+  fleeDuration: 6

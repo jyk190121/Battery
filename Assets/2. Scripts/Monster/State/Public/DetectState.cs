@@ -27,12 +27,14 @@ public class DetectState : MonsterBaseState
 
     public override void FixedUpdate()
     {
+        if (!owner.IsServer) return;
+
         Transform target = owner.scanner.CurrentTarget;
 
         if (target != null)
         {
             // 시야에 플레이어가 있으면 경계도 상승
-            owner.Alertness.Value += Time.fixedDeltaTime * 1.5f; // 상승 속도 조절
+            owner.ServerAlertness += Time.fixedDeltaTime * data.alertnessIncreaseRate;
 
             // 타겟 방향으로 천천히 회전
             Vector3 dir = (target.position - owner.transform.position).normalized;
@@ -47,7 +49,7 @@ public class DetectState : MonsterBaseState
         else
         {
             // 플레이어를 놓치면 경계도 감소
-            owner.Alertness.Value -= Time.fixedDeltaTime * 0.5f;
+            owner.ServerAlertness -= Time.fixedDeltaTime * data.alertnessDecreaseRate;
             if (owner.Alertness.Value <= 0)
             {
                 owner.ChangeState(MonsterStateType.Patrol);
