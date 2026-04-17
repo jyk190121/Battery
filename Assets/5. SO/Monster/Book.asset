@@ -12,40 +12,45 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bbc6e2eecad55246b69d412d02592b9, type: 3}
   m_Name: Book
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
+  monsterPrefab: {fileID: 4028298238803213267, guid: 7728c90956fe89247b8f2eaeaa61bd67, type: 3}
   maxHealth: 200
   spawnCost: 2
-  spawnWeight: 50
   maxSpawnCount: 2
-  monsterPrefab: {fileID: 4028298238803213267, guid: 7728c90956fe89247b8f2eaeaa61bd67, type: 3}
+  spawnWeight: 50
   patrolSpeed: 2.5
   chaseSpeed: 4.5
-  viewRange: 12
-  viewAngle: 90
-  hearingRange: 15
-  visionMemoryTime: 3
-  attackDamage: 21
+  attackDamage: 30
   attackRange: 2
   attackCooldown: 2.1
   attackAnimDuration: 2
-  attackTrackingTime: 0.7
+  attackTrackingTime: 0.5
+  viewRange: 10
+  viewAngle: 120
+  hearingRange: 15
+  visionMemoryTime: 3
+  maxSearchDuration: 15
+  searchPauseDuration: 3
+  searchNodeRadius: 15
   minWaitTime: 2
   maxWaitTime: 5
   maxPatrolMoveTime: 10
-  maxSearchDuration: 15
-  searchPauseDuration: 3
   aiTickInterval: 0.2
   fastTickInterval: 0.05
-  predictiveChaseTime: 0.8
-  pathUpdateThreshold: 1
+  predictiveChaseTime: 1
   predictionTime: 1.5
-  searchNodeRadius: 15
+  pathUpdateThreshold: 1
+  alertnessIncreaseRate: 1.5
+  alertnessDecreaseRate: 0.5
+  alertnessSyncInterval: 0.2
+  alertnessThreshold: 0.05
+  stunDurationMultiplier: 1
   gimmickCheckDistance: 0
-  ceilingCheckDistance: 0
-  dropTriggerRadius: 0
+  ceilingAttachChance: 0
   ceilingLayerMask:
     serializedVersion: 2
     m_Bits: 0
-  ceilingAttachChance: 0
+  ceilingCheckDistance: 0
+  dropTriggerRadius: 0
   snareTickRate: 0
   snareTickDamage: 0
   fleeDuration: 0
