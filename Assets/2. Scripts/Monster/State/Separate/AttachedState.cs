@@ -27,6 +27,8 @@ public class AttachedState : MonsterBaseState
         // 1. 타겟이 유효한지 1차 검사
         if (snaredPlayer != null && !snaredPlayer.isDead.Value)
         {
+            snaredPlayer.isSnared.Value = true;
+
             // 1. 에이전트와 물리 충돌을 꺼서 윗층 점프 방지
             owner.navAgent.enabled = false;
             //if (owner.TryGetComponent<Collider>(out var col)) col.enabled = false;
@@ -86,6 +88,8 @@ public class AttachedState : MonsterBaseState
 
         if (snaredPlayer != null && snaredPlayer.IsSpawned)
         {
+            snaredPlayer.isSnared.Value = false;
+
             owner.TriggerSnareBlindRpc(false, owner.RpcTarget.Single(snaredPlayer.OwnerClientId, RpcTargetUse.Temp));
         }
 

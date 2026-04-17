@@ -78,6 +78,17 @@ public class PlayerInteraction : NetworkBehaviour
 
         CheckInteraction();
 
+        if (controller.isDead.Value || controller.isSnared.Value)
+        {
+            if (isLookingAtInteractable)
+            {
+                interactUI.SetActive(false);
+                isLookingAtInteractable = false;
+                ResetHold();
+            }
+            return; 
+        }
+
         if (isLookingAtInteractable)
         {
             // 1. 포탈인 경우: '홀드(Hold)' 방식

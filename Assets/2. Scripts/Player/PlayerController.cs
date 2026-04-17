@@ -12,6 +12,9 @@ public class PlayerController : NetworkBehaviour
     // 네트워크 플레이어 사망 여부 체크
     public NetworkVariable<bool> isDead = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
+    // 네트워크 플레이어 상호작용 불가 체크
+    public NetworkVariable<bool> isSnared = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
     // 컴포넌트들을 미리 캐싱하여 다른 곳에서 쉽게 찾게 할 수도 있습니다.
     public PlayerStateManager StateManager { get; private set; }
     public PlayerInteraction Interaction { get; private set; }
@@ -78,7 +81,7 @@ public class PlayerController : NetworkBehaviour
     }
 
     // [ServerRpc] 외부(몬스터 등)에서 데미지를 줄 때 호출
-    [ServerRpc(RequireOwnership = false)]
+    [ServerRpc]
     public void TakeDamageServerRpc(float damage)
     {
         if (isDead.Value) return;
