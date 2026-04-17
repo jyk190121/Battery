@@ -54,6 +54,7 @@ public class MonsterController : NetworkBehaviour
 
     // 내부 캡슐화 변수들
     public DoorController TargetDoor { get; set; }
+    public float CurrentStunDuration { get; private set; } = 0f;
     private MonsterStateMachine stateMachine;
     private Animator _animator;
     private Dictionary<MonsterStateType, IState> states;
@@ -99,6 +100,7 @@ public class MonsterController : NetworkBehaviour
             states.Add(MonsterStateType.Detect, new DetectState(this));
             states.Add(MonsterStateType.Chase, new ChaseState(this));
             states.Add(MonsterStateType.Search, new SearchState(this));
+            states.Add(MonsterStateType.Stunned, new StunnedState(this));
         }
     }
 
