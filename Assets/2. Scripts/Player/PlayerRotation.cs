@@ -9,7 +9,7 @@ public class PlayerRotation : NetworkBehaviour
     public Transform cameraTarget;      // eye_Cinemachine 오브젝트를 여기에 할당
     public PlayerMove playerMove;       // 이동 속도를 체크하기 위해 참조
     public GameObject CameraGroup;      // 휴대폰 촬영용 카메라도 같이 회전 처리
-    public GameObject tabletUIPanel;    //테블릿상태 확인 (마우스 비지블 처리)
+    public GameObject tabletUIPanel;    // 테블릿상태 확인 (마우스 비지블 처리)
 
     [Header("설정")]
     public float sensitivity = 0.1f;
@@ -33,6 +33,15 @@ public class PlayerRotation : NetworkBehaviour
         {
             tabletUIPanel = FindAnyObjectByType<TabletUIManager>().tabletUIPanel;
         }
+        else
+        {
+            // 태블릿이 없는 씬이라면 명확하게 null 처리
+            tabletUIPanel = null;
+        }
+
+        // 시작하자마자 커서 상태 초기화
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
 
         if (playerMove == null)
         {
@@ -69,7 +78,9 @@ public class PlayerRotation : NetworkBehaviour
     {
         if (!IsOwner) return;
 
-        if (tabletUIPanel != null && !tabletUIPanel.activeSelf)
+        bool shouldLockCursor = (tabletUIPanel == null) || (tabletUIPanel != null && !tabletUIPanel.activeSelf);
+
+        if (shouldLockCursor)
         {
             if (Cursor.lockState != CursorLockMode.Locked)
             {
