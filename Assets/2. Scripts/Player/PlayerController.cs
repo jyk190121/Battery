@@ -261,7 +261,6 @@ public class PlayerController : NetworkBehaviour
         if (IsOwner)
         {
             Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
             // 여기에 "사망하셨습니다" 같은 UI 띄우기 가능
         }
     }
@@ -317,7 +316,6 @@ public class PlayerController : NetworkBehaviour
         if (IsOwner)
         {
             Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
             // "사망" UI가 있었다면 여기서 끄기
         }
     }
