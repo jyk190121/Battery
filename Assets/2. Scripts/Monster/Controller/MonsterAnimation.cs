@@ -6,14 +6,13 @@ public class MonsterAnimation : MonoBehaviour
     [Tooltip("이 애니메이션을 제어하는 마스터 컨트롤러")]
     public MonsterController controller;
 
-    // 애니메이터 캐싱 
     private Animator animator;
 
     [Header("Animation Settings")]
     [Tooltip("애니메이션 속도 전환의 부드러운 정도. 값이 클수록 즉각적으로 바뀝니다.")]
     public float animationBlendSpeed = 5f;
 
-    // [최적화] string 매칭 연산(GC 발생)을 피하기 위해 해시값으로 미리 변환하여 캐싱
+    // string 매칭 연산(GC 발생)을 피하기 위해 해시값으로 미리 변환하여 캐싱
     private static readonly int SpeedHash = Animator.StringToHash("Speed");
     private static readonly int AttackHash = Animator.StringToHash("Attack");
     private static readonly int IsSearchingHash = Animator.StringToHash("IsSearching");
@@ -24,7 +23,6 @@ public class MonsterAnimation : MonoBehaviour
 
     private void Awake()
     {
-        // 1순위: 현재 게임오브젝트에서 탐색
         animator = GetComponent<Animator>();
     }
 
@@ -55,7 +53,7 @@ public class MonsterAnimation : MonoBehaviour
     {
         float targetNormalizedValue = 0f;
 
-        // [해결 2] 상태에 따라 애니메이션 보간 속도를 동적으로 조절
+        // 상태에 따라 애니메이션 보간 속도를 동적으로 조절
         if (currentState == MonsterStateType.Chase || currentState == MonsterStateType.Attack)
         {
             // 추격하거나 공격/정지할 때는 애니메이션이 즉각적으로 반응하도록 속도업
@@ -126,6 +124,7 @@ public class MonsterAnimation : MonoBehaviour
         }
     }
 
+    // 죽는 모션
     public void TriggerDeath()
     {
         if (animator != null)
