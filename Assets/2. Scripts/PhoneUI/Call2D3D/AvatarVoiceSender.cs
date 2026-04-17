@@ -17,21 +17,25 @@ public class AvatarVoiceSender : MonoBehaviour
 
         if (!isLogPrinted)
         {
-            Debug.Log("<color=green>[DSP 파이프라인] 송신기가 채널을 동기화하여 데이터를 넘기기 시작했습니다!</color>");
+            Debug.Log("<color=green>[DSP 파이프라인] 송신기가 데이터를 청크(Chunk) 단위로 전송합니다!</color>");
             isLogPrinted = true;
         }
 
-        // [핵심 수정] 몇 채널이든 상관없이 모든 소리를 합쳐서 '모노(1채널)' 데이터로 압축하여 전송
-        for (int i = 0; i < data.Length; i += channels)
+        // [핵심 수정] 배열을 수천 번 생성하지 않고, 한 번의 덩어리(Chunk)로 묶어서 보냅니다.
+        int monoLength = data.Length / channels;
+        float[] chunk = new float[monoLength];
+
+        for (int i = 0, j = 0; i < data.Length; i += channels, j++)
         {
             float mixedSample = 0f;
             for (int c = 0; c < channels; c++)
             {
                 mixedSample += data[i + c];
             }
-            mixedSample /= channels; // 평균값 산출
-
-            PhoneVoiceReceiver.Instance.FeedAudioData(new float[] { mixedSample });
+            chunk[j] = mixedSample / channels; // 평균값(모노) 계산
         }
+
+        // 묶음 데이터를 한 번에 수신기로 넘김 (스레드 과부하 해결)
+        PhoneVoiceReceiver.Instance.FeedAudioData(chunk);
     }
 }
