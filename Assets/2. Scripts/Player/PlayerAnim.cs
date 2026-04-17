@@ -111,4 +111,9 @@ public class PlayerAnim : MonoBehaviour
         anim.Rebind();
         anim.ResetTrigger("IsDead");
     }
+
+    public void PlayAttack()
+    {
+        anim.SetTrigger("Attack");
+    }
 }
