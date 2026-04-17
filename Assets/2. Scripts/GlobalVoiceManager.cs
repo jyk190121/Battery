@@ -91,6 +91,9 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
             aud3D.maxDistance = 20f;
             aud3D.rolloffMode = AudioRolloffMode.Linear;
             aud3D.playOnAwake = true;
+
+            // [추가] 거리가 멀어져도 오디오 연산을 강제로 끄지 못하게 만듦
+            aud3D.priority = 0; // 최고 우선순위 부여
         }
 
         // 투 트랙 출력을 위해 복제 컴포넌트를 달아줍니다.
