@@ -316,6 +316,7 @@ public class PlayerController : NetworkBehaviour
         if (IsOwner)
         {
             Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
             // "사망" UI가 있었다면 여기서 끄기
         }
     }
