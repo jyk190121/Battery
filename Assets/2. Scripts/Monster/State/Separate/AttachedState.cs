@@ -1,11 +1,23 @@
-using UnityEngine;
-using Unity.Netcode;
 using System.Collections;
+using Unity.Netcode;
+using UnityEngine;
 
+/// <summary>
+/// 올무벼룩(Snare Flea) 전용 특수 상태로, 플레이어의 머리에 달라붙어 지속 데미지를 주는 상태입니다.
+/// 숙주의 시야를 차단하고, 숙주가 죽거나 강제로 떼어질 때까지 찰거머리처럼 붙어있습니다.
+/// </summary>
 public class AttachedState : MonsterBaseState
 {
-    private PlayerController snaredPlayer;
-    private float damageTimer;
+    // =========================================================
+    // 1. 변수 선언부 
+    // =========================================================
+
+    private PlayerController _snaredPlayer;
+    private float _damageTimer;
+
+    // =========================================================
+    // 2. 초기화 함수 
+    // =========================================================
 
     public AttachedState(MonsterController owner) : base(owner)
     {
@@ -15,70 +27,39 @@ public class AttachedState : MonsterBaseState
     public override void Enter()
     {
         base.Enter();
-        damageTimer = 0f;
-        snaredPlayer = null;
+
+        _damageTimer = 0f;
+        _snaredPlayer = null;
 
         Transform target = owner.scanner.CurrentTarget;
         if (target != null)
         {
-            snaredPlayer = target.GetComponentInParent<PlayerController>();
+            _snaredPlayer = target.GetComponentInParent<PlayerController>();
         }
 
-        // 1. 타겟이 유효한지 1차 검사
-        if (snaredPlayer != null && !snaredPlayer.isDead.Value)
+        // 1. 타겟이 유효한지 1차 검사 (살아있는 플레이어인가?)
+        if (_snaredPlayer != null && !_snaredPlayer.isDead.Value)
         {
-            snaredPlayer.isSnared.Value = true;
+            _snaredPlayer.isSnared.Value = true;
 
-            // 1. 에이전트와 물리 충돌을 꺼서 윗층 점프 방지
+            // 2. 에이전트 정지 (숙주를 따라가야 하므로 스스로의 길찾기/물리 이동 차단)
             owner.navAgent.enabled = false;
-            //if (owner.TryGetComponent<Collider>(out var col)) col.enabled = false;
+            // [TODO] 콜라이더를 꺼야 할 경우 아래 주석 해제
+            // if (owner.TryGetComponent<Collider>(out var col)) col.enabled = false;
 
-            // 2. 부모 설정
-            owner.NetworkObject.TrySetParent(snaredPlayer.NetworkObject, false);
+            // 3. 부모-자식 네트워크 동기화 설정 (플레이어 머리에 붙임)
+            owner.NetworkObject.TrySetParent(_snaredPlayer.NetworkObject, false);
 
-            // 3. 한 프레임 뒤에 위치를 다시 고정 (부모 설정 싱크 때문)
+            // 4. 네트워크 트랜스폼 싱크 지연을 고려하여 1프레임 뒤에 정확한 위치(머리 위)로 로컬 고정
             owner.StartCoroutine(FixPositionNextFrame());
 
-            owner.TriggerSnareBlindRpc(true, owner.RpcTarget.Single(snaredPlayer.OwnerClientId, RpcTargetUse.Temp));
+            // 5. 해당 플레이어의 화면에만 시야 차단(눈뽕/촉수) UI를 띄우도록 RPC 전송
+            owner.TriggerSnareBlindRpc(true, owner.RpcTarget.Single(_snaredPlayer.OwnerClientId, RpcTargetUse.Temp));
         }
         else
         {
+            // 타겟이 유효하지 않으면 즉시 떨어져서 순찰 상태로 복귀
             owner.ChangeState(MonsterStateType.Patrol);
-        }
-    }
-
-    private IEnumerator FixPositionNextFrame()
-    {
-        yield return null;
-        owner.transform.localPosition = new Vector3(0, 1.2f, 0); // 머리 위 높이
-        owner.transform.localRotation = Quaternion.identity;
-    }
-
-    public override void Update()
-    {
-        base.Update();
-
-        // 1. 사망/로그아웃 체크
-        if (snaredPlayer == null || snaredPlayer.isDead.Value)
-        {
-            Debug.Log("<color=yellow>[Snare Flea]</color> 숙주가 사망했습니다. 바닥으로 떨어집니다.");
-
-            // 화면 복구 및 부모 해제 로직은 Exit()에 일괄 작성되어 있으므로 상태 변경만 호출합니다.
-            owner.ChangeState(MonsterStateType.Patrol);
-            return;
-        }
-
-        // 2. 지속 데미지 
-        damageTimer += Time.deltaTime;
-
-        if (damageTimer >= data.snareTickRate)
-        {
-            damageTimer = 0f;
-
-            // 데미지 처리를 서버로 요청 (MonsterData의 snareTickDamage 사용)
-            snaredPlayer.TakeDamageServerRpc(data.snareTickDamage);
-
-            Debug.Log($"<color=red>[Snare Flea]</color> 목 조르기! (데미지: {data.snareTickDamage})");
         }
     }
 
@@ -86,24 +67,93 @@ public class AttachedState : MonsterBaseState
     {
         base.Exit();
 
-        if (snaredPlayer != null && snaredPlayer.IsSpawned)
+        // 1. 숙주 플레이어 화면 복구 및 상태 해제
+        if (_snaredPlayer != null && _snaredPlayer.IsSpawned)
         {
-            snaredPlayer.isSnared.Value = false;
-
-            owner.TriggerSnareBlindRpc(false, owner.RpcTarget.Single(snaredPlayer.OwnerClientId, RpcTargetUse.Temp));
+            _snaredPlayer.isSnared.Value = false;
+            owner.TriggerSnareBlindRpc(false, owner.RpcTarget.Single(_snaredPlayer.OwnerClientId, RpcTargetUse.Temp));
         }
 
-        // 2. [네트워크 종속 해제] 플레이어 머리에서 떨어짐
+        // 2. [네트워크 종속 해제] 플레이어 머리에서 강제로 떨어짐
         if (owner.NetworkObject.TryRemoveParent())
         {
-            // 떨어질 때 바닥에 똑바로 안착할 수 있도록 회전값과 Y축 높이를 리셋합니다.
+            // 바닥에 똑바로 안착할 수 있도록 X, Z축 회전을 0으로 리셋 (Y축 방향은 유지)
             owner.transform.rotation = Quaternion.Euler(0, owner.transform.eulerAngles.y, 0);
         }
 
+        // 3. 서버일 경우 다시 스스로 움직일 수 있도록 네비게이션 에이전트 복구
         owner.navAgent.enabled = owner.IsServer;
-        //if (owner.TryGetComponent<Collider>(out var col)) col.enabled = true;
+        // [TODO] 콜라이더 복구 필요 시 아래 주석 해제
+        // if (owner.TryGetComponent<Collider>(out var col)) col.enabled = true;
 
-        snaredPlayer = null;
-        Debug.Log("<color=yellow>[Snare Flea]</color> 플레이어에게서 분리되었습니다.");
+        _snaredPlayer = null;
+        Debug.Log("<color=yellow>[Snare Flea]</color> 플레이어에게서 완전히 분리되어 바닥으로 떨어졌습니다.");
+    }
+
+
+    // =========================================================
+    // 3. 유니티 루프 및 AI 틱
+    // =========================================================
+
+    /// <summary>
+    /// 매 프레임 실행: 타이머를 계산하여 주기적으로 틱 데미지를 입힙니다.
+    /// </summary>
+    public override void Update()
+    {
+        base.Update();
+
+        // 1. 방어 코드: 숙주가 로그아웃했거나 이미 죽었다면 즉시 상태 해제
+        if (_snaredPlayer == null || _snaredPlayer.isDead.Value)
+        {
+            Debug.LogWarning("<color=yellow>[Snare Flea]</color> 숙주가 사망했거나 사라졌습니다. 바닥으로 떨어집니다.");
+            owner.ChangeState(MonsterStateType.Patrol);
+            return;
+        }
+
+        // 2. 지속 데미지 (Tick Damage) 계산
+        _damageTimer += Time.deltaTime;
+
+        if (_damageTimer >= data.snareTickRate)
+        {
+            _damageTimer = 0f;
+
+            // 서버 측 플레이어 컨트롤러로 데미지 처리 요청
+            _snaredPlayer.TakeDamageServerRpc(data.snareTickDamage);
+
+            Debug.Log($"<color=red>[Snare Flea]</color> 목 조르기! (데미지: {data.snareTickDamage})");
+        }
+    }
+
+    /// <summary>
+    /// 머리에 붙어있는 동안에는 길찾기나 주변 수색(Scanner)을 하지 않으므로 비워둡니다.
+    /// </summary>
+    protected override void OnTick()
+    {
+        // 의도적으로 비워둠
+    }
+
+
+    // =========================================================
+    // 4. 퍼블릭 함수 (Public Methods)
+    // =========================================================
+
+    // 본 스크립트에서는 미사용
+
+
+    // =========================================================
+    // 5. 프라이빗 헬퍼 함수 
+    // =========================================================
+
+    /// <summary>
+    /// 네트워크 부모 지정(TrySetParent) 직후 위치가 튀는 현상을 막기 위해,
+    /// 1프레임 대기 후 플레이어의 머리 높이 로컬 좌표로 고정하는 코루틴입니다.
+    /// </summary>
+    private IEnumerator FixPositionNextFrame()
+    {
+        yield return null; // 1프레임 대기 (네트워크 싱크 확보)
+
+        // 부모(플레이어) 기준 Y축 1.2f 높이(머리/목덜미 부근)에 고정
+        owner.transform.localPosition = new Vector3(0, 1.2f, 0);
+        owner.transform.localRotation = Quaternion.identity;
     }
 }
