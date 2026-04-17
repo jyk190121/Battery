@@ -81,7 +81,8 @@ public class PlayerController : NetworkBehaviour
     }
 
     // [ServerRpc] 외부(몬스터 등)에서 데미지를 줄 때 호출
-    [ServerRpc]
+    //[ServerRpc(RequireOwnership = false)]
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void TakeDamageServerRpc(float damage)
     {
         if (isDead.Value) return;
