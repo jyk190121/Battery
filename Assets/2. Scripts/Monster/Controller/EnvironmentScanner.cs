@@ -1,5 +1,6 @@
-using UnityEngine;
+using System.Collections.Generic;
 using Unity.Netcode;
+using UnityEngine;
 using UnityEngine.AI;
 
 /// <summary>
@@ -11,7 +12,6 @@ public class EnvironmentScanner : MonoBehaviour
     public MonsterData data;
 
     [Header("Detection Settings")]
-    //[SerializeField] private LayerMask playerMask;
     [SerializeField] private LayerMask obstacleMask;
 
     // 현재 유효한 타겟 및 위치 정보
@@ -23,11 +23,14 @@ public class EnvironmentScanner : MonoBehaviour
     public Vector3 LastTargetVelocity { get; private set; }
     private Vector3 previousTargetPos;
 
-    // 가비지 컬렉션(GC) 방지를 위한 사전 할당 배열 및 경로 변수
-    //private Collider[] hitColliders = new Collider[10];
     private NavMeshPath path;
     private float viewRangeSqr;
     private float timeLastSeen = 0f;
+
+    // 길찾기 연산(CPU 폭탄) 캐싱용 딕셔너리
+    private Dictionary<Transform, float> lastPathCheckTimes = new Dictionary<Transform, float>();
+    private Dictionary<Transform, bool> cachedPathResults = new Dictionary<Transform, bool>();
+    private float pathCheckInterval = 0.5f; // 0.5초마다만 무거운 길찾기 연산을 수행
 
     public void Init(MonsterController controller, MonsterData monsterData)
     {
@@ -46,8 +49,6 @@ public class EnvironmentScanner : MonoBehaviour
 
         Transform bestTarget = null;
         float minSqrDistance = float.MaxValue;
-
-        // 현재 타겟이 있다면 우선권을 줍니다.
         float targetStickiness = 2.0f; // 현재 타겟은 2m 더 멀리 있어도 유지함
 
         foreach (PlayerController player in PlayerController.AllPlayers)
@@ -79,7 +80,7 @@ public class EnvironmentScanner : MonoBehaviour
 
             if (hasLOS)
             {
-                if (IsPathReasonable(player.transform.position))
+                if (IsPathReasonable(player.transform))
                 {
                     if (currentSqrDist < minSqrDistance)
                     {
@@ -157,20 +158,37 @@ public class EnvironmentScanner : MonoBehaviour
     /// <summary>
     /// NavMesh를 이용해 타겟까지의 실제 보행 거리가 시야 범위 내인지 확인
     /// </summary>
-    private bool IsPathReasonable(Vector3 targetPos)
+    private bool IsPathReasonable(Transform target)
     {
-        if (NavMesh.CalculatePath(transform.position, targetPos, NavMesh.AllAreas, path))
+        // 1. 이미 최근 0.5초 안에 계산한 적이 있는지 확인 (캐시 히트)
+        if (lastPathCheckTimes.TryGetValue(target, out float lastCheckTime))
         {
-            if (path.status != NavMeshPathStatus.PathComplete) return false;
-
-            float pathLength = 0f;
-            for (int i = 1; i < path.corners.Length; i++)
+            if (Time.time - lastCheckTime < pathCheckInterval)
             {
-                pathLength += Vector3.Distance(path.corners[i - 1], path.corners[i]);
+                return cachedPathResults[target]; // 무거운 연산 없이 기존 결과 즉시 반환!
             }
-            return pathLength < data.viewRange * 1.5f;
         }
-        return false;
+
+        // 2. 0.5초가 지났거나 처음 본 타겟이라면 무거운 계산 수행 (캐시 미스)
+        bool isValid = false;
+        if (NavMesh.CalculatePath(transform.position, target.position, NavMesh.AllAreas, path))
+        {
+            if (path.status == NavMeshPathStatus.PathComplete)
+            {
+                float pathLength = 0f;
+                for (int i = 1; i < path.corners.Length; i++)
+                {
+                    pathLength += Vector3.Distance(path.corners[i - 1], path.corners[i]);
+                }
+                isValid = pathLength < data.viewRange * 1.5f;
+            }
+        }
+
+        // 3. 연산 결과를 Dictionary에 저장
+        lastPathCheckTimes[target] = Time.time;
+        cachedPathResults[target] = isValid;
+
+        return isValid;
     }
 
     /// <summary>
