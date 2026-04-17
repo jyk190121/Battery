@@ -1,47 +1,96 @@
 using System.Collections.Generic;
-using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
 
 /// <summary>
-/// 몬스터의 감각(시각, 청각) 및 타겟 추적을 담당하는 클래스
+/// 몬스터의 감각(시각, 청각) 및 타겟 추적을 담당하는 핵심 AI 스캐너 클래스입니다.
 /// </summary>
 public class EnvironmentScanner : MonoBehaviour
 {
+    // =========================================================
+    // 1. 변수 선언부 
+    // =========================================================
+
+    [Header("--- References ---")]
+    [Tooltip("이 스캐너를 소유하고 있는 몬스터 본체 컨트롤러")]
     public MonsterController owner;
+    [Tooltip("몬스터의 시야/청각 스탯이 담긴 데이터")]
     public MonsterData data;
 
-    [Header("Detection Settings")]
-    [SerializeField] private LayerMask obstacleMask;
+    [Header("--- Detection Settings ---")]
+    [Tooltip("시야가 가려졌는지 판단할 장애물 레이어")]
+    [SerializeField] private LayerMask _obstacleMask;
 
-    // 현재 유효한 타겟 및 위치 정보
+    // [프로퍼티] 외부에서 읽기만 가능한 타겟 및 위치 정보
     public Transform CurrentTarget { get; private set; }
     public Vector3 LastSeenPosition { get; private set; }
     public Vector3 LastHeardPosition { get; private set; }
-
-    // 지능형 수색을 위한 타겟 속도 데이터
     public Vector3 LastTargetVelocity { get; private set; }
-    private Vector3 previousTargetPos;
 
-    private NavMeshPath path;
-    private float viewRangeSqr;
-    private float timeLastSeen = 0f;
+    private Vector3 _previousTargetPos;
+    private NavMeshPath _path;
+    private float _viewRangeSqr;
+    private float _timeLastSeen = 0f;
 
     // 길찾기 연산(CPU 폭탄) 캐싱용 딕셔너리
-    private Dictionary<Transform, float> lastPathCheckTimes = new Dictionary<Transform, float>();
-    private Dictionary<Transform, bool> cachedPathResults = new Dictionary<Transform, bool>();
-    private float pathCheckInterval = 0.5f; // 0.5초마다만 무거운 길찾기 연산을 수행
+    private Dictionary<Transform, float> _lastPathCheckTimes = new Dictionary<Transform, float>();
+    private Dictionary<Transform, bool> _cachedPathResults = new Dictionary<Transform, bool>();
+    private float _pathCheckInterval = 0.5f;
+
+
+    // =========================================================
+    // 2. 초기화 함수
+    // =========================================================
 
     public void Init(MonsterController controller, MonsterData monsterData)
     {
         owner = controller;
         data = monsterData;
-        path = new NavMeshPath();
-        viewRangeSqr = data.viewRange * data.viewRange;
+        _path = new NavMeshPath();
+
+        _viewRangeSqr = data.viewRange * data.viewRange;
     }
 
+
+    // =========================================================
+    // 3. 유니티 루프 및 콜백 (OnDrawGizmos 등)
+    // =========================================================
+
+    private void OnDrawGizmos()
+    {
+        if (data == null) return;
+
+        // 청각 범위 시각화 (노란색 원)
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, data.hearingRange);
+
+        // 시야 범위 및 각도(FOV) 시각화 (빨간색 부채꼴)
+        Gizmos.color = Color.red;
+
+        // 정면 기준 좌우 시야각 끝자락을 구함
+        Vector3 rightViewDir = Quaternion.Euler(0, data.viewAngle * 0.5f, 0) * transform.forward;
+        Vector3 leftViewDir = Quaternion.Euler(0, -data.viewAngle * 0.5f, 0) * transform.forward;
+
+        // 씬 뷰에 시야각 라인을 그림 (이 선 밖으로 나가면 몬스터가 못 봅니다!)
+        Gizmos.DrawRay(transform.position, rightViewDir * data.viewRange);
+        Gizmos.DrawRay(transform.position, leftViewDir * data.viewRange);
+
+        // 마지막 목격 위치 시각화
+        if (LastSeenPosition != Vector3.zero)
+        {
+            Gizmos.color = (Time.time - _timeLastSeen <= data.visionMemoryTime) ? new Color(1f, 0.5f, 0f) : Color.yellow;
+            Gizmos.DrawSphere(LastSeenPosition, 0.5f);
+            Gizmos.DrawLine(transform.position, LastSeenPosition);
+        }
+    }
+
+
+    // =========================================================
+    // 4. 퍼블릭 함수
+    // =========================================================
+
     /// <summary>
-    /// 매 프레임 혹은 지정된 Tick 주기에 감각 연산 수행
+    /// 컨트롤러의 OnTick에서 호출되어 시야 감지 연산을 수행합니다.
     /// </summary>
     public void Tick()
     {
@@ -59,20 +108,37 @@ public class EnvironmentScanner : MonoBehaviour
             Vector3 diff = player.transform.position - transform.position;
             float currentSqrDist = diff.sqrMagnitude;
 
-            // 현재 타겟이라면 거리 판정을 더 후하게 줌 (타겟 고정 효과)
+            // 현재 타겟이라면 거리 판정을 더 후하게 줌
             if (CurrentTarget != null && player.transform == CurrentTarget)
             {
                 currentSqrDist -= (targetStickiness * targetStickiness);
             }
 
-            if (currentSqrDist > viewRangeSqr) continue;
+            // 1. 최대 시야 반경(viewRange)을 벗어나면 무시
+            if (currentSqrDist > _viewRangeSqr) continue;
 
+            // 2. 시야각(FOV) 및 기척(Proximity) 감지 시스템
+            Vector3 dirToPlayer = diff.normalized;
+            // 몬스터의 정면과 플레이어 사이의 각도를 구합니다. (0도면 정면, 180도면 완전 뒤)
+            float angleToPlayer = Vector3.Angle(transform.forward, dirToPlayer);
+
+            // [기척 감지] 몬스터 등 뒤에 있더라도 2m(제곱값 4) 이내로 바짝 붙으면 각도 무시하고 눈치챔
+            bool isCloseEnoughToFeel = currentSqrDist <= (2.0f * 2.0f);
+
+            // 시야각의 절반(좌우)을 벗어났고, 바짝 붙어있는 것도 아니라면? -> 못 본 것으로 간주하고 패스!
+            if (angleToPlayer > data.viewAngle * 0.5f && !isCloseEnoughToFeel)
+            {
+                continue;
+            }
+            // =================================================================
+
+            // 3. 시야 가림(벽 등 장애물) 레이캐스트 검사
             bool hasLOS = HasLineOfSight(player.transform);
 
-            // 시야에서 잠깐 사라져도 기억함
+            // 시야에서 잠깐 사라져도 기억 시간 내라면 보인 것으로 간주
             if (!hasLOS && CurrentTarget != null && player.transform == CurrentTarget)
             {
-                if (Time.time - timeLastSeen <= data.visionMemoryTime)
+                if (Time.time - _timeLastSeen <= data.visionMemoryTime)
                 {
                     hasLOS = true;
                 }
@@ -80,6 +146,7 @@ public class EnvironmentScanner : MonoBehaviour
 
             if (hasLOS)
             {
+                // 0.5초 캐싱된 길찾기 가능 여부 확인
                 if (IsPathReasonable(player.transform))
                 {
                     if (currentSqrDist < minSqrDistance)
@@ -91,147 +158,106 @@ public class EnvironmentScanner : MonoBehaviour
             }
         }
 
+        // 새로운 타겟이거나 타겟을 유지 중일 때 목격 시간 갱신
         if (bestTarget != null && bestTarget != CurrentTarget)
         {
-            timeLastSeen = Time.time;
+            _timeLastSeen = Time.time;
         }
 
         UpdateTargetData(bestTarget);
     }
 
     /// <summary>
-    /// 타겟의 상태에 따라 위치와 예측 속도를 업데이트하는 로직 
+    /// 외부 SoundManager 등에서 소리가 발생했을 때 호출하는 훅(Hook) 함수
     /// </summary>
+    public void OnHeardSound(Vector3 soundOrigin, float noiseLevel)
+    {
+        float distance = Vector3.Distance(transform.position, soundOrigin);
+
+        // 소리는 시야각(FOV)의 영향을 받지 않고 360도로 감지됩니다.
+        if (distance <= data.hearingRange * noiseLevel)
+        {
+            LastHeardPosition = soundOrigin;
+            Debug.Log($"<color=yellow>[소리 감지]</color> {owner.name}이(가) 소리를 들었습니다: {soundOrigin}");
+
+            if (owner.CurrentStateNet.Value == MonsterStateType.Patrol ||
+                owner.CurrentStateNet.Value == MonsterStateType.Idle)
+            {
+                LastSeenPosition = soundOrigin;
+                owner.ChangeState(MonsterStateType.Search);
+            }
+        }
+    }
+
+    public void SetForceTarget(Transform newTarget)
+    {
+        UpdateTargetData(newTarget);
+    }
+
+
+    // =========================================================
+    // 5. 프라이빗 헬퍼 함수 
+    // =========================================================
+
     private void UpdateTargetData(Transform newTarget)
     {
         CurrentTarget = newTarget;
 
         if (CurrentTarget != null)
         {
-            // 타겟 위치 갱신
             Vector3 currentPos = CurrentTarget.position;
             LastSeenPosition = currentPos;
 
-            // 속도 계산 (예측 수색용)
-            if (previousTargetPos != Vector3.zero)
+            if (_previousTargetPos != Vector3.zero)
             {
                 float dt = Time.deltaTime;
-                if (dt > 0) // 나누기 0 방지
-                {
-                    LastTargetVelocity = (currentPos - previousTargetPos) / dt;
-                }
+                if (dt > 0) LastTargetVelocity = (currentPos - _previousTargetPos) / dt;
             }
-            previousTargetPos = currentPos;
+            _previousTargetPos = currentPos;
         }
         else
         {
-            // 타겟을 놓친 경우 이전 위치 데이터 초기화 
-            previousTargetPos = Vector3.zero;
-        }
-    }
-
-
-
-    /// <summary>
-    /// 소리 감지 훅 함수: 외부 SoundManager 등에서 호출
-    /// </summary>
-    public void OnHeardSound(Vector3 soundOrigin, float noiseLevel)
-    {
-        float distance = Vector3.Distance(transform.position, soundOrigin);
-        if (distance <= data.hearingRange * noiseLevel)
-        {
-            LastHeardPosition = soundOrigin;
-            Debug.Log($"[{owner.name}] 소리 감지: {soundOrigin}");
-
-            // 순찰/정지 상태일 때 소리가 나면 즉시 수색 모드 진입
-            if (owner.CurrentStateNet.Value == MonsterStateType.Patrol ||
-                owner.CurrentStateNet.Value == MonsterStateType.Idle)
-            {
-                LastSeenPosition = soundOrigin; // 소리 위치를 수색 목표로 설정
-                owner.ChangeState(MonsterStateType.Search);
-            }
+            _previousTargetPos = Vector3.zero;
         }
     }
 
     private bool IsTargetValid(GameObject target) => !owner.IsInSafeZone(target);
 
-    /// <summary>
-    /// NavMesh를 이용해 타겟까지의 실제 보행 거리가 시야 범위 내인지 확인
-    /// </summary>
     private bool IsPathReasonable(Transform target)
     {
-        // 1. 이미 최근 0.5초 안에 계산한 적이 있는지 확인 (캐시 히트)
-        if (lastPathCheckTimes.TryGetValue(target, out float lastCheckTime))
+        if (_lastPathCheckTimes.TryGetValue(target, out float lastCheckTime))
         {
-            if (Time.time - lastCheckTime < pathCheckInterval)
-            {
-                return cachedPathResults[target]; // 무거운 연산 없이 기존 결과 즉시 반환!
-            }
+            if (Time.time - lastCheckTime < _pathCheckInterval) return _cachedPathResults[target];
         }
 
-        // 2. 0.5초가 지났거나 처음 본 타겟이라면 무거운 계산 수행 (캐시 미스)
         bool isValid = false;
-        if (NavMesh.CalculatePath(transform.position, target.position, NavMesh.AllAreas, path))
+        if (NavMesh.CalculatePath(transform.position, target.position, NavMesh.AllAreas, _path))
         {
-            if (path.status == NavMeshPathStatus.PathComplete)
+            if (_path.status == NavMeshPathStatus.PathComplete)
             {
                 float pathLength = 0f;
-                for (int i = 1; i < path.corners.Length; i++)
+                for (int i = 1; i < _path.corners.Length; i++)
                 {
-                    pathLength += Vector3.Distance(path.corners[i - 1], path.corners[i]);
+                    pathLength += Vector3.Distance(_path.corners[i - 1], _path.corners[i]);
                 }
                 isValid = pathLength < data.viewRange * 1.5f;
             }
         }
 
-        // 3. 연산 결과를 Dictionary에 저장
-        lastPathCheckTimes[target] = Time.time;
-        cachedPathResults[target] = isValid;
+        _lastPathCheckTimes[target] = Time.time;
+        _cachedPathResults[target] = isValid;
 
         return isValid;
     }
 
-    /// <summary>
-    /// 레이캐스트를 이용한 시야 가림 여부 확인
-    /// </summary>
     private bool HasLineOfSight(Transform target)
     {
-        Vector3 startPos = transform.position + (Vector3.up * 1.5f); // 몬스터 눈높이
-        Vector3 targetPos = target.position + (Vector3.up * 1.0f);   // 플레이어 가슴 높이
+        Vector3 startPos = transform.position + (Vector3.up * 1.5f);
+        Vector3 targetPos = target.position + (Vector3.up * 1.0f);
 
         Vector3 dir = (targetPos - startPos).normalized;
         float actualDist = Vector3.Distance(startPos, targetPos);
 
-        // 장애물 레이어에 부딪히면 시야 차단
-        return !Physics.Raycast(startPos, dir, actualDist, obstacleMask);
-    }
-
-    private void OnDrawGizmos()
-    {
-        if (data == null) return;
-
-        // 시각 및 청각 범위 시각화
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, data.viewRange);
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, data.hearingRange);
-
-        // 마지막 목격 위치 시각화
-        if (LastSeenPosition != Vector3.zero)
-        {
-            Gizmos.color = (Time.time - timeLastSeen <= data.visionMemoryTime) ? new Color(1f, 0.5f, 0f) : Color.yellow;
-            Gizmos.DrawSphere(LastSeenPosition, 0.5f);
-            Gizmos.DrawLine(transform.position, LastSeenPosition);
-        }
-    }
-
-    /// <summary>
-    /// [특수 기믹용] 외부 상태(CeilingWait 등)에서 특정 타겟을 강제로 고정할 때 사용합니다.
-    /// </summary>
-    public void SetForceTarget(Transform newTarget)
-    {
-        UpdateTargetData(newTarget);
-        string targetName = newTarget != null ? newTarget.name : "None (초기화됨)";
-        Debug.Log($"[{owner.name}] 타겟 강제 고정: {targetName}");
+        return !Physics.Raycast(startPos, dir, actualDist, _obstacleMask);
     }
 }
