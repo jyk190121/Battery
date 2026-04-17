@@ -451,6 +451,27 @@ public class MonsterController : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// 외부(섬광탄 등)에서 몬스터를 스턴시킬 때 호출하는 함수
+    /// </summary>
+    public void ApplyStun(float baseDuration)
+    {
+        // 서버만 처리하며, 죽은 상태거나 이미 붙어있는 상태(올무벼룩)면 무시
+        if (!IsServer || CurrentStateNet.Value == MonsterStateType.Dead || CurrentStateNet.Value == MonsterStateType.Attached)
+            return;
+
+        // SO에 있는 '스턴 내성(Multiplier)'을 곱해서 최종 스턴 시간을 계산!
+        float finalDuration = baseDuration * (monsterData != null ? monsterData.stunDurationMultiplier : 1.0f);
+
+        // 스턴 면역(0 이하)이면 스턴에 걸리지 않음
+        if (finalDuration <= 0f) return;
+
+        CurrentStunDuration = finalDuration;
+        ChangeState(MonsterStateType.Stunned);
+
+        Debug.Log($"<color=cyan>[스턴]</color> {gameObject.name}이(가) {finalDuration}초 동안 기절합니다!");
+    }
+
     // [테스트용] 
     [ContextMenu("Test Damage (10)")]
     public void TestDamage()

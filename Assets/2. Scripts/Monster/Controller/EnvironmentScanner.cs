@@ -213,6 +213,7 @@ public class EnvironmentScanner : MonoBehaviour
     public void SetForceTarget(Transform newTarget)
     {
         UpdateTargetData(newTarget);
-        Debug.Log($"[{owner.name}] 타겟 강제 고정: {newTarget.name}");
+        string targetName = newTarget != null ? newTarget.name : "None (초기화됨)";
+        Debug.Log($"[{owner.name}] 타겟 강제 고정: {targetName}");
     }
 }
