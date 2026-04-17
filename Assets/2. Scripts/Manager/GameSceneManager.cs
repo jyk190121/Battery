@@ -234,11 +234,21 @@ public class GameSceneManager : NetworkBehaviour
         if (NetworkManager.Singleton.LocalClient != null &&
             NetworkManager.Singleton.LocalClient.PlayerObject != null)
         {
-            var interaction = NetworkManager.Singleton.LocalClient.PlayerObject.GetComponent<PlayerInteraction>();
-            if (interaction != null)
-            {
+            //var interaction = NetworkManager.Singleton.LocalClient.PlayerObject.GetComponent<PlayerInteraction>();
+            //if (interaction != null)
+            //{
+            //    interaction.FindUIElements();
+            //}
+
+            var playerObj = NetworkManager.Singleton.LocalClient.PlayerObject;
+
+            // 상호작용 UI 연결
+            if (playerObj.TryGetComponent(out PlayerInteraction interaction))
                 interaction.FindUIElements();
-            }
+
+            // [추가] 마우스 회전 스크립트의 태블릿 UI 다시 연결
+            if (playerObj.TryGetComponent(out PlayerRotation rotation))
+                rotation.TryFindTablet(); // PlayerRotation에 public으로 선언 필요
         }
     }
 
