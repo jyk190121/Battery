@@ -2819,6 +2819,7 @@ GameObject:
   - component: {fileID: 9182508245703953868}
   - component: {fileID: 5358241311784179748}
   - component: {fileID: 8091833355368807864}
+  - component: {fileID: 4586663640366172803}
   - component: {fileID: 8808567715922933914}
   - component: {fileID: -3479541866016816257}
   - component: {fileID: 1697737443919903314}
@@ -2903,7 +2904,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 405663255
+  GlobalObjectIdHash: 6777840
   InScenePlacedSourceGlobalObjectIdHash: 6777840
   DeferredDespawnTick: 0
   Ownership: 1
@@ -2933,6 +2934,7 @@ MonoBehaviour:
   cameraTarget: {fileID: 8435035688047205567}
   playerMove: {fileID: 1166937674116199471}
   CameraGroup: {fileID: 643760621317042792}
+  tabletUIPanel: {fileID: 0}
   sensitivity: 0.02
   originYoffset: 0.0961
   walkYPos: 0.1
@@ -3080,6 +3082,10 @@ MonoBehaviour:
       NameHash: 1270110494
       Synchronize: 1
       ParameterType: 9
+    - name: Attack
+      NameHash: 1080829965
+      Synchronize: 1
+      ParameterType: 9
   AnimatorParametersExpanded: 0
 --- !u!114 &5358241311784179748
 MonoBehaviour:
@@ -3144,6 +3150,18 @@ MonoBehaviour:
   UseRigidBodyForMotion: 0
   AutoUpdateKinematicState: 1
   AutoSetKinematicOnDespawn: 1
+--- !u!114 &4586663640366172803
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4911454195433589709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f44f6b3f3c413d7469caee297b144bdc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
 --- !u!114 &8808567715922933914
 MonoBehaviour:
   m_ObjectHideFlags: 0

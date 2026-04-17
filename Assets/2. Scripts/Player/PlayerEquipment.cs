@@ -6,11 +6,18 @@ using System.Collections;
 public class PlayerEquipment : NetworkBehaviour
 {
     [Header("오브젝트 참조")]
-    [Tooltip("캐릭터 오른손 소켓에 자식으로 붙어있는 스마트폰 3D 모델")]
+    [Tooltip("캐릭터 오른손에 자식으로 붙어있는 스마트폰 3D 모델")]
     public GameObject smartphoneModel;
 
     [Tooltip("스마트폰이 생성될 오른손 뼈대(Transform)")]
     public Transform handSocket;
+
+    [Header("현재 장착된 실제 아이템 (무기 등)")]
+    [Tooltip("내가 왼쪽손에 들고 있는 아이템 유형")]
+    public ItemBase currentEquippedItem; 
+
+    // 외부에서 현재 무기를 들고 있는지 확인하기 위한 프로퍼티
+    public bool HasWeapon => currentEquippedItem is Item_Weapon;
 
     // 현재 생성되어 있는 폰 객체
     GameObject spawnedPhone;
@@ -102,5 +109,16 @@ public class PlayerEquipment : NetworkBehaviour
             Destroy(spawnedPhone);
             spawnedPhone = null;
         }
+    }
+
+    public void SetEquippedItem(ItemBase item)
+    {
+        currentEquippedItem = item;
+    }
+
+    // 아이템 해제 시
+    public void ClearEquippedItem()
+    {
+        currentEquippedItem = null;
     }
 }
