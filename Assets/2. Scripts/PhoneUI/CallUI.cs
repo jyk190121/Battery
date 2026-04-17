@@ -124,7 +124,7 @@ public class CallUI : ScrollSelectionUI
 
         foreach (var player in players)
         {
-            string nick = player.NetworkNickname.Value.ToString().Split("#")[0];
+            string nick = player.NetworkNickname.Value.ToString();
 
             // 목록에서 나 자신은 제외하고 싶다면 아래 주석 해제
             // if (player.IsOwner) continue; 
