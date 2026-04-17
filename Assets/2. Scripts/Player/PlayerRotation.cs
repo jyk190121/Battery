@@ -5,10 +5,11 @@ using UnityEngine;
 public class PlayerRotation : NetworkBehaviour
 {
     [Header("참조")]
-    public CinemachineCamera vcam;  // 인스펙터에서 시네머신 카메라 할당
-    public Transform cameraTarget;  // eye_Cinemachine 오브젝트를 여기에 할당
-    public PlayerMove playerMove;   // 이동 속도를 체크하기 위해 참조
-    public GameObject CameraGroup;  // 휴대폰 촬영용 카메라도 같이 회전 처리
+    public CinemachineCamera vcam;      // 인스펙터에서 시네머신 카메라 할당
+    public Transform cameraTarget;      // eye_Cinemachine 오브젝트를 여기에 할당
+    public PlayerMove playerMove;       // 이동 속도를 체크하기 위해 참조
+    public GameObject CameraGroup;      // 휴대폰 촬영용 카메라도 같이 회전 처리
+    public GameObject tabletUIPanel;    //테블릿상태 확인 (마우스 비지블 처리)
 
     [Header("설정")]
     public float sensitivity = 0.1f;
@@ -28,6 +29,11 @@ public class PlayerRotation : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        if(tabletUIPanel == null)
+        {
+            tabletUIPanel = FindAnyObjectByType<TabletUIManager>().tabletUIPanel;
+        }
+
         if (playerMove == null)
         {
             playerMove = GetComponent<PlayerMove>();
@@ -58,6 +64,21 @@ public class PlayerRotation : NetworkBehaviour
             }
         }
     }
+
+    void Update()
+    {
+        if (!IsOwner) return;
+
+        if (tabletUIPanel != null && !tabletUIPanel.activeSelf)
+        {
+            if (Cursor.lockState != CursorLockMode.Locked)
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            }
+        }
+    }
+
 
     void LateUpdate()
     {
