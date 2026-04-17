@@ -215,66 +215,60 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
 // ========================================================================
 public class VoiceCopier : MonoBehaviour
 {
-    private AudioSource aud3D; // 포톤이 제공하는 단 1개의 원본 오디오 소스
+    private AudioSource aud3D;
     private AudioMixerGroup phoneMixer;
-    private AudioMixerGroup defaultMixer; // 원래의 믹서
+    private AudioMixerGroup defaultMixer;
 
-    private Transform listener;
     private bool isCalling = false;
 
-    [Header("거리 설정")]
-    public float transitionDistance = 10f; // 3D 전환 거리 (이 안으로 오면 생목소리가 섞임)
+    // 원래 3D 사운드 거리 설정 백업용
+    private float originalMinDistance;
+    private float originalMaxDistance;
 
     public void Init(AudioSource main3D, AudioMixerGroup mixerGroup)
     {
         aud3D = main3D;
         phoneMixer = mixerGroup;
-        defaultMixer = main3D.outputAudioMixerGroup; // 기존 믹서 백업
+        defaultMixer = main3D.outputAudioMixerGroup;
 
-        // 내 캐릭터의 귀(일반적으로 메인 카메라)를 찾음
-        if (Camera.main != null)
-        {
-            listener = Camera.main.transform;
-        }
+        // 원래 설정된 거리 백업 (기본값 min:2, max:20)
+        originalMinDistance = aud3D.minDistance;
+        originalMaxDistance = aud3D.maxDistance;
 
-        // 주의: 더 이상 aud2D(복제본)를 AddComponent 하지 않습니다!
+        // 무조건 3D 고정
+        aud3D.spatialBlend = 1f;
     }
 
     void Update()
     {
-        if (aud3D == null || listener == null) return;
+        if (aud3D == null) return;
 
-        // 1. 전화 중이 아닐 때: 무조건 100% 3D 사운드 유지
-        if (!isCalling)
+        if (isCalling)
         {
-            if (aud3D.spatialBlend != 1f) aud3D.spatialBlend = 1f;
-            if (aud3D.outputAudioMixerGroup != defaultMixer) aud3D.outputAudioMixerGroup = defaultMixer;
-            return;
-        }
+            // [전화 중] 
+            // 1. 오디오 믹서 필터 씌우기
+            if (aud3D.outputAudioMixerGroup != phoneMixer)
+                aud3D.outputAudioMixerGroup = phoneMixer;
 
-        // 2. 전화 중일 때: 거리에 따른 2D / 3D 동적 믹싱
-        float distance = Vector3.Distance(transform.position, listener.position);
-
-        if (distance > transitionDistance)
-        {
-            // 멀리 있을 때: 100% 2D (귀에 대고 듣는 선명한 전화 소리)
-            aud3D.spatialBlend = 0f;
-            if (aud3D.outputAudioMixerGroup != phoneMixer) aud3D.outputAudioMixerGroup = phoneMixer;
+            // 2. 방향(3D)은 유지하되, 거리가 멀어도 소리가 작아지지 않게 인식 범위 극대화
+            if (aud3D.maxDistance != 5000f)
+            {
+                aud3D.maxDistance = 5000f;
+                aud3D.minDistance = 5000f; // min을 max와 동일하게 맞추면 거리 비례 볼륨 감소가 일어너지 않음
+            }
         }
         else
         {
-            // 가까이 다가올 때: 2D에서 3D로 서서히 전환되며 겹침
-            float t = 1f - (distance / transitionDistance);
-            aud3D.spatialBlend = Mathf.Clamp01(t);
+            // [평상시] 
+            // 1. 기본 믹서(생목소리)로 복구
+            if (aud3D.outputAudioMixerGroup != defaultMixer)
+                aud3D.outputAudioMixerGroup = defaultMixer;
 
-            // 상대방이 매우 가까워지면 전화기 필터를 끄고 생목소리로 전환
-            if (distance < transitionDistance * 0.5f)
+            // 2. 원래의 거리 감쇄(가까워야만 들림)로 복구
+            if (aud3D.maxDistance != originalMaxDistance)
             {
-                if (aud3D.outputAudioMixerGroup != defaultMixer) aud3D.outputAudioMixerGroup = defaultMixer;
-            }
-            else
-            {
-                if (aud3D.outputAudioMixerGroup != phoneMixer) aud3D.outputAudioMixerGroup = phoneMixer;
+                aud3D.maxDistance = originalMaxDistance;
+                aud3D.minDistance = originalMinDistance;
             }
         }
     }
