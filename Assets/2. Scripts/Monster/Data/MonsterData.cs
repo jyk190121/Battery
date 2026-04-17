@@ -75,6 +75,10 @@ public class MonsterData : ScriptableObject
     [Tooltip("경계도 변화가 이 수치 이상일 때만 강제 동기화 (네트워크 최적화용)")]
     public float alertnessThreshold = 0.05f;
 
+    [Header("Resistance Settings")]
+    [Tooltip("스턴 지속시간 배율 (1.0 = 정상, 0.5 = 기절 시간 절반, 0 = 면역)")]
+    public float stunDurationMultiplier = 1.0f;
+
     // ----- 기믹 몬스터 설정
 
     [Header("Gimmick Settings")]

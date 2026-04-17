@@ -8,6 +8,7 @@ public class Item_Flashbang : ItemBase
     public float throwForce = 15f;
     public float explosionDelay = 1.0f;
     public float flashRadius = 10f;
+    public float stunDuration = 4.0f;
 
     [Header("Layer Mask Settings")]
     public LayerMask targetMask;
@@ -87,7 +88,18 @@ public class Item_Flashbang : ItemBase
         }
         else if ((objLayerMask & monsterLayer) != 0)
         {
-            Debug.Log("Monster Stunned");
+            if (IsServer)
+            {
+                // 콜라이더에 붙은 MonsterController를 찾거나, 부모에게서 찾습니다.
+                if (targetObj.TryGetComponent<MonsterController>(out var monster))
+                {
+                    monster.ApplyStun(stunDuration);
+                }
+                else if (targetObj.GetComponentInParent<MonsterController>() != null)
+                {
+                    targetObj.GetComponentInParent<MonsterController>().ApplyStun(stunDuration);
+                }
+            }
         }
     }
 }
