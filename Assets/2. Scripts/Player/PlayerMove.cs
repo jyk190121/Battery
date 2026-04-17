@@ -39,7 +39,7 @@ public class PlayerMove : NetworkBehaviour
     private float initialHeight;
     private Vector3 initialCenter;
 
-    [SerializeField] float crouchHeight = 1.2f; // 앉았을 때 높이 (캐릭터에 맞춰 조절)
+    [SerializeField] float crouchHeight = 1.2f;                      // 앉았을 때 높이 (캐릭터에 맞춰 조절)
     [SerializeField] Vector3 crouchCenter = new Vector3(0, 0.6f, 0); // 앉았을 때 중심점
 
     // [Header("앉기 체크 설정")]
@@ -49,6 +49,10 @@ public class PlayerMove : NetworkBehaviour
 
     Rigidbody rb;
     bool isGrounded = false;
+
+    public bool IsGrounded => isGrounded;
+
+    bool isControlLocked = false;
 
     PlayerAnim playerAnim;
     PlayerStateManager stateManager;
@@ -76,7 +80,7 @@ public class PlayerMove : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!IsOwner) return;
+        if (!IsOwner || isControlLocked) return;
 
         if (Keyboard.current == null) return;
 
@@ -409,6 +413,18 @@ public class PlayerMove : NetworkBehaviour
 
             // 보정 후 물리 엔진이 즉시 인지하도록 강제 업데이트
             rb.WakeUp();
+        }
+    }
+
+    public void SetControlLock(bool isLocked)
+    {
+        isControlLocked = isLocked;
+
+        // 공격 시작 시 즉시 속도 멈춤 처리
+        if (isLocked)
+        {
+            currentSpeed = 0f;
+            rb.linearVelocity = Vector3.zero;
         }
     }
 }

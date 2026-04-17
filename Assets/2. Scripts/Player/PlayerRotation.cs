@@ -29,25 +29,11 @@ public class PlayerRotation : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        if(tabletUIPanel == null)
-        {
-            tabletUIPanel = FindAnyObjectByType<TabletUIManager>().tabletUIPanel;
-        }
-        else
-        {
-            // 태블릿이 없는 씬이라면 명확하게 null 처리
-            tabletUIPanel = null;
-        }
-
-        // 시작하자마자 커서 상태 초기화
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-
         if (playerMove == null)
         {
             playerMove = GetComponent<PlayerMove>();
         }
-
+        TryFindTablet();
         TryFindCamera();
     }
 
@@ -208,6 +194,19 @@ public class PlayerRotation : NetworkBehaviour
         {
             // 부활 시 다시 마우스 입력 켜기
             if (panTilt != null) panTilt.enabled = true;
+        }
+    }
+
+    public void TryFindTablet()
+    {
+        //if (tabletUIPanel == null)
+        //{
+        //    tabletUIPanel = FindAnyObjectByType<TabletUIManager>().tabletUIPanel;
+        //}
+        TabletUIManager tabletManager = FindAnyObjectByType<TabletUIManager>();
+        if (tabletManager != null)
+        {
+            tabletUIPanel = tabletManager.tabletUIPanel;
         }
     }
 }
