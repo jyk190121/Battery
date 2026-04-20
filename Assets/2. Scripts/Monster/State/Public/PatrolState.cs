@@ -142,12 +142,20 @@ public class PatrolState : MonsterBaseState
         {
             if (owner.CurrentStateNet.Value == MonsterStateType.Patrol)
             {
-                // 문을 열지 않기로 결정했다면, 
-                // 고민하는 척하고 바로 다른 목적지로 떠나게 합니다.
-                Debug.Log("<color=green>[Patrol]</color> 문이 막혔고 열지 않기로 했습니다. 다른 길로 돌아갑니다.");
+                _doorDecisionTimer = data.doorIgnoreCooldown; // 기본 쿨타임 적용
 
-                _doorDecisionTimer = data.doorIgnoreCooldown;
-                MoveToNextPoint();
+                if (UnityEngine.Random.value <= 0.5f)
+                {
+                    Debug.Log("<color=green>[Patrol]</color> 문을 열지 않지만, 수상함을 느끼고 문 앞에서 대기하며 귀를 기울입니다...");
+
+                    StartWaiting(2f, 4f);
+                }
+                // 나머지 50% 확률로는 쿨하게 포기하고 다른 길로 떠납니다.
+                else
+                {
+                    Debug.Log("<color=green>[Patrol]</color> 문이 막혔고 열지 않기로 했습니다. 미련 없이 다른 길로 돌아갑니다.");
+                    MoveToNextPoint();
+                }
             }
         }
         else
@@ -200,18 +208,19 @@ public class PatrolState : MonsterBaseState
             }
 
             // 일반적인 대기 모드 돌입
-            StartWaiting();
+            StartWaiting(data.minWaitTime, data.maxWaitTime);
         }
     }
 
     /// <summary>
     /// 목적지에 도착한 후 다음 장소로 가기 전까지 지정된 시간 동안 대기합니다.
     /// </summary>
-    private void StartWaiting()
+    private void StartWaiting(float minTime, float maxTime)
     {
         _isWaiting = true;
         _waitTimer = 0f;
-        _currentWaitDuration = Random.Range(data.minWaitTime, data.maxWaitTime);
+
+        _currentWaitDuration = Random.Range(minTime, maxTime);
 
         // 관성에 의해 미끄러지는 시각적 버그를 막기 위해 에이전트를 확실히 정지
         owner.navAgent.isStopped = true;

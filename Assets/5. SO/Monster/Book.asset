@@ -33,7 +33,7 @@ MonoBehaviour:
   searchNodeRadius: 15
   minWaitTime: 5
   maxWaitTime: 10
-  maxPatrolMoveTime: 10
+  maxPatrolMoveTime: 30
   aiTickInterval: 0.2
   fastTickInterval: 0.05
   predictiveChaseTime: 1
@@ -41,7 +41,7 @@ MonoBehaviour:
   pathUpdateThreshold: 1
   patrolDoorOpenChance: 0.2
   doorIgnoreCooldown: 1
-  minPatrolDistance: 10
+  minPatrolDistance: 20
   alertnessIncreaseRate: 1.5
   alertnessDecreaseRate: 0.5
   alertnessSyncInterval: 0.2
