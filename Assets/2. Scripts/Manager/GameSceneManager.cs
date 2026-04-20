@@ -1,9 +1,6 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
-using Unity.Netcode.Components;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -19,7 +16,7 @@ public class GameSceneManager : NetworkBehaviour
     Transform[] spawnPoints;                                    // 씬에서 찾은 스폰포인트들 저장
 
     // 게임 세션 시작을 알리는 이벤트
-    public event Action OnGameSessionRequest;
+    public event System.Action OnGameSessionRequest;
 
     public bool IsSessionInitialized { get; private set; }
 
@@ -285,7 +282,8 @@ public class GameSceneManager : NetworkBehaviour
     }
 
 
-    [ServerRpc(RequireOwnership = false)]
+    //[ServerRpc(RequireOwnership = false)]
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void RequestStartGameServerRpc()
     {
         if (!IsServer) return;

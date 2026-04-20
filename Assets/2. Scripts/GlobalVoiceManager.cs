@@ -1,10 +1,11 @@
 using Photon.Realtime;
 using Photon.Voice.Unity;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.Audio;
+using UnityEngine.InputSystem;
 
 public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmakingCallbacks
 {
@@ -18,12 +19,21 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
     public AudioMixerGroup phoneMixerGroup;
 
     // AudioSource 대신 복제 스크립트(VoiceCopier)를 저장합니다.
-    private Dictionary<string, AvatarVoiceSender> playerVoices = new Dictionary<string, AvatarVoiceSender>();
+    //private Dictionary<string, AvatarVoiceSender> playerVoices = new Dictionary<string, AvatarVoiceSender>();
+    Dictionary<string, VoiceCopier> playerVoices = new Dictionary<string, VoiceCopier>();
     private Dictionary<string, bool> callStateDict = new Dictionary<string, bool>();
 
     private void Awake()
     {
-        if (Instance == null) Instance = this;
+        // [수정] 싱글톤 사용
+        if (Instance == null) 
+        { 
+            Instance = this; DontDestroyOnLoad(gameObject); 
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     private void Start()
@@ -49,7 +59,7 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
 
     private void Update()
     {
-        if (Keyboard.current == null || globalRecorder == null) return;
+        if (Keyboard.current == null || globalRecorder == null || !globalVoiceClient.Client.InRoom) return;
 
         if (PhoneUIController.Instance != null && PhoneUIController.Instance.isInputBlocked)
         {
@@ -81,7 +91,13 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
     private void OnSpeakerLinked(Speaker speaker)
     {
         int playerId = speaker.RemoteVoice.PlayerId;
-        speaker.gameObject.name = $"Global_Speaker_{playerId}";
+        //speaker.gameObject.name = $"Global_Speaker_{playerId}";
+        Photon.Realtime.Player remotePlayer = globalVoiceClient.Client.CurrentRoom.GetPlayer(playerId);
+
+        if (remotePlayer == null) return;
+
+        string targetNick = remotePlayer.NickName.Replace("\0", "").Trim();
+        speaker.gameObject.name = $"Global_Speaker_{targetNick}";
 
         AudioSource aud3D = speaker.GetComponent<AudioSource>();
         if (aud3D != null)
@@ -96,55 +112,106 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
             aud3D.priority = 0; // 최고 우선순위 부여
         }
 
+        VoiceCopier copier = speaker.gameObject.GetOrAddComponent<VoiceCopier>();
+        copier.Init(aud3D, phoneMixerGroup);
+
+        playerVoices[targetNick] = copier;
+        if (callStateDict.TryGetValue(targetNick, out bool isCalling))
+        {
+            copier.SetCall(isCalling);
+        }
+
+
         // 투 트랙 출력을 위해 복제 컴포넌트를 달아줍니다.
-        AvatarVoiceSender sender = speaker.gameObject.AddComponent<AvatarVoiceSender>();
-        StartCoroutine(AttachSpeakerToPlayer(speaker, playerId, sender));
+        //AvatarVoiceSender sender = speaker.gameObject.AddComponent<AvatarVoiceSender>();
+        StartCoroutine(AttachSpeakerToPlayer(speaker, targetNick));
     }
 
-    private IEnumerator AttachSpeakerToPlayer(Speaker speaker, int photonPlayerId, AvatarVoiceSender sender)
+    // [수정]
+    private IEnumerator AttachSpeakerToPlayer(Speaker speaker, string targetNick)
     {
-        Debug.Log($"[Global Voice] (1/4) 부착 프로세스 시작! 대상의 Voice ID: {photonPlayerId}");
+        //Debug.Log($"[Global Voice] (1/4) 부착 프로세스 시작! 대상의 Voice ID: {photonPlayerId}");
 
-        Photon.Realtime.Player photonPlayer = null;
-        int infoRetries = 0;
+        //Photon.Realtime.Player photonPlayer = null;
+        //int infoRetries = 0;
 
-        while (photonPlayer == null && infoRetries < 10)
-        {
-            if (globalVoiceClient.Client.InRoom)
-            {
-                photonPlayer = globalVoiceClient.Client.CurrentRoom.GetPlayer(photonPlayerId);
-            }
+        //while (photonPlayer == null && infoRetries < 10)
+        //{
+        //    if (globalVoiceClient.Client.InRoom)
+        //    {
+        //        photonPlayer = globalVoiceClient.Client.CurrentRoom.GetPlayer(photonPlayerId);
+        //    }
 
-            if (photonPlayer == null)
-            {
-                yield return new WaitForSeconds(0.2f);
-                infoRetries++;
-            }
-        }
+        //    if (photonPlayer == null)
+        //    {
+        //        yield return new WaitForSeconds(0.2f);
+        //        infoRetries++;
+        //    }
+        //}
 
-        if (photonPlayer == null)
-        {
-            Debug.LogError($"[Global Voice] (에러) {photonPlayerId}번 유저의 접속 정보를 찾지 못했습니다.");
-            yield break;
-        }
+        //if (photonPlayer == null)
+        //{
+        //    Debug.LogError($"[Global Voice] (에러) {photonPlayerId}번 유저의 접속 정보를 찾지 못했습니다.");
+        //    yield break;
+        //}
 
-        string rawNick = string.IsNullOrEmpty(photonPlayer.NickName) ? "Guest" : photonPlayer.NickName;
-        string targetNick = rawNick.Replace("\0", "").Trim();
+        //string rawNick = string.IsNullOrEmpty(photonPlayer.NickName) ? "Guest" : photonPlayer.NickName;
+        //string targetNick = rawNick.Replace("\0", "").Trim();
 
-        // 딕셔너리에 추가할 때 copier 대신 sender를 넣습니다.
-        if (!playerVoices.ContainsKey(targetNick))
-        {
-            playerVoices.Add(targetNick, sender);
-        }
+        //// 딕셔너리에 추가할 때 copier 대신 sender를 넣습니다.
+        //if (!playerVoices.ContainsKey(targetNick))
+        //{
+        //    playerVoices.Add(targetNick, sender);
+        //}
 
-        // 통화 상태 동기화 시 SetCall 대신 SetCallMode를 호출합니다.
-        if (callStateDict.TryGetValue(targetNick, out bool isCalling) && isCalling)
-        {
-            sender.SetCallMode(isCalling);
-        }
+        //// 통화 상태 동기화 시 SetCall 대신 SetCallMode를 호출합니다.
+        //if (callStateDict.TryGetValue(targetNick, out bool isCalling) && isCalling)
+        //{
+        //    sender.SetCallMode(isCalling);
+        //}
 
+        //bool isAttached = false;
+        //int maxRetries = 40;
+        //int retries = 0;
+
+        //while (!isAttached && retries < maxRetries)
+        //{
+        //    PlayerNameSync[] allPlayers = FindObjectsByType<PlayerNameSync>(FindObjectsSortMode.None);
+
+        //    foreach (var p in allPlayers)
+        //    {
+        //        if (p == null) continue;
+
+        //        string netcodeNick = "";
+        //        try { netcodeNick = p.NetworkNickname.Value.ToString().Replace("\0", "").Trim(); }
+        //        catch { continue; }
+
+        //        if (netcodeNick == targetNick)
+        //        {
+        //            speaker.transform.SetParent(p.transform);
+        //            speaker.transform.localPosition = new Vector3(0, 1.5f, 0);
+
+        //            Debug.Log($"[Global Voice] (4/4 성공!) {targetNick}의 아바타에 스피커 부착 완료.");
+        //            isAttached = true;
+        //            break;
+        //        }
+        //    }
+
+        //    if (!isAttached)
+        //    {
+        //        retries++;
+        //        yield return new WaitForSeconds(0.5f);
+        //    }
+        //}
+
+        //if (!isAttached)
+        //{
+        //    Debug.LogWarning($"[Global Voice] (실패) '{targetNick}'인 플레이어가 없습니다.");
+        //}
+
+        // [수정]
         bool isAttached = false;
-        int maxRetries = 20;
+        int maxRetries = 40;
         int retries = 0;
 
         while (!isAttached && retries < maxRetries)
@@ -156,15 +223,29 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
                 if (p == null) continue;
 
                 string netcodeNick = "";
-                try { netcodeNick = p.NetworkNickname.Value.ToString().Replace("\0", "").Trim(); }
-                catch { continue; }
+                try
+                {
+                    if (p.NetworkNickname != null)
+                    {
+                        var fixedString = p.NetworkNickname.Value;
+                        netcodeNick = fixedString.ToString().Replace("\0", "").Trim();
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    // 아직 동기화가 안 되었을 경우 로그를 남기지 않고 다음 프레임 기약
+                    continue;
+                }
 
-                if (netcodeNick == targetNick)
+                // 3. 닉네임이 비어있으면 아직 데이터가 안 온 것이므로 대기
+                if (string.IsNullOrEmpty(netcodeNick)) continue;
+
+                if (netcodeNick.Equals(targetNick, StringComparison.OrdinalIgnoreCase))
                 {
                     speaker.transform.SetParent(p.transform);
-                    speaker.transform.localPosition = new Vector3(0, 1.5f, 0);
+                    speaker.transform.localPosition = new Vector3(0, 1.8f, 0.2f);
 
-                    Debug.Log($"[Global Voice] (4/4 성공!) {targetNick}의 아바타에 스피커 부착 완료.");
+                    Debug.Log($"<color=green>[Global Voice] {targetNick} 아바타 부착 성공!</color>");
                     isAttached = true;
                     break;
                 }
@@ -173,13 +254,9 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
             if (!isAttached)
             {
                 retries++;
+                // 간격을 조금 줄여서 더 자주 체크하되, 에러는 방지
                 yield return new WaitForSeconds(0.5f);
             }
-        }
-
-        if (!isAttached)
-        {
-            Debug.LogWarning($"[Global Voice] (실패) '{targetNick}'인 플레이어가 없습니다.");
         }
     }
 
@@ -187,15 +264,28 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
     {
         callStateDict[targetNickname] = isCalling;
 
-        if (playerVoices.TryGetValue(targetNickname, out AvatarVoiceSender sender))
+        if (playerVoices.TryGetValue(targetNickname, out VoiceCopier copier))
         {
-            if (sender != null)
-            {
-                sender.SetCallMode(isCalling);
-                Debug.Log($"[Voice DSP] {targetNickname}의 파형 복제 통화 모드가 {(isCalling ? "켜졌습니다" : "꺼졌습니다")}.");
-            }
+            if (copier != null) copier.SetCall(isCalling);
         }
     }
+
+    #region 포톤 외부 호출용
+    public void InitVoice(string myNickname)
+    {
+        globalVoiceClient.Client.NickName = myNickname;
+
+        if (globalRecorder != null)
+        {
+            globalVoiceClient.PrimaryRecorder = globalRecorder;
+            globalRecorder.TransmitEnabled = true;
+            globalRecorder.RestartRecording();
+        }
+
+        globalVoiceClient.ConnectUsingSettings();
+    }
+
+    #endregion
 
     // ========================================================================
     // 필수 구현 빈 함수들
@@ -203,12 +293,79 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
     public void OnConnected() { }
     public void OnDisconnected(DisconnectCause cause) { }
     public void OnRegionListReceived(RegionHandler regionHandler) { }
-    public void OnCustomAuthenticationResponse(System.Collections.Generic.Dictionary<string, object> data) { }
+    public void OnCustomAuthenticationResponse(Dictionary<string, object> data) { }
     public void OnCustomAuthenticationFailed(string debugMessage) { }
-    public void OnFriendListUpdate(System.Collections.Generic.List<FriendInfo> friendList) { }
+    public void OnFriendListUpdate(List<FriendInfo> friendList) { }
     public void OnCreatedRoom() { }
     public void OnCreateRoomFailed(short returnCode, string message) { }
     public void OnJoinRoomFailed(short returnCode, string message) { }
     public void OnJoinRandomFailed(short returnCode, string message) { }
     public void OnLeftRoom() { }
+}
+
+// [추가] 평소 3D 사운드 <-> 통화 시 2D 사운드처리용
+public class VoiceCopier : MonoBehaviour
+{
+    AudioSource aud3D;
+    AudioMixerGroup phoneMixer;
+    AudioMixerGroup defaultMixer;
+
+    Transform listener;
+    bool isCalling = false;
+
+    public float transitionDistance = 10f;
+
+    public void Init(AudioSource main3D, AudioMixerGroup mixerGroup)
+    {
+        aud3D = main3D;
+        phoneMixer = mixerGroup;
+        defaultMixer = main3D.outputAudioMixerGroup;
+
+        if (Camera.main != null) listener = Camera.main.transform;
+    }
+
+    void Update()
+    {
+        if (aud3D == null || listener == null) return;
+
+        // 1. 평상시: 100% 3D
+        if (!isCalling)
+        {
+            aud3D.spatialBlend = 1f;
+            aud3D.outputAudioMixerGroup = defaultMixer;
+            return;
+        }
+
+        // 2. 통화 중: 거리 기반 믹싱
+        float distance = Vector3.Distance(transform.position, listener.position);
+
+        if (distance > transitionDistance)
+        {
+            // 멀면 2D (전화기 소리)
+            aud3D.spatialBlend = 0f;
+            aud3D.outputAudioMixerGroup = phoneMixer;
+        }
+        else
+        {
+            // 가까워지면 3D로 전환 (생목소리 강조)
+            float t = 1f - (distance / transitionDistance);
+            aud3D.spatialBlend = Mathf.Lerp(0f, 1f, t);
+
+            // 아주 가까우면 필터 제거
+            aud3D.outputAudioMixerGroup = (distance < transitionDistance * 0.4f) ? defaultMixer : phoneMixer;
+        }
+    }
+
+    public void SetCall(bool state) => isCalling = state;
+   
+}
+
+// [추가] 헬퍼 확장 메서드 (미사용 시 삭제예정)
+public static class ComponentExtensions
+{
+    public static T GetOrAddComponent<T>(this GameObject go) where T : Component
+    {
+        T comp = go.GetComponent<T>();
+        return comp != null ? comp : go.AddComponent<T>();
+    }
 }
