@@ -9,7 +9,6 @@ public class PlayerRotation : NetworkBehaviour
     public Transform cameraTarget;      // eye_Cinemachine 오브젝트를 여기에 할당
     public PlayerMove playerMove;       // 이동 속도를 체크하기 위해 참조
     public GameObject CameraGroup;      // 휴대폰 촬영용 카메라도 같이 회전 처리
-    public GameObject tabletUIPanel;    // 테블릿상태 확인 (마우스 비지블 처리)
 
     [Header("설정")]
     public float sensitivity = 0.1f;
@@ -33,8 +32,35 @@ public class PlayerRotation : NetworkBehaviour
         {
             playerMove = GetComponent<PlayerMove>();
         }
-        TryFindTablet();
+        if (IsOwner)
+        {
+            TabletUIManager.OnTabletStateChanged += HandleTabletStateChanged;
+        }
         TryFindCamera();
+    }
+    public override void OnNetworkDespawn()
+    {
+        // 메모리 누수 방지를 위해 파괴 시 반드시 구독 해제
+        if (IsOwner)
+        {
+            TabletUIManager.OnTabletStateChanged -= HandleTabletStateChanged;
+        }
+        base.OnNetworkDespawn();
+    }
+
+    // 태블릿이 열리거나 닫힐 때 호출되는 함수
+    private void HandleTabletStateChanged(bool isOpen)
+    {
+        if (isOpen)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
     }
 
     private void TryFindCamera()
@@ -59,23 +85,6 @@ public class PlayerRotation : NetworkBehaviour
             }
         }
     }
-
-    void Update()
-    {
-        if (!IsOwner) return;
-
-        bool shouldLockCursor = (tabletUIPanel == null) || (tabletUIPanel != null && !tabletUIPanel.activeSelf);
-
-        if (shouldLockCursor)
-        {
-            if (Cursor.lockState != CursorLockMode.Locked)
-            {
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
-            }
-        }
-    }
-
 
     void LateUpdate()
     {
@@ -194,19 +203,6 @@ public class PlayerRotation : NetworkBehaviour
         {
             // 부활 시 다시 마우스 입력 켜기
             if (panTilt != null) panTilt.enabled = true;
-        }
-    }
-
-    public void TryFindTablet()
-    {
-        //if (tabletUIPanel == null)
-        //{
-        //    tabletUIPanel = FindAnyObjectByType<TabletUIManager>().tabletUIPanel;
-        //}
-        TabletUIManager tabletManager = FindAnyObjectByType<TabletUIManager>();
-        if (tabletManager != null)
-        {
-            tabletUIPanel = tabletManager.tabletUIPanel;
         }
     }
 }

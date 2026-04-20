@@ -18,7 +18,7 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
     public AudioMixerGroup phoneMixerGroup;
 
     // AudioSource 대신 복제 스크립트(VoiceCopier)를 저장합니다.
-    private Dictionary<string, VoiceCopier> playerVoices = new Dictionary<string, VoiceCopier>();
+    private Dictionary<string, AvatarVoiceSender> playerVoices = new Dictionary<string, AvatarVoiceSender>();
     private Dictionary<string, bool> callStateDict = new Dictionary<string, bool>();
 
     private void Awake()
@@ -91,16 +91,17 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
             aud3D.maxDistance = 20f;
             aud3D.rolloffMode = AudioRolloffMode.Linear;
             aud3D.playOnAwake = true;
+
+            // [추가] 거리가 멀어져도 오디오 연산을 강제로 끄지 못하게 만듦
+            aud3D.priority = 0; // 최고 우선순위 부여
         }
 
         // 투 트랙 출력을 위해 복제 컴포넌트를 달아줍니다.
-        VoiceCopier copier = speaker.gameObject.AddComponent<VoiceCopier>();
-        copier.Init(aud3D, phoneMixerGroup);
-
-        StartCoroutine(AttachSpeakerToPlayer(speaker, playerId, copier));
+        AvatarVoiceSender sender = speaker.gameObject.AddComponent<AvatarVoiceSender>();
+        StartCoroutine(AttachSpeakerToPlayer(speaker, playerId, sender));
     }
 
-    private IEnumerator AttachSpeakerToPlayer(Speaker speaker, int photonPlayerId, VoiceCopier copier)
+    private IEnumerator AttachSpeakerToPlayer(Speaker speaker, int photonPlayerId, AvatarVoiceSender sender)
     {
         Debug.Log($"[Global Voice] (1/4) 부착 프로세스 시작! 대상의 Voice ID: {photonPlayerId}");
 
@@ -130,14 +131,16 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
         string rawNick = string.IsNullOrEmpty(photonPlayer.NickName) ? "Guest" : photonPlayer.NickName;
         string targetNick = rawNick.Replace("\0", "").Trim();
 
+        // 딕셔너리에 추가할 때 copier 대신 sender를 넣습니다.
         if (!playerVoices.ContainsKey(targetNick))
         {
-            playerVoices.Add(targetNick, copier);
+            playerVoices.Add(targetNick, sender);
         }
 
+        // 통화 상태 동기화 시 SetCall 대신 SetCallMode를 호출합니다.
         if (callStateDict.TryGetValue(targetNick, out bool isCalling) && isCalling)
         {
-            copier.SetCall(isCalling);
+            sender.SetCallMode(isCalling);
         }
 
         bool isAttached = false;
@@ -184,12 +187,12 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
     {
         callStateDict[targetNickname] = isCalling;
 
-        if (playerVoices.TryGetValue(targetNickname, out VoiceCopier copier))
+        if (playerVoices.TryGetValue(targetNickname, out AvatarVoiceSender sender))
         {
-            if (copier != null)
+            if (sender != null)
             {
-                copier.SetCall(isCalling);
-                Debug.Log($"[Voice] {targetNickname}의 통화(2D) 모드가 {(isCalling ? "켜졌습니다" : "꺼졌습니다")}. 3D 육성은 유지됩니다.");
+                sender.SetCallMode(isCalling);
+                Debug.Log($"[Voice DSP] {targetNickname}의 파형 복제 통화 모드가 {(isCalling ? "켜졌습니다" : "꺼졌습니다")}.");
             }
         }
     }
@@ -208,79 +211,4 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
     public void OnJoinRoomFailed(short returnCode, string message) { }
     public void OnJoinRandomFailed(short returnCode, string message) { }
     public void OnLeftRoom() { }
-}
-
-// ========================================================================
-// 3D 오디오 스트림을 2D 스피커로 복제해주는 컴포넌트 (원상 복구)
-// ========================================================================
-public class VoiceCopier : MonoBehaviour
-{
-    private AudioSource aud3D; // 포톤이 제공하는 단 1개의 원본 오디오 소스
-    private AudioMixerGroup phoneMixer;
-    private AudioMixerGroup defaultMixer; // 원래의 믹서
-
-    private Transform listener;
-    private bool isCalling = false;
-
-    [Header("거리 설정")]
-    public float transitionDistance = 10f; // 3D 전환 거리 (이 안으로 오면 생목소리가 섞임)
-
-    public void Init(AudioSource main3D, AudioMixerGroup mixerGroup)
-    {
-        aud3D = main3D;
-        phoneMixer = mixerGroup;
-        defaultMixer = main3D.outputAudioMixerGroup; // 기존 믹서 백업
-
-        // 내 캐릭터의 귀(일반적으로 메인 카메라)를 찾음
-        if (Camera.main != null)
-        {
-            listener = Camera.main.transform;
-        }
-
-        // 주의: 더 이상 aud2D(복제본)를 AddComponent 하지 않습니다!
-    }
-
-    void Update()
-    {
-        if (aud3D == null || listener == null) return;
-
-        // 1. 전화 중이 아닐 때: 무조건 100% 3D 사운드 유지
-        if (!isCalling)
-        {
-            if (aud3D.spatialBlend != 1f) aud3D.spatialBlend = 1f;
-            if (aud3D.outputAudioMixerGroup != defaultMixer) aud3D.outputAudioMixerGroup = defaultMixer;
-            return;
-        }
-
-        // 2. 전화 중일 때: 거리에 따른 2D / 3D 동적 믹싱
-        float distance = Vector3.Distance(transform.position, listener.position);
-
-        if (distance > transitionDistance)
-        {
-            // 멀리 있을 때: 100% 2D (귀에 대고 듣는 선명한 전화 소리)
-            aud3D.spatialBlend = 0f;
-            if (aud3D.outputAudioMixerGroup != phoneMixer) aud3D.outputAudioMixerGroup = phoneMixer;
-        }
-        else
-        {
-            // 가까이 다가올 때: 2D에서 3D로 서서히 전환되며 겹침
-            float t = 1f - (distance / transitionDistance);
-            aud3D.spatialBlend = Mathf.Clamp01(t);
-
-            // 상대방이 매우 가까워지면 전화기 필터를 끄고 생목소리로 전환
-            if (distance < transitionDistance * 0.5f)
-            {
-                if (aud3D.outputAudioMixerGroup != defaultMixer) aud3D.outputAudioMixerGroup = defaultMixer;
-            }
-            else
-            {
-                if (aud3D.outputAudioMixerGroup != phoneMixer) aud3D.outputAudioMixerGroup = phoneMixer;
-            }
-        }
-    }
-
-    public void SetCall(bool state)
-    {
-        isCalling = state;
-    }
 }

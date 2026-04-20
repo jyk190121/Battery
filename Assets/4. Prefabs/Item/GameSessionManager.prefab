@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1396174734
+  GlobalObjectIdHash: 4202409907
   InScenePlacedSourceGlobalObjectIdHash: 4202409907
   DeferredDespawnTick: 0
   Ownership: 1
@@ -82,6 +82,7 @@ MonoBehaviour:
   - {fileID: 5134562728361972797, guid: 2d72ef6ea3227664ca05aac27bf436fd, type: 3}
   - {fileID: 7513268802038698022, guid: 6e75424edaedeb6419c9dd3da010b7cf, type: 3}
   - {fileID: 4266655932270077785, guid: 56d051f503a52eb4eb7d5deb343b29f5, type: 3}
+  - {fileID: 1242890628306810797, guid: 2c1bef62561d92341958dfccbadef112, type: 3}
 --- !u!114 &3852236523237432094
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -110,6 +111,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemCheat
   ShowTopMostFoldoutHeaderGroup: 1
-  targetItemID: 301
+  targetItemID: 601
   helpMessage: "F2: \uC544\uC774\uD15C \uC18C\uD658 | F5: \uC2E0\uC6A9\uD55C\uB3C4
     \uCD94\uAC00"

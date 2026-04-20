@@ -151,7 +151,7 @@ public class OnCallingUI : MonoBehaviour
             isTimerRunning = true;
             timerText.text = "00:00";
 
-            // [핵심 적용] 전화를 건 입장에서 상대방이 수락하면, 상대방 스피커를 2D로 전환
+            // 전화를 건 입장에서 상대방이 수락하면, 상대방 스피커로 전환
             if (GlobalVoiceManager.Instance != null)
                 GlobalVoiceManager.Instance.SetCallMode(currentTargetName, true);
         }
