@@ -116,13 +116,25 @@ public class InteractDoorState : MonsterBaseState
                 Debug.Log("<color=cyan>[Door]</color> 문을 열었습니다. 타겟이 보이므로 추격을 재개합니다.");
                 owner.ChangeState(MonsterStateType.Chase);
             }
-            // B. 타겟은 안 보이지만, 방금 전까지 수색(Search) 중이었다면 -> 수색 계속 진행 (마지막 위치로 이동)
+            // B. 타겟은 안 보이지만, 방금 전까지 추격(Chase) 중이었다면
+            else if (owner.PreviousState == MonsterStateType.Chase)
+            {
+                Debug.Log("<color=cyan>[Door]</color> 문을 열었습니다. 방금 전까지 쫓던 타겟을 향해 추격을 강행합니다.");
+                owner.ChangeState(MonsterStateType.Chase);
+            }
+            // C. 방금 전까지 수색(Search) 중이었다면 -> 수색 계속 진행
             else if (owner.PreviousState == MonsterStateType.Search)
             {
                 Debug.Log("<color=cyan>[Door]</color> 문을 열었습니다. 수색 중이었으므로 수색을 계속합니다.");
                 owner.ChangeState(MonsterStateType.Search);
             }
-            // C. 그 외 (단순 순찰 중이었거나 어그로가 완전히 빠진 경우) -> 정찰 복귀
+            // D. 소리를 듣고 조사(Investigate) 중이었다면 -> 조사 계속 진행
+            else if (owner.PreviousState == MonsterStateType.Investigate)
+            {
+                Debug.Log("<color=cyan>[Door]</color> 문을 열었습니다. 의심스러운 소리가 난 곳으로 조사를 계속합니다.");
+                owner.ChangeState(MonsterStateType.Investigate);
+            }
+            // E. 그 외 (단순 순찰 중이었거나 어그로가 완전히 빠진 경우) -> 정찰 복귀
             else
             {
                 Debug.Log("<color=cyan>[Door]</color> 문을 열었습니다. 특별한 타겟이 없으므로 정찰로 복귀합니다.");
@@ -132,7 +144,7 @@ public class InteractDoorState : MonsterBaseState
         else
         {
             // 2. 열쇠가 필요한 굳게 잠긴 문일 경우 -> 뚫지 못하므로 추격을 포기하고 주변을 두리번거림
-            Debug.Log("<color=orange>[Door]</color> 문이 잠겨있습니다. 추격을 포기하고 주변을 수색합니다.");
+            Debug.Log("<color=orange>[Door]</color> 문이 잠겨있습니다. 진입을 포기하고 주변을 수색합니다.");
             owner.ChangeState(MonsterStateType.Search);
         }
 

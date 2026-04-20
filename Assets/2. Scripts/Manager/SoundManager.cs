@@ -206,14 +206,12 @@ public class SoundManager : MonoBehaviour
     /// </summary>
     private void ReportNoiseToMonsters(Vector3 position, float noiseLevel)
     {
-        // Netcode가 활성화되어 있고, 내가 클라이언트(유저)일 때만 작동
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsClient)
         {
             var localObj = NetworkManager.Singleton.LocalClient.PlayerObject;
             if (localObj != null && localObj.TryGetComponent<PlayerController>(out var localPlayer))
             {
-                localPlayer.ReportNoiseServerRpc(position, noiseLevel);
-                Debug.Log($"<color=white>[SoundManager]</color> 몬스터에게 소음({noiseLevel}) 전달 완료: {position}");
+                localPlayer.ReportNoiseServerRpc(position, noiseLevel, localPlayer.isInsideFacility.Value);
             }
         }
     }
