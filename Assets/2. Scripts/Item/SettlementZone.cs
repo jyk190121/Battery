@@ -35,7 +35,7 @@ public class SettlementZone : NetworkBehaviour
         }
     }
 
-    [Rpc(SendTo.Server)]
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     private void RequestTransitionServerRpc(string targetScene, bool doSettlement, RpcParams rpcParams = default)
     {
         var clientId = rpcParams.Receive.SenderClientId;
@@ -262,7 +262,7 @@ public class SettlementZone : NetworkBehaviour
     }
 
     // 플레이어 되살리기 로직 실행
-    [ServerRpc(RequireOwnership = false)]
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void RequestReviveAllPlayersServerRpc()
     {
         if (!IsServer) return;
