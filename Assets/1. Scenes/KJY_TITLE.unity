@@ -1060,6 +1060,10 @@ PrefabInstance:
       propertyPath: microphoneType
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2344929912570209872, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3789166952560705026, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
       propertyPath: phoneMixerGroup
       value: 
@@ -5784,8 +5788,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VoiceLevelDetector
   recorder: {fileID: 1782885782}
-  voiceThreshold: 0.02
-  voiceSensitivity: 100
+  voiceThreshold: 0.5
+  voiceSensitivity: 80
   reportCooldown: 0.5
 --- !u!1 &1836415247
 GameObject:
