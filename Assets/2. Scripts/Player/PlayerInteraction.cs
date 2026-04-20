@@ -123,11 +123,13 @@ public class PlayerInteraction : NetworkBehaviour
                     targetDoor.TryOpen(testKeyID);
                 }
             }
-            else if(targetTabletUI != null)
+            else if (targetTabletUI != null)
             {
                 if (Keyboard.current.eKey.wasPressedThisFrame)
                 {
-                    targetTabletUI.OpenTabletUI();
+                    // 플레이어의 컨트롤러 정보를 함께 넘겨줍니다.
+                    // 이를 통해 태블릿 측에서 플레이어의 이동을 막고 마우스를 켤 수 있습니다.
+                    targetTabletUI.OpenTabletUI(controller);
                 }
             }
             else if (carDoor != null)

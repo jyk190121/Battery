@@ -245,10 +245,9 @@ public class GameSceneManager : NetworkBehaviour
             // 상호작용 UI 연결
             if (playerObj.TryGetComponent(out PlayerInteraction interaction))
                 interaction.FindUIElements();
-
-            // [추가] 마우스 회전 스크립트의 태블릿 UI 다시 연결
-            if (playerObj.TryGetComponent(out PlayerRotation rotation))
-                rotation.TryFindTablet(); // PlayerRotation에 public으로 선언 필요
+            
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
         }
     }
 
