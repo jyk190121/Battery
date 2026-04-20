@@ -104,12 +104,13 @@ public class MonsterController : NetworkBehaviour
         }
         else
         {
-            // [일반 몬스터용] 수색, 추격, 공격, 스턴 상태
+            // [일반 몬스터용] 수색, 추격, 공격, 스턴 상태 등
             _states.Add(MonsterStateType.Attack, new AttackState(this));
             _states.Add(MonsterStateType.Detect, new DetectState(this));
             _states.Add(MonsterStateType.Chase, new ChaseState(this));
             _states.Add(MonsterStateType.Search, new SearchState(this));
             _states.Add(MonsterStateType.Stunned, new StunnedState(this));
+            _states.Add(MonsterStateType.Investigate, new InvestigateState(this));
         }
     }
 
