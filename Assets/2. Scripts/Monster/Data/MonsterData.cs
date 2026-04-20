@@ -104,6 +104,15 @@ public class MonsterData : ScriptableObject
     [Tooltip("경로 재탐색 기준 거리 (타겟이 이만큼 움직여야 경로를 새로 땀)")]
     [Min(0f)] public float pathUpdateThreshold = 1.0f;
 
+    [Tooltip("순찰 중 문을 만났을 때 열고 지나갈 확률 (0.0 ~ 1.0)")]
+    public float patrolDoorOpenChance = 0.2f;
+
+    [Tooltip("문을 열지 않기로 결정했을 때, 다른 행동을 하기 전까지의 쿨타임 (초)")]
+    public float doorIgnoreCooldown = 1.0f;
+
+    [Tooltip("순찰 시 다음 목적지를 정할 때 요구되는 최소 이동 거리 (m)")]
+    public float minPatrolDistance = 10f;
+
 
     // =========================================================
     // 5. 시스템 및 네트워크 최적화 (System & Network)
@@ -159,4 +168,7 @@ public class MonsterData : ScriptableObject
 
     [Tooltip("맞아서 떨어졌을 때 패닉 상태로 도망치는 시간(초)")]
     [Min(0f)] public float fleeDuration = 6.0f;
+
+    [Tooltip("올무벼룩이 순찰 도중 천장을 올려다보는 간격 (초)")]
+    public float fleaCeilingCheckInterval = 5.0f;
 }

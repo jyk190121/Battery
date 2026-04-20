@@ -31,14 +31,17 @@ MonoBehaviour:
   maxSearchDuration: 10
   searchPauseDuration: 3
   searchNodeRadius: 15
-  minWaitTime: 2
-  maxWaitTime: 3
+  minWaitTime: 10
+  maxWaitTime: 15
   maxPatrolMoveTime: 10
   aiTickInterval: 0.2
   fastTickInterval: 0.05
   predictiveChaseTime: 0.8
   predictionTime: 1.5
   pathUpdateThreshold: 1
+  patrolDoorOpenChance: 0.2
+  doorIgnoreCooldown: 1
+  minPatrolDistance: 10
   alertnessIncreaseRate: 1.5
   alertnessDecreaseRate: 0.5
   alertnessSyncInterval: 0.2
@@ -54,3 +57,4 @@ MonoBehaviour:
   snareTickRate: 0
   snareTickDamage: 0
   fleeDuration: 0
+  fleaCeilingCheckInterval: 0

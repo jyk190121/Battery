@@ -270,10 +270,10 @@ public class MonsterController : NetworkBehaviour
     }
 
     /// <summary>
-    /// 전방의 문을 탐색하고 발견 시 상호작용(문 열기) 상태로 전환합니다.
-    /// NonAlloc을 사용하여 GC가 발생하지 않습니다.
+    /// 전방의 문을 탐색하고 발견 시 확률에 따라 상호작용(문 열기) 상태로 전환합니다.
     /// </summary>
-    public bool CheckAndHandleDoor()
+    /// <param name="openChance">문을 열 확률 (0.0 ~ 1.0). 기본값은 1.0(100%)</param>
+    public bool CheckAndHandleDoor(float openChance = 1.0f)
     {
         if (!IsServer) return false;
 
@@ -291,11 +291,18 @@ public class MonsterController : NetworkBehaviour
             {
                 Vector3 dirToDoor = (hit.bounds.center - transform.position).normalized;
 
-                // 문이 전방 180도 이내에 있다면 상호작용 돌입
+                // 문이 전방 180도 이내에 있다면
                 if (Vector3.Dot(transform.forward, dirToDoor) > -0.2f)
                 {
-                    TargetDoor = door;
-                    ChangeState(MonsterStateType.InteractDoor);
+                    // 확률 굴림 (openChance가 0.3이면 30% 확률로만 성공)
+                    if (UnityEngine.Random.value <= openChance)
+                    {
+                        TargetDoor = door;
+                        ChangeState(MonsterStateType.InteractDoor);
+                    }
+
+                    // 확률에 실패해서 문을 안 열었더라도, "문이 앞을 막고 있다(true)"는 사실은 반환합니다.
+                    // 그래야 PatrolState에서 이 사실을 알고 다른 길로 돌아갑니다.
                     return true;
                 }
             }
