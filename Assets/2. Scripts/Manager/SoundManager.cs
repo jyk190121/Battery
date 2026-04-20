@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Unity.Netcode;
 
 public enum SfxSound
 {
@@ -175,6 +176,46 @@ public class SoundManager : MonoBehaviour
         }
         Debug.LogWarning($"SFX Sound {sound} 없음");
         return null;
+    }
+
+    #endregion
+
+    #region 몬스터 연동 3D 사운드 재생
+
+    /// <summary>
+    /// 3D 위치에서 효과음을 재생하고, 동시에 주변 몬스터들에게 소음을 전파합니다.
+    /// </summary>
+    /// <param name="sound">재생할 효과음 종류</param>
+    /// <param name="position">소리가 발생한 월드 좌표</param>
+    /// <param name="noiseLevel">소리의 크기 (예: 발소리 0.5, 벨소리 1.0, 비명 2.0)</param>
+    public void PlaySfxAndReportNoise(SfxSound sound, Vector3 position, float noiseLevel)
+    {
+        // 1. 해당 위치에서 3D 사운드 재생 
+        AudioClip clip = GetSfxClip(sound);
+        if (clip != null)
+        {
+            AudioSource.PlayClipAtPoint(clip, position);
+        }
+
+        // 2. 서버로 소음 발생 사실을 신고 (몬스터 유인용)
+        ReportNoiseToMonsters(position, noiseLevel);
+    }
+
+    /// <summary>
+    /// 내 로컬 플레이어를 찾아 서버(몬스터들)에게 소음 좌표를 전송하는 내부 헬퍼 함수
+    /// </summary>
+    private void ReportNoiseToMonsters(Vector3 position, float noiseLevel)
+    {
+        // Netcode가 활성화되어 있고, 내가 클라이언트(유저)일 때만 작동
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsClient)
+        {
+            var localObj = NetworkManager.Singleton.LocalClient.PlayerObject;
+            if (localObj != null && localObj.TryGetComponent<PlayerController>(out var localPlayer))
+            {
+                localPlayer.ReportNoiseServerRpc(position, noiseLevel);
+                Debug.Log($"<color=white>[SoundManager]</color> 몬스터에게 소음({noiseLevel}) 전달 완료: {position}");
+            }
+        }
     }
 
     #endregion

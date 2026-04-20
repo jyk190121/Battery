@@ -1107,7 +1107,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 829000818441891300, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1782885784}
   m_SourcePrefab: {fileID: 100100000, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
 --- !u!4 &308376625 stripped
 Transform:
@@ -5752,6 +5755,38 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1759806006}
   m_CullTransparentMesh: 1
+--- !u!1 &1782885779 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 829000818441891300, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+  m_PrefabInstance: {fileID: 308376624}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1782885782 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 785662038164424389, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+  m_PrefabInstance: {fileID: 308376624}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1782885779}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91175dcc15224463780e01a8a98b1b60, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonVoice::Photon.Voice.Unity.Recorder
+--- !u!114 &1782885784
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1782885779}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 47fc687ea0c1e474db516ca2676dfb6f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VoiceLevelDetector
+  recorder: {fileID: 1782885782}
+  voiceThreshold: 0.02
+  voiceSensitivity: 100
+  reportCooldown: 0.5
 --- !u!1 &1836415247
 GameObject:
   m_ObjectHideFlags: 0

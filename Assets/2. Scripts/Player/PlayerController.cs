@@ -350,4 +350,19 @@ public class PlayerController : NetworkBehaviour
             }
         }
     }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void ReportNoiseServerRpc(Vector3 noisePos, float noiseLevel)
+    {
+        if (EnemyManager.Instance == null) return;
+
+        // 맵 전체를 뒤지지 않고, 미리 관리 중인 몬스터 리스트만 순회
+        foreach (var scanner in EnemyManager.Instance.ActiveScanners)
+        {
+            if (scanner != null)
+            {
+                scanner.OnHeardSound(noisePos, noiseLevel);
+            }
+        }
+    }
 }

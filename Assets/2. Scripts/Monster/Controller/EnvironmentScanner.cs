@@ -51,6 +51,20 @@ public class EnvironmentScanner : MonoBehaviour
         _viewRangeSqr = data.viewRange * data.viewRange;
     }
 
+    private void OnEnable()
+    {
+        // 활성화될 때 매니저에 등록
+        if (EnemyManager.Instance != null)
+            EnemyManager.Instance.RegisterScanner(this);
+    }
+
+    private void OnDisable()
+    {
+        // 비활성화(사망 등)될 때 매니저에서 제거
+        if (EnemyManager.Instance != null)
+            EnemyManager.Instance.UnregisterScanner(this);
+    }
+
 
     // =========================================================
     // 3. 유니티 루프 및 콜백 (OnDrawGizmos 등)
@@ -180,11 +194,14 @@ public class EnvironmentScanner : MonoBehaviour
             LastHeardPosition = soundOrigin;
             Debug.Log($"<color=yellow>[소리 감지]</color> {owner.name}이(가) 소리를 들었습니다: {soundOrigin}");
 
+            // 순찰, 정지, 혹은 수색 중일 때 소리가 나면 그곳으로 '조사(Investigate)'를 하러 갑니다.
             if (owner.CurrentStateNet.Value == MonsterStateType.Patrol ||
-                owner.CurrentStateNet.Value == MonsterStateType.Idle)
+                owner.CurrentStateNet.Value == MonsterStateType.Idle ||
+                owner.CurrentStateNet.Value == MonsterStateType.Search) // 수색 중 다른 소리가 나면 갱신
             {
+                // 소리가 난 위치를 저장하고 조사 상태로 변경
                 LastSeenPosition = soundOrigin;
-                owner.ChangeState(MonsterStateType.Search);
+                owner.ChangeState(MonsterStateType.Investigate);
             }
         }
     }
