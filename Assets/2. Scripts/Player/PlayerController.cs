@@ -101,6 +101,12 @@ public class PlayerController : NetworkBehaviour
         isDead.Value = true;
         Debug.Log($"{gameObject.name}가 사망했습니다.");
 
+
+        if (TryGetComponent(out PlayerInventory inventory))
+        {
+            inventory.DropAllItemsOnDeathServer();
+        }
+
         // 사망 애니메이션 실행, 콜라이더 끄기, 리스폰 로직 등 처리
         CheckAllPlayersDead();
     }
