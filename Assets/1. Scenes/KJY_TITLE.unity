@@ -5784,8 +5784,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VoiceLevelDetector
   recorder: {fileID: 1782885782}
-  voiceThreshold: 0.02
-  voiceSensitivity: 100
+  voiceThreshold: 0.5
+  voiceSensitivity: 80
   reportCooldown: 0.5
 --- !u!1 &1836415247
 GameObject:

@@ -17,6 +17,10 @@ public class EnvironmentScanner : MonoBehaviour
     [Tooltip("몬스터의 시야/청각 스탯이 담긴 데이터")]
     public MonsterData data;
 
+    [Header("--- Environment Settings ---")]
+    [Tooltip("이 몬스터가 주로 활동하는 공간이 실내인가? (야외 몹이면 false)")]
+    public bool isIndoorMonster = true;
+
     [Header("--- Detection Settings ---")]
     [Tooltip("시야가 가려졌는지 판단할 장애물 레이어")]
     [SerializeField] private LayerMask _obstacleMask;
@@ -183,23 +187,55 @@ public class EnvironmentScanner : MonoBehaviour
 
     /// <summary>
     /// 외부 SoundManager 등에서 소리가 발생했을 때 호출하는 훅(Hook) 함수
+    /// 실내외 차단, 층간 소음, 벽간 소음을 모두 계산합니다.
     /// </summary>
-    public void OnHeardSound(Vector3 soundOrigin, float noiseLevel)
+    public void OnHeardSound(Vector3 soundOrigin, float noiseLevel, bool soundIsInside)
     {
-        float distance = Vector3.Distance(transform.position, soundOrigin);
+        // 1. [공간 분리] 실외/실내 완전 격리 (서로 다른 공간이면 아예 듣지 못함)
+        if (this.isIndoorMonster != soundIsInside)
+        {
+            return;
+        }
 
-        // 소리는 시야각(FOV)의 영향을 받지 않고 360도로 감지됩니다.
-        if (distance <= data.hearingRange * noiseLevel)
+        // 2. [층간 소음 차단] 높이(Y축) 차이를 계산
+        float verticalDifference = Mathf.Abs(transform.position.y - soundOrigin.y);
+
+        // 층 미터 계산
+        if (verticalDifference >= 6.5f)
+        {
+            // 층이 다르면 소리 크기(전달 반경)를 70% 깎아버립니다. (0.3배)
+            // 즉, 반경 20m짜리 큰 비명도 위층에서는 6m로 작게 들리게 됩니다.
+            noiseLevel *= 0.3f;
+
+            // 2개 층 이상 차이 (7m 이상) 나면 아예 소리가 도달하지 못하게 막음
+            if (verticalDifference >= 13f) return;
+        }
+
+        // 3. [벽간 소음 차단] 같은 층이라도 닫힌 문이나 두꺼운 벽 너머라면 소리가 줄어듦
+        Vector3 dirToSound = soundOrigin - transform.position;
+        float distToSound = dirToSound.magnitude;
+
+        // 몬스터의 머리 위치에서 소리가 난 곳을 향해 레이저를 쏴서 막히는지 확인
+        Vector3 checkStart = transform.position + (Vector3.up * 1.5f);
+        if (Physics.Raycast(checkStart, dirToSound.normalized, distToSound, _obstacleMask))
+        {
+            // 벽에 막혔다면 소리 반경을 추가로 50% 깎아버립니다. (0.5배)
+            noiseLevel *= 0.5f;
+        }
+
+        // 4. [최종 감지 판정] 차단율이 모두 적용된 최종 소리 반경이 거리에 닿는지 확인
+        float finalHearingRadius = data.hearingRange * noiseLevel;
+
+        if (distToSound <= finalHearingRadius)
         {
             LastHeardPosition = soundOrigin;
-            Debug.Log($"<color=yellow>[소리 감지]</color> {owner.name}이(가) 소리를 들었습니다: {soundOrigin}");
+            Debug.Log($"<color=yellow>[소리 감지]</color> {owner.name}이(가) 소리를 들었습니다. (최종 반경: {finalHearingRadius:F1}m)");
 
             // 순찰, 정지, 혹은 수색 중일 때 소리가 나면 그곳으로 '조사(Investigate)'를 하러 갑니다.
             if (owner.CurrentStateNet.Value == MonsterStateType.Patrol ||
                 owner.CurrentStateNet.Value == MonsterStateType.Idle ||
-                owner.CurrentStateNet.Value == MonsterStateType.Search) // 수색 중 다른 소리가 나면 갱신
+                owner.CurrentStateNet.Value == MonsterStateType.Search)
             {
-                // 소리가 난 위치를 저장하고 조사 상태로 변경
                 LastSeenPosition = soundOrigin;
                 owner.ChangeState(MonsterStateType.Investigate);
             }

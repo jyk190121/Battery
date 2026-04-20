@@ -14,6 +14,9 @@ public class PlayerController : NetworkBehaviour
 
     // 네트워크 플레이어 상호작용 불가 체크
     public NetworkVariable<bool> isSnared = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    
+    // 네트워크 플레이어 실내/외 체크
+    public NetworkVariable<bool> isInsideFacility = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
     // 컴포넌트들을 미리 캐싱하여 다른 곳에서 쉽게 찾게 할 수도 있습니다.
     public PlayerStateManager StateManager { get; private set; }
@@ -352,16 +355,16 @@ public class PlayerController : NetworkBehaviour
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-    public void ReportNoiseServerRpc(Vector3 noisePos, float noiseLevel)
+    public void ReportNoiseServerRpc(Vector3 noisePos, float noiseLevel, bool isInside)
     {
         if (EnemyManager.Instance == null) return;
 
-        // 맵 전체를 뒤지지 않고, 미리 관리 중인 몬스터 리스트만 순회
         foreach (var scanner in EnemyManager.Instance.ActiveScanners)
         {
             if (scanner != null)
             {
-                scanner.OnHeardSound(noisePos, noiseLevel);
+                // 소리의 크기뿐만 아니라, 소리가 발생한 장소(실내/실외) 정보도 몬스터에게 넘겨줍니다
+                scanner.OnHeardSound(noisePos, noiseLevel, isInside);
             }
         }
     }

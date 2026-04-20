@@ -77,7 +77,7 @@ public class VoiceLevelDetector : MonoBehaviour
                 float noiseLevel = (CurrentLevel - voiceThreshold) * voiceSensitivity;
 
                 // 내 플레이어 컨트롤러를 통해 서버에 "나 여기서 소리 냈어!" 라고 알림
-                _localPlayer.ReportNoiseServerRpc(_localPlayer.transform.position, noiseLevel);
+                _localPlayer.ReportNoiseServerRpc(_localPlayer.transform.position, noiseLevel, _localPlayer.isInsideFacility.Value);
 
                 // 쿨타임 타이머 리셋
                 _lastReportTime = Time.time;
