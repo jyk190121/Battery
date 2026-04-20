@@ -26,7 +26,7 @@ MonoBehaviour:
   attackTrackingTime: 0.5
   viewRange: 10
   viewAngle: 120
-  hearingRange: 15
+  hearingRange: 30
   visionMemoryTime: 3
   maxSearchDuration: 15
   searchPauseDuration: 3

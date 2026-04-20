@@ -9,6 +9,7 @@ public enum MonsterStateType
     Stunned,       // 스턴
     InteractDoor,  // 문 열기
     Dead,          // 사망
+    Investigate,    // 조사 (사운드)
 
     // 올무벼룩 전용 상태
     CeilingWait,   // 천장에 붙어 대기하는 상태

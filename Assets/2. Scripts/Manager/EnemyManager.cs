@@ -4,29 +4,50 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
+/// <summary>
+/// 게임 내 몬스터의 스폰 예산(Budget)을 관리하고, 
+/// 벤트를 통해 몬스터를 생성 및 회수하며 서버의 과부하를 막는 AI 디렉터입니다.
+/// </summary>
 public class EnemyManager : NetworkBehaviour
 {
+    // =========================================================
+    // 1. 변수 선언부
+    // =========================================================
+
     public static EnemyManager Instance;
 
-    [Header("Spawn Pool")]
+    [Header("--- Spawn Pool ---")]
+    [Tooltip("스폰 가능한 몬스터 데이터 목록")]
     public List<MonsterData> availableMonsters;
+    [Tooltip("맵에 배치된 몬스터 스폰 지점(환풍구 등)")]
     public List<VentController> ventPoints;
 
-    [Header("Budget Settings")]
+    [Header("--- Budget Settings ---")]
+    [Tooltip("기본 스폰 예산")]
     public int baseMaxBudget = 10;
+    [Tooltip("난이도 1당 추가되는 예산")]
     public int budgetPerDifficulty = 2;
 
-    [Header("Spawn Timing")]
+    [Header("--- Spawn Timing ---")]
     public float minSpawnDelay = 10f;
     public float maxSpawnDelay = 40f;
 
-    private int totalMaxBudget;
-    private int currentSpentBudget = 0;
-    private bool isDayActive = false;
-    private Coroutine spawnRoutine;
+    // [서버 최적화용] 활성화된 몬스터들의 청각/시각 스캐너 리스트 
+    private List<EnvironmentScanner> _activeScanners = new List<EnvironmentScanner>();
+    public List<EnvironmentScanner> ActiveScanners => _activeScanners;
 
-    private List<NetworkObject> activeMonsters = new List<NetworkObject>();
-    private Dictionary<MonsterData, int> currentSpawnCounts = new Dictionary<MonsterData, int>();
+    private int _totalMaxBudget;
+    private int _currentSpentBudget = 0;
+    private bool _isDayActive = false;
+    private Coroutine _spawnRoutine;
+
+    private List<NetworkObject> _activeMonsters = new List<NetworkObject>();
+    private Dictionary<MonsterData, int> _currentSpawnCounts = new Dictionary<MonsterData, int>();
+
+
+    // =========================================================
+    // 2. 초기화 함수
+    // =========================================================
 
     private void Awake()
     {
@@ -40,11 +61,11 @@ public class EnemyManager : NetworkBehaviour
 
         if (GameMaster.Instance != null)
         {
-            // 1. 이벤트 구독
+            // 1. 낮/밤(사이클) 시작 및 종료 이벤트 구독
             GameMaster.Instance.OnDayStarted += StartSpawnCycle;
             GameMaster.Instance.OnDayEnded += StopSpawnCycle;
 
-            // 이미 날이 시작된 상태에서 매니저가 스폰되었다면 즉시 루프 시작
+            // 2. 이미 날이 시작된 상태에서 매니저가 스폰되었다면 즉시 루프 시작 (난입/재접속 대비)
             if (GameMaster.Instance.dayCycleManager != null && GameMaster.Instance.dayCycleManager.isSessionActive.Value)
             {
                 int difficulty = (GameMaster.Instance.completedCycleCount.Value * 5) + GameMaster.Instance.dayCycleManager.currentDayIndex.Value;
@@ -63,57 +84,59 @@ public class EnemyManager : NetworkBehaviour
             GameMaster.Instance.OnDayEnded -= StopSpawnCycle;
         }
 
-        if (spawnRoutine != null)
+        if (_spawnRoutine != null)
         {
-            StopCoroutine(spawnRoutine);
-            spawnRoutine = null;
+            StopCoroutine(_spawnRoutine);
+            _spawnRoutine = null;
         }
     }
 
+
+    // =========================================================
+    // 3. 유니티 루프 
+    // =========================================================
+
+    // 본 스크립트에서는 미사용 (스폰은 코루틴으로 대체하여 성능 최적화)
+
+
+    // =========================================================
+    // 4. 퍼블릭 함수 
+    // =========================================================
+
+    /// <summary>
+    /// [서버 전용] 하루가 시작될 때 예산을 책정하고 스폰 코루틴을 돌립니다.
+    /// </summary>
     public void StartSpawnCycle(int difficulty)
     {
-        if (!IsServer || isDayActive) return;
+        if (!IsServer || _isDayActive) return;
 
-        Debug.Log($"<color=lime>[EnemyManager]</color> 스폰 사이클 시작. 난이도: {difficulty}");
+        Debug.Log($"<color=lime>[EnemyManager]</color> 스폰 사이클 시작. 적용 난이도: {difficulty}");
 
-        isDayActive = true;
-        totalMaxBudget = baseMaxBudget + (difficulty * budgetPerDifficulty);
-        currentSpentBudget = 0;
+        _isDayActive = true;
+        _totalMaxBudget = baseMaxBudget + (difficulty * budgetPerDifficulty);
+        _currentSpentBudget = 0;
 
-        currentSpawnCounts.Clear();
+        _currentSpawnCounts.Clear();
         foreach (var monster in availableMonsters)
         {
-            currentSpawnCounts[monster] = 0;
+            _currentSpawnCounts[monster] = 0;
         }
 
-        if (spawnRoutine != null) StopCoroutine(spawnRoutine);
-        spawnRoutine = StartCoroutine(SpawnRoutine());
+        if (_spawnRoutine != null) StopCoroutine(_spawnRoutine);
+        _spawnRoutine = StartCoroutine(SpawnRoutine());
     }
 
-    private IEnumerator SpawnRoutine()
-    {
-        // 루프 진입 전 초기 대기 시간 부여 (게임 시작 직후 렉 방지)
-        yield return new WaitForSeconds(5f);
-
-        while (isDayActive)
-        {
-            float waitTime = Random.Range(minSpawnDelay, maxSpawnDelay);
-            yield return new WaitForSeconds(waitTime);
-
-            if (currentSpentBudget < totalMaxBudget)
-            {
-                TrySpawnRandomEnemy();
-            }
-        }
-    }
-
+    /// <summary>
+    /// [서버 전용] 예산이 허락하는 한도 내에서 랜덤한 몬스터 스폰을 시도합니다.
+    /// </summary>
     public void TrySpawnRandomEnemy()
     {
-        int remainingBudget = totalMaxBudget - currentSpentBudget;
+        int remainingBudget = _totalMaxBudget - _currentSpentBudget;
 
+        // 예산이 충분하고, 최대 스폰 마리 수를 넘지 않은 몬스터만 후보군으로 추림
         var affordable = availableMonsters.Where(m =>
             m.spawnCost <= remainingBudget &&
-            currentSpawnCounts.GetValueOrDefault(m, 0) < m.maxSpawnCount
+            _currentSpawnCounts.GetValueOrDefault(m, 0) < m.maxSpawnCount
         ).ToList();
 
         if (affordable.Count == 0) return;
@@ -125,6 +148,105 @@ public class EnemyManager : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// [서버 전용] 특정 몬스터를 사용 가능한 벤트를 통해 스폰시킵니다.
+    /// </summary>
+    public void SpawnMonster(MonsterData data, bool ignoreBudget = false)
+    {
+        if (!IsServer || ventPoints.Count == 0) return;
+
+        // 현재 스폰 연출을 하고 있지 않은 빈 벤트들만 색출
+        var availableVents = ventPoints.Where(v => !v.IsSpawning).ToList();
+        if (availableVents.Count == 0) return;
+
+        VentController selectedVent = availableVents[Random.Range(0, availableVents.Count)];
+
+        // 벤트에서 생성된 NetObj를 RegisterActiveMonster로 받아주는 구조
+        selectedVent.TriggerSpawn(data);
+
+        _currentSpawnCounts[data] = _currentSpawnCounts.GetValueOrDefault(data, 0) + 1;
+
+        if (!ignoreBudget)
+        {
+            _currentSpentBudget += data.spawnCost;
+        }
+    }
+
+    /// <summary>
+    /// 몬스터 본체(NetworkObject)를 활성화 리스트에 등록합니다.
+    /// </summary>
+    public void RegisterActiveMonster(NetworkObject netObj)
+    {
+        if (netObj != null && !_activeMonsters.Contains(netObj))
+        {
+            _activeMonsters.Add(netObj);
+        }
+    }
+
+    /// <summary>
+    /// 몬스터가 죽거나 디스폰될 때 예산을 반환하고 리스트에서 제거합니다.
+    /// </summary>
+    public void UnregisterEnemy(MonsterData data, NetworkObject netObj = null)
+    {
+        if (!IsServer || data == null) return;
+
+        // 예산 및 마리수 롤백 (안전하게 0 이하로 떨어지지 않도록 Max 처리)
+        _currentSpentBudget = Mathf.Max(0, _currentSpentBudget - data.spawnCost);
+
+        if (_currentSpawnCounts.ContainsKey(data))
+        {
+            _currentSpawnCounts[data] = Mathf.Max(0, _currentSpawnCounts[data] - 1);
+        }
+
+        if (netObj != null && _activeMonsters.Contains(netObj))
+        {
+            _activeMonsters.Remove(netObj);
+        }
+
+        Debug.Log($"<color=orange>[EnemyManager]</color> {data.name} 해제됨. 남은 스폰 예산: {_totalMaxBudget - _currentSpentBudget}");
+    }
+
+    // ---------------------------------------------------------
+    // [사운드 최적화 전용] EnvironmentScanner 관리 창구
+    // ---------------------------------------------------------
+    public void RegisterScanner(EnvironmentScanner scanner)
+    {
+        if (!_activeScanners.Contains(scanner)) _activeScanners.Add(scanner);
+    }
+
+    public void UnregisterScanner(EnvironmentScanner scanner)
+    {
+        if (_activeScanners.Contains(scanner)) _activeScanners.Remove(scanner);
+    }
+
+
+    // =========================================================
+    // 5. 프라이빗 헬퍼 함수 
+    // =========================================================
+
+    /// <summary>
+    /// 지정된 딜레이마다 스폰을 시도하는 핵심 루프 코루틴입니다.
+    /// </summary>
+    private IEnumerator SpawnRoutine()
+    {
+        // 루프 진입 전 초기 대기 시간 부여 (게임 시작 직후 렉 및 급사 방지)
+        yield return new WaitForSeconds(5f);
+
+        while (_isDayActive)
+        {
+            float waitTime = Random.Range(minSpawnDelay, maxSpawnDelay);
+            yield return new WaitForSeconds(waitTime);
+
+            if (_currentSpentBudget < _totalMaxBudget)
+            {
+                TrySpawnRandomEnemy();
+            }
+        }
+    }
+
+    /// <summary>
+    /// 가중치(Weight) 기반 확률 뽑기로 스폰할 몬스터를 결정합니다.
+    /// </summary>
     private MonsterData GetRandomMonsterByWeight(List<MonsterData> candidates)
     {
         float totalWeight = candidates.Sum(m => m.spawnWeight);
@@ -136,80 +258,39 @@ public class EnemyManager : NetworkBehaviour
             currentWeight += monster.spawnWeight;
             if (randomValue <= currentWeight) return monster;
         }
+
+        // 오차 대비 안전장치
         return candidates.LastOrDefault();
     }
 
-    public void SpawnMonster(MonsterData data, bool ignoreBudget = false)
-    {
-        if (!IsServer || ventPoints.Count == 0) return;
-
-        var availableVents = ventPoints.Where(v => !v.IsSpawning).ToList();
-        if (availableVents.Count == 0) return;
-
-        VentController selectedVent = availableVents[Random.Range(0, availableVents.Count)];
-
-        // Vent에서 생성된 netObj를 RegisterActiveMonster로 받아주는 구조가 유지되어야 함
-        selectedVent.TriggerSpawn(data);
-
-        currentSpawnCounts[data] = currentSpawnCounts.GetValueOrDefault(data, 0) + 1;
-
-        if (!ignoreBudget)
-        {
-            currentSpentBudget += data.spawnCost;
-        }
-    }
-
-    public void RegisterActiveMonster(NetworkObject netObj)
-    {
-        if (netObj != null && !activeMonsters.Contains(netObj))
-        {
-            activeMonsters.Add(netObj);
-        }
-    }
-
-    // Unregister 시 리스트에서도 확실히 제거
-    public void UnregisterEnemy(MonsterData data, NetworkObject netObj = null)
-    {
-        if (!IsServer || data == null) return;
-
-        currentSpentBudget = Mathf.Max(0, currentSpentBudget - data.spawnCost);
-
-        if (currentSpawnCounts.ContainsKey(data))
-        {
-            currentSpawnCounts[data] = Mathf.Max(0, currentSpawnCounts[data] - 1);
-        }
-
-        if (netObj != null && activeMonsters.Contains(netObj))
-        {
-            activeMonsters.Remove(netObj);
-        }
-
-        Debug.Log($"[EnemyManager] {data.name} 해제됨. 남은 예산: {totalMaxBudget - currentSpentBudget}");
-    }
-
+    /// <summary>
+    /// 하루가 끝나면 모든 몬스터를 창고(풀)로 돌려보내고 스폰을 정지합니다.
+    /// </summary>
     private void StopSpawnCycle(bool isWipedOut, int dailyIncome)
     {
-        isDayActive = false;
-        if (spawnRoutine != null)
+        _isDayActive = false;
+
+        if (_spawnRoutine != null)
         {
-            StopCoroutine(spawnRoutine);
-            spawnRoutine = null;
+            StopCoroutine(_spawnRoutine);
+            _spawnRoutine = null;
         }
 
-        //  역순으로 순회하며 안전하게 데스폰
-        for (int i = activeMonsters.Count - 1; i >= 0; i--)
+        // 리스트에서 요소를 삭제할 때는 역순(for-loop 역방향)으로 순회해야 에러가 나지 않습니다.
+        for (int i = _activeMonsters.Count - 1; i >= 0; i--)
         {
-            var netObj = activeMonsters[i];
+            var netObj = _activeMonsters[i];
             if (netObj != null && netObj.IsSpawned)
             {
                 if (netObj.TryGetComponent<MonsterController>(out var controller))
                 {
-                    // Despawn(true) 대신 창고로
+                    // Despawn(true)로 파괴하지 않고 Object Pool로 안전하게 반환
                     MonsterPool.Instance.ReturnMonster(controller.monsterData.monsterPrefab, netObj);
                 }
             }
         }
-        activeMonsters.Clear();
-        Debug.Log("<color=red>[EnemyManager]</color> 사이클 종료 및 모든 몬스터 제거.");
+
+        _activeMonsters.Clear();
+        Debug.Log("<color=red>[EnemyManager]</color> 사이클 종료! 모든 몬스터를 수거했습니다.");
     }
 }
