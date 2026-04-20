@@ -14,6 +14,9 @@ public class PlayerController : NetworkBehaviour
 
     // 네트워크 플레이어 상호작용 불가 체크
     public NetworkVariable<bool> isSnared = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    
+    // 네트워크 플레이어 실내/외 체크
+    public NetworkVariable<bool> isInsideFacility = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
     // 컴포넌트들을 미리 캐싱하여 다른 곳에서 쉽게 찾게 할 수도 있습니다.
     public PlayerStateManager StateManager { get; private set; }
@@ -100,6 +103,12 @@ public class PlayerController : NetworkBehaviour
     {
         isDead.Value = true;
         Debug.Log($"{gameObject.name}가 사망했습니다.");
+
+
+        if (TryGetComponent(out PlayerInventory inventory))
+        {
+            inventory.DropAllItemsOnDeathServer();
+        }
 
         // 사망 애니메이션 실행, 콜라이더 끄기, 리스폰 로직 등 처리
         CheckAllPlayersDead();
@@ -341,6 +350,21 @@ public class PlayerController : NetworkBehaviour
                 // NetworkTransform이 없다면 일반 transform 수정
                 transform.position = position;
                 transform.rotation = rotation;
+            }
+        }
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void ReportNoiseServerRpc(Vector3 noisePos, float noiseLevel, bool isInside)
+    {
+        if (EnemyManager.Instance == null) return;
+
+        foreach (var scanner in EnemyManager.Instance.ActiveScanners)
+        {
+            if (scanner != null)
+            {
+                // 소리의 크기뿐만 아니라, 소리가 발생한 장소(실내/실외) 정보도 몬스터에게 넘겨줍니다
+                scanner.OnHeardSound(noisePos, noiseLevel, isInside);
             }
         }
     }

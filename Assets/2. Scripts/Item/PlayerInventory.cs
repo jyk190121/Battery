@@ -524,4 +524,39 @@ public class PlayerInventory : NetworkBehaviour
             }
         }
     }
+
+    public void DropAllItemsOnDeathServer()
+    {
+        if (!IsServer) return;
+
+        // 플레이어 몸통 살짝 위를 드롭 기준점으로 설정
+        Vector3 dropOrigin = transform.position + Vector3.up * 0.8f;
+
+        // 1. 양손 아이템 떨어뜨리기
+        if (twoHandedItem != null)
+        {
+            Vector3 randomDir = new Vector3(UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(0.5f, 1.5f), UnityEngine.Random.Range(-1f, 1f)).normalized;
+            ForceDropItem(twoHandedItem, dropOrigin, randomDir);
+        }
+
+        // 2. 인벤토리(단축키) 슬롯 아이템 모두 떨어뜨리기
+        for (int i = 0; i < slots.Length; i++)
+        {
+            if (slots[i] != null)
+            {
+                Vector3 randomDir = new Vector3(UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(0.5f, 1.5f), UnityEngine.Random.Range(-1f, 1f)).normalized;
+                ForceDropItem(slots[i], dropOrigin, randomDir);
+            }
+        }
+    }
+
+    private void ForceDropItem(ItemBase item, Vector3 pos, Vector3 dir)
+    {
+        if (item != null && item.NetworkObject != null && item.NetworkObject.IsSpawned)
+        {
+            // 소유권 박탈 후, 기존에 만들어둔 '버리기 RPC'를 그대로 호출하여 모든 클라이언트 동기화
+            item.NetworkObject.RemoveOwnership();
+            NotifyItemDroppedClientRpc(item.NetworkObjectId, pos, dir);
+        }
+    }
 }

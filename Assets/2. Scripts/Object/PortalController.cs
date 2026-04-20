@@ -25,7 +25,17 @@ public class PortalController : MonoBehaviour
             return;
         }
 
-        // 💡 주의: CharacterController를 사용 중이라면 끄고 옮겨야 버그가 안 납니다.
+        if (playerTransform.TryGetComponent<PlayerController>(out var playerController))
+        {
+            // 이 코드를 실행하는 사람이 자기 자신(Owner)일 때만 네트워크 변수를 수정
+            // (isInsideFacility의 Write 권한이 Owner로 설정되어 있기 때문)
+            if (playerController.IsOwner)
+            {
+                playerController.isInsideFacility.Value = this.isEntrance;
+                Debug.Log($"<color=cyan>[공간 이동]</color> 플레이어 실내 진입 상태: {playerController.isInsideFacility.Value}");
+            }
+        }
+
         var netTransform = playerTransform.GetComponent<NetworkTransform>();
         if (netTransform != null)
         {
@@ -49,8 +59,6 @@ public class PortalController : MonoBehaviour
 
         // 물리 엔진 강제 동기화 (간혹 위치가 안 갱신되는 유니티 버그 방지)
         Physics.SyncTransforms();
-
-        //if (cc != null) cc.enabled = true;
 
         Debug.Log($"텔레포트 완료: {GetInteractText()}");
     }

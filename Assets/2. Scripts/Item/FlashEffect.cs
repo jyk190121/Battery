@@ -37,6 +37,8 @@ public class FlashEffect : MonoBehaviour
         float elapsed = 0f;
         while (elapsed < duration)
         {
+            if (flashCanvasGroup == null) yield break;
+
             elapsed += Time.deltaTime;
 
             // 선형 보간으로 알파값 감소
