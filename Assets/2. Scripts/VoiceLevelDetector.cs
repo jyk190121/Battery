@@ -28,11 +28,16 @@ public class VoiceLevelDetector : MonoBehaviour
     [Tooltip("서버 과부하 방지용 RPC 전송 쿨타임 (초)")]
     public float reportCooldown = 0.5f;
 
+    [Header("--- Smoothing Settings ---")]
+    [Tooltip("값이 클수록 실시간 반응이 빠르고, 작을수록 더 부드럽게 평균화합니다. (5~15 추천)")]
+    public float smoothingSpeed = 10f;
+
     // 외부(UI 등)에서 현재 마이크 볼륨을 시각적으로 띄워줄 때 읽어갈 수 있는 값
     public float CurrentLevel { get; private set; }
 
     private PlayerController _localPlayer;
     private float _lastReportTime;
+    private float _smoothedLevel;
 
 
     // =========================================================
@@ -57,37 +62,37 @@ public class VoiceLevelDetector : MonoBehaviour
     /// </summary>
     private void Update()
     {
-        // 1. 내 캐릭터가 아직 스폰되지 않았다면 찾기를 시도합니다. (로딩 중 예외 처리)
         if (_localPlayer == null)
         {
             FindLocalPlayer();
             return;
         }
 
-        // 2. 리코더가 정상 작동 중이고, 마이크가 켜져서 음성을 송출 중일 때만 체크
         if (recorder != null && recorder.TransmitEnabled)
         {
-            // Photon Voice 리코더에서 제공하는 레벨 미터(0~1 사이의 피크 볼륨)
-            CurrentLevel = recorder.LevelMeter.CurrentPeakAmp;
+            // 1. 현재 프레임의 가공되지 않은 피크 값 가져오기
+            float rawLevel = recorder.LevelMeter.CurrentPeakAmp;
 
-            // 3. 현재 볼륨이 설정한 임계치(잡음)보다 크고, 쿨타임이 돌았을 때만 서버로 보고!
+            // 2. 보간법(Lerp)을 이용해 부드러운 평균값 계산
+            // 이전 값과 현재 값을 섞어서 급격한 변화를 억제합니다.
+            _smoothedLevel = Mathf.Lerp(_smoothedLevel, rawLevel, Time.deltaTime * smoothingSpeed);
+
+            CurrentLevel = _smoothedLevel;
+
+            // 3. 평균화된 값이 임계치를 넘었는지 확인
             if (CurrentLevel > voiceThreshold && Time.time - _lastReportTime >= reportCooldown)
             {
-                // 소음 레벨 계산 (순수하게 임계치를 넘긴 볼륨 * 민감도)
                 float noiseLevel = (CurrentLevel - voiceThreshold) * voiceSensitivity;
 
-                // 내 플레이어 컨트롤러를 통해 서버에 "나 여기서 소리 냈어!" 라고 알림
                 _localPlayer.ReportNoiseServerRpc(_localPlayer.transform.position, noiseLevel, _localPlayer.isInsideFacility.Value);
 
-                // 쿨타임 타이머 리셋
                 _lastReportTime = Time.time;
-
-                Debug.Log($"<color=white>[Mic]</color> 소음 발생! 서버로 전달함. (레벨: {noiseLevel:F1})");
+                Debug.Log($"<color=cyan>[Mic]</color> 평균 소음 감지! (레벨: {noiseLevel:F1})");
             }
         }
         else
         {
-            // 마이크를 껐거나 소리를 안 내고 있다면 0으로 고정
+            _smoothedLevel = 0f;
             CurrentLevel = 0f;
         }
     }
