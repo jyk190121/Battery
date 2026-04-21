@@ -153,27 +153,51 @@ public class GameSessionManager : NetworkBehaviour
         return null;
     }
 
-    // ==========================================================
-    // 시스템 제어 (System Control)
-    // ==========================================================
+    
     /// <summary>
     /// [로비/상점 전용] 결제를 요청하고 성공 시 다음 씬 스폰 대기열에 추가합니다.
     /// </summary>
-    public void AddItemToSpawnQueue(int itemID, int price)
+    // [ 클라이언트/서버 공용 입구] UI의 'Buy' 버튼에 이 함수를 연결하세요.
+    public void AddItemsToSpawnQueue(int[] itemIDs, int[] counts)
+    {
+        // Host의 경우 바로 실행
+        if (IsServer)
+        {
+            ExecuteAddItems(itemIDs, counts);
+        }
+        // Client일 경우 Host에게 실행 요청.
+        else
+        {
+            AddItemsServerRpc(itemIDs, counts);
+        }
+    }
+
+    // 클라이언트의 클릭 신호를 서버 컴퓨터로 전달
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    private void AddItemsServerRpc(int[] itemIDs, int[] counts)
+    {
+        ExecuteAddItems(itemIDs, counts);
+    }
+
+    // Host 또는 Client의 요청에 의한 최종 shop item 구매 로직.
+    private void ExecuteAddItems(int[] itemIDs, int[] counts)
     {
         if (!IsServer) return;
 
-        // 다른 매니저(GameMaster)에게 결제만 위임하여 결합도를 낮춤
-        bool isPurchaseApproved = GameMaster.Instance != null && GameMaster.Instance.RequestPurchase(price);
+        if (itemIDs == null || counts == null || itemIDs.Length != counts.Length) return;
 
-        if (isPurchaseApproved)
+        for (int i = 0; i < itemIDs.Length; i++)
         {
-            pendingSpawnItemIDs.Add(itemID);
-            Debug.Log($"<color=green>[Shop]</color> {itemID}번 아이템 결제 승인. 스폰 대기열 등록 완료.");
-        }
-        else
-        {
-            Debug.LogWarning($"<color=red>[Shop]</color> 잔액 부족. {itemID}번 아이템 결제 실패.");
+            int id = itemIDs[i];
+            int count = counts[i]; //  수정: counts 배열에서 가져와야 합니다.
+
+            if (count <= 0) continue;
+
+            for (int j = 0; j < count; j++)
+            {
+                pendingSpawnItemIDs.Add(id);
+            }
+            Debug.Log($"<color=lime>[Server]</color> ID:{id} x {count}개 장부 적재 완료.");
         }
     }
 
