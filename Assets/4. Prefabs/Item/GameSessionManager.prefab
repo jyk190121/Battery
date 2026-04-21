@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 1792604275188489211}
   - component: {fileID: 3852236523237432094}
   - component: {fileID: 3082285024704119878}
+  - component: {fileID: 8195691170999809342}
   m_Layer: 0
   m_Name: GameSessionManager
   m_TagString: Untagged
@@ -47,7 +48,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1420815425
+  GlobalObjectIdHash: 3326538939
   InScenePlacedSourceGlobalObjectIdHash: 4202409907
   DeferredDespawnTick: 0
   Ownership: 1
@@ -125,3 +126,21 @@ MonoBehaviour:
   targetItemID: 601
   helpMessage: "F2: \uC544\uC774\uD15C \uC18C\uD658 | F5: \uC2E0\uC6A9\uD55C\uB3C4
     \uCD94\uAC00"
+--- !u!114 &8195691170999809342
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1063555221024840097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfa05ebd5c6662b4e8412e8f819da39f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestDebugManager
+  ShowTopMostFoldoutHeaderGroup: 1
+  targetQuestID: 1011
+  targetItemID: 501
+  helpMessage: "F1:Easy\uC218\uB77D, F6:Normal\uC218\uB77D, F7:Hard\uC218\uB77D\nF2:\uD15C\uC18C\uD658,
+    F3:ID\uAC15\uC81C\uC644\uB8CC, F4:\uC0C1\uD0DC\uCD9C\uB825\nF5:\uB3C8\uCD94\uAC00,
+    F8:\uC77C\uC77C\uD018\uC2A4\uD2B8 \uC0C8\uB85C\uACE0\uCE68(\uB2E4\uC74C\uB0A0)"
