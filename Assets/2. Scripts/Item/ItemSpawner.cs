@@ -72,12 +72,26 @@ public class ItemSpawner : NetworkBehaviour
         // ==========================================================
         // 1. 수집 퀘스트 아이템 무조건 생성 (확정 스폰)
         // ==========================================================
-        var questItems = itemDatabase.Where(i => i.category == ItemCategory.Quest).ToList();
-        foreach (var qItem in questItems)
+        if (QuestManager.Instance != null)
         {
-            if (TrySpawnSpecificItem(qItem, spawnDict)) successCount++;
-        }
+            // 현재 활성화된 퀘스트 ID들을 순회
+            foreach (int activeQuestID in QuestManager.Instance.activeQuests)
+            {
+                QuestDataSO questData = QuestManager.Instance.GetQuestData(activeQuestID);
 
+                // 해당 퀘스트가 '수집(Collect)'이나 '환원(Return)' 타입이고, 목표 아이템이 있다면
+                if (questData != null && questData.targetItemID != 0)
+                {
+                    // DB에서 해당 아이템 프리팹을 찾음
+                    ItemDataSO targetItemData = itemDatabase.FirstOrDefault(i => i.itemID == questData.targetItemID);
+
+                    if (targetItemData != null)
+                    {
+                        if (TrySpawnSpecificItem(targetItemData, spawnDict)) successCount++;
+                    }
+                }
+            }
+        }
         // ==========================================================
         // 2. 열쇠 아이템 확률적 생성 (단일 변수 확률, 중복 불가)
         // ==========================================================

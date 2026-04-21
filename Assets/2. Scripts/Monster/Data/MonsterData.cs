@@ -104,6 +104,15 @@ public class MonsterData : ScriptableObject
     [Tooltip("경로 재탐색 기준 거리 (타겟이 이만큼 움직여야 경로를 새로 땀)")]
     [Min(0f)] public float pathUpdateThreshold = 1.0f;
 
+    [Tooltip("순찰 중 문을 만났을 때 열고 지나갈 확률 (0.0 ~ 1.0)")]
+    public float patrolDoorOpenChance = 0.2f;
+
+    [Tooltip("문을 열지 않기로 결정했을 때, 다른 행동을 하기 전까지의 쿨타임 (초)")]
+    public float doorIgnoreCooldown = 1.0f;
+
+    [Tooltip("순찰 시 다음 목적지를 정할 때 요구되는 최소 이동 거리 (m)")]
+    public float minPatrolDistance = 10f;
+
 
     // =========================================================
     // 5. 시스템 및 네트워크 최적화 (System & Network)
@@ -159,4 +168,24 @@ public class MonsterData : ScriptableObject
 
     [Tooltip("맞아서 떨어졌을 때 패닉 상태로 도망치는 시간(초)")]
     [Min(0f)] public float fleeDuration = 6.0f;
+
+    [Tooltip("올무벼룩이 순찰 도중 천장을 올려다보는 간격 (초)")]
+    public float fleaCeilingCheckInterval = 5.0f;
+
+    [Space(10)]
+    [Header("--- Gimmick: Doll ---")]
+    [Tooltip("평지에서 인형이 플레이어 등 뒤로 유지하려는 목표 거리")]
+    [Min(0f)] public float dollNormalDistance = 1.5f;
+
+    [Tooltip("계단 등 높이차가 있을 때 발밑 겹침을 방지하기 위한 유지 거리")]
+    [Min(0f)] public float dollStairDistance = 2.8f;
+
+    [Tooltip("뒷걸음질 치거나 벽에 막혀서 사망(Scream) 판정이 나는 2D 접촉 반경")]
+    [Min(0f)] public float dollBumpDistance = 0.5f;
+
+    [Tooltip("플레이어의 몸통 방향과 인형의 방향을 비교해 발각을 판정하는 내적 임계값 (0.6 이상이면 시야에 들어옴)")]
+    [Range(-1f, 1f)] public float dollCatchDotThreshold = 0.6f;
+
+    [Tooltip("텔레포트 직후 억울하게 눈이 마주쳤다고 판정되는 것을 막아주는 무적(유예) 시간")]
+    [Min(0f)] public float dollGracePeriod = 0.5f;
 }

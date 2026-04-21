@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1bbc6e2eecad55246b69d412d02592b9, type: 3}
+  m_Name: Denture
+  m_EditorClassIdentifier: Assembly-CSharp::MonsterData
+  monsterPrefab: {fileID: 6795600985661558741, guid: 1ffc4bfca66552f46b2f109fffb2a0da, type: 3}
+  maxHealth: 100
+  spawnCost: 4
+  maxSpawnCount: 2
+  spawnWeight: 50
+  patrolSpeed: 3
+  chaseSpeed: 8
+  attackDamage: 20
+  attackRange: 2
+  attackCooldown: 1.5
+  attackAnimDuration: 2
+  attackTrackingTime: 0.7
+  viewRange: 60
+  viewAngle: 120
+  hearingRange: 15
+  visionMemoryTime: 3
+  maxSearchDuration: 10
+  searchPauseDuration: 3
+  searchNodeRadius: 15
+  minWaitTime: 10
+  maxWaitTime: 15
+  maxPatrolMoveTime: 10
+  aiTickInterval: 0.2
+  fastTickInterval: 0.05
+  predictiveChaseTime: 0.8
+  predictionTime: 1.5
+  pathUpdateThreshold: 1
+  patrolDoorOpenChance: 0.2
+  doorIgnoreCooldown: 1
+  minPatrolDistance: 10
+  alertnessIncreaseRate: 1.5
+  alertnessDecreaseRate: 0.5
+  alertnessSyncInterval: 0.2
+  alertnessThreshold: 0.05
+  stunDurationMultiplier: 1
+  gimmickCheckDistance: 40
+  ceilingAttachChance: 0
+  ceilingLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
+  ceilingCheckDistance: 0
+  dropTriggerRadius: 0
+  snareTickRate: 0
+  snareTickDamage: 0
+  fleeDuration: 0
+  fleaCeilingCheckInterval: 0
