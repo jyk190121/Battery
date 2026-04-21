@@ -6679,6 +6679,7 @@ MonoBehaviour:
   currentBalanceText: {fileID: 8330283278491097389}
   duplicateAlertPanel: {fileID: 5004952003155580463}
   alertTime: 2
+  BuyBtn: {fileID: 8110885928398193169}
 --- !u!114 &3092487335028046732
 MonoBehaviour:
   m_ObjectHideFlags: 0
