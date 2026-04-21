@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eca90f6eedaab2644a9ec07173f310a4, type: 3}
+  m_Name: 1033
+  m_EditorClassIdentifier: Assembly-CSharp::QuestDataSO
+  questID: 1033
+  questName: "\uCF5C\uB77C\uC640 \uAC74\uBB3C\uB0B4\uBD80 \uC0DD\uBA85\uCCB4\uAC00
+    \uD568\uAED8 \uB098\uC624\uAC8C \uCD2C\uC601"
+  description: "(\uAD11\uACE0 PPL) \uCF5C\uB77C\uC640 \uAC74\uBB3C\uB0B4\uBD80 \uC0DD\uBA85\uCCB4\uAC00
+    \uD568\uAED8 \uB098\uC624\uAC8C \uCD2C\uC601"
+  type: 2
+  baseReward: 1000
+  bonusMultiplier: 1
+  isHazardQuest: 1
+  targetItemID: 0
+  questLevel: 10

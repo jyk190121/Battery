@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 4202409907
+  GlobalObjectIdHash: 1420815425
   InScenePlacedSourceGlobalObjectIdHash: 4202409907
   DeferredDespawnTick: 0
   Ownership: 1
@@ -98,6 +98,17 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   questDatabase:
   - {fileID: 11400000, guid: 7fc28a75538f96c448b7e3cdb3e06fe4, type: 2}
+  - {fileID: 11400000, guid: 8acdd24e7652cad4282dd161d27bf0f1, type: 2}
+  - {fileID: 11400000, guid: 65dad763e309c20409280ebaf53ec2eb, type: 2}
+  - {fileID: 11400000, guid: 8859a2b995c5386448639465da3cab33, type: 2}
+  - {fileID: 11400000, guid: aa5e3a6bcb50e9e43b6fe4cbf73398b6, type: 2}
+  - {fileID: 11400000, guid: 8fa2ef8bc1f83614495d1b70b2dcdc61, type: 2}
+  - {fileID: 11400000, guid: 8fdde530d56266a4999e6783931bbd2c, type: 2}
+  - {fileID: 11400000, guid: 0d844ac6ae443b04fbf71ac533be76b7, type: 2}
+  - {fileID: 11400000, guid: 0e281da245be41046aedd778bddb7933, type: 2}
+  - {fileID: 11400000, guid: aa9da75575ac5154cb1de38feeaeffb6, type: 2}
+  - {fileID: 11400000, guid: a5b35ce7ab521ed4da77b2170934eabb, type: 2}
+  - {fileID: 11400000, guid: f9119357aa795bd4794f67e99c238813, type: 2}
 --- !u!114 &3082285024704119878
 MonoBehaviour:
   m_ObjectHideFlags: 0
