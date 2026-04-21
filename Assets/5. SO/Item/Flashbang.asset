@@ -21,4 +21,4 @@ MonoBehaviour:
   animType: 2
   spawnLocation: 0
   itemPrefab: {fileID: 100000, guid: 98be6ff539d1fa44894f66e5d0a5f007, type: 3}
-  keyID: 
+  keyID: 0
