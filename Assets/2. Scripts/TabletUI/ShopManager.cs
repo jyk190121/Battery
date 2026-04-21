@@ -3,6 +3,7 @@ using TMPro;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.UI;
 
 public class ShopManager : MonoBehaviour
 {
@@ -21,6 +22,8 @@ public class ShopManager : MonoBehaviour
     private Dictionary<int, CartItemUI> activeCartItems = new Dictionary<int, CartItemUI>();
     private Coroutine alertCoroutine;
 
+    public Button BuyBtn;
+
     private void Start()
     {
         if (duplicateAlertPanel != null) duplicateAlertPanel.SetActive(false);
@@ -31,6 +34,8 @@ public class ShopManager : MonoBehaviour
         {
             GameMaster.Instance.economyManager.availableLoanLimit.OnValueChanged += OnBalanceChanged;
         }
+
+        BuyBtn.onClick.AddListener(OnClickCheckoutCart);
     }
 
     private void OnDestroy()
@@ -144,6 +149,8 @@ public class ShopManager : MonoBehaviour
             Destroy(child.gameObject);
         }
         UpdateTotalAmountUI();
+
+        UpdateBalanceUI();
     }
 
     private void ShowDuplicateFeedback()
