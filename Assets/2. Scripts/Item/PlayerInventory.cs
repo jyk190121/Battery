@@ -15,6 +15,7 @@ public class PlayerInventory : NetworkBehaviour
     public ItemBase[] slots = new ItemBase[4];
     public int currentSlotIndex = 0;
     [HideInInspector] public ItemBase twoHandedItem = null;
+    [HideInInspector] public bool isControlLocked = false;
 
     [Header("Interaction Settings")]
     public float interactRange = 3f;
@@ -108,6 +109,8 @@ public class PlayerInventory : NetworkBehaviour
     void Update()
     {
         if (!IsOwner) return;
+
+        if (isControlLocked) return;
 
         CheckInteraction();
 
@@ -583,6 +586,12 @@ public class PlayerInventory : NetworkBehaviour
         {
             netObj.Despawn();
         }
+    }
+
+    public void SetControlLock(bool locked)
+    {
+        isControlLocked = locked;
+        if (locked) ClearHighlight(); 
     }
 
 }
