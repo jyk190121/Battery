@@ -8,4 +8,6 @@ AnimatorOverrideController:
   m_PrefabAsset: {fileID: 0}
   m_Name: DemonDoll
   m_Controller: {fileID: 9100000, guid: 6a40c64075e87f44db36c9488e7a93de, type: 2}
-  m_Clips: []
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: 6a7d5773586bc2d498b0cdc38bda1b54, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 6a7d5773586bc2d498b0cdc38bda1b54, type: 2}

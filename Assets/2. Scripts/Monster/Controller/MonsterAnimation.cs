@@ -16,6 +16,7 @@ public class MonsterAnimation : MonoBehaviour
     private static readonly int SpeedHash = Animator.StringToHash("Speed");
     private static readonly int AttackHash = Animator.StringToHash("Attack");
     private static readonly int IsSearchingHash = Animator.StringToHash("IsSearching");
+    private static readonly int ScreamHash = Animator.StringToHash("Scream");
 
     // 부드러운 속도 전환(Lerp)을 위한 내부 변수
     private float targetSpeed;
@@ -131,6 +132,15 @@ public class MonsterAnimation : MonoBehaviour
         {
             // 애니메이터에 "Die" 파라미터가 Trigger로 설정되어 있다고 가정
             animator.SetTrigger("Die");
+        }
+    }
+
+    // 소리치는 모션
+    public void PlayScream()
+    {
+        if (animator != null)
+        {
+            animator.SetTrigger("Scream");
         }
     }
 }

@@ -88,29 +88,38 @@ public class MonsterController : NetworkBehaviour
         // 1. 모든 몬스터 공통 상태 등록
         _states = new Dictionary<MonsterStateType, IState>
         {
-            { MonsterStateType.Patrol, new PatrolState(this) },
-            { MonsterStateType.InteractDoor, new InteractDoorState(this) },
-            { MonsterStateType.Idle, new PatrolState(this) }, // Idle은 Patrol 로직을 공유
-            { MonsterStateType.Dead, new DeadState(this) }
-        };
+        { MonsterStateType.Patrol, new PatrolState(this) },
+        { MonsterStateType.InteractDoor, new InteractDoorState(this) },
+        { MonsterStateType.Idle, new PatrolState(this) }, // Idle은 Patrol 로직을 공유
+        { MonsterStateType.Dead, new DeadState(this) }
+    };
 
         // 2. 몬스터 타입(데이터)별 전용 기믹 상태 등록
-        if (monsterData != null && monsterData.ceilingAttachChance > 0f)
+        if (monsterData != null)
         {
-            // [올무벼룩 전용] 천장 대기, 달라붙기, 도망치기 상태
-            _states.Add(MonsterStateType.CeilingWait, new CeilingWaitState(this));
-            _states.Add(MonsterStateType.Attached, new AttachedState(this));
-            _states.Add(MonsterStateType.Flee, new FleeState(this));
-        }
-        else
-        {
-            // [일반 몬스터용] 수색, 추격, 공격, 스턴 상태 등
-            _states.Add(MonsterStateType.Attack, new AttackState(this));
-            _states.Add(MonsterStateType.Detect, new DetectState(this));
-            _states.Add(MonsterStateType.Chase, new ChaseState(this));
-            _states.Add(MonsterStateType.Search, new SearchState(this));
-            _states.Add(MonsterStateType.Stunned, new StunnedState(this));
-            _states.Add(MonsterStateType.Investigate, new InvestigateState(this));
+            // 인형 전용 상태 등록
+            if (monsterData.name == "Doll")
+            {
+                _states.Add(MonsterStateType.Stalk, new StalkState(this));
+                _states.Add(MonsterStateType.Scream, new ScreamState(this));
+            }
+            // 올무벼룩 전용 상태 등록
+            else if (monsterData.name == "Hand")
+            {
+                _states.Add(MonsterStateType.CeilingWait, new CeilingWaitState(this));
+                _states.Add(MonsterStateType.Attached, new AttachedState(this));
+                _states.Add(MonsterStateType.Flee, new FleeState(this));
+            }
+            // 일반 몬스터 (추격, 공격 등 범용 상태)
+            else
+            {
+                _states.Add(MonsterStateType.Attack, new AttackState(this));
+                _states.Add(MonsterStateType.Detect, new DetectState(this));
+                _states.Add(MonsterStateType.Chase, new ChaseState(this));
+                _states.Add(MonsterStateType.Search, new SearchState(this));
+                _states.Add(MonsterStateType.Stunned, new StunnedState(this));
+                _states.Add(MonsterStateType.Investigate, new InvestigateState(this));
+            }
         }
     }
 
@@ -217,6 +226,8 @@ public class MonsterController : NetworkBehaviour
         if (!IsServer || CurrentStateNet.Value == MonsterStateType.Dead || CurrentStateNet.Value == MonsterStateType.Attached)
             return;
 
+        if (monsterData.name == "Doll") return;
+
         float finalDuration = baseDuration * (monsterData != null ? monsterData.stunDurationMultiplier : 1.0f);
         if (finalDuration <= 0f) return;
 
@@ -232,6 +243,8 @@ public class MonsterController : NetworkBehaviour
     public void TakeDamage(float damage)
     {
         if (!IsServer || CurrentStateNet.Value == MonsterStateType.Dead) return;
+
+        if (monsterData.name == "Doll") return;
 
         CurrentHealth.Value -= damage;
         Debug.Log($"<color=red>[몬스터 피격]</color> {gameObject.name} 남은 체력: {CurrentHealth.Value}");

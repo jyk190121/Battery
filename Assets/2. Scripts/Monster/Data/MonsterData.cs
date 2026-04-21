@@ -171,4 +171,21 @@ public class MonsterData : ScriptableObject
 
     [Tooltip("올무벼룩이 순찰 도중 천장을 올려다보는 간격 (초)")]
     public float fleaCeilingCheckInterval = 5.0f;
+
+    [Space(10)]
+    [Header("--- Gimmick: Doll ---")]
+    [Tooltip("평지에서 인형이 플레이어 등 뒤로 유지하려는 목표 거리")]
+    [Min(0f)] public float dollNormalDistance = 1.5f;
+
+    [Tooltip("계단 등 높이차가 있을 때 발밑 겹침을 방지하기 위한 유지 거리")]
+    [Min(0f)] public float dollStairDistance = 2.8f;
+
+    [Tooltip("뒷걸음질 치거나 벽에 막혀서 사망(Scream) 판정이 나는 2D 접촉 반경")]
+    [Min(0f)] public float dollBumpDistance = 0.5f;
+
+    [Tooltip("플레이어의 몸통 방향과 인형의 방향을 비교해 발각을 판정하는 내적 임계값 (0.6 이상이면 시야에 들어옴)")]
+    [Range(-1f, 1f)] public float dollCatchDotThreshold = 0.6f;
+
+    [Tooltip("텔레포트 직후 억울하게 눈이 마주쳤다고 판정되는 것을 막아주는 무적(유예) 시간")]
+    [Min(0f)] public float dollGracePeriod = 0.5f;
 }

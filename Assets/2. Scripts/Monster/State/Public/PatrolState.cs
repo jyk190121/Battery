@@ -89,7 +89,14 @@ public class PatrolState : MonsterBaseState
 
         if (owner.scanner.CurrentTarget != null)
         {
-            owner.ChangeState(MonsterStateType.Detect);
+            if (owner.monsterData.name == "Doll")
+            {
+                owner.ChangeState(MonsterStateType.Stalk); 
+            }
+            else
+            {
+                owner.ChangeState(MonsterStateType.Detect); 
+            }
             return;
         }
 
