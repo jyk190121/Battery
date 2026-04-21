@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 1792604275188489211}
   - component: {fileID: 3852236523237432094}
   - component: {fileID: 3082285024704119878}
+  - component: {fileID: 8195691170999809342}
   m_Layer: 0
   m_Name: GameSessionManager
   m_TagString: Untagged
@@ -47,7 +48,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 4202409907
+  GlobalObjectIdHash: 3326538939
   InScenePlacedSourceGlobalObjectIdHash: 4202409907
   DeferredDespawnTick: 0
   Ownership: 1
@@ -98,6 +99,17 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   questDatabase:
   - {fileID: 11400000, guid: 7fc28a75538f96c448b7e3cdb3e06fe4, type: 2}
+  - {fileID: 11400000, guid: 8acdd24e7652cad4282dd161d27bf0f1, type: 2}
+  - {fileID: 11400000, guid: 65dad763e309c20409280ebaf53ec2eb, type: 2}
+  - {fileID: 11400000, guid: 8859a2b995c5386448639465da3cab33, type: 2}
+  - {fileID: 11400000, guid: aa5e3a6bcb50e9e43b6fe4cbf73398b6, type: 2}
+  - {fileID: 11400000, guid: 8fa2ef8bc1f83614495d1b70b2dcdc61, type: 2}
+  - {fileID: 11400000, guid: 8fdde530d56266a4999e6783931bbd2c, type: 2}
+  - {fileID: 11400000, guid: 0d844ac6ae443b04fbf71ac533be76b7, type: 2}
+  - {fileID: 11400000, guid: 0e281da245be41046aedd778bddb7933, type: 2}
+  - {fileID: 11400000, guid: aa9da75575ac5154cb1de38feeaeffb6, type: 2}
+  - {fileID: 11400000, guid: a5b35ce7ab521ed4da77b2170934eabb, type: 2}
+  - {fileID: 11400000, guid: f9119357aa795bd4794f67e99c238813, type: 2}
 --- !u!114 &3082285024704119878
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -114,3 +126,21 @@ MonoBehaviour:
   targetItemID: 601
   helpMessage: "F2: \uC544\uC774\uD15C \uC18C\uD658 | F5: \uC2E0\uC6A9\uD55C\uB3C4
     \uCD94\uAC00"
+--- !u!114 &8195691170999809342
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1063555221024840097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfa05ebd5c6662b4e8412e8f819da39f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestDebugManager
+  ShowTopMostFoldoutHeaderGroup: 1
+  targetQuestID: 1011
+  targetItemID: 501
+  helpMessage: "F1:Easy\uC218\uB77D, F6:Normal\uC218\uB77D, F7:Hard\uC218\uB77D\nF2:\uD15C\uC18C\uD658,
+    F3:ID\uAC15\uC81C\uC644\uB8CC, F4:\uC0C1\uD0DC\uCD9C\uB825\nF5:\uB3C8\uCD94\uAC00,
+    F8:\uC77C\uC77C\uD018\uC2A4\uD2B8 \uC0C8\uB85C\uACE0\uCE68(\uB2E4\uC74C\uB0A0)"

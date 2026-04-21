@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: eca90f6eedaab2644a9ec07173f310a4, type: 3}
-  m_Name: NewQuest
+  m_Name: 1031
   m_EditorClassIdentifier: Assembly-CSharp::QuestDataSO
-  questID: 0
-  questName: 
-  description: 
+  questID: 1031
+  questName: "3\uCE35 \uBBF8\uC220\uC2E4 \uCE94\uBC84\uC2A4 \uAC00\uC838\uC624\uAE30."
+  description: "3\uCE35 \uBBF8\uC220\uC2E4 \uCE94\uBC84\uC2A4 \uAC00\uC838\uC624\uAE30."
   type: 0
-  difficulty: 0
-  baseReward: 0
-  bonusMultiplier: 0
+  baseReward: 800
+  bonusMultiplier: 1
   isHazardQuest: 0
   targetItemID: 0
+  questLevel: 8
