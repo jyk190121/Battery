@@ -98,8 +98,8 @@ MonoBehaviour:
   itemName: {fileID: 4836243365907166105}
   count: {fileID: 1936510441791774313}
   price: {fileID: 4881182821093923547}
-  DuplicateAlertPanel: {fileID: 0}
-  AlertTime: 2
+  MinusBtn: {fileID: 5397481638736964539}
+  PlusBtn: {fileID: 2098292050496598821}
 --- !u!1 &1291667108888721113
 GameObject:
   m_ObjectHideFlags: 0

@@ -16,6 +16,15 @@ public class CartItemUI : MonoBehaviour
 
     private ShopManager shopManager;
 
+    public Button MinusBtn;
+    public Button PlusBtn;
+
+    public void Start()
+    {
+        MinusBtn.onClick.AddListener(OnClickMinus);
+        PlusBtn.onClick.AddListener(OnClickPlus);
+    }
+
     public void Setup(ItemDataSO data, ShopManager shopManager)
     {
         itemData = data;

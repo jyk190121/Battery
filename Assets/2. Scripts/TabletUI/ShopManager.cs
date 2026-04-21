@@ -1,9 +1,8 @@
+using UnityEngine;
+using TMPro;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using TMPro;
-using UnityEngine;
-using UnityEngine.Rendering;
 
 public class ShopManager : MonoBehaviour
 {
@@ -12,8 +11,11 @@ public class ShopManager : MonoBehaviour
     public GameObject cartItemPrefab;
     public TextMeshProUGUI totalCartPriceText;
 
+    [Header("Economy UI")]
+    public TextMeshProUGUI currentBalanceText; // 현재 보유 금액 표시 텍스트
+
     [Header("Feedback UI")]
-    public GameObject duplicateAlertPanel; // 인스펙터에서 경고 패널 연결
+    public GameObject duplicateAlertPanel;
     public float alertTime = 2f;
 
     private Dictionary<int, CartItemUI> activeCartItems = new Dictionary<int, CartItemUI>();
@@ -23,12 +25,47 @@ public class ShopManager : MonoBehaviour
     {
         if (duplicateAlertPanel != null) duplicateAlertPanel.SetActive(false);
         UpdateTotalAmountUI();
+
+        // 💡 잔액 변동 시 자동으로 텍스트를 갱신하도록 이벤트 구독 (선택 사항이지만 강력 추천)
+        if (GameMaster.Instance != null && GameMaster.Instance.economyManager != null)
+        {
+            GameMaster.Instance.economyManager.availableLoanLimit.OnValueChanged += OnBalanceChanged;
+        }
     }
 
-    // 왼쪽 상점 리스트에서 [Add] 버튼 호출 시
+    private void OnDestroy()
+    {
+        // 씬이 넘어가거나 파괴될 때 메모리 누수 방지를 위해 이벤트 구독 해제
+        if (GameMaster.Instance != null && GameMaster.Instance.economyManager != null)
+        {
+            GameMaster.Instance.economyManager.availableLoanLimit.OnValueChanged -= OnBalanceChanged;
+        }
+    }
+
+    // 태블릿 화면이 켜질 때마다 최신 잔액으로 갱신
+    private void OnEnable()
+    {
+        UpdateBalanceUI();
+    }
+
+    // 잔액 텍스트 갱신 함수
+    public void UpdateBalanceUI()
+    {
+        if (currentBalanceText != null && GameMaster.Instance != null && GameMaster.Instance.economyManager != null)
+        {
+            int currentMoney = GameMaster.Instance.economyManager.availableLoanLimit.Value;
+            currentBalanceText.text = $"보유 자금: {currentMoney} G";
+        }
+    }
+
+    // 네트워크 변수가 변동될 때 호출되는 콜백 함수
+    private void OnBalanceChanged(int previousValue, int newValue)
+    {
+        UpdateBalanceUI();
+    }
+
     public void AddItemToCart(ItemDataSO newTargetData)
     {
-        // 중복 감지 시 ShopManager가 직접 경고 패널을 띄움
         if (activeCartItems.ContainsKey(newTargetData.itemID))
         {
             ShowDuplicateFeedback();
@@ -46,58 +83,59 @@ public class ShopManager : MonoBehaviour
 
     public void RemoveItemFromCart(int itemID)
     {
-        if(activeCartItems.ContainsKey(itemID))
+        if (activeCartItems.ContainsKey(itemID))
         {
             activeCartItems.Remove(itemID);
             UpdateTotalAmountUI();
         }
     }
 
-    // UI 갱신
     public void UpdateTotalAmountUI()
     {
         int totalPrice = activeCartItems.Values.Sum(ui => ui.itemData.basePrice * ui.currentCount);
 
-        if(totalCartPriceText != null)
+        if (totalCartPriceText != null)
         {
-            totalCartPriceText.text = $"{totalPrice}";
+            totalCartPriceText.text = $"Total: {totalPrice} G";
         }
     }
 
-    // 최종 결제 버튼
     public void OnClickCheckoutCart()
     {
         if (activeCartItems.Count == 0) return;
 
         int totalPrice = activeCartItems.Values.Sum(ui => ui.itemData.basePrice * ui.currentCount);
 
-        // GameMaster를 통해 EconomyManager의 TryPurchaseWithLoan 결과값 반환
-        bool isPurchased = GameMaster.Instance != null && GameMaster.Instance.RequestPurchase(totalPrice);
+        // 구매 버튼을 눌렀을 때 내 잔액이 충분한지 로컬에서 검사
+        int currentMoney = GameMaster.Instance.economyManager.availableLoanLimit.Value;
 
-        if (isPurchased)
+        if (currentMoney >= totalPrice)
         {
             int[] itemIDs = new int[activeCartItems.Count];
             int[] count = new int[activeCartItems.Count];
             int i = 0;
 
-            foreach(var kv in activeCartItems)
+            foreach (var kv in activeCartItems)
             {
                 itemIDs[i] = kv.Key;
                 count[i] = kv.Value.currentCount;
+                i++;
             }
 
-            GameSessionManager.Instance.AddItemToSpawnQueue(itemIDs, count);
+            // 서버로 결제 및 배송 요청 전달
+            GameSessionManager.Instance.AddItemsToSpawnQueue(itemIDs, count);
 
-            Debug.Log($"<color=cyan>[Tablet UI]</color> 결제 완료! 총 {totalPrice}G 차감.");
+            Debug.Log($"<color=cyan>[Tablet UI]</color> 서버에 {totalPrice}G 결제 요청 완료.");
             ClearCartUI();
         }
         else
         {
-            Debug.LogWarning("<color=red>[Tablet UI]</color> 결제 실패: 잔액이 부족합니다.");
+            // 돈이 부족하면 결제 로직을 아예 태우지 않고 튕겨냅니다.
+            Debug.LogWarning("<color=red>[Tablet UI]</color> 결제 실패: 보유 자금이 부족합니다.");
+            // TODO: 여기에 "잔액 부족"이라는 경고 팝업을 띄우는 함수를 연결하세요.
         }
     }
 
-    // 데이터 및 UI 완전 초기화
     public void ClearCartUI()
     {
         activeCartItems.Clear();
@@ -108,7 +146,6 @@ public class ShopManager : MonoBehaviour
         UpdateTotalAmountUI();
     }
 
-    // 중복 경고 코루틴
     private void ShowDuplicateFeedback()
     {
         if (alertCoroutine != null) StopCoroutine(alertCoroutine);
