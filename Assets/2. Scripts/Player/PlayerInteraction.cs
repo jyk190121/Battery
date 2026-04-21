@@ -1,3 +1,4 @@
+using NUnit;
 using TMPro;
 using Unity.Cinemachine;
 using Unity.Netcode;
@@ -119,8 +120,25 @@ public class PlayerInteraction : NetworkBehaviour
             {
                 if (Keyboard.current.eKey.wasPressedThisFrame)
                 {
-                    string testKeyID = "Test_01";
-                    targetDoor.TryOpen(testKeyID);
+                    if (TryGetComponent(out PlayerInventory PlayerInventory))
+                    {
+                        ItemBase heldItem = PlayerInventory.HeldItem;
+                        string myKeyID = heldItem?.itemData?.keyID ?? "";
+
+                        // 열쇠와 문의 판정
+                        if (targetDoor.isLocked && !targetDoor.isOpen && targetDoor.requiredKeyID == myKeyID && !string.IsNullOrEmpty(myKeyID))
+                        {
+                            // 문 Open.
+                            targetDoor.TryOpen(myKeyID);
+                            // 성공시 열쇠 삭제.
+                            PlayerInventory.ConsumeKeyItem(heldItem);
+                        }
+                        else
+                        {
+                            // 열쇠가 틀렸거나, 안 잠긴 문이거나, 빈손인 경우 -> 문 열기 시도만 하고 열쇠는 안 지움
+                            targetDoor.TryOpen(myKeyID);
+                        }
+                    }
                 }
             }
             else if (targetTabletUI != null)

@@ -1,18 +1,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
+using System.Linq;
 
 public class ItemSpawner : NetworkBehaviour
 {
     public ItemDataSO[] itemDatabase;
 
     [Header("스폰 설정")]
-    public int baseSpawnCount = 10; // 1일차 기본 스폰 개수
-    public int extraSpawnPerDifficulty = 2; // 난이도 1당 추가로 스폰할 개수
+    public int baseSpawnCount = 10;
+    public int extraSpawnPerDifficulty = 2;
+
+    [Header("확률 설정")]
+    [Tooltip("각 열쇠가 스폰될 확률 (%)")]
+    [Range(0f, 100f)]
+    public float keySpawnChance = 15f;
 
     [SerializeField] private List<ItemSpawnPoint> areaManagers = new List<ItemSpawnPoint>();
 
-    // 씬 시작 시: GameMaster 구독
     public override void OnNetworkSpawn()
     {
         if (IsServer)
@@ -25,19 +30,14 @@ public class ItemSpawner : NetworkBehaviour
         }
     }
 
-    // 씬 종료 시: 메모리 누수 및 중복 실행을 막기 위해 반드시 구독 해제
     public override void OnNetworkDespawn()
     {
-        if (IsServer)
+        if (IsServer && GameMaster.Instance != null)
         {
-            if (GameMaster.Instance != null)
-            {
-                GameMaster.Instance.OnDayStarted -= HandleDayStarted;
-            }
+            GameMaster.Instance.OnDayStarted -= HandleDayStarted;
         }
     }
 
-    //아침이 밝으면 GameMaster가 이 함수를 자동으로 실행
     private void HandleDayStarted(int difficulty)
     {
         RefreshSpawnPoints();
@@ -47,15 +47,13 @@ public class ItemSpawner : NetworkBehaviour
             Debug.LogWarning("[Spawner] 현재 씬에 스폰 지점이 없어 스폰을 건너뜁니다.");
             return;
         }
-        // 공식: 기본 개수 + (난이도 * 추가 배율)
-        int dynamicSpawnCount = baseSpawnCount + (difficulty * extraSpawnPerDifficulty);
 
-        Debug.Log($"<color=yellow>[Spawner]</color> 아침이 밝았습니다! (난이도: {difficulty}) -> 총 {dynamicSpawnCount}개의 폐지를 스폰합니다.");
+        int dynamicSpawnCount = baseSpawnCount + (difficulty * extraSpawnPerDifficulty);
+        Debug.Log($"[Spawner] 아침이 밝았습니다! (난이도: {difficulty}) -> 총 {dynamicSpawnCount}개의 폐지를 스폰합니다.");
 
         SpawnRandomItems(dynamicSpawnCount);
     }
 
-    // 목표 개수를 인자로 받도록 수정된 스폰 함수
     void SpawnRandomItems(int targetSpawnCount)
     {
         if (itemDatabase == null || areaManagers.Count == 0) return;
@@ -70,32 +68,74 @@ public class ItemSpawner : NetworkBehaviour
         }
 
         int successCount = 0;
-        int attempts = 0;
-        int maxAttempts = targetSpawnCount * 3; // 무한 루프 방지용
 
-        while (successCount < targetSpawnCount && attempts < maxAttempts)
+        // ==========================================================
+        // 1. 수집 퀘스트 아이템 무조건 생성 (확정 스폰)
+        // ==========================================================
+        var questItems = itemDatabase.Where(i => i.category == ItemCategory.Quest).ToList();
+        foreach (var qItem in questItems)
         {
-            attempts++;
+            if (TrySpawnSpecificItem(qItem, spawnDict)) successCount++;
+        }
 
-            ItemDataSO data = itemDatabase[Random.Range(0, itemDatabase.Length)];
-
-            if (spawnDict.TryGetValue(data.spawnLocation, out List<Transform> points) && points.Count > 0)
+        // ==========================================================
+        // 2. 열쇠 아이템 확률적 생성 (단일 변수 확률, 중복 불가)
+        // ==========================================================
+        var keyItems = itemDatabase.Where(i => !string.IsNullOrEmpty(i.keyID)).OrderBy(x => Random.value).ToList();
+        foreach (var keyItem in keyItems)
+        {
+            if (Random.Range(0f, 100f) <= keySpawnChance)
             {
-                int idx = Random.Range(0, points.Count);
-                Transform target = points[idx];
-
-                GameObject obj = Instantiate(data.itemPrefab, target.position, Quaternion.identity);
-
-                ItemBase item = obj.GetComponent<ItemBase>();
-                if (item != null) item.itemData = data;
-
-                HandleNetworkSpawn(obj);
-
-                points.RemoveAt(idx);
-                successCount++;
+                if (TrySpawnSpecificItem(keyItem, spawnDict)) successCount++;
             }
         }
-        Debug.Log($"[Spawner] {successCount}/{targetSpawnCount}개 스폰 완료. (시도 횟수: {attempts})");
+
+        // ==========================================================
+        // 3. 나머지 일반 아이템 완전 무작위 생성 (가중치 없음, 1/N 확률)
+        // ==========================================================
+        var normalItems = itemDatabase.Where(i =>
+            string.IsNullOrEmpty(i.keyID) &&
+            i.category != ItemCategory.Quest &&
+            i.spawnLocation != SpawnLocation.ShopOnly).ToList();
+
+        if (normalItems.Count > 0)
+        {
+            int attempts = 0;
+            int maxAttempts = targetSpawnCount * 3;
+
+            while (successCount < targetSpawnCount && attempts < maxAttempts)
+            {
+                attempts++;
+
+                // 피드백 반영: 가중치 없이 무조건 리스트에서 1/N로 랜덤 뽑기
+                ItemDataSO randomData = normalItems[Random.Range(0, normalItems.Count)];
+
+                if (TrySpawnSpecificItem(randomData, spawnDict))
+                {
+                    successCount++;
+                }
+            }
+            Debug.Log($"[Spawner] {successCount}/{targetSpawnCount}개 스폰 완료. (시도: {attempts})");
+        }
+    }
+
+    bool TrySpawnSpecificItem(ItemDataSO data, Dictionary<SpawnLocation, List<Transform>> dict)
+    {
+        if (dict.TryGetValue(data.spawnLocation, out List<Transform> points) && points.Count > 0)
+        {
+            int idx = Random.Range(0, points.Count);
+            Transform target = points[idx];
+
+            GameObject obj = Instantiate(data.itemPrefab, target.position, target.rotation);
+            ItemBase item = obj.GetComponent<ItemBase>();
+            if (item != null) item.itemData = data;
+
+            HandleNetworkSpawn(obj);
+
+            points.RemoveAt(idx);
+            return true;
+        }
+        return false;
     }
 
     [ContextMenu("Bake: 모든 지역 관리자 동기화")]
@@ -112,7 +152,7 @@ public class ItemSpawner : NetworkBehaviour
 #if UNITY_EDITOR
         UnityEditor.EditorUtility.SetDirty(this);
 #endif
-        Debug.Log("[Spawner] 지역 관리자들과의 데이터 동기화가 완료되었습니다.");
+        Debug.Log("[Spawner] 지역 관리자 동기화 완료.");
     }
 
     private void HandleNetworkSpawn(GameObject obj)

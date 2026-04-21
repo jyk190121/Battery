@@ -8,6 +8,7 @@ using Unity.Netcode;
 public class PlayerInventory : NetworkBehaviour
 {
     public static PlayerInventory LocalInstance { get; private set; }
+    public ItemBase HeldItem => twoHandedItem ?? slots[currentSlotIndex];
     public static bool IsHoldingTwoHanded => LocalInstance?.twoHandedItem != null;
 
     [Header("Inventory Slots")]
@@ -559,4 +560,29 @@ public class PlayerInventory : NetworkBehaviour
             NotifyItemDroppedClientRpc(item.NetworkObjectId, pos, dir);
         }
     }
+
+    public void ConsumeKeyItem(ItemBase item)
+    {
+        if (item == null) return;
+
+        // 1. 내 주머니(배열)에서 비우기 (UI 업데이트 포함)
+        ConsumeItemFromInventory(item);
+
+        // 2. 서버에 해당 오브젝트를 게임 세상에서 지워달라고 요청
+        if (item.NetworkObject != null)
+        {
+            RequestDestroyItemServerRpc(item.NetworkObjectId);
+        }
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    private void RequestDestroyItemServerRpc(ulong itemNetId)
+    {
+        // 서버가 해당 아이템을 찾아서 완전히 Despawn(삭제) 처리합니다.
+        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(itemNetId, out var netObj))
+        {
+            netObj.Despawn();
+        }
+    }
+
 }
