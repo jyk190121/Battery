@@ -12,19 +12,19 @@ public class StartButton : MonoBehaviour
     /// </summary>
     public void OnClickStart()
     {
-        // 1. 뇌(GameSessionManager)가 씬에 존재하는지 확인
+        // GameSessionManager가 씬에 존재하는지 확인
         if (GameSessionManager.Instance == null)
         {
             Debug.LogError("[StartButton] GameSessionManager 인스턴스를 찾을 수 없습니다!");
             return;
         }
 
-        // 2. 💡 [핵심] 뇌가 네트워크에 연결(Spawn)된 상태인지 확인
+        // 네트워크에 연결(Spawn)된 상태인지 확인
         if (GameSessionManager.Instance.IsSpawned)
         {
             Debug.Log("<color=cyan>[StartButton]</color> 매니저에게 게임 시작 요청을 보냅니다.");
-
-            // 뇌가 가지고 있는 RPC를 호출합니다. (누가 누르든 서버로 신호가 갑니다)
+            Object.FindAnyObjectByType<TabletUIManager>()?.CloseTabletUI();
+            //누가 누르든 서버로 신호가 갑니다
             GameSessionManager.Instance.RequestStartGameServerRpc(targetSceneName);
         }
         else
