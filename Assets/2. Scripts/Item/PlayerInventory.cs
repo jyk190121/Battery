@@ -353,6 +353,27 @@ public class PlayerInventory : NetworkBehaviour
             RequestDropServerRpc(itemToDrop.NetworkObjectId, dropPos, throwDir);
         }
     }
+    /// <summary>
+    /// [서버 전용] 외부 요인(몬스터 피격 등)으로 인해 현재 손에 든 아이템을 강제로 떨어뜨립니다.
+    /// </summary>
+    public void ForceDropCurrentItemServer()
+    {
+        if (!IsServer) return;
+
+        // HeldItem 프로퍼티를 사용하여 양손 무기든 단축키 아이템이든 현재 손에 든 것을 가져옴
+        ItemBase itemToDrop = HeldItem;
+
+        if (itemToDrop != null)
+        {
+            // 플레이어 몸통 살짝 위에서 바닥으로 툭 떨어지도록 위치/방향 설정
+            Vector3 dropOrigin = transform.position + Vector3.up * 0.8f;
+            Vector3 dropDir = (transform.forward * 0.5f + Vector3.up * 0.5f).normalized;
+
+            ForceDropItem(itemToDrop, dropOrigin, dropDir);
+            Debug.Log($"<color=orange>[Inventory]</color> 충격으로 인해 {itemToDrop.itemData.itemName}을(를) 떨어뜨렸습니다!");
+        }
+    }
+
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     private void RequestDropServerRpc(ulong itemNetId, Vector3 dropPos, Vector3 throwDir)

@@ -22,8 +22,7 @@ public class SettlementZone : NetworkBehaviour
         string cleanedScene = targetScene.Trim();
         Debug.Log($"<color=cyan><b>[Ship System]</b> 이동 요청 접수 (목적지: {cleanedScene} / 정산여부: {doSettlement})</color>");
 
-        // 자물쇠 잠그기
-        isTransitioning = true;
+       
 
         if (IsServer)
         {
@@ -47,9 +46,11 @@ public class SettlementZone : NetworkBehaviour
 
     private void PerformTransitionLogic(PlayerInventory callerPlayer, string targetScene, bool doSettlement)
     {
-        // 💡 [방어 코드] 서버에서만 실행되도록 보장
+        //[방어 코드] 서버에서만 실행되도록 보장
         if (!IsServer) return;
 
+        if (isTransitioning) return;
+        isTransitioning = true;
         // [절대 방어선] 필수 매니저들이 씬에 제대로 있는지부터 검사
         if (GameSessionManager.Instance == null || QuestManager.Instance == null || GameMaster.Instance == null)
         {

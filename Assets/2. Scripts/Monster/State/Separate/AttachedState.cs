@@ -55,6 +55,13 @@ public class AttachedState : MonsterBaseState
 
             // 5. 해당 플레이어의 화면에만 시야 차단(눈뽕/촉수) UI를 띄우도록 RPC 전송
             owner.TriggerSnareBlindRpc(true, owner.RpcTarget.Single(_snaredPlayer.OwnerClientId, RpcTargetUse.Temp));
+
+            // 6.  충격으로 인해 현재 들고 있는 아이템 떨어뜨리기
+            if (_snaredPlayer.TryGetComponent<PlayerInventory>(out var inventory))
+            {
+                inventory.ForceDropCurrentItemServer();
+            }
+
         }
         else
         {
