@@ -11,6 +11,7 @@ public class InventoryUI : MonoBehaviour
     void Start()
     {
         StartCoroutine(BindLocalPlayerRoutine());
+        TabletUIManager.OnTabletStateChanged += HandleTabletStateChanged;
     }
 
     private System.Collections.IEnumerator BindLocalPlayerRoutine()
@@ -58,6 +59,16 @@ public class InventoryUI : MonoBehaviour
         }
     }
 
+    //태블릿 상태에 따라 UI 투명도 조절 함수
+    private void HandleTabletStateChanged(bool isTabletOpen)
+    {
+        if (TryGetComponent(out CanvasGroup cg))
+        {
+            cg.alpha = isTabletOpen ? 0f : (PlayerInventory.IsHoldingTwoHanded ? 0.5f : 1.0f);
+            cg.interactable = !isTabletOpen;
+            cg.blocksRaycasts = !isTabletOpen;
+        }
+    }
     private void HandleTwoHandedUI(bool isHeavy)
     {
         // 양손 아이템 들면 UI 전체를 약간 어둡게 처리
@@ -73,5 +84,6 @@ public class InventoryUI : MonoBehaviour
             playerInventory.OnSlotChanged -= UpdateHighlight;
             playerInventory.OnTwoHandedToggled -= HandleTwoHandedUI;
         }
+        TabletUIManager.OnTabletStateChanged -= HandleTabletStateChanged;
     }
 }

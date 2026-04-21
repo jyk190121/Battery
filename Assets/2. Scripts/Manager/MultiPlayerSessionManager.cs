@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -92,7 +93,39 @@ public class MultiPlayerSessionManager : NetworkBehaviour
             Debug.LogError($"[Multiplayer] 초기화 실패: {e.Message}");
         }
     }
+    #region 포톤 서비스 순서 정렬을 위한 로직 추가
+    public override void OnNetworkSpawn()
+    {
+        if (IsServer)
+        {
+            NetworkManager.Singleton.OnClientConnectedCallback += HandleNetcodeConnected;
+        }
 
+        if (IsClient && IsOwner)
+        {
+            HandleNetcodeConnected(NetworkManager.Singleton.LocalClientId);
+        }
+    }
+
+    private void HandleNetcodeConnected(ulong clientId)
+    {
+        if (clientId == NetworkManager.Singleton.LocalClientId)
+        {
+            StartCoroutine(InitializePhotonServicesRoutine());
+        }
+    }
+
+    IEnumerator InitializePhotonServicesRoutine()
+    {
+        yield return new WaitForSeconds(0.5f);
+
+        if (GlobalVoiceManager.Instance != null)
+        {
+            GlobalVoiceManager.Instance.InitVoice(PlayerNickname);
+        }
+    }
+
+    #endregion
 
     #region Authentication
     public async Task EnsureSignedInAsync()
