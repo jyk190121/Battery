@@ -4,26 +4,57 @@ using System.Collections;
 
 public class VentController : NetworkBehaviour
 {
+    [Header("Visuals")]
+    [Tooltip("닫혀 있는 상태의 환풍구 오브젝트")]
+    public GameObject closedVentObject;
+    [Tooltip("열려 있는 상태의 환풍구 오브젝트")]
+    public GameObject openVentObject;
+
     [Header("Effects")]
-    [Tooltip("환풍구 자체에서 소리를 내기 위한 3D AudioSource")]
     public AudioSource localAudioSource;
-    [Tooltip("환풍구에서 떨어지는 먼지 파티클")]
     public ParticleSystem dustParticle;
 
     [Header("Settings")]
-    [Tooltip("경고음이 울린 후 실제 몬스터가 등장하기까지의 지연 시간(초)")]
     public float spawnDelay = 3.0f;
 
-    // 현재 이 환풍구가 몬스터를 뱉어내고 있는 중인지 확인하는 플래그 (중복 스폰 방지용)
+    // 환풍구 상태를 네트워크를 통해 동기화 
+    private NetworkVariable<bool> isVentOpen = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
     public bool IsSpawning { get; private set; } = false;
 
     private void Awake()
     {
         if (localAudioSource == null) localAudioSource = GetComponent<AudioSource>();
 
-        // 3D 사운드 설정 
-        localAudioSource.spatialBlend = 1.0f; // 1.0 = 완전한 3D 사운드
-        localAudioSource.maxDistance = 100f;   // 소리가 들리는 최대 거리
+        localAudioSource.spatialBlend = 1.0f;
+        localAudioSource.maxDistance = 50f;
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        // 상태가 변할 때 실행될 함수 연결
+        isVentOpen.OnValueChanged += OnVentStateChanged;
+
+        // 초기 상태 설정
+        RefreshVentVisuals(isVentOpen.Value);
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        isVentOpen.OnValueChanged -= OnVentStateChanged;
+    }
+
+    // 상태 값이 변하면 모든 클라이언트에서 실행됨
+    private void OnVentStateChanged(bool previousValue, bool newValue)
+    {
+        RefreshVentVisuals(newValue);
+    }
+
+    // 실제 오브젝트를 끄고 켜는 함수
+    private void RefreshVentVisuals(bool isOpen)
+    {
+        if (closedVentObject != null) closedVentObject.SetActive(!isOpen);
+        if (openVentObject != null) openVentObject.SetActive(isOpen);
     }
 
     public void TriggerSpawn(MonsterData data)
@@ -36,7 +67,11 @@ public class VentController : NetworkBehaviour
     {
         IsSpawning = true;
 
-        PlayVentEffectClientRpc(); // 클라이언트들에게 연출 실행 지시
+        // 1. 서버에서 상태를 변경 
+        isVentOpen.Value = true;
+
+        // 2. 소리 및 파티클 연출 실행
+        PlayVentEffectClientRpc();
 
         yield return new WaitForSeconds(spawnDelay);
 

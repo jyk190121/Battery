@@ -14,6 +14,8 @@ public class PatrolState : MonsterBaseState
     private float _waitTimer;
     private float _currentWaitDuration;
     private float _stuckTimer;
+    private float _fleaCheckTimer;
+    private float _doorDecisionTimer;
 
     // =========================================================
     // 2. 초기화 함수
@@ -40,6 +42,8 @@ public class PatrolState : MonsterBaseState
 
         _isWaiting = false;
         _stuckTimer = 0f; // 이동 시작 시 타이머 초기화
+        _fleaCheckTimer = 0f;
+        _doorDecisionTimer = 0f;
 
         // 3. 진입과 동시에 첫 번째 목적지로 이동
         MoveToNextPoint();
@@ -81,19 +85,40 @@ public class PatrolState : MonsterBaseState
     /// </summary>
     protected override void OnTick()
     {
-        // 1. 감각 시스템 가동 (가장 최우선 순위)
         owner.scanner.Tick();
 
         if (owner.scanner.CurrentTarget != null)
         {
-            owner.ChangeState(MonsterStateType.Detect);
+            if (owner.monsterData.name == "Doll")
+            {
+                owner.ChangeState(MonsterStateType.Stalk); 
+            }
+            else
+            {
+                owner.ChangeState(MonsterStateType.Detect); 
+            }
             return;
         }
 
-        // 2. 이동 중일 때만 전방의 문을 체크 (대기 중일 때는 문을 무시하고 쉼)
-        if (!_isWaiting && owner.CurrentStateNet.Value == MonsterStateType.Patrol)
+        if (!_isWaiting)
         {
-            owner.CheckAndHandleDoor();
+            // 1. 문 처리 로직 (집요함 버전)
+            HandleDoorWithPersistence();
+
+            // 2. 올무벼룩 천장 체크 (이동 중에만 수행)
+            if (data.ceilingAttachChance > 0f)
+            {
+                _fleaCheckTimer += currentTickInterval;
+
+                if (_fleaCheckTimer >= data.fleaCeilingCheckInterval)
+                {
+                    _fleaCheckTimer = 0f;
+                    if (Random.value <= data.ceilingAttachChance)
+                    {
+                        owner.ChangeState(MonsterStateType.CeilingWait);
+                    }
+                }
+            }
         }
     }
 
@@ -110,11 +135,48 @@ public class PatrolState : MonsterBaseState
     // =========================================================
 
     /// <summary>
+    /// 문 앞에서 목적지를 쉽게 바꾸지 않고 고민하는 로직
+    /// </summary>
+    private void HandleDoorWithPersistence()
+    {
+        if (_doorDecisionTimer > 0f)
+        {
+            _doorDecisionTimer -= currentTickInterval;
+            return;
+        }
+
+        if (owner.CheckAndHandleDoor(data.patrolDoorOpenChance))
+        {
+            if (owner.CurrentStateNet.Value == MonsterStateType.Patrol)
+            {
+                _doorDecisionTimer = data.doorIgnoreCooldown; // 기본 쿨타임 적용
+
+                if (UnityEngine.Random.value <= 0.5f)
+                {
+                    Debug.Log("<color=green>[Patrol]</color> 문을 열지 않지만, 수상함을 느끼고 문 앞에서 대기하며 귀를 기울입니다...");
+
+                    StartWaiting(2f, 4f);
+                }
+                // 나머지 50% 확률로는 쿨하게 포기하고 다른 길로 떠납니다.
+                else
+                {
+                    Debug.Log("<color=green>[Patrol]</color> 문이 막혔고 열지 않기로 했습니다. 미련 없이 다른 길로 돌아갑니다.");
+                    MoveToNextPoint();
+                }
+            }
+        }
+        else
+        {
+            if (owner.navAgent.isStopped) owner.navAgent.isStopped = false;
+        }
+    }
+
+    /// <summary>
     /// 맵에 배치된 웨이포인트 중 하나를 무작위로 골라 이동을 시작합니다.
     /// </summary>
     private void MoveToNextPoint()
     {
-        Transform nextPoint = owner.waypointManager?.GetRandomWaypoint();
+        Transform nextPoint = owner.waypointManager?.GetFarWaypoint(owner.transform.position, data.minPatrolDistance);
 
         if (nextPoint != null)
         {
@@ -146,28 +208,26 @@ public class PatrolState : MonsterBaseState
         if (!owner.navAgent.pathPending && owner.navAgent.remainingDistance <= owner.navAgent.stoppingDistance)
         {
             // [기믹: 올무벼룩] 확률적으로 천장 대기 상태로 돌입
-            if (data.ceilingAttachChance > 0f)
+            if (data.ceilingAttachChance > 0f && Random.value <= data.ceilingAttachChance)
             {
-                if (Random.value <= data.ceilingAttachChance)
-                {
-                    owner.ChangeState(MonsterStateType.CeilingWait);
-                    return; // StartWaiting()으로 넘어가지 않고 여기서 상태 전이 완료
-                }
+                owner.ChangeState(MonsterStateType.CeilingWait);
+                return;
             }
 
             // 일반적인 대기 모드 돌입
-            StartWaiting();
+            StartWaiting(data.minWaitTime, data.maxWaitTime);
         }
     }
 
     /// <summary>
     /// 목적지에 도착한 후 다음 장소로 가기 전까지 지정된 시간 동안 대기합니다.
     /// </summary>
-    private void StartWaiting()
+    private void StartWaiting(float minTime, float maxTime)
     {
         _isWaiting = true;
         _waitTimer = 0f;
-        _currentWaitDuration = Random.Range(data.minWaitTime, data.maxWaitTime);
+
+        _currentWaitDuration = Random.Range(minTime, maxTime);
 
         // 관성에 의해 미끄러지는 시각적 버그를 막기 위해 에이전트를 확실히 정지
         owner.navAgent.isStopped = true;

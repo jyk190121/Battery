@@ -14,5 +14,9 @@ public enum MonsterStateType
     // 올무벼룩 전용 상태
     CeilingWait,   // 천장에 붙어 대기하는 상태
     Attached,      // 플레이어 머리에 붙어 공격하는 상태
-    Flee           // 공격받아 떨어졌을 때 도망가는 상태
+    Flee,           // 공격받아 떨어졌을 때 도망가는 상태
+
+    // 인형 전용 상태
+    Stalk,
+    Scream
 }
