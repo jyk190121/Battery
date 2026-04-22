@@ -31,7 +31,8 @@ public class PortalController : MonoBehaviour
             // (isInsideFacility의 Write 권한이 Owner로 설정되어 있기 때문)
             if (playerController.IsOwner)
             {
-                playerController.isInsideFacility.Value = this.isEntrance;
+                //playerController.isInsideFacility.Value = this.isEntrance;
+                playerController.SetInsideFacilityServerRpc(this.isEntrance);
                 Debug.Log($"<color=cyan>[공간 이동]</color> 플레이어 실내 진입 상태: {playerController.isInsideFacility.Value}");
             }
         }
