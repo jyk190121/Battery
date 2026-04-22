@@ -21,6 +21,8 @@ public class QuestManager : NetworkBehaviour
 
     private List<int> myActuallyDoneQuests = new List<int>();
 
+    public QuestDifficulty selectedDifficulty;
+
     private void Awake()
     {
         if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
@@ -76,6 +78,8 @@ public class QuestManager : NetworkBehaviour
             QuestDifficulty.Hard => hardOffered,
             _ => null
         };
+
+        selectedDifficulty = difficulty;
 
         if (targetPool != null)
         {
