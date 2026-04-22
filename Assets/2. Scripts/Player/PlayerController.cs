@@ -144,15 +144,6 @@ public class PlayerController : NetworkBehaviour
             }
         }
     }
-    IEnumerator StartSpectating()
-    {
-        yield return new WaitForSeconds(1.5f); // 사망 연출을 위해 조금 기다림
-
-        if (playerModel != null) playerModel.SetActive(false);
-
-        // 첫 번째 관전 대상 찾기
-        SwitchToNextTarget();
-    }
 
     // [ServerRpc] 외부(몬스터 등)에서 데미지를 줄 때 호출
     //[ServerRpc(RequireOwnership = false)]
@@ -193,7 +184,7 @@ public class PlayerController : NetworkBehaviour
             if (playerRotation != null) playerRotation.SetSpectatingMode(true);
 
             // 2. 관전 대상 탐색 및 카메라 전환 로직 실행
-            StartSpectating();
+            StartCoroutine(StartSpectating());
         }
 
         if (TryGetComponent(out PlayerInventory inventory))
@@ -373,6 +364,9 @@ public class PlayerController : NetworkBehaviour
     IEnumerator StartSpectating()
     {
         yield return new WaitForSeconds(1.0f); // 사망 애니메이션을 조금 본 뒤 전환
+
+        // 첫 번째 관전 대상 찾기
+        SwitchToNextTarget();
 
         // 살아있는 다른 플레이어 찾기
         PlayerRotation target = FindSpectatableTarget();
