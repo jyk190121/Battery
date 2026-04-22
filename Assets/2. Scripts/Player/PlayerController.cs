@@ -139,13 +139,31 @@ public class PlayerController : NetworkBehaviour
         {
             // 현재 들고 있는 폰이 있다면 파괴하고 바닥용 모델 생성
             equip.DestroySmartPhoneModel();
+        }
+
+        if (IsServer)
+        {
 
             // 바닥에 떨어질 별도의 'DroppedPhone' 프리팹이 있다면 Instantiate
             // (간단하게 하려면 기존 smartphoneModel을 부모 없이 생성)
             if (droppedPhonePrefab != null)
             {
+                // 바닥에 파묻히지 않게 위치만 살짝 보정
+                Vector3 spawnPos = pos + Vector3.up * 0.1f;
+
+
                 GameObject dropped = Instantiate(droppedPhonePrefab, pos, rot);
-            }           
+
+                // 3. 아이템 주인 정보 기록 (사망한 플레이어의 ID)
+                if (dropped.TryGetComponent(out Item_Phone phoneItem))
+                {
+                    phoneItem.originalOwnerId = OwnerClientId;
+                }
+
+                // 네트워크 스폰
+                dropped.GetComponent<NetworkObject>().Spawn();
+
+            }
             // 바닥에 놓인 느낌을 주기 위해 물리(Rigidbody)나 콜라이더를 켜주는 로직이 필요할 수 있습니다.
         }
     }

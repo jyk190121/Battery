@@ -52,17 +52,22 @@ public class MonsterAnimation : MonoBehaviour
     /// </summary>
     public void SetVisualSpeed(float currentVelocity, float patrolSpeed, float chaseSpeed, MonsterStateType currentState)
     {
+        if (currentState == MonsterStateType.Scream || currentState == MonsterStateType.Dead)
+        {
+            targetSpeed = 0f;
+            currentSpeed = 0f; // 잔성 즉시 제거
+            animator.SetFloat(SpeedHash, 0f); // 애니메이터 파라미터도 즉시 0으로 강제 덮어쓰기
+            return; // 아래의 보간(Lerp) 로직을 아예 실행하지 않고 종료
+        }
+
         float targetNormalizedValue = 0f;
 
-        // 상태에 따라 애니메이션 보간 속도를 동적으로 조절
         if (currentState == MonsterStateType.Chase || currentState == MonsterStateType.Attack)
         {
-            // 추격하거나 공격/정지할 때는 애니메이션이 즉각적으로 반응하도록 속도업
             animationBlendSpeed = 15f;
         }
         else
         {
-            // 순찰, 수색 등 평상시에는 부드럽게 전환
             animationBlendSpeed = 5f;
         }
 
@@ -140,7 +145,8 @@ public class MonsterAnimation : MonoBehaviour
     {
         if (animator != null)
         {
-            animator.SetTrigger("Scream");
+            Debug.Log("Scream애니메이션 실행됨");
+            animator.SetTrigger(ScreamHash);
         }
     }
 }

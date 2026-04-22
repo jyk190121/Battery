@@ -33,6 +33,7 @@ public class PlayerInteraction : NetworkBehaviour
     private DoorController targetDoor = null;
     private PortalController targetPortal = null;
     private TabletUIManager targetTabletUI = null;
+    private LockerController targetLocker = null;
     CarController carDoor = null;
 
     public override void OnNetworkSpawn()
@@ -115,6 +116,14 @@ public class PlayerInteraction : NetworkBehaviour
                     ResetHold();
                 }
             }
+            // 락커인 경우: '클릭(Press)' 방식 [추가]
+            else if (targetLocker != null)
+            {
+                if (Keyboard.current.eKey.wasPressedThisFrame)
+                {
+                    targetLocker.InteractLocker(this.transform);
+                }
+            }
             // 2. 일반 문인 경우: '클릭(Press)' 방식
             else if (targetDoor != null)
             {
@@ -187,11 +196,12 @@ public class PlayerInteraction : NetworkBehaviour
             targetDoor = hit.collider.GetComponentInParent<DoorController>();
             targetPortal = hit.collider.GetComponentInParent<PortalController>();
             carDoor = hit.collider.GetComponentInParent<CarController>();
+            targetLocker = hit.collider.GetComponentInParent<LockerController>();
 
             targetTabletUI = hit.collider.GetComponentInChildren<TabletUIManager>();
             if (targetTabletUI == null) targetTabletUI = hit.collider.GetComponentInParent<TabletUIManager>();
 
-            if (targetDoor != null || targetPortal != null || targetTabletUI != null || carDoor != null)
+            if (targetDoor != null || targetPortal != null || targetTabletUI != null || carDoor != null || targetLocker != null)
             {
                 if (!isLookingAtInteractable) interactUI.SetActive(true);
                 isLookingAtInteractable = true;
@@ -203,6 +213,10 @@ public class PlayerInteraction : NetworkBehaviour
                 else if (targetPortal != null)
                 {
                     interactText.text = targetPortal.GetInteractText();
+                }
+                else if (targetLocker != null) 
+                {
+                    interactText.text = targetLocker.GetInteractText();
                 }
                 else if (targetTabletUI != null)
                 {
@@ -222,6 +236,7 @@ public class PlayerInteraction : NetworkBehaviour
         targetDoor = null;
         targetPortal = null;
         targetTabletUI = null;
+        targetLocker = null;
         carDoor = null;
     }
 

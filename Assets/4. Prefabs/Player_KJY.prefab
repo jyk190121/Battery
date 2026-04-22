@@ -3325,7 +3325,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   ShowTopMostFoldoutHeaderGroup: 1
-  droppedPhonePrefab: {fileID: 3256090640262015324, guid: cc39fda2988cc3448ae96fd3980cf44f, type: 3}
+  droppedPhonePrefab: {fileID: 3256090640262015324, guid: 4d128d5a57c756144884162fb356fef0, type: 3}
   playerBodyVisual: {fileID: 4911454195433589709}
   _playerData: {fileID: 11400000, guid: 51fe10672196c0c4daf37fc48f14bb9a, type: 2}
   isDead:

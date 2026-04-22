@@ -978,8 +978,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 131.41869, y: 14.51, z: 134.39}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 0.4, y: 0.4, z: 0.4}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 7911056630340985392}
   m_Father: {fileID: 0}
@@ -1091,9 +1091,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnvironmentScanner
   owner: {fileID: 7353377521257898903}
   data: {fileID: 11400000, guid: c10f92dda7d748a448a6dc4e6e034916, type: 2}
-  obstacleMask:
+  isIndoorMonster: 1
+  _obstacleMask:
     serializedVersion: 2
-    m_Bits: 1800
+    m_Bits: 0
 --- !u!114 &7353377521257898903
 MonoBehaviour:
   m_ObjectHideFlags: 0
