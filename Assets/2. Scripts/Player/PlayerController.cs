@@ -476,4 +476,11 @@ public class PlayerController : NetworkBehaviour
             }
         }
     }
+
+    [ServerRpc]
+    public void SetInsideFacilityServerRpc(bool value)
+    {
+        // 서버 권한으로 값을 변경합니다.
+        isInsideFacility.Value = value;
+    }
 }
