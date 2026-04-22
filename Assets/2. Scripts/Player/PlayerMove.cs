@@ -1,4 +1,3 @@
-using System.Collections;                          // 코루틴용
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -54,8 +53,37 @@ public class PlayerMove : NetworkBehaviour
 
     bool isControlLocked = false;
 
+    bool isTabletLocked = false;
+
     PlayerAnim playerAnim;
     PlayerStateManager stateManager;
+
+    public override void OnNetworkSpawn()
+    {
+        rb = GetComponent<Rigidbody>();
+        col = GetComponent<CapsuleCollider>();
+        initialHeight = col.height;
+        initialCenter = col.center;
+
+        if (IsOwner)
+        {
+            // 1. 태블릿 상태 변경 이벤트 구독
+            TabletUIManager.OnTabletStateChanged += HandleTabletStateChanged;
+
+            // 2. [중요] 초기화 시점에 태블릿이 열려있는지 확인 (싱글톤 혹은 정적 변수 참조 가능 시)
+            // 만약 TabletUIManager에 정적 프로퍼티가 있다면 여기서 직접 할당
+            // isTabletLocked = TabletUIManager.IsAnyTabletOpen; 
+        }
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        if (IsOwner)
+        {
+            TabletUIManager.OnTabletStateChanged -= HandleTabletStateChanged;
+        }
+    }
+
 
     void Start()
     {
@@ -82,12 +110,20 @@ public class PlayerMove : NetworkBehaviour
     {
         if (!IsOwner || isControlLocked) return;
 
+        if (isControlLocked || isTabletLocked)
+        {
+            // 애니메이션 파라미터 초기화용
+            inputMagnitude = 0; 
+            return;
+        }
+
         if (Keyboard.current == null) return;
 
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
         inputMagnitude = new Vector2(h, v).magnitude;
 
+        //HandleInput();
         CheckGroundStatus();
         HandleActions();
     }
@@ -95,6 +131,18 @@ public class PlayerMove : NetworkBehaviour
     void FixedUpdate()
     {
         if (!IsOwner) return;
+
+        // [수정] 이동 물리 연산도 동일하게 차단
+        if (isControlLocked || isTabletLocked)
+        {
+            // 완벽하게 멈추기 위해 물리 속도 제어
+            rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
+            return;
+        }
+
+        //Move();
+
+        //if (!IsOwner) return;
 
         // 이동 핸들링을 FixedUpdate로 이동
         float h = Input.GetAxisRaw("Horizontal");
@@ -425,6 +473,20 @@ public class PlayerMove : NetworkBehaviour
         {
             currentSpeed = 0f;
             rb.linearVelocity = Vector3.zero;
+        }
+    }
+
+    // 태블릿 상태에 따라 잠금 설정
+    private void HandleTabletStateChanged(bool isOpen)
+    {
+        isTabletLocked = isOpen;
+
+        // 태블릿이 열릴 때 속도 초기화 (미끄러짐 방지)
+        if (isOpen)
+        {
+            currentSpeed = 0;
+            inputMagnitude = 0;
+            if (rb != null) rb.linearVelocity = Vector3.zero;
         }
     }
 }
