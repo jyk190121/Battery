@@ -98,13 +98,13 @@ public class MonsterController : NetworkBehaviour
         if (monsterData != null)
         {
             // 인형 전용 상태 등록
-            if (monsterData.name == "Doll")
+            if (monsterData.type == MonsterType.Special)
             {
                 _states.Add(MonsterStateType.Stalk, new StalkState(this));
                 _states.Add(MonsterStateType.Scream, new ScreamState(this));
             }
             // 올무벼룩 전용 상태 등록
-            else if (monsterData.name == "Hand")
+            else if (monsterData.type == MonsterType.Ambush)
             {
                 _states.Add(MonsterStateType.CeilingWait, new CeilingWaitState(this));
                 _states.Add(MonsterStateType.Attached, new AttachedState(this));
