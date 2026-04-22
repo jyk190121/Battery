@@ -46,7 +46,7 @@ public class QuestDifficultyGroupUI : MonoBehaviour
         }
     }
 
-    // 💡 에디터에서 해당 난이도의 'Select' 버튼 OnClick()에 연결할 함수
+    // 에디터에서 해당 난이도의 'Select' 버튼 OnClick()에 연결할 함수
     public void OnSelectButtonClicked()
     {
         if (QuestManager.Instance != null)
