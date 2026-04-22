@@ -63,7 +63,7 @@ public class QuestManager : NetworkBehaviour
         foreach (var q in sub) targetList.Add(q.questID);
     }
 
-    // 💡 [수정] 출발 전까지 자유롭게 난이도를 갈아탈 수 있는 로직
+    // [수정] 출발 전까지 자유롭게 난이도를 갈아탈 수 있는 로직
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void AcceptDifficultyContractServerRpc(QuestDifficulty difficulty)
     {
