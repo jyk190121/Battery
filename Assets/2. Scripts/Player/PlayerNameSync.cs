@@ -1,4 +1,3 @@
-using System.Globalization;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -6,7 +5,7 @@ using UnityEngine;
 public class PlayerNameSync : NetworkBehaviour
 {
     public NetworkVariable<FixedString64Bytes> NetworkNickname = new NetworkVariable<FixedString64Bytes>(
-        "", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        "", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     public override void OnNetworkSpawn()
     {

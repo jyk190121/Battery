@@ -3,6 +3,7 @@ using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 
 public class GameSceneManager : NetworkBehaviour
 {
@@ -97,7 +98,7 @@ public class GameSceneManager : NetworkBehaviour
     }
     void OnSceneLoaded(string sceneName, LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
     {
-        if (sceneName == "KJY_Lobby")
+        if (sceneName == "KJY_Lobby" || sceneName == "KJY_Player")
         {
             Debug.Log("[GameSceneManager] 로비 씬 로드 완료. 현재 접속된 모든 인원 스폰 시도");
             foreach (var clientId in clientsCompleted)
@@ -141,6 +142,8 @@ public class GameSceneManager : NetworkBehaviour
         }
         else
         {
+            spawnPos = Vector3.zero;
+
             Debug.LogWarning("[GameSceneManager] 스폰 포인트가 없어 zero 좌표를 사용합니다.");
         }
 
@@ -222,6 +225,27 @@ public class GameSceneManager : NetworkBehaviour
                 }
             }
         }
+
+        if (IsOwner)
+        {
+            // 1. 캐릭터 컨트롤러가 있다면 잠시 끄기 (충돌로 인한 튕김 방지)
+            var canvas = GetComponent<CharacterController>();
+            if (canvas != null) canvas.enabled = false;
+
+            // 2. 위치 이동
+            transform.SetPositionAndRotation(pos, rot);
+
+            // 3. NetworkTransform이 있다면 상태 동기화 강제 업데이트
+            if (TryGetComponent(out Unity.Netcode.Components.NetworkTransform nt))
+            {
+                // Teleport 메서드는 현재 위치를 즉시 동기화 포인트로 잡습니다.
+                nt.Teleport(pos, rot, transform.localScale);
+            }
+
+            if (canvas != null) canvas.enabled = true;
+
+            Debug.Log($"[Player] 스폰 위치로 텔레포트 완료: {pos}");
+        }
     }
 
     // 로컬 클라이언트에서 씬 로드가 끝났을 때 실행됨
@@ -240,11 +264,7 @@ public class GameSceneManager : NetworkBehaviour
             var playerObj = NetworkManager.Singleton.LocalClient.PlayerObject;
 
             // 상호작용 UI 연결
-            if (playerObj.TryGetComponent(out PlayerInteraction interaction))
-                interaction.FindUIElements();
-            
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            if (playerObj.TryGetComponent(out PlayerInteraction interaction)) interaction.FindUIElements();
         }
     }
 
