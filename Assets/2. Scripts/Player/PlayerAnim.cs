@@ -106,11 +106,6 @@ public class PlayerAnim : MonoBehaviour
         anim.SetBool("IsDead", true);
     }
 
-    public void PlayRevive()
-    {
-        anim.SetBool("IsDead", false);
-    }
-
     public void ResetAnimation()
     {
         anim.SetBool("IsDead", false);
