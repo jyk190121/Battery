@@ -7,7 +7,7 @@ public class PlayerController : NetworkBehaviour
 {
     [Header("사망 연계 설정")]
     public GameObject droppedPhonePrefab; // 바닥에 남겨질 콜라이더/ 폰 프리팹
-    public GameObject playerBodyVisual; // 바닥에 남겨질 콜라이더/ 폰 프리팹
+    public GameObject playerModel;        // 플레이어 모델
 
 
     [Header("Base Data")]
@@ -30,12 +30,15 @@ public class PlayerController : NetworkBehaviour
 
     // 서버와 몬스터가 즉시 참조할 수 있는 전역(Static) 출석부
     public static List<PlayerController> AllPlayers = new List<PlayerController>();
+    private int _currentSpectateIndex = -1;
+    private PlayerAnim playerAnim;
 
     private void Awake()
     {
         StateManager = GetComponent<PlayerStateManager>();
         Interaction = GetComponent<PlayerInteraction>();
         playerRotation = GetComponent<PlayerRotation>();
+        playerAnim = GetComponent<PlayerAnim>();
     }
 
     public override void OnNetworkSpawn()
@@ -47,7 +50,13 @@ public class PlayerController : NetworkBehaviour
         }
 
         StateManager.currentHealth.OnValueChanged += OnHealthChanged;
-        
+
+        // isDead 값이 바뀔 때마다 실행될 콜백 등록
+        isDead.OnValueChanged += OnDeadStatusChanged;
+
+        // 초기 상태 적용 (씬 로딩 시 이미 죽어있는 상태일 경우 대비)
+        if (isDead.Value) OnDeadStatusChanged(false, true);
+
         if (IsServer)
         {
             //// 로비 리셋 로직
@@ -64,7 +73,7 @@ public class PlayerController : NetworkBehaviour
                 StateManager.currentHealth.Value = Data.maxHealth;
             }
         }
-        isDead.OnValueChanged += OnDeadStatusChanged;
+        //isDead.OnValueChanged += OnDeadStatusChanged;
     }
 
     // 플레이어가 튕기거나 방을 나갈 때 출석부에서 제거합니다.
@@ -97,6 +106,54 @@ public class PlayerController : NetworkBehaviour
         // 여기서 직접 UI를 건드릴 필요는 없으나, OnNetworkSpawn에서 구독이 잘 되었는지 확인이 필요합니다.
     }
 
+    void Update()
+    {
+        // 본인이 주인이고 사망 상태일 때만 관전 입력 체크
+        if (IsOwner && isDead.Value)
+        {
+            HandleSpectateInput();
+        }
+    }
+    void HandleSpectateInput()
+    {
+        // 마우스 좌클릭 시 다음 타겟으로 전환
+        if (UnityEngine.InputSystem.Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            SwitchToNextTarget();
+        }
+    }
+    void SwitchToNextTarget()
+    {
+        if (AllPlayers.Count <= 1) return; // 나밖에 없으면 리턴
+
+        // 현재 인덱스부터 시작해서 리스트를 한 바퀴 돌며 살아있는 플레이어 탐색
+        for (int i = 0; i < AllPlayers.Count; i++)
+        {
+            _currentSpectateIndex = (_currentSpectateIndex + 1) % AllPlayers.Count;
+            PlayerController targetPlayer = AllPlayers[_currentSpectateIndex];
+
+            // 1. 나(본인)이 아니고 2. 죽지 않은 플레이어라면
+            if (targetPlayer != this && !targetPlayer.isDead.Value)
+            {
+                if (targetPlayer.TryGetComponent<PlayerRotation>(out var targetRot))
+                {
+                    playerRotation.SetSpectatingTarget(targetRot);
+                    Debug.Log($"[관전 전환] {targetPlayer.gameObject.name} 시점으로 전환");
+                    return; // 찾았으므로 종료
+                }
+            }
+        }
+    }
+    IEnumerator StartSpectating()
+    {
+        yield return new WaitForSeconds(1.5f); // 사망 연출을 위해 조금 기다림
+
+        if (playerModel != null) playerModel.SetActive(false);
+
+        // 첫 번째 관전 대상 찾기
+        SwitchToNextTarget();
+    }
+
     // [ServerRpc] 외부(몬스터 등)에서 데미지를 줄 때 호출
     //[ServerRpc(RequireOwnership = false)]
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
@@ -126,6 +183,18 @@ public class PlayerController : NetworkBehaviour
         //{
         //    AllPlayers.Remove(this);
         //}
+
+        if (IsOwner)
+        {
+            // 1. 내 모델을 끈다 (내 화면에서 내 몸이 안 보이게)
+            if (playerModel != null) playerModel.SetActive(false);
+
+            // 2. 관전 모드 활성화 (회전 스크립트에 알림)
+            if (playerRotation != null) playerRotation.SetSpectatingMode(true);
+
+            // 2. 관전 대상 탐색 및 카메라 전환 로직 실행
+            StartSpectating();
+        }
 
         if (TryGetComponent(out PlayerInventory inventory))
         {
@@ -263,8 +332,12 @@ public class PlayerController : NetworkBehaviour
 
     void OnDeadStatusChanged(bool previousValue, bool newValue)
     {
-        if (newValue == true)
+        if (playerAnim == null) playerAnim = GetComponent<PlayerAnim>();
+
+        if (newValue) // newValue가 true이면 사망
         {
+            playerAnim.PlayDead();
+
             PerformDeathEffects();
 
             // 관전 모드 시작 (본인인 경우에만)
@@ -273,10 +346,28 @@ public class PlayerController : NetworkBehaviour
                 StartCoroutine(StartSpectating());
             }
         }
-        else // 부활 시 (isDead.Value가 true -> false가 되었을 때)
+        else
         {
+            playerAnim.PlayRevive();
+            // 필요하다면 리바인드를 통해 애니메이터를 완전히 초기 상태(Idle)로 강제 정렬합니다.
+            playerAnim.ResetAnimation();
+
             PerformReviveEffects();
         }
+        //if (newValue == true)
+        //{
+        //    PerformDeathEffects();
+
+        //    // 관전 모드 시작 (본인인 경우에만)
+        //    if (IsOwner)
+        //    {
+        //        StartCoroutine(StartSpectating());
+        //    }
+        //}
+        //else // 부활 시 (isDead.Value가 true -> false가 되었을 때)
+        //{
+        //    PerformReviveEffects();
+        //}
     }
 
     IEnumerator StartSpectating()
@@ -335,17 +426,27 @@ public class PlayerController : NetworkBehaviour
 
         yield return new WaitForSeconds(1.0f);
 
-        if (playerBodyVisual != null) playerBodyVisual.SetActive(false);
+        if (playerModel != null) playerModel.SetActive(false);
     }
 
     PlayerRotation FindSpectatableTarget()
     {
-        foreach (var p in AllPlayers)
+        //foreach (var p in AllPlayers)
+        //{
+        //    // 내가 아니고 죽지 않은 플레이어
+        //    if (p != this && !p.isDead.Value)
+        //    {
+        //        if (p.TryGetComponent<PlayerRotation>(out var targetRot)) return targetRot;
+        //    }
+        //}
+
+        // 살아있는 다른 플레이어 찾기
+        foreach (var player in AllPlayers) // static List 등으로 관리되는 리스트
         {
-            // 내가 아니고 죽지 않은 플레이어
-            if (p != this && !p.isDead.Value)
+            if (player != this && !player.isDead.Value)
             {
-                if (p.TryGetComponent<PlayerRotation>(out var targetRot)) return targetRot;
+                GetComponent<PlayerRotation>().SetSpectatingTarget(player.GetComponent<PlayerRotation>());
+                break;
             }
         }
         return null;
@@ -388,7 +489,7 @@ public class PlayerController : NetworkBehaviour
     {
         Debug.Log($"{gameObject.name}가 부활");
 
-        if (playerBodyVisual != null) playerBodyVisual.SetActive(true);
+        if (playerModel != null) playerModel.SetActive(true);
 
         // 1. 애니메이션 리셋 (누워있는 상태에서 일어나는 상태로)
         if (TryGetComponent(out PlayerAnim anim))
