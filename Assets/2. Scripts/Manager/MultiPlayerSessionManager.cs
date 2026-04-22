@@ -87,6 +87,7 @@ public class MultiPlayerSessionManager : NetworkBehaviour
             {
                 NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
             }
+
         }
         catch (Exception e)
         {
