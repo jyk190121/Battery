@@ -143,10 +143,33 @@ public class GameMaster : NetworkBehaviour
     // --- [기능] ---
 
     // UI(상점)에서 호출할 구매 창구
-    public bool RequestPurchase(int price)
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void RequestPurchaseServerRpc(int totalPrice, int[] itemIDs, int[] counts, ulong clientId)
     {
-        if (!IsServer) return false;
-        // 경제 매니저에게 묻고 결과를 그대로 돌려줌
-        return economyManager.TryPurchaseWithLoan(price);
+        // 1. 서버(방장)가 직접 경제 매니저에게 돈이 충분한지 묻고 차감 시도
+        if (economyManager.TryPurchaseWithLoan(totalPrice))
+        {
+            // 2. 돈 차감에 성공했다면, 게임 세션 매니저에게 물건 스폰 대기열 등록을 지시
+            GameSessionManager.Instance.AddItemsToSpawnQueue(itemIDs, counts);
+
+            Debug.Log($"<color=lime>[Server]</color> Client {clientId}의 {totalPrice}G 결제 승인 및 배송 등록 완료.");
+
+            // 3. 결제를 요청한 해당 클라이언트에게만 "결제 성공했으니 장바구니 비워!" 라고 답장을 보냄
+            NotifyPurchaseSuccessClientRpc(RpcTarget.Single(clientId, RpcTargetUse.Temp));
+        }
+        else
+        {
+            Debug.LogWarning($"<color=red>[Server]</color> Client {clientId}의 {totalPrice}G 결제 거절 (잔액 부족).");
+            // 필요하다면 실패 알림을 보내는 ClientRpc를 추가할 수도 있습니다.
+        }
+    }
+
+    // 특정 클라이언트(결제 요청자)에게만 보내는 성공 신호
+    [Rpc(SendTo.SpecifiedInParams)]
+    private void NotifyPurchaseSuccessClientRpc(RpcParams rpcParams)
+    {
+        ShopManager manager = FindAnyObjectByType<ShopManager>();
+        manager.ClearCartUI();
     }
 }
