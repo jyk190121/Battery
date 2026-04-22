@@ -190,7 +190,6 @@ public class PlayerUIManager : NetworkBehaviour
         {
             playerHpImage = SceneUIReference.Instance.hpImage;
             vignetteImage = SceneUIReference.Instance.vignetteImage;
-            blindImage = SceneUIReference.Instance.blindImage;
 
             if (vignetteImage != null)
             {
