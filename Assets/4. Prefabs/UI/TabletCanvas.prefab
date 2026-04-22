@@ -11,8 +11,9 @@ GameObject:
   - component: {fileID: 8367656217163554501}
   - component: {fileID: 4912675822171562832}
   - component: {fileID: 3939715197091297151}
+  - component: {fileID: 2741146786563363996}
   m_Layer: 13
-  m_Name: QuestSelectPanel (1)
+  m_Name: QuestSelectPanelNormal
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -76,6 +77,25 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &2741146786563363996
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 91738011399128176}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceac76f8c5e3ce04daae7cfabb191c0a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestDifficultyGroupUI
+  questPanels:
+  - {fileID: 7707141150375048412}
+  - {fileID: 4394204538578630948}
+  - {fileID: 5798026312027239536}
+  - {fileID: 4652473185205296345}
+  selectBtn: {fileID: 5399666449149576197}
+  QuestPanel: {fileID: 6597181965599453496}
 --- !u!1 &111945505036890044
 GameObject:
   m_ObjectHideFlags: 0
@@ -1820,8 +1840,9 @@ GameObject:
   - component: {fileID: 7982929669439294962}
   - component: {fileID: 8894236203777804065}
   - component: {fileID: 357741191782455878}
+  - component: {fileID: 4630649467157220849}
   m_Layer: 13
-  m_Name: QuestSelectPanel
+  m_Name: QuestSelectPanelEasy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1885,6 +1906,25 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &4630649467157220849
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 493732648891892515}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceac76f8c5e3ce04daae7cfabb191c0a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestDifficultyGroupUI
+  questPanels:
+  - {fileID: 3627987510463441345}
+  - {fileID: 4164307308242835237}
+  - {fileID: 3254144947479906706}
+  - {fileID: 5129752112713888802}
+  selectBtn: {fileID: 2724648125559861792}
+  QuestPanel: {fileID: 6597181965599453496}
 --- !u!1 &494721833952715344
 GameObject:
   m_ObjectHideFlags: 0
@@ -2093,10 +2133,10 @@ RectTransform:
   - {fileID: 1250329642547927935}
   m_Father: {fileID: 7896031262448836868}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 140, y: -65}
+  m_SizeDelta: {x: 280, y: 130}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8125545029054295733
 CanvasRenderer:
@@ -2239,7 +2279,6 @@ GameObject:
   - component: {fileID: 1948320628879450395}
   - component: {fileID: 231387795980698338}
   - component: {fileID: 3282100701435499937}
-  - component: {fileID: 7599000694229729344}
   m_Layer: 13
   m_Name: QuestPanel
   m_TagString: Untagged
@@ -2307,50 +2346,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &7599000694229729344
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 608944005644185637}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
-  m_Navigation:
-    m_Mode: 3
-    m_WrapAround: 0
-    m_SelectOnUp: {fileID: 0}
-    m_SelectOnDown: {fileID: 0}
-    m_SelectOnLeft: {fileID: 0}
-    m_SelectOnRight: {fileID: 0}
-  m_Transition: 1
-  m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 1, g: 1, b: 1, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.6886792, g: 0.6886792, b: 0.6886792, a: 0.5019608}
-    m_ColorMultiplier: 1
-    m_FadeDuration: 0.1
-  m_SpriteState:
-    m_HighlightedSprite: {fileID: 0}
-    m_PressedSprite: {fileID: 0}
-    m_SelectedSprite: {fileID: 0}
-    m_DisabledSprite: {fileID: 0}
-  m_AnimationTriggers:
-    m_NormalTrigger: Normal
-    m_HighlightedTrigger: Highlighted
-    m_PressedTrigger: Pressed
-    m_SelectedTrigger: Selected
-    m_DisabledTrigger: Disabled
-  m_Interactable: 1
-  m_TargetGraphic: {fileID: 3282100701435499937}
-  m_OnClick:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!1 &615540461584885419
 GameObject:
   m_ObjectHideFlags: 0
@@ -2753,6 +2748,7 @@ GameObject:
   - component: {fileID: 698853325087007645}
   - component: {fileID: 2181934468014909303}
   - component: {fileID: 469331826264119305}
+  - component: {fileID: 3381678870327453465}
   m_Layer: 13
   m_Name: QuestBar1
   m_TagString: Untagged
@@ -2820,6 +2816,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &3381678870327453465
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 656692513997193313}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b0c8fd7c97bcbc45b29c6801ee482da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestPanelUI
+  questNameText: {fileID: 7946718742725101909}
+  questRewardText: {fileID: 7409401279882591149}
 --- !u!1 &660915871853150003
 GameObject:
   m_ObjectHideFlags: 0
@@ -4539,10 +4549,10 @@ RectTransform:
   - {fileID: 4953942373497087414}
   m_Father: {fileID: 7896031262448836868}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 430, y: -65}
+  m_SizeDelta: {x: 280, y: 130}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3217872567156146213
 CanvasRenderer:
@@ -7689,10 +7699,10 @@ RectTransform:
   - {fileID: 1308350661784581591}
   m_Father: {fileID: 3700595423777337385}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 190, y: -350}
+  m_SizeDelta: {x: 320, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &863017730106064297
 CanvasRenderer:
@@ -8430,6 +8440,7 @@ GameObject:
   - component: {fileID: 7969876318538166218}
   - component: {fileID: 1106950802855317405}
   - component: {fileID: 6315650505847683629}
+  - component: {fileID: 5798026312027239536}
   m_Layer: 13
   m_Name: QuestBar1 (2)
   m_TagString: Untagged
@@ -8497,6 +8508,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &5798026312027239536
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2771963540111307359}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b0c8fd7c97bcbc45b29c6801ee482da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestPanelUI
+  questNameText: {fileID: 2049310477133281243}
+  questRewardText: {fileID: 6025393582788604200}
 --- !u!1 &2873798567766662349
 GameObject:
   m_ObjectHideFlags: 0
@@ -10930,6 +10955,7 @@ GameObject:
   - component: {fileID: 7741286878516001224}
   - component: {fileID: 6053461209154517762}
   - component: {fileID: 3902572414317879067}
+  - component: {fileID: 3627987510463441345}
   m_Layer: 13
   m_Name: QuestBar1
   m_TagString: Untagged
@@ -10997,6 +11023,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &3627987510463441345
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3524288116417204765}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b0c8fd7c97bcbc45b29c6801ee482da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestPanelUI
+  questNameText: {fileID: 687725655481298351}
+  questRewardText: {fileID: 8660694934067543883}
 --- !u!1 &3525417991837675354
 GameObject:
   m_ObjectHideFlags: 0
@@ -11086,6 +11126,7 @@ GameObject:
   - component: {fileID: 9047709598662967654}
   - component: {fileID: 3063088690426826194}
   - component: {fileID: 6790009650036483741}
+  - component: {fileID: 5129752112713888802}
   m_Layer: 13
   m_Name: QuestBar1 (3)
   m_TagString: Untagged
@@ -11153,6 +11194,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &5129752112713888802
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3543515485038144255}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b0c8fd7c97bcbc45b29c6801ee482da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestPanelUI
+  questNameText: {fileID: 844468132148192165}
+  questRewardText: {fileID: 3858095300049629181}
 --- !u!1 &3603732642431910455
 GameObject:
   m_ObjectHideFlags: 0
@@ -11475,10 +11530,10 @@ RectTransform:
   - {fileID: 2009997503274961043}
   m_Father: {fileID: 3700595423777337385}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 190, y: -125}
+  m_SizeDelta: {x: 320, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4692079678305086002
 CanvasRenderer:
@@ -12094,6 +12149,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8497701887972854163}
   - component: {fileID: 5114084597824223575}
+  - component: {fileID: 7007840137142810101}
   m_Layer: 13
   m_Name: QuestList
   m_TagString: Untagged
@@ -12147,6 +12203,21 @@ MonoBehaviour:
   m_Spacing: {x: -55, y: 25}
   m_Constraint: 1
   m_ConstraintCount: 3
+--- !u!114 &7007840137142810101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3889567804851648616}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 032dc534d5207eb44be3828991eda38e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TabletQuestListUI
+  easyGroup: {fileID: 4630649467157220849}
+  normalGroup: {fileID: 2741146786563363996}
+  hardGroup: {fileID: 8890046323134786527}
 --- !u!1 &3912310711530016098
 GameObject:
   m_ObjectHideFlags: 0
@@ -12814,10 +12885,10 @@ RectTransform:
   - {fileID: 8640935498459081878}
   m_Father: {fileID: 3700595423777337385}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 560, y: -350}
+  m_SizeDelta: {x: 320, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6531683028551575751
 CanvasRenderer:
@@ -13207,6 +13278,7 @@ GameObject:
   - component: {fileID: 3797140004612247608}
   - component: {fileID: 5746727141872719134}
   - component: {fileID: 9027825242885316603}
+  - component: {fileID: 4652473185205296345}
   m_Layer: 13
   m_Name: QuestBar1 (3)
   m_TagString: Untagged
@@ -13274,6 +13346,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &4652473185205296345
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4275248218871200156}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b0c8fd7c97bcbc45b29c6801ee482da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestPanelUI
+  questNameText: {fileID: 3383540594366155130}
+  questRewardText: {fileID: 369752351015158209}
 --- !u!1 &4300303134572888755
 GameObject:
   m_ObjectHideFlags: 0
@@ -13519,7 +13605,7 @@ RectTransform:
   m_Father: {fileID: 1309393355834366817}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -15461,6 +15547,7 @@ GameObject:
   - component: {fileID: 2660381385268955608}
   - component: {fileID: 6796684716969439685}
   - component: {fileID: 2724648125559861792}
+  - component: {fileID: 7117897365887682474}
   m_Layer: 13
   m_Name: Button
   m_TagString: Untagged
@@ -15569,7 +15656,34 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 6796684716969439685}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 0}
+        m_TargetAssemblyTypeName: QuestDifficultyGroupUI, Assembly-CSharp
+        m_MethodName: 
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 1
+--- !u!114 &7117897365887682474
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5002971935597088907}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceac76f8c5e3ce04daae7cfabb191c0a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestDifficultyGroupUI
+  questPanels: []
+  selectBtn: {fileID: 0}
+  QuestPanel: {fileID: 0}
 --- !u!1 &5004952003155580463
 GameObject:
   m_ObjectHideFlags: 0
@@ -15682,10 +15796,10 @@ RectTransform:
   - {fileID: 7029760459377491793}
   m_Father: {fileID: 7896031262448836868}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 720, y: -65}
+  m_SizeDelta: {x: 280, y: 130}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8207297536871954642
 CanvasRenderer:
@@ -16236,6 +16350,7 @@ GameObject:
   - component: {fileID: 4324668544108862284}
   - component: {fileID: 5648663334133429619}
   - component: {fileID: 4623187758964187127}
+  - component: {fileID: 4164307308242835237}
   m_Layer: 13
   m_Name: QuestBar1 (1)
   m_TagString: Untagged
@@ -16303,6 +16418,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &4164307308242835237
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5154350120879945382}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b0c8fd7c97bcbc45b29c6801ee482da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestPanelUI
+  questNameText: {fileID: 4337741041919809514}
+  questRewardText: {fileID: 8831139091898050311}
 --- !u!1 &5171001531507902533
 GameObject:
   m_ObjectHideFlags: 0
@@ -18299,6 +18428,7 @@ GameObject:
   - component: {fileID: 27009832410489255}
   - component: {fileID: 8597838591869110991}
   - component: {fileID: 2272811507135931465}
+  - component: {fileID: 5374928541516450759}
   m_Layer: 13
   m_Name: QuestBar1 (3)
   m_TagString: Untagged
@@ -18366,6 +18496,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &5374928541516450759
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5810115345760385578}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b0c8fd7c97bcbc45b29c6801ee482da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestPanelUI
+  questNameText: {fileID: 5485399450846161528}
+  questRewardText: {fileID: 3729206060385208301}
 --- !u!1 &5826337778500925800
 GameObject:
   m_ObjectHideFlags: 0
@@ -18377,6 +18521,7 @@ GameObject:
   - component: {fileID: 8674302354106683039}
   - component: {fileID: 5833942057059501867}
   - component: {fileID: 6714220344459589400}
+  - component: {fileID: 7041976173675443204}
   m_Layer: 13
   m_Name: QuestBar1 (2)
   m_TagString: Untagged
@@ -18444,6 +18589,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &7041976173675443204
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5826337778500925800}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b0c8fd7c97bcbc45b29c6801ee482da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestPanelUI
+  questNameText: {fileID: 1391312828720302766}
+  questRewardText: {fileID: 627137921976386692}
 --- !u!1 &5828517221612391946
 GameObject:
   m_ObjectHideFlags: 0
@@ -18744,8 +18903,9 @@ GameObject:
   - component: {fileID: 5568735850221307802}
   - component: {fileID: 8236213295471648238}
   - component: {fileID: 6292777092936921675}
+  - component: {fileID: 8890046323134786527}
   m_Layer: 13
-  m_Name: QuestSelectPanel (2)
+  m_Name: QuestSelectPanelHard
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -18809,6 +18969,25 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &8890046323134786527
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5890557283343882445}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceac76f8c5e3ce04daae7cfabb191c0a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestDifficultyGroupUI
+  questPanels:
+  - {fileID: 3381678870327453465}
+  - {fileID: 4606377055499829968}
+  - {fileID: 7041976173675443204}
+  - {fileID: 5374928541516450759}
+  selectBtn: {fileID: 8950809673242382898}
+  QuestPanel: {fileID: 6597181965599453496}
 --- !u!1 &5997598983149374464
 GameObject:
   m_ObjectHideFlags: 0
@@ -19498,10 +19677,10 @@ RectTransform:
   - {fileID: 3179579681167817696}
   m_Father: {fileID: 3700595423777337385}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 560, y: -125}
+  m_SizeDelta: {x: 320, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8198735553185679124
 CanvasRenderer:
@@ -19680,7 +19859,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4498146226689534323
 RectTransform:
   m_ObjectHideFlags: 0
@@ -20771,7 +20950,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &5607352151061435610
 RectTransform:
   m_ObjectHideFlags: 0
@@ -21243,6 +21422,7 @@ GameObject:
   - component: {fileID: 4022033709766575625}
   - component: {fileID: 3628915673009658435}
   - component: {fileID: 6335349450728674040}
+  - component: {fileID: 4394204538578630948}
   m_Layer: 13
   m_Name: QuestBar1 (1)
   m_TagString: Untagged
@@ -21310,6 +21490,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &4394204538578630948
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6778964807480945401}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b0c8fd7c97bcbc45b29c6801ee482da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestPanelUI
+  questNameText: {fileID: 8292568449988358015}
+  questRewardText: {fileID: 6026089683069234083}
 --- !u!1 &6795722038105262270
 GameObject:
   m_ObjectHideFlags: 0
@@ -22713,9 +22907,9 @@ RectTransform:
   m_Father: {fileID: 3303532231797925743}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: -17, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!222 &7089992662777744667
 CanvasRenderer:
@@ -23400,6 +23594,7 @@ GameObject:
   - component: {fileID: 1448403992339494524}
   - component: {fileID: 7052003691197538824}
   - component: {fileID: 2472301443234445299}
+  - component: {fileID: 4606377055499829968}
   m_Layer: 13
   m_Name: QuestBar1 (1)
   m_TagString: Untagged
@@ -23467,6 +23662,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &4606377055499829968
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7329992758388459290}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b0c8fd7c97bcbc45b29c6801ee482da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestPanelUI
+  questNameText: {fileID: 3372688827747810948}
+  questRewardText: {fileID: 5036207099850293188}
 --- !u!1 &7344534874519740571
 GameObject:
   m_ObjectHideFlags: 0
@@ -25027,9 +25236,9 @@ RectTransform:
   m_Father: {fileID: 632236179756359192}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: -17, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!222 &8790771148677189681
 CanvasRenderer:
@@ -25465,10 +25674,10 @@ RectTransform:
   - {fileID: 3424319029583603353}
   m_Father: {fileID: 7896031262448836868}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 1010, y: -65}
+  m_SizeDelta: {x: 280, y: 130}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4638550941022214085
 CanvasRenderer:
@@ -25713,10 +25922,10 @@ RectTransform:
   - {fileID: 3243723259778160357}
   m_Father: {fileID: 3700595423777337385}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 930, y: -125}
+  m_SizeDelta: {x: 320, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2918253351683259306
 CanvasRenderer:
@@ -27423,7 +27632,7 @@ RectTransform:
   m_Father: {fileID: 2176772794710825103}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -27764,7 +27973,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8385550920223525968}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -27773,7 +27982,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 213, y: -26.4}
+  m_AnchoredPosition: {x: 213, y: -26.400002}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4978374098103174435
@@ -28024,6 +28233,7 @@ GameObject:
   - component: {fileID: 6079158762617440572}
   - component: {fileID: 3484915749540901156}
   - component: {fileID: 3709842392078266554}
+  - component: {fileID: 3254144947479906706}
   m_Layer: 13
   m_Name: QuestBar1 (2)
   m_TagString: Untagged
@@ -28091,6 +28301,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &3254144947479906706
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8429296206698259698}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b0c8fd7c97bcbc45b29c6801ee482da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestPanelUI
+  questNameText: {fileID: 5997698597385053571}
+  questRewardText: {fileID: 6471998839883695648}
 --- !u!1 &8465067863323733145
 GameObject:
   m_ObjectHideFlags: 0
@@ -29516,6 +29740,7 @@ GameObject:
   - component: {fileID: 2926318736421978318}
   - component: {fileID: 9220728544323290062}
   - component: {fileID: 2602225395712263304}
+  - component: {fileID: 7707141150375048412}
   m_Layer: 13
   m_Name: QuestBar1
   m_TagString: Untagged
@@ -29583,6 +29808,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &7707141150375048412
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8997740104027541984}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b0c8fd7c97bcbc45b29c6801ee482da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestPanelUI
+  questNameText: {fileID: 4407366880535197160}
+  questRewardText: {fileID: 4887342052262659543}
 --- !u!1 &9006031788237688775
 GameObject:
   m_ObjectHideFlags: 0
@@ -30010,7 +30249,6 @@ GameObject:
   - component: {fileID: 3376786000702227776}
   - component: {fileID: 7085153889723343820}
   - component: {fileID: 5763544139521851425}
-  - component: {fileID: 5007596272307659943}
   m_Layer: 13
   m_Name: QuestPanel
   m_TagString: Untagged
@@ -30078,50 +30316,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &5007596272307659943
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9089206666024971209}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
-  m_Navigation:
-    m_Mode: 3
-    m_WrapAround: 0
-    m_SelectOnUp: {fileID: 0}
-    m_SelectOnDown: {fileID: 0}
-    m_SelectOnLeft: {fileID: 0}
-    m_SelectOnRight: {fileID: 0}
-  m_Transition: 1
-  m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 1, g: 1, b: 1, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.6886792, g: 0.6886792, b: 0.6886792, a: 0.5019608}
-    m_ColorMultiplier: 1
-    m_FadeDuration: 0.1
-  m_SpriteState:
-    m_HighlightedSprite: {fileID: 0}
-    m_PressedSprite: {fileID: 0}
-    m_SelectedSprite: {fileID: 0}
-    m_DisabledSprite: {fileID: 0}
-  m_AnimationTriggers:
-    m_NormalTrigger: Normal
-    m_HighlightedTrigger: Highlighted
-    m_PressedTrigger: Pressed
-    m_SelectedTrigger: Selected
-    m_DisabledTrigger: Disabled
-  m_Interactable: 1
-  m_TargetGraphic: {fileID: 5763544139521851425}
-  m_OnClick:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!1 &9165603458088378944
 GameObject:
   m_ObjectHideFlags: 0
@@ -30133,7 +30327,6 @@ GameObject:
   - component: {fileID: 3218685404240780139}
   - component: {fileID: 739778157395274362}
   - component: {fileID: 8680366320660995467}
-  - component: {fileID: 4354542734406171846}
   m_Layer: 13
   m_Name: QuestPanel
   m_TagString: Untagged
@@ -30201,50 +30394,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &4354542734406171846
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9165603458088378944}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
-  m_Navigation:
-    m_Mode: 3
-    m_WrapAround: 0
-    m_SelectOnUp: {fileID: 0}
-    m_SelectOnDown: {fileID: 0}
-    m_SelectOnLeft: {fileID: 0}
-    m_SelectOnRight: {fileID: 0}
-  m_Transition: 1
-  m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 1, g: 1, b: 1, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.6886792, g: 0.6886792, b: 0.6886792, a: 0.5019608}
-    m_ColorMultiplier: 1
-    m_FadeDuration: 0.1
-  m_SpriteState:
-    m_HighlightedSprite: {fileID: 0}
-    m_PressedSprite: {fileID: 0}
-    m_SelectedSprite: {fileID: 0}
-    m_DisabledSprite: {fileID: 0}
-  m_AnimationTriggers:
-    m_NormalTrigger: Normal
-    m_HighlightedTrigger: Highlighted
-    m_PressedTrigger: Pressed
-    m_SelectedTrigger: Selected
-    m_DisabledTrigger: Disabled
-  m_Interactable: 1
-  m_TargetGraphic: {fileID: 8680366320660995467}
-  m_OnClick:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!1 &9165736861005466233
 GameObject:
   m_ObjectHideFlags: 0
