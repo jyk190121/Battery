@@ -2724,7 +2724,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4533700235938116919}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071068}
+  m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: -0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -2733,7 +2733,7 @@ Transform:
   - {fileID: 1519623308882645163}
   - {fileID: 2139570310552566991}
   m_Father: {fileID: 658577172614144005}
-  m_LocalEulerAnglesHint: {x: -83.09697, y: -15.111244, z: 19.568018}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
 --- !u!1 &4681688513397158763
 GameObject:
   m_ObjectHideFlags: 0
@@ -2934,7 +2934,6 @@ MonoBehaviour:
   cameraTarget: {fileID: 8435035688047205567}
   playerMove: {fileID: 1166937674116199471}
   CameraGroup: {fileID: 643760621317042792}
-  tabletUIPanel: {fileID: 0}
   sensitivity: 0.02
   originYoffset: 0.0961
   walkYPos: 0.1
@@ -3162,6 +3161,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f44f6b3f3c413d7469caee297b144bdc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
+  ShowTopMostFoldoutHeaderGroup: 1
+  isAttacking: 0
 --- !u!114 &8808567715922933914
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3219,6 +3220,7 @@ MonoBehaviour:
   - {fileID: 0}
   currentSlotIndex: 0
   twoHandedItem: {fileID: 0}
+  isControlLocked: 0
   interactRange: 3
   itemLayer:
     serializedVersion: 2
@@ -3323,8 +3325,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   ShowTopMostFoldoutHeaderGroup: 1
+  droppedPhonePrefab: {fileID: 3256090640262015324, guid: cc39fda2988cc3448ae96fd3980cf44f, type: 3}
+  playerBodyVisual: {fileID: 4911454195433589709}
   _playerData: {fileID: 11400000, guid: 51fe10672196c0c4daf37fc48f14bb9a, type: 2}
   isDead:
+    m_InternalValue: 0
+  isSnared:
+    m_InternalValue: 0
+  isInsideFacility:
     m_InternalValue: 0
 --- !u!114 &-8743619242891834833
 MonoBehaviour:
@@ -3360,6 +3368,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   smartphoneModel: {fileID: 3256090640262015324, guid: cc39fda2988cc3448ae96fd3980cf44f, type: 3}
   handSocket: {fileID: 7494339301542819785}
+  currentEquippedItem: {fileID: 0}
 --- !u!136 &8431698971035657743
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -4406,14 +4415,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6894072908224932608}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.06652087, y: 0.9977806, z: 0.0010484485, w: -0.0027848394}
+  m_LocalRotation: {x: -0.0012277175, y: 0.0000818462, z: 0.06651766, w: 0.9977845}
   m_LocalPosition: {x: -0.07253726, y: 0.13393259, z: -0.0033935457}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1470356795425094812}
   m_Father: {fileID: 8582881672757062505}
-  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+  m_LocalEulerAnglesHint: {x: -0.141, y: 0, z: 7.628}
 --- !u!1 &6961405551882966278
 GameObject:
   m_ObjectHideFlags: 0
