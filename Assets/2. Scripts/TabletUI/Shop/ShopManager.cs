@@ -130,6 +130,8 @@ public class ShopManager : MonoBehaviour
             // 서버로 결제 및 배송 요청 전달
             GameSessionManager.Instance.AddItemsToSpawnQueue(itemIDs, count);
 
+            GameMaster.Instance.RequestPurchase(totalPrice);
+
             Debug.Log($"<color=cyan>[Tablet UI]</color> 서버에 {totalPrice}G 결제 요청 완료.");
             ClearCartUI();
         }
