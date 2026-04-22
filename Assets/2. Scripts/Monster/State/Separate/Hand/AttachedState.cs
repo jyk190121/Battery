@@ -159,7 +159,7 @@ public class AttachedState : MonsterBaseState
     {
         yield return null; // 1프레임 대기 (네트워크 싱크 확보)
 
-        owner.transform.localPosition = new Vector3(-0.15f, 1.6f, -0.15f);
+        owner.transform.localPosition = new Vector3(-0.15f, 1.6f, 0.1f);
         owner.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
     }
 }

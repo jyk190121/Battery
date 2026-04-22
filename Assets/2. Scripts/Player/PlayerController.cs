@@ -21,7 +21,7 @@ public class PlayerController : NetworkBehaviour
     public NetworkVariable<bool> isSnared = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     
     // 네트워크 플레이어 실내/외 체크
-    public NetworkVariable<bool> isInsideFacility = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    public NetworkVariable<bool> isInsideFacility = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     // 컴포넌트들을 미리 캐싱하여 다른 곳에서 쉽게 찾게 할 수도 있습니다.
     public PlayerStateManager StateManager { get; private set; }
@@ -50,10 +50,17 @@ public class PlayerController : NetworkBehaviour
         
         if (IsServer)
         {
-            // 로비 리셋 로직
-            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "KJY_Lobby")
+            //// 로비 리셋 로직
+            //if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "KJY_Lobby")
+            //{
+            //    isDead.Value = false;
+            //    StateManager.currentHealth.Value = Data.maxHealth;
+            //}
+
+            // 씬 이름에 상관없이 스폰 시점에는 살아있는 상태로 시작하게 하는 것이 안전합니다.
+            isDead.Value = false;
+            if (StateManager != null && Data != null)
             {
-                isDead.Value = false;
                 StateManager.currentHealth.Value = Data.maxHealth;
             }
         }
@@ -115,10 +122,10 @@ public class PlayerController : NetworkBehaviour
 
         gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
 
-        if (AllPlayers.Contains(this))
-        {
-            AllPlayers.Remove(this);
-        }
+        //if (AllPlayers.Contains(this))
+        //{
+        //    AllPlayers.Remove(this);
+        //}
 
         if (TryGetComponent(out PlayerInventory inventory))
         {
@@ -206,7 +213,13 @@ public class PlayerController : NetworkBehaviour
             }
 
             // 2. 모든 플레이어 부활 처리
-            foreach (var player in AllPlayers)
+            //foreach (var player in AllPlayers)
+            //{
+            //    player.RevivePlayer();
+            //}
+
+            var playersToRevive = new List<PlayerController>(AllPlayers);
+            foreach (var player in playersToRevive)
             {
                 player.RevivePlayer();
             }
@@ -229,14 +242,21 @@ public class PlayerController : NetworkBehaviour
         if (!IsServer) return;
         isDead.Value = false;
 
-        // 4. [추가] 부활 시 다시 추적 대상 리스트에 추가
-        if (!AllPlayers.Contains(this))
-        {
-            AllPlayers.Add(this);
-            Debug.Log($"[서버] {gameObject.name}가 추적 대상 리스트에 다시 추가됨.");
-        }
+        gameObject.layer = LayerMask.NameToLayer("Player");
 
-        StateManager.ResetStatus();
+        //// 4. [추가] 부활 시 다시 추적 대상 리스트에 추가
+        //if (!AllPlayers.Contains(this))
+        //{
+        //    AllPlayers.Add(this);
+        //    Debug.Log($"[서버] {gameObject.name}가 추적 대상 리스트에 다시 추가됨.");
+        //}
+
+        //StateManager.ResetStatus();
+        if (StateManager != null)
+        {
+            StateManager.currentHealth.Value = Data.maxHealth; // 명시적으로 HP 풀로 채움
+            StateManager.ResetStatus();
+        }
     }
     
     // 사망 상태가 변했을 때 호출되는 함수
@@ -368,7 +388,7 @@ public class PlayerController : NetworkBehaviour
     {
         Debug.Log($"{gameObject.name}가 부활");
 
-        if (playerBodyVisual != null) playerBodyVisual.SetActive(false);
+        if (playerBodyVisual != null) playerBodyVisual.SetActive(true);
 
         // 1. 애니메이션 리셋 (누워있는 상태에서 일어나는 상태로)
         if (TryGetComponent(out PlayerAnim anim))
