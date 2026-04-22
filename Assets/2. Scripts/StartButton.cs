@@ -1,6 +1,4 @@
 using UnityEngine;
-using Unity.Netcode;
-using System.Collections.Generic;
 
 public class StartButton : MonoBehaviour
 {
@@ -23,13 +21,22 @@ public class StartButton : MonoBehaviour
         if (GameSessionManager.Instance.IsSpawned)
         {
             Debug.Log("<color=cyan>[StartButton]</color> 매니저에게 게임 시작 요청을 보냅니다.");
-            Object.FindAnyObjectByType<TabletUIManager>()?.CloseTabletUI();
-            //누가 누르든 서버로 신호가 갑니다
-            GameSessionManager.Instance.RequestStartGameServerRpc(targetSceneName);
+            FindAnyObjectByType<TabletUIManager>()?.CloseTabletUI();
+
+            Invoke("StartSelect", 0.5f);
+
+            //StartCoroutine(StartSelect());
         }
         else
         {
             Debug.LogWarning("<color=orange>[StartButton]</color> 네트워크가 아직 준비되지 않았습니다. 잠시 후 다시 시도하세요.");
         }
     }
+
+    void StartSelect()
+    {
+        //누가 누르든 서버로 신호가 갑니다
+        GameSessionManager.Instance.RequestStartGameServerRpc(targetSceneName);
+    }
+
 }
