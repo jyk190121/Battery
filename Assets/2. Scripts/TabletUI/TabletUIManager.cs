@@ -20,6 +20,7 @@ public class TabletUIManager : MonoBehaviour
 
     private void Start()
     {
+        playerHudCanvas = PlayerUIManager.LocalInstance.playerHpImage.GetComponentInParent<Canvas>();
         // 게임 시작 시 초기 상태 설정 (TV 송출 모드)
         CloseTabletUI();
     }
@@ -55,7 +56,6 @@ public class TabletUIManager : MonoBehaviour
         // 3. 플레이어 HUD 캔버스 비활성화 (시야 확보 및 최적화)
         if (PlayerUIManager.LocalInstance != null && PlayerUIManager.LocalInstance.playerHpImage != null)
         {
-            playerHudCanvas = PlayerUIManager.LocalInstance.playerHpImage.GetComponentInParent<Canvas>();
             if (playerHudCanvas != null) playerHudCanvas.enabled = false;
         }
 
