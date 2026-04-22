@@ -16,17 +16,16 @@ public class ScreamState : MonsterBaseState
         base.Enter();
         _screamTimer = 0f;
         _hasScreamed = false;
-
         _targetPlayer = owner.scanner.CurrentTarget;
 
-        // 1. 발 묶기 (가만히 서서 비명 지름)
         if (owner.navAgent != null && owner.navAgent.isOnNavMesh)
         {
             owner.navAgent.isStopped = true;
             owner.navAgent.velocity = Vector3.zero;
+            owner.navAgent.ResetPath();
         }
 
-         owner.animHandler.PlayScream();
+        owner.animHandler.PlayScream();
     }
 
     public override void Update()

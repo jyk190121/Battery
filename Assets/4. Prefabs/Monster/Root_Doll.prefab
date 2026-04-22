@@ -178,6 +178,9 @@ GameObject:
   - component: {fileID: 7491497678649209813}
   - component: {fileID: 842562996264730044}
   - component: {fileID: 7186904827903415909}
+  - component: {fileID: 6960854395036914043}
+  - component: {fileID: 5142946084057400128}
+  - component: {fileID: 1352445125305597855}
   m_Layer: 12
   m_Name: Root_Doll
   m_TagString: Untagged
@@ -334,7 +337,7 @@ MonoBehaviour:
   monsterData: {fileID: 11400000, guid: ef23b6a01dee8fa409bfd8fb86d79548, type: 2}
   scanner: {fileID: 7491497678649209813}
   navAgent: {fileID: 7382415178479257519}
-  animHandler: {fileID: 901539538357058754}
+  animHandler: {fileID: 0}
   waypointManager: {fileID: 0}
   CurrentHealth:
     m_InternalValue: 0
@@ -366,6 +369,78 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 0.95732594, z: 0.22505188}
   m_Center: {x: 0, y: 0.47631216, z: 0.0033187866}
+--- !u!114 &6960854395036914043
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 852133620718461397}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8d0727d5ae3244e3b569694d3912374, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.Components.NetworkAnimator
+  ShowTopMostFoldoutHeaderGroup: 1
+  NetworkAnimatorExpanded: 0
+  AuthorityMode: 0
+  m_Animator: {fileID: 1352445125305597855}
+  TransitionStateInfoList: []
+  AnimatorParameterEntries:
+    ParameterEntries:
+    - name: Speed
+      NameHash: -823668238
+      Synchronize: 1
+      ParameterType: 1
+    - name: IsSearching
+      NameHash: 749535462
+      Synchronize: 1
+      ParameterType: 4
+    - name: Attack
+      NameHash: 1080829965
+      Synchronize: 1
+      ParameterType: 9
+    - name: Scream
+      NameHash: 629534904
+      Synchronize: 1
+      ParameterType: 9
+  AnimatorParametersExpanded: 0
+--- !u!114 &5142946084057400128
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 852133620718461397}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ebbd9c66977102c4eaad2a6b6956e9ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MonsterAnimation
+  controller: {fileID: 842562996264730044}
+  animationBlendSpeed: 5
+--- !u!95 &1352445125305597855
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 852133620718461397}
+  m_Enabled: 1
+  m_Avatar: {fileID: 9000000, guid: 5e089ae1c9732b8418eb03b7b373e87e, type: 3}
+  m_Controller: {fileID: 22100000, guid: d5251419153400e41b45c9efae206140, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &860844084105881595
 GameObject:
   m_ObjectHideFlags: 0
@@ -1370,9 +1445,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1396525445619060762}
-  - component: {fileID: 6499352079038083557}
-  - component: {fileID: 9014143457795117006}
-  - component: {fileID: 901539538357058754}
   m_Layer: 0
   m_Name: root
   m_TagString: Untagged
@@ -1398,74 +1470,6 @@ Transform:
   - {fileID: 7064546045988933626}
   m_Father: {fileID: 4840727651971249600}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!95 &6499352079038083557
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4044347126058535703}
-  m_Enabled: 1
-  m_Avatar: {fileID: 9000000, guid: 5e089ae1c9732b8418eb03b7b373e87e, type: 3}
-  m_Controller: {fileID: 22100000, guid: d5251419153400e41b45c9efae206140, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
---- !u!114 &9014143457795117006
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4044347126058535703}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e8d0727d5ae3244e3b569694d3912374, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.Components.NetworkAnimator
-  ShowTopMostFoldoutHeaderGroup: 1
-  NetworkAnimatorExpanded: 0
-  AuthorityMode: 0
-  m_Animator: {fileID: 6499352079038083557}
-  TransitionStateInfoList: []
-  AnimatorParameterEntries:
-    ParameterEntries:
-    - name: Speed
-      NameHash: -823668238
-      Synchronize: 1
-      ParameterType: 1
-    - name: IsSearching
-      NameHash: 749535462
-      Synchronize: 1
-      ParameterType: 4
-    - name: Attack
-      NameHash: 1080829965
-      Synchronize: 1
-      ParameterType: 9
-  AnimatorParametersExpanded: 0
---- !u!114 &901539538357058754
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4044347126058535703}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ebbd9c66977102c4eaad2a6b6956e9ab, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MonsterAnimation
-  controller: {fileID: 842562996264730044}
-  animationBlendSpeed: 5
 --- !u!1 &4216556605262973900
 GameObject:
   m_ObjectHideFlags: 0
@@ -3008,7 +3012,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9034253399555856655}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0

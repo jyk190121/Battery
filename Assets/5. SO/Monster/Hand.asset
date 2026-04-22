@@ -39,6 +39,9 @@ MonoBehaviour:
   predictiveChaseTime: 0
   predictionTime: 0
   pathUpdateThreshold: 1
+  patrolDoorOpenChance: 0.2
+  doorIgnoreCooldown: 1
+  minPatrolDistance: 10
   alertnessIncreaseRate: 1.5
   alertnessDecreaseRate: 0.5
   alertnessSyncInterval: 0.2
@@ -52,5 +55,11 @@ MonoBehaviour:
   ceilingCheckDistance: 20
   dropTriggerRadius: 1.5
   snareTickRate: 1.5
-  snareTickDamage: 10
+  snareTickDamage: 0
   fleeDuration: 6
+  fleaCeilingCheckInterval: 5
+  dollNormalDistance: 0
+  dollStairDistance: 0
+  dollBumpDistance: 0
+  dollCatchDotThreshold: 0.6
+  dollGracePeriod: 0
