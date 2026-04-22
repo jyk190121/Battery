@@ -5,6 +5,11 @@ using UnityEngine;
 
 public class PlayerController : NetworkBehaviour
 {
+    [Header("사망 연계 설정")]
+    public GameObject droppedPhonePrefab; // 바닥에 남겨질 콜라이더/ 폰 프리팹
+    public GameObject playerBodyVisual; // 바닥에 남겨질 콜라이더/ 폰 프리팹
+
+
     [Header("Base Data")]
     [SerializeField] private Player _playerData; // SO 데이터
     public Player Data => _playerData; // 읽기 전용 프로퍼티
@@ -21,6 +26,7 @@ public class PlayerController : NetworkBehaviour
     // 컴포넌트들을 미리 캐싱하여 다른 곳에서 쉽게 찾게 할 수도 있습니다.
     public PlayerStateManager StateManager { get; private set; }
     public PlayerInteraction Interaction { get; private set; }
+    PlayerRotation playerRotation;
 
     // 서버와 몬스터가 즉시 참조할 수 있는 전역(Static) 출석부
     public static List<PlayerController> AllPlayers = new List<PlayerController>();
@@ -29,6 +35,7 @@ public class PlayerController : NetworkBehaviour
     {
         StateManager = GetComponent<PlayerStateManager>();
         Interaction = GetComponent<PlayerInteraction>();
+        playerRotation = GetComponent<PlayerRotation>();
     }
 
     public override void OnNetworkSpawn()
@@ -101,17 +108,46 @@ public class PlayerController : NetworkBehaviour
 
     private void Die()
     {
+        if (!IsServer) return;
+
         isDead.Value = true;
         Debug.Log($"{gameObject.name}가 사망했습니다.");
 
+        gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+
+        if (AllPlayers.Contains(this))
+        {
+            AllPlayers.Remove(this);
+        }
 
         if (TryGetComponent(out PlayerInventory inventory))
         {
             inventory.DropAllItemsOnDeathServer();
         }
 
+        SpawnDroppedPhoneClientRpc(transform.position, transform.rotation);
+
         // 사망 애니메이션 실행, 콜라이더 끄기, 리스폰 로직 등 처리
         CheckAllPlayersDead();
+    }
+
+    [ClientRpc]
+    private void SpawnDroppedPhoneClientRpc(Vector3 pos, Quaternion rot)
+    {
+        // PlayerEquipment에 구현된 기능을 활용하거나 별도의 프리팹을 생성
+        if (TryGetComponent(out PlayerEquipment equip))
+        {
+            // 현재 들고 있는 폰이 있다면 파괴하고 바닥용 모델 생성
+            equip.DestroySmartPhoneModel();
+
+            // 바닥에 떨어질 별도의 'DroppedPhone' 프리팹이 있다면 Instantiate
+            // (간단하게 하려면 기존 smartphoneModel을 부모 없이 생성)
+            if (droppedPhonePrefab != null)
+            {
+                GameObject dropped = Instantiate(droppedPhonePrefab, pos, rot);
+            }           
+            // 바닥에 놓인 느낌을 주기 위해 물리(Rigidbody)나 콜라이더를 켜주는 로직이 필요할 수 있습니다.
+        }
     }
 
 
@@ -174,6 +210,14 @@ public class PlayerController : NetworkBehaviour
     {
         if (!IsServer) return;
         isDead.Value = false;
+
+        // 4. [추가] 부활 시 다시 추적 대상 리스트에 추가
+        if (!AllPlayers.Contains(this))
+        {
+            AllPlayers.Add(this);
+            Debug.Log($"[서버] {gameObject.name}가 추적 대상 리스트에 다시 추가됨.");
+        }
+
         StateManager.ResetStatus();
     }
     
@@ -199,20 +243,27 @@ public class PlayerController : NetworkBehaviour
 
     IEnumerator StartSpectating()
     {
-        yield return new WaitForSeconds(2.0f); // 사망 애니메이션을 조금 본 뒤 전환
+        yield return new WaitForSeconds(1.0f); // 사망 애니메이션을 조금 본 뒤 전환
 
         // 살아있는 다른 플레이어 찾기
-        PlayerController targetPlayer = null;
-        foreach (var p in AllPlayers)
+        PlayerRotation target = FindSpectatableTarget();
+        if (target != null)
         {
-            if (p != this && !p.isDead.Value)
-            {
-                targetPlayer = p;
-                break;
-            }
+            // PlayerRotation에 새로 만든 동기화 함수 호출
+            playerRotation.SetSpectatingTarget(target);
+            Debug.Log($"[관전] {target.gameObject.name} 시점으로 전환합니다.");
         }
 
-        if (targetPlayer != null)
+        //foreach (var p in AllPlayers)
+        //{
+        //    if (p != this && !p.isDead.Value)
+        //    {
+        //        targetPlayer = p;
+        //        break;
+        //    }
+        //}
+
+        if (target != null)
         {
             //if (targetPlayer.TryGetComponent<PlayerRotation>(out var targetRot) &&
             //    TryGetComponent<PlayerRotation>(out var myRot))
@@ -224,9 +275,9 @@ public class PlayerController : NetworkBehaviour
             //        Debug.Log($"{targetPlayer.gameObject.name}의 시점을 관전합니다.");
             //    }
             //}
-            if (targetPlayer != null)
+            if (target != null)
             {
-                if (targetPlayer.TryGetComponent<PlayerRotation>(out var targetRot) &&
+                if (target.TryGetComponent<PlayerRotation>(out var targetRot) &&
                     TryGetComponent<PlayerRotation>(out var myRot))
                 {
                     if (myRot.vcam != null)
@@ -238,11 +289,28 @@ public class PlayerController : NetworkBehaviour
                         // LookAt을 빼버리면 카메라가 Follow 대상의 회전(시야 방향)을 그대로 따릅니다.
                         myRot.vcam.LookAt = null;
 
-                        Debug.Log($"{targetPlayer.gameObject.name}의 시점을 관전합니다.");
+                        Debug.Log($"{target.gameObject.name}의 시점을 관전합니다.");
                     }
                 }
             }
         }
+
+        yield return new WaitForSeconds(1.0f);
+
+        if (playerBodyVisual != null) playerBodyVisual.SetActive(false);
+    }
+
+    PlayerRotation FindSpectatableTarget()
+    {
+        foreach (var p in AllPlayers)
+        {
+            // 내가 아니고 죽지 않은 플레이어
+            if (p != this && !p.isDead.Value)
+            {
+                if (p.TryGetComponent<PlayerRotation>(out var targetRot)) return targetRot;
+            }
+        }
+        return null;
     }
 
 
@@ -263,24 +331,26 @@ public class PlayerController : NetworkBehaviour
 
         // 3. 조작 스크립트들 비활성화
         if (TryGetComponent(out PlayerMove move)) move.enabled = false;
-        if (TryGetComponent(out PlayerRotation rot)) rot.enabled = false;
+        //if (TryGetComponent(out PlayerRotation rot)) rot.enabled = false;
         if (TryGetComponent(out PlayerInteraction interact)) interact.enabled = false;
         if (TryGetComponent(out PlayerEquipment equip)) equip.enabled = false;
 
         // 몬스터가 사망한 플레이어 찾지않도록 레이어 수정
         gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
 
-        // 4. (본인인 경우) 마우스 커서 잠금 해제 및 UI 처리
-        if (IsOwner)
-        {
-            Cursor.lockState = CursorLockMode.None;
-            // 여기에 "사망하셨습니다" 같은 UI 띄우기 가능
-        }
+        //// 4. (본인인 경우) 마우스 커서 잠금 해제 및 UI 처리
+        //if (IsOwner)
+        //{
+        //    Cursor.lockState = CursorLockMode.None;
+        //    // 여기에 "사망하셨습니다" 같은 UI 띄우기 가능
+        //}
     }
 
     void PerformReviveEffects()
     {
         Debug.Log($"{gameObject.name}가 부활");
+
+        if (playerBodyVisual != null) playerBodyVisual.SetActive(false);
 
         // 1. 애니메이션 리셋 (누워있는 상태에서 일어나는 상태로)
         if (TryGetComponent(out PlayerAnim anim))
@@ -306,7 +376,7 @@ public class PlayerController : NetworkBehaviour
         if (TryGetComponent(out PlayerMove move)) move.enabled = true;
         if (TryGetComponent(out PlayerRotation rot))
         {
-            rot.enabled = true;
+            //rot.enabled = true;
 
             if (IsOwner) rot.SetSpectatingMode(false);
 
