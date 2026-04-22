@@ -159,8 +159,7 @@ public class AttachedState : MonsterBaseState
     {
         yield return null; // 1프레임 대기 (네트워크 싱크 확보)
 
-        // 부모(플레이어) 기준 Y축 1.2f 높이(머리/목덜미 부근)에 고정
-        owner.transform.localPosition = new Vector3(0, 1.2f, 0);
-        owner.transform.localRotation = Quaternion.identity;
+        owner.transform.localPosition = new Vector3(-0.15f, 1.6f, -0.15f);
+        owner.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
     }
 }
