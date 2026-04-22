@@ -35,7 +35,8 @@ public class PlayerUIManager : NetworkBehaviour
         LocalInstance = this;
 
         stateManager = GetComponent<PlayerStateManager>();
-        InitUI();
+        //InitUI();
+        RefreshUIReferences();
 
         if (stateManager != null)
         {
@@ -59,50 +60,50 @@ public class PlayerUIManager : NetworkBehaviour
         if (IsOwner) LocalInstance = null;
     }
 
-    void InitUI()
-    {
-        if (playerHpImage == null)
-        {
-            GameObject go = GameObject.Find("PlayerHpSprite");
-            if (go != null) playerHpImage = go.GetComponent<Image>();
-        }
+    //void InitUI()
+    //{
+    //    if (playerHpImage == null)
+    //    {
+    //        GameObject go = GameObject.Find("PlayerHpSprite");
+    //        if (go != null) playerHpImage = go.GetComponent<Image>();
+    //    }
 
-        if (vignetteImage == null)
-        {
-            GameObject go = GameObject.Find("VignetteImage");
-            if (go != null) vignetteImage = go.GetComponent<Image>();
-        }
+    //    if (vignetteImage == null)
+    //    {
+    //        GameObject go = GameObject.Find("VignetteImage");
+    //        if (go != null) vignetteImage = go.GetComponent<Image>();
+    //    }
 
-        if (blindImage == null)
-        {
-            GameObject go = GameObject.Find("BlindImage");
-            if (go != null)
-            {
-                blindImage = go.GetComponent<Image>();
-                blindImage.enabled = false; 
-            }
-        }
+    //    if (blindImage == null)
+    //    {
+    //        GameObject go = GameObject.Find("BlindImage");
+    //        if (go != null)
+    //        {
+    //            blindImage = go.GetComponent<Image>();
+    //            blindImage.enabled = false; 
+    //        }
+    //    }
 
-        if (vignetteImage != null)
-        {
-            vignetteRect = vignetteImage.GetComponent<RectTransform>();
-            vignetteRect.sizeDelta = new Vector2(800f, 800f);
+    //    if (vignetteImage != null)
+    //    {
+    //        vignetteRect = vignetteImage.GetComponent<RectTransform>();
+    //        vignetteRect.sizeDelta = new Vector2(800f, 800f);
 
-            Color baseColor = vignetteImage.color;
-            baseColor.a = 1f;
-            vignetteImage.color = baseColor;
-        }
+    //        Color baseColor = vignetteImage.color;
+    //        baseColor.a = 1f;
+    //        vignetteImage.color = baseColor;
+    //    }
 
-        if (breathAudio == null)
-        {
-            breathAudio = GetComponent<AudioSource>();
-        }
+    //    if (breathAudio == null)
+    //    {
+    //        breathAudio = GetComponent<AudioSource>();
+    //    }
 
-        if (stateManager != null)
-        {
-            isInitialized = true;
-        }
-    }
+    //    if (stateManager != null)
+    //    {
+    //        isInitialized = true;
+    //    }
+    //}
 
     void Update()
     {
@@ -180,4 +181,29 @@ public class PlayerUIManager : NetworkBehaviour
             blindImage.enabled = isBlind;
         }
     }
+
+    #region 씬이동 시 참조 파괴 방지 스크립트
+
+    public void RefreshUIReferences()
+    {
+        if (SceneUIReference.Instance != null)
+        {
+            playerHpImage = SceneUIReference.Instance.hpImage;
+            vignetteImage = SceneUIReference.Instance.vignetteImage;
+
+            if (vignetteImage != null)
+            {
+                vignetteRect = vignetteImage.GetComponent<RectTransform>();
+                // 기존 초기화 로직 유지...
+            }
+
+            isInitialized = (playerHpImage != null && stateManager != null);
+        }
+        else
+        {
+            isInitialized = false;
+            Debug.LogWarning("[PlayerUIManager] 현재 씬에서 SceneUIReference를 찾을 수 없습니다.");
+        }
+    }
+    #endregion
 }

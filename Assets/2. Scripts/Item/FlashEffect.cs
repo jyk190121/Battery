@@ -5,14 +5,14 @@ public class FlashEffect : MonoBehaviour
 {
     private CanvasGroup flashCanvasGroup;
     private Coroutine flashRoutine;
-
+   
     // 섬광탄 폭발 로직(ApplyEffect)에서 이 함수를 호출
     public void TriggerFlash(float duration = 3.0f)
     {
         // 1. 참조가 없다면 씬에서 이름으로 찾기
         if (flashCanvasGroup == null)
         {
-            GameObject go = GameObject.Find("FlashbangOverlay");
+            GameObject go = SceneUIReference.Instance.blindImage.gameObject;
             if (go != null)
             {
                 flashCanvasGroup = go.GetComponent<CanvasGroup>();
