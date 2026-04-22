@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class PlayerNameSync : NetworkBehaviour
 {
+    public static event System.Action<string, Transform> OnNicknameSynced;
+
     public NetworkVariable<FixedString64Bytes> NetworkNickname = new NetworkVariable<FixedString64Bytes>(
         "", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
@@ -64,6 +66,7 @@ public class PlayerNameSync : NetworkBehaviour
     void OnNicknameChanged(FixedString64Bytes oldV, FixedString64Bytes newV)
     {
         string nameStr = newV.ToString();
+        string safeNick = nameStr.Replace("\0", "").Trim();
 
         // UI 갱신
         if (MultiplayerUIManager.Instance != null)
@@ -72,10 +75,14 @@ public class PlayerNameSync : NetworkBehaviour
         }
         ApplyNicknameToUI(nameStr);
 
+        if (!string.IsNullOrEmpty(safeNick))
+        {
+            OnNicknameSynced?.Invoke(safeNick, transform);
+        }
+
         // 보이스 채팅 연결 (본인인 경우에만 최초 1회 실행되도록 로직 필요)
         if (IsOwner && GlobalVoiceManager.Instance != null)
         {
-            string safeNick = nameStr.Replace("\0", "").Trim();
             GlobalVoiceManager.Instance.ConnectVoice(safeNick);
         }
     }
