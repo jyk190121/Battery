@@ -12,7 +12,7 @@ using UnityEngine.AI;
 public class MonsterController : NetworkBehaviour
 {
     // =========================================================
-    // 1. 변수 선언부 (Variables)
+    // 1. 변수 선언부
     // =========================================================
 
     [Header("--- Monster Configuration ---")]
@@ -63,7 +63,6 @@ public class MonsterController : NetworkBehaviour
         set => _serverAlertness = Mathf.Clamp01(value);
     }
 
-    // [프라이빗 변수] 컨트롤러 내부에서만 은밀하게 사용하는 변수들 (_ 접두사 사용)
     private MonsterStateMachine _stateMachine;
     private Dictionary<MonsterStateType, IState> _states;
     private Animator _animator;
@@ -78,7 +77,7 @@ public class MonsterController : NetworkBehaviour
 
 
     // =========================================================
-    // 2. 초기화 함수 (Awake / Start / OnNetworkSpawn)
+    // 2. 초기화 함수 
     // =========================================================
 
     private void Awake()
@@ -163,7 +162,7 @@ public class MonsterController : NetworkBehaviour
 
 
     // =========================================================
-    // 3. 유니티 루프 (Update / FixedUpdate)
+    // 3. 유니티 루프
     // =========================================================
 
     private void Update()
@@ -204,7 +203,7 @@ public class MonsterController : NetworkBehaviour
 
 
     // =========================================================
-    // 4. 퍼블릭 함수 (Public Methods : 외부에서 부르는 창구)
+    // 4. 퍼블릭 함수
     // =========================================================
 
     /// <summary>
@@ -343,7 +342,7 @@ public class MonsterController : NetworkBehaviour
 
 
     // =========================================================
-    // 5. 프라이빗 헬퍼 함수 (Private Methods : 내부 연산용)
+    // 5. 프라이빗 헬퍼 함수 
     // =========================================================
 
     /// <summary>
