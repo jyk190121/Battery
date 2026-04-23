@@ -78,10 +78,19 @@ public class AttackState : MonsterBaseState
 
         Transform target = owner.scanner.CurrentTarget;
 
-        // 타겟이 죽거나 사라졌다면 즉시 추격(또는 수색)으로 전환
-        if (target == null)
+        bool isTargetDead = false;
+        if (target != null && target.TryGetComponent<PlayerController>(out var pc))
         {
-            ExitToChase();
+            isTargetDead = pc.isDead.Value;
+        }
+
+        // 타겟이 죽거나 사라졌다면 즉시 추격(또는 수색)으로 전환
+        if (target == null || isTargetDead)
+        {
+            _isExiting = true;
+            Debug.Log("<color=yellow>[Attack]</color> 타겟이 사망했거나 사라졌습니다. 수색 모드로 전환합니다.");
+
+            owner.ChangeState(MonsterStateType.Search);
             return;
         }
 
@@ -127,6 +136,8 @@ public class AttackState : MonsterBaseState
         {
             if (target.TryGetComponent<PlayerController>(out var player))
             {
+                if (player.isDead.Value) return;
+
                 player.TakeDamageServerRpc(data.attackDamage);
                 Debug.Log($"<color=red>[데미지 발생]</color> {player.name}에게 {data.attackDamage} 피해 전달됨");
             }
