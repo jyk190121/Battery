@@ -36,8 +36,14 @@ public class PlayerRotation : NetworkBehaviour
     bool _isSpectating = false;
     PlayerRotation _spectatingTarget;
 
+    [Header("상태 확인")]
+    public bool isHoldingSmartphone = false;
 
     private CinemachinePanTilt _panTilt;
+
+    // 1. 상하 회전값 동기화를 위한 변수 (서버 권한)
+    public NetworkVariable<float> NetVerticalRotation 
+        = new NetworkVariable<float>(0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
     public override void OnNetworkSpawn()
     {
@@ -73,17 +79,6 @@ public class PlayerRotation : NetworkBehaviour
 
         Cursor.lockState = isOpen ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = isOpen;
-
-        //if (isOpen)
-        //{
-        //    Cursor.lockState = CursorLockMode.None;
-        //    Cursor.visible = true;
-        //}
-        //else
-        //{
-        //    Cursor.lockState = CursorLockMode.Locked;
-        //    Cursor.visible = false;
-        //}
     }
 
     private void TryFindCamera()
@@ -124,157 +119,128 @@ public class PlayerRotation : NetworkBehaviour
         //}
     }
 
-    void LateUpdate()
+    void Update()
     {
-        //if (!IsOwner) return; // 내 캐릭터만 마우스 회전 처리
+        if (!IsOwner) return; // 기본적으로 주인만 카메라를 제어
 
-        //// 만약 Spawn 시점에 못 찾았다면 여기서 다시 시도 (성능을 위해 null일 때만)
-        //if (vcam == null) TryFindCamera();
-        //if (_panTilt == null) return;
-
-        //// [추가] 사망 상태 확인 (PlayerController 참조)
-        //if (TryGetComponent<PlayerController>(out var pc) && pc.isDead.Value)
+        //if (IsOwner)
         //{
-        //    // 관전 중이라면 카메라 값만 업데이트하고 함수 종료 (내 몸 회전 방지)
+        //    if (_isSpectating)
+        //    {
+        //        HandleSpectatingLogic();
+        //        return;
+        //    }
+
+        //    // 정상적인 내 캐릭터 회전 처리
+        //    HandleRotation();
+
+        //    // 내 회전값을 다른 사람(나를 관전하는 사람)들이 알 수 있게 갱신
+        //    if (_panTilt != null) NetVerticalRotation.Value = _panTilt.TiltAxis.Value;
+        //}
+        //// 2. 다른 플레이어의 오브젝트일 경우 (!IsOwner)
+        //else
+        //{
+        //    // 내가 남을 관전 중인데, 이 오브젝트가 관전 대상이라면 대상의 회전값을 내 카메라에 강제 적용
         //    if (_isSpectating && _spectatingTarget != null)
         //    {
-        //        _panTilt.PanAxis.Value = _spectatingTarget.GetCurrentPan();
-        //        _panTilt.TiltAxis.Value = _spectatingTarget.GetCurrentTilt();
-        //        if (CameraGroup != null)
-        //            CameraGroup.transform.rotation = Quaternion.Euler(_panTilt.TiltAxis.Value, _panTilt.PanAxis.Value, 0);
-        //    }
-        //    return;
-        //}
-
-
-        //if (_isSpectating && _spectatingTarget != null)
-        //{
-        //    // 관전 대상의 Pan/Tilt를 내 카메라에 실시간 복사
-        //    // 대상의 마우스 포인터(시선)가 움직이는 대로 내 화면도 움직입니다.
-        //    _panTilt.PanAxis.Value = _spectatingTarget.GetCurrentPan();
-        //    _panTilt.TiltAxis.Value = _spectatingTarget.GetCurrentTilt();
-        //}
-        //else if (!_isSpectating)
-        //{
-        //    // 관전 중이 아닐 때만 기존 마우스 조작 실행
-        //    Vector2 mouseDelta = Input.GetMouseDelta();
-        //    _panTilt.PanAxis.Value += mouseDelta.x * sensitivity;
-
-        //    if (playerMove != null && !playerMove.IsCrouching)
-        //    {
-        //        float newTilt = _panTilt.TiltAxis.Value - (mouseDelta.y * sensitivity);
-        //        _panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, -70f, 70f);
-        //    }
-        //    else if (playerMove != null && playerMove.IsCrouching)
-        //    {
-        //        _panTilt.TiltAxis.Value = -10f;
+        //        ApplyTargetRotation();
         //    }
         //}
-        //transform.rotation = Quaternion.Euler(0, _panTilt.PanAxis.Value, 0);
-        //    if (CameraGroup != null) CameraGroup.transform.rotation = Quaternion.Euler(_panTilt.TiltAxis.Value, _panTilt.PanAxis.Value, 0);
 
-        //    //// 3. 본체 회전 동기화
-        //    //transform.rotation = Quaternion.Euler(0, _panTilt.PanAxis.Value, 0);
+        if (_isSpectating)
+        {
+            // 관전 로직: 타겟의 회전값을 내 카메라에 복사
+            HandleSpectatingLogic();
+            return;
+        }
 
-        //    UpdateCameraPosition();
+        // 정상 상태: 내 마우스 입력 처리
+        HandleRotation();
 
-        if (!IsOwner) return;
+        // 내 상하 회전값 동기화 (관전하는 남들을 위해)
+        if (_panTilt != null) NetVerticalRotation.Value = _panTilt.TiltAxis.Value;
+    }
 
-        // [수정] 카메라를 못 찾았다면 매 프레임 찾기 시도 (씬 전환 대응)
+    void HandleRotation()
+    {
         if (vcam == null || _panTilt == null)
         {
             TryFindCamera();
-            if (vcam == null) return; // 여전히 못 찾았다면 리턴
+            if (vcam == null) return;
         }
 
+        // 태블릿이 열려있으면 시선 이동 막기
         if (_isTabletOpen) return;
 
-        // 2. 마우스 입력 처리 (사망 여부와 상관없이 마우스 이동은 계산)
+        // 1. 마우스 입력 데이터 가져오기
         Vector2 mouseDelta = Input.GetMouseDelta();
+
+        // 2. 좌우 회전 (Pan) 업데이트
         _panTilt.PanAxis.Value += mouseDelta.x * sensitivity;
 
-        if (!playerMove.IsCrouching)
+        bool isSnared = playerController != null && playerController.isSnared.Value;
+        if (isSnared)
         {
-            float newTilt = _panTilt.TiltAxis.Value - (mouseDelta.y * sensitivity);
-            _panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, -70f, 70f);
-        }
-        else
-        {
-            _panTilt.TiltAxis.Value = -10f;
+            // 몬스터가 얼굴에 붙었을 때: 정면 혹은 약간 아래로 시선 고정 (예: 0도 또는 -5도)
+            _panTilt.TiltAxis.Value = 0f;
         }
 
-        // 3. 상황별 회전 적용
+        // 3. 상하 회전 (Tilt) 업데이트
+        //float newTilt = _panTilt.TiltAxis.Value - (mouseDelta.y * sensitivity);
+        //_panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, -70f, 70f);
+
+        // 4. 상황별 회전 적용
         if (playerController.isDead.Value)
         {
-            // [사망 상태] 몸체는 가만히 두고, 카메라 그룹(시선)만 회전시킴
-            if (CameraGroup != null) CameraGroup.transform.rotation = Quaternion.Euler(_panTilt.TiltAxis.Value, _panTilt.PanAxis.Value, 0);
-
-            HandleSpectatingLogic(); // 관전 중이라면 덮어쓰기
+            ApplyDeathRotation();
+        }
+        else if (playerMove != null && playerMove.IsCrouching)
+        {
+            // 앉아 있을 때: 기존 의도대로 -10도 고정
+            _panTilt.TiltAxis.Value = -10f;
         }
         else
         {
-            // [생존 상태] 몸체와 카메라 그룹 모두 회전
-            transform.rotation = Quaternion.Euler(0, _panTilt.PanAxis.Value, 0);
-            if (CameraGroup != null) CameraGroup.transform.rotation = Quaternion.Euler(_panTilt.TiltAxis.Value, _panTilt.PanAxis.Value, 0);
+            //// 정상 상태: 마우스 입력에 따라 상하 회전
+            //float newTilt = _panTilt.TiltAxis.Value - (mouseDelta.y * sensitivity);
+            //_panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, -70f, 70f);
 
-            // 카메라 위치 업데이트 (충돌 포함)
-            UpdateCameraPositionWithCollision();
+            isHoldingSmartphone = PhoneUIController.Instance.isPhoneActive;
+
+            // [수정 포인트] 스마트폰 사용 여부에 따라 상하 각도 제한 변경
+            float minTilt = -70f;
+            float maxTilt = isHoldingSmartphone ? 5f : 70f; // 스마트폰 들고 있으면 5도까지만 아래를 봄
+
+            float newTilt = _panTilt.TiltAxis.Value - (mouseDelta.y * sensitivity);
+            _panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, minTilt, maxTilt);
+
+        }
+
+
+        if (playerController.isDead.Value)
+        {
+            ApplyDeathRotation();
+        }
+        else
+        {
+            ApplyLivingRotation();
         }
     }
 
-    //void UpdateCameraPosition()
-    //{
-    //    if (cameraTarget == null || playerMove == null) return;
+    void ApplyTargetRotation()
+    {
+        if (_spectatingTarget == null) return;
 
-    //    bool isCrouching = playerMove.IsCrouching;
-    //    bool isRunning = playerMove.currentSpeed > playerMove.walkSpeed + 0.1f;
+        // 대상의 상하 회전값 가져오기
+        float targetTilt = _spectatingTarget.NetVerticalRotation.Value;
 
-    //    //float targetY = isRunning ? runYPos : walkYPos;
+        // 내 시네머신 카메라의 각도를 대상과 동기화
+        if (vcam.TryGetComponent<CinemachinePanTilt>(out var myPanTilt))
+        {
+            myPanTilt.TiltAxis.Value = targetTilt;
+        }
+    }
 
-    //    float targetHeightX = walkYPos; // 기존의 YPos 수치를 X축(실제 높이)에 사용
-    //    float targetForwardY = walkZPos; // 기존의 ZPos 수치를 Y축(실제 거리)에 사용
-
-    //    // 타겟 Y값 결정 (우선순위: 앉기 > 달리기 > 걷기)
-    //    //float targetY = walkYPos;
-    //    //if (isCrouching) targetY = crouchYPos;
-    //    //else if (isRunning) targetY = runYPos;
-
-
-    //    if (isCrouching)
-    //    {
-    //        targetForwardY = crouchYPos; // 앉았을 때 앞으로 밀기
-    //        targetHeightX = crouchZPos;
-    //    }
-    //    else if (isRunning)
-    //    {
-    //        targetForwardY = runYPos;
-    //    }
-
-    //    // 현재 로컬 위치 가져오기
-    //    Vector3 currentPos = cameraTarget.localPosition;
-
-    //    //float snapSpeed = isCrouching ? transitionSpeed * 2f : transitionSpeed;
-
-    //    float newX = Mathf.Lerp(currentPos.x, targetHeightX, Time.deltaTime * transitionSpeed);
-
-    //    // Y값만 부드럽게 보간(Lerp)
-    //    float newY = Mathf.Lerp(currentPos.y, targetForwardY + originYoffset, Time.deltaTime * transitionSpeed);
-
-    //    // 새로운 위치 적용
-    //    cameraTarget.localPosition = new Vector3(newX, newY, currentPos.z);
-        
-    //    //if (playerMove.IsCrouching)
-    //    //{
-    //    //    // 예: 로컬 회전값을 (0, 0, 0) 혹은 정면을 보는 특정 값으로 고정
-    //    //    // 축이 꼬여있으므로 아래 Euler 값을 조절하며 정면을 찾는 과정이 필요합니다.
-    //    //    cameraTarget.localRotation = Quaternion.Euler(90, 90, 90);
-    //    //}
-    //    //else
-    //    //{
-    //    //    // 서 있을 때 기본 회전값 (필요하다면)
-    //    //    cameraTarget.localRotation = Quaternion.Euler(0, 0, 0);
-    //    //}
-    //}
 
     void UpdateCameraPositionWithCollision()
     {
@@ -317,12 +283,14 @@ public class PlayerRotation : NetworkBehaviour
 
     private void HandleSpectatingLogic()
     {
-        if (_isSpectating && _spectatingTarget != null)
+        if (_isSpectating && _spectatingTarget != null && _panTilt != null)
         {
-            _panTilt.PanAxis.Value = _spectatingTarget.GetCurrentPan();
-            _panTilt.TiltAxis.Value = _spectatingTarget.GetCurrentTilt();
-            if (CameraGroup != null)
-                CameraGroup.transform.rotation = Quaternion.Euler(_panTilt.TiltAxis.Value, _panTilt.PanAxis.Value, 0);
+            //_panTilt.PanAxis.Value = _spectatingTarget.GetCurrentPan();
+            //_panTilt.TiltAxis.Value = _spectatingTarget.GetCurrentTilt();
+
+            _panTilt.PanAxis.Value = _spectatingTarget.transform.eulerAngles.y;
+            _panTilt.TiltAxis.Value = _spectatingTarget.NetVerticalRotation.Value;
+            if (CameraGroup != null) CameraGroup.transform.rotation = Quaternion.Euler(_panTilt.TiltAxis.Value, _panTilt.PanAxis.Value, 0);
         }
     }
 
@@ -355,8 +323,8 @@ public class PlayerRotation : NetworkBehaviour
 
     #region 사망 시 로테이션 변경 점 처리 함수
 
-    public float GetCurrentPan() => _panTilt != null ? _panTilt.PanAxis.Value : transform.eulerAngles.y;
-    public float GetCurrentTilt() => _panTilt != null ? _panTilt.TiltAxis.Value : 0;
+    //public float GetCurrentPan() => _panTilt != null ? _panTilt.PanAxis.Value : transform.eulerAngles.y;
+    //public float GetCurrentTilt() => _panTilt != null ? _panTilt.TiltAxis.Value : 0;
 
     //// 관전 시 대상의 회전값을 내 카메라에 강제 주입하는 함수
     //public void SyncRotation(float pan, float tilt)
@@ -436,7 +404,29 @@ public class PlayerRotation : NetworkBehaviour
     {
         _spectatingTarget = target;
         _isSpectating = (target != null);
-        if (_panTilt != null) _panTilt.enabled = !_isSpectating;
+
+        if (vcam == null) TryFindCamera();
+
+        //if (_panTilt != null) _panTilt.enabled = !_isSpectating;
+        if (_isSpectating)
+        {
+            // 1. 관전 대상의 눈(Target) 위치만 추적하도록 설정
+            vcam.Follow = target.cameraTarget;
+
+            if (_panTilt != null) _panTilt.enabled = false;
+
+            //// 2. 중요: 관전 시 Pan/Tilt 값을 초기화하거나 현재 값을 유지하여 
+            //// 대상이 누워있더라도 내 카메라는 수평을 유지하게 함
+            //if (vcam.TryGetComponent<CinemachinePanTilt>(out var panTilt))
+            //{
+            //    panTilt.enabled = true; // 내 마우스 입력을 다시 활성화
+            //}
+        }
+        else
+        {
+            vcam.Follow = cameraTarget;
+            if (_panTilt != null) _panTilt.enabled = true;
+        }
     }
 
     public void SetSpectatingMode(bool isSpectating)
@@ -460,6 +450,32 @@ public class PlayerRotation : NetworkBehaviour
             // (필요 시 vcam.Lens.Dutch = 0; 를 통해 시네머신 틸트 강제 초기화)
             vcam.Lens.Dutch = 0;
         }
+    }
+
+    void ApplyDeathRotation()
+    {
+        // 본체(transform) 회전은 건드리지 않음
+        if (CameraGroup != null)
+        {
+            // 시선(CameraGroup)만 Pan/Tilt 적용
+            CameraGroup.transform.rotation = Quaternion.Euler(_panTilt.TiltAxis.Value, _panTilt.PanAxis.Value, 0);
+        }
+
+        // 사망 시에는 카메라 위치 보정(벽뚫방지 등)을 멈추거나 
+        // 누워있는 시점에 맞게 최소화하는 것이 자연스럽습니다.
+    }
+
+    void ApplyLivingRotation()
+    {
+        transform.rotation = Quaternion.Euler(0, _panTilt.PanAxis.Value, 0);
+
+        // 시선은 상하좌우(Pan/Tilt) 모두 회전
+        if (CameraGroup != null)
+        {
+            CameraGroup.transform.rotation = Quaternion.Euler(_panTilt.TiltAxis.Value, _panTilt.PanAxis.Value, 0);
+        }
+
+        UpdateCameraPositionWithCollision();
     }
 
     #endregion
