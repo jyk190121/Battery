@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bbc6e2eecad55246b69d412d02592b9, type: 3}
   m_Name: Denture
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
+  type: 1
   monsterPrefab: {fileID: 6795600985661558741, guid: 1ffc4bfca66552f46b2f109fffb2a0da, type: 3}
   maxHealth: 100
   spawnCost: 4
@@ -21,11 +22,11 @@ MonoBehaviour:
   chaseSpeed: 8
   attackDamage: 20
   attackRange: 2
-  attackCooldown: 1.5
+  attackCooldown: 2.1
   attackAnimDuration: 2
   attackTrackingTime: 0.7
-  viewRange: 60
-  viewAngle: 120
+  viewRange: 30
+  viewAngle: 360
   hearingRange: 15
   visionMemoryTime: 3
   maxSearchDuration: 10
@@ -36,9 +37,9 @@ MonoBehaviour:
   maxPatrolMoveTime: 10
   aiTickInterval: 0.2
   fastTickInterval: 0.05
-  predictiveChaseTime: 0.8
+  predictiveChaseTime: 1
   predictionTime: 1.5
-  pathUpdateThreshold: 1
+  pathUpdateThreshold: 1.5
   patrolDoorOpenChance: 0.2
   doorIgnoreCooldown: 1
   minPatrolDistance: 10
@@ -58,3 +59,8 @@ MonoBehaviour:
   snareTickDamage: 0
   fleeDuration: 0
   fleaCeilingCheckInterval: 0
+  dollNormalDistance: 0
+  dollStairDistance: 0
+  dollBumpDistance: 0
+  dollCatchDotThreshold: 0
+  dollGracePeriod: 0
