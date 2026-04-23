@@ -3,6 +3,7 @@ using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 
 public class GameSceneManager : NetworkBehaviour
 {
@@ -137,11 +138,6 @@ public class GameSceneManager : NetworkBehaviour
             Transform targetPoint = spawnPoints[spawnIndex % spawnPoints.Length];
             spawnPos = targetPoint.position;
             spawnRot = targetPoint.rotation;
-            if (spawnIndex == 0 || spawnIndex == 2)
-            {
-                spawnRot *= Quaternion.Euler(0, 180f, 0);
-            }
-
             Debug.Log($"[GameSceneManager] 클라이언트 {clientId}를 {targetPoint.name} 위치({spawnPos})로 배정합니다.");
         }
         else
@@ -230,26 +226,26 @@ public class GameSceneManager : NetworkBehaviour
             }
         }
 
-        //if (IsOwner)
-        //{
-        //    // 1. 캐릭터 컨트롤러가 있다면 잠시 끄기 (충돌로 인한 튕김 방지)
-        //    var canvas = GetComponent<CharacterController>();
-        //    if (canvas != null) canvas.enabled = false;
+        if (IsOwner)
+        {
+            // 1. 캐릭터 컨트롤러가 있다면 잠시 끄기 (충돌로 인한 튕김 방지)
+            var canvas = GetComponent<CharacterController>();
+            if (canvas != null) canvas.enabled = false;
 
-        //    // 2. 위치 이동
-        //    transform.SetPositionAndRotation(pos, rot);
+            // 2. 위치 이동
+            transform.SetPositionAndRotation(pos, rot);
 
-        //    // 3. NetworkTransform이 있다면 상태 동기화 강제 업데이트
-        //    if (TryGetComponent(out Unity.Netcode.Components.NetworkTransform nt))
-        //    {
-        //        // Teleport 메서드는 현재 위치를 즉시 동기화 포인트로 잡습니다.
-        //        nt.Teleport(pos, rot, transform.localScale);
-        //    }
+            // 3. NetworkTransform이 있다면 상태 동기화 강제 업데이트
+            if (TryGetComponent(out Unity.Netcode.Components.NetworkTransform nt))
+            {
+                // Teleport 메서드는 현재 위치를 즉시 동기화 포인트로 잡습니다.
+                nt.Teleport(pos, rot, transform.localScale);
+            }
 
-        //    if (canvas != null) canvas.enabled = true;
+            if (canvas != null) canvas.enabled = true;
 
-        //    Debug.Log($"[Player] 스폰 위치로 텔레포트 완료: {pos}");
-        //}
+            Debug.Log($"[Player] 스폰 위치로 텔레포트 완료: {pos}");
+        }
     }
 
     // 로컬 클라이언트에서 씬 로드가 끝났을 때 실행됨

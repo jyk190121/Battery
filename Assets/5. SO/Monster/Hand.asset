@@ -56,7 +56,7 @@ MonoBehaviour:
   ceilingCheckDistance: 20
   dropTriggerRadius: 1.5
   snareTickRate: 1.5
-  snareTickDamage: 0
+  snareTickDamage: 10
   fleeDuration: 6
   fleaCeilingCheckInterval: 5
   dollNormalDistance: 0
