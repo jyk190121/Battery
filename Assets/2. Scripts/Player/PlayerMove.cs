@@ -53,9 +53,7 @@ public class PlayerMove : NetworkBehaviour
 
     bool isControlLocked = false;
 
-
-    bool isTabletOpenRightNow = false;
-    //bool isTabletLocked = false;
+    bool isTabletLocked = false;
 
     PlayerAnim playerAnim;
     PlayerStateManager stateManager;
@@ -77,30 +75,28 @@ public class PlayerMove : NetworkBehaviour
         //    // isTabletLocked = TabletUIManager.IsAnyTabletOpen; 
         //}
 
+        TabletUIManager.OnTabletStateChanged += HandleTabletStateChanged;
+
         if (IsOwner)
         {
-            // [추가] 씬 이동 직후 태블릿 상태와 무관하게 일단 이동 잠금을 해제
-            // 만약 TabletUIManager.IsAnyTabletOpen이 public static이라면 여기서 강제 초기화
-             //TabletUIManager.IsAnyTabletOpen = false; // (접근 가능하다면 추천)
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
 
-            // 물리 상태 초기화
+            // 물리 상태 강제 해제
             rb.isKinematic = false;
             rb.linearVelocity = Vector3.zero;
             isControlLocked = false;
-
-            // 커서 상태 강제 재설정 (태블릿이 닫힌 상태가 기본이라면)
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            isTabletLocked = false;
         }
     }
 
-    //public override void OnNetworkDespawn()
-    //{
-    //    if (IsOwner)
-    //    {
-    //        TabletUIManager.OnTabletStateChanged -= HandleTabletStateChanged;
-    //    }
-    //}
+    public override void OnNetworkDespawn()
+    {
+        if (IsOwner)
+        {
+            TabletUIManager.OnTabletStateChanged -= HandleTabletStateChanged;
+        }
+    }
 
 
     void Start()
@@ -128,18 +124,19 @@ public class PlayerMove : NetworkBehaviour
     {
         if (!IsOwner) return;
 
-        // 태블릿 열기 /닫기 확인 
-        isTabletOpenRightNow = TabletUIManager.IsAnyTabletOpen || Cursor.lockState == CursorLockMode.None;
-
-        if (isControlLocked || isTabletOpenRightNow)
+        if (isControlLocked || isTabletLocked)
         {
             inputMagnitude = 0;
             if (rb != null && isGrounded)
             {
-                // [중요] 씬 이동 시 rb가 null이거나 물리 연산이 튀는 것을 방지
                 rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
             }
             return;
+        }
+
+        else
+        {
+            Cursor.lockState = CursorLockMode.Locked;
         }
 
         //if (isControlLocked)
@@ -164,14 +161,16 @@ public class PlayerMove : NetworkBehaviour
     {
         if (!IsOwner) return;
 
-        isTabletOpenRightNow = TabletUIManager.IsAnyTabletOpen || Cursor.lockState == CursorLockMode.None;
-
         // [수정] 이동 물리 연산도 동일하게 차단
-        if (isControlLocked || isTabletOpenRightNow)
+        if (isControlLocked || isTabletLocked)
         {
             // 완벽하게 멈추기 위해 물리 속도 제어
             rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
             return;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.Locked;
         }
 
         //Move();
@@ -287,7 +286,7 @@ public class PlayerMove : NetworkBehaviour
         {
             isOnStair = ((1 << hit.collider.gameObject.layer) & stairLayer) != 0;
 
-            if (isOnStair && inputMagnitude < 0.1f && !isTabletOpenRightNow)
+            if (isOnStair && inputMagnitude < 0.1f && !isTabletLocked)
             {
                 rb.isKinematic = true;
             }
@@ -510,17 +509,17 @@ public class PlayerMove : NetworkBehaviour
         }
     }
 
-    //// 태블릿 상태에 따라 잠금 설정
-    //private void HandleTabletStateChanged(bool isOpen)
-    //{
-    //    isTabletLocked = isOpen;
+    // 태블릿 상태에 따라 잠금 설정
+    private void HandleTabletStateChanged(bool isOpen)
+    {
+        isTabletLocked = isOpen;
 
-    //    // 태블릿이 열릴 때 속도 초기화 (미끄러짐 방지)
-    //    if (isOpen)
-    //    {
-    //        currentSpeed = 0;
-    //        inputMagnitude = 0;
-    //        if (rb != null) rb.linearVelocity = Vector3.zero;
-    //    }
-    //}
+        // 태블릿이 열릴 때 속도 초기화 (미끄러짐 방지)
+        if (isOpen)
+        {
+            currentSpeed = 0;
+            inputMagnitude = 0;
+            if (rb != null) rb.linearVelocity = Vector3.zero;
+        }
+    }
 }
