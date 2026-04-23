@@ -10,7 +10,6 @@ public class QuestDifficultyGroupUI : MonoBehaviour
     private QuestDifficulty m_Difficulty;
 
     public Button selectBtn;
-    public GameObject QuestPanel;
 
     private void OnEnable()
     {
@@ -52,9 +51,15 @@ public class QuestDifficultyGroupUI : MonoBehaviour
         if (QuestManager.Instance != null)
         {
             QuestManager.Instance.AcceptDifficultyContractServerRpc(m_Difficulty);
-            Debug.Log($"<color=green>[UI]</color> {m_Difficulty} 난이도 계약 수락됨!");
+            Debug.Log(Equals(m_Difficulty, QuestDifficulty.Easy) ? "쉬움 난이도 선택" :
+                      Equals(m_Difficulty, QuestDifficulty.Normal) ? "보통 난이도 선택" :
+                      Equals(m_Difficulty, QuestDifficulty.Hard) ? "어려움 난이도 선택" : "알 수 없는 난이도 선택");
 
-            QuestPanel.SetActive(false);
+            if(TabletUIManager.Instance != null)
+            {
+                TabletUIManager.Instance.RequestScreenChangeServerRpc(TVScreenState.MAIN);
+            }
+
         }
     }
 }

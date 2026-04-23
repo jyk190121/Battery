@@ -1,3 +1,4 @@
+using Unity.Netcode;
 using UnityEngine;
 
 public class TabletQuestListUI : MonoBehaviour
@@ -10,6 +11,24 @@ public class TabletQuestListUI : MonoBehaviour
 
     // UI(태블릿)가 화면에 켜질 때마다 최신화
     private void OnEnable()
+    {
+        RefreshUI();
+
+        if(QuestManager.Instance != null && QuestManager.Instance.IsSpawned)
+        {
+            QuestManager.Instance.easyOffered.OnListChanged += OnQuestListChanged;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if(QuestManager.Instance != null && QuestManager.Instance.IsSpawned)
+        {
+            QuestManager.Instance.easyOffered.OnListChanged -= OnQuestListChanged;
+        }
+    }
+
+    private void OnQuestListChanged(NetworkListEvent<int> changeEvent)
     {
         RefreshUI();
     }
