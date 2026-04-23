@@ -54,6 +54,9 @@ public class PlayerController : NetworkBehaviour
         // isDead 값이 바뀔 때마다 실행될 콜백 등록
         isDead.OnValueChanged += OnDeadStatusChanged;
 
+        // 초기 상태 적용 (씬 로딩 시 이미 죽어있는 상태일 경우 대비)
+        if (isDead.Value) OnDeadStatusChanged(false, true);
+
         if (IsServer)
         {
             //// 로비 리셋 로직
@@ -83,11 +86,6 @@ public class PlayerController : NetworkBehaviour
         //}
 
         //base.OnNetworkDespawn();
-
-        if (AllPlayers.Contains(this))
-        {
-            AllPlayers.Remove(this);
-        }
 
         StateManager.currentHealth.OnValueChanged -= OnHealthChanged;
         isDead.OnValueChanged -= OnDeadStatusChanged;
@@ -127,8 +125,6 @@ public class PlayerController : NetworkBehaviour
     void SwitchToNextTarget()
     {
         if (AllPlayers.Count <= 1) return; // 나밖에 없으면 리턴
-
-        int startIndex = _currentSpectateIndex;
 
         // 현재 인덱스부터 시작해서 리스트를 한 바퀴 돌며 살아있는 플레이어 탐색
         for (int i = 0; i < AllPlayers.Count; i++)
@@ -179,22 +175,22 @@ public class PlayerController : NetworkBehaviour
         //    AllPlayers.Remove(this);
         //}
 
-        //if (IsOwner)
-        //{
-        //    // 1. 내 모델을 끈다 (내 화면에서 내 몸이 안 보이게)
-        //    if (playerModel != null) playerModel.SetActive(false);
+        if (IsOwner)
+        {
+            // 1. 내 모델을 끈다 (내 화면에서 내 몸이 안 보이게)
+            if (playerModel != null) playerModel.SetActive(false);
 
-        //    // 2. 관전 모드 활성화 (회전 스크립트에 알림)
-        //    if (playerRotation != null) playerRotation.SetSpectatingMode(true);
+            // 2. 관전 모드 활성화 (회전 스크립트에 알림)
+            if (playerRotation != null) playerRotation.SetSpectatingMode(true);
 
-        //    // 2. 관전 대상 탐색 및 카메라 전환 로직 실행
-        //    StartCoroutine(StartSpectating());
-        //}
+            // 2. 관전 대상 탐색 및 카메라 전환 로직 실행
+            StartCoroutine(StartSpectating());
+        }
 
-        //if (TryGetComponent(out PlayerInventory inventory))
-        //{
-        //    inventory.DropAllItemsOnDeathServer();
-        //}
+        if (TryGetComponent(out PlayerInventory inventory))
+        {
+            inventory.DropAllItemsOnDeathServer();
+        }
 
         SpawnDroppedPhoneClientRpc(transform.position, transform.rotation);
 
@@ -205,8 +201,6 @@ public class PlayerController : NetworkBehaviour
     [ClientRpc]
     private void SpawnDroppedPhoneClientRpc(Vector3 pos, Quaternion rot)
     {
-        if (playerAnim == null) playerAnim = GetComponent<PlayerAnim>();
-
         // PlayerEquipment에 구현된 기능을 활용하거나 별도의 프리팹을 생성
         if (TryGetComponent(out PlayerEquipment equip))
         {
@@ -333,6 +327,8 @@ public class PlayerController : NetworkBehaviour
 
         if (newValue) // newValue가 true이면 사망
         {
+            playerAnim.PlayDead();
+
             PerformDeathEffects();
 
             // 관전 모드 시작 (본인인 경우에만)
@@ -343,8 +339,9 @@ public class PlayerController : NetworkBehaviour
         }
         else
         {
-            // 모든 클라이언트에서 모델을 다시 켭니다.
-            if (playerModel != null) playerModel.SetActive(true);
+            playerAnim.PlayRevive();
+            // 필요하다면 리바인드를 통해 애니메이터를 완전히 초기 상태(Idle)로 강제 정렬합니다.
+            playerAnim.ResetAnimation();
 
             PerformReviveEffects();
         }
@@ -366,41 +363,84 @@ public class PlayerController : NetworkBehaviour
 
     IEnumerator StartSpectating()
     {
-        yield return new WaitForSeconds(1.0f); // 사망 애니메이션 감상
+        yield return new WaitForSeconds(1.0f); // 사망 애니메이션을 조금 본 뒤 전환
 
-        // 1. 살아있는 타겟 찾기
+        // 첫 번째 관전 대상 찾기
+        SwitchToNextTarget();
+
+        // 살아있는 다른 플레이어 찾기
         PlayerRotation target = FindSpectatableTarget();
+        if (target != null)
+        {
+            // PlayerRotation에 새로 만든 동기화 함수 호출
+            playerRotation.SetSpectatingTarget(target);
+            Debug.Log($"[관전] {target.gameObject.name} 시점으로 전환합니다.");
+        }
+
+        //foreach (var p in AllPlayers)
+        //{
+        //    if (p != this && !p.isDead.Value)
+        //    {
+        //        targetPlayer = p;
+        //        break;
+        //    }
+        //}
 
         if (target != null)
         {
-            // 2. 내 Rotation 스크립트에 관전 모드 활성화 및 타겟 전달
-            playerRotation.SetSpectatingMode(true);
-            playerRotation.SetSpectatingTarget(target);
-
-            // 3. 실제 시네머신 카메라의 추적 대상 변경
-            if (playerRotation.vcam != null)
+            //if (targetPlayer.TryGetComponent<PlayerRotation>(out var targetRot) &&
+            //    TryGetComponent<PlayerRotation>(out var myRot))
+            //{
+            //    if (myRot.vcam != null)
+            //    {
+            //        myRot.vcam.Follow = targetRot.cameraTarget;
+            //        myRot.vcam.LookAt = targetRot.cameraTarget;
+            //        Debug.Log($"{targetPlayer.gameObject.name}의 시점을 관전합니다.");
+            //    }
+            //}
+            if (target != null)
             {
-                playerRotation.vcam.Follow = target.cameraTarget;
-                playerRotation.vcam.LookAt = null; // 1인칭 관전이면 LookAt은 보통 null
-                Debug.Log($"[관전 시작] {target.gameObject.name} 추적 중");
+                if (target.TryGetComponent<PlayerRotation>(out var targetRot) &&
+                    TryGetComponent<PlayerRotation>(out var myRot))
+                {
+                    if (myRot.vcam != null)
+                    {
+                        // [추가] 내 카메라의 마우스 회전 입력을 끄고 정렬함
+                        myRot.SetSpectatingMode(true);
+
+                        myRot.vcam.Follow = targetRot.cameraTarget;
+                        // LookAt을 빼버리면 카메라가 Follow 대상의 회전(시야 방향)을 그대로 따릅니다.
+                        myRot.vcam.LookAt = null;
+
+                        Debug.Log($"{target.gameObject.name}의 시점을 관전합니다.");
+                    }
+                }
             }
         }
-        else
-        {
-            Debug.LogWarning("관전할 수 있는 살아있는 플레이어가 없습니다.");
-        }
+
+        yield return new WaitForSeconds(1.0f);
+
+        if (playerModel != null) playerModel.SetActive(false);
     }
 
     PlayerRotation FindSpectatableTarget()
     {
-        foreach (var player in AllPlayers)
+        //foreach (var p in AllPlayers)
+        //{
+        //    // 내가 아니고 죽지 않은 플레이어
+        //    if (p != this && !p.isDead.Value)
+        //    {
+        //        if (p.TryGetComponent<PlayerRotation>(out var targetRot)) return targetRot;
+        //    }
+        //}
+
+        // 살아있는 다른 플레이어 찾기
+        foreach (var player in AllPlayers) // static List 등으로 관리되는 리스트
         {
             if (player != this && !player.isDead.Value)
             {
-                if (player.TryGetComponent<PlayerRotation>(out var targetRot))
-                {
-                    return targetRot;
-                }
+                GetComponent<PlayerRotation>().SetSpectatingTarget(player.GetComponent<PlayerRotation>());
+                break;
             }
         }
         return null;
@@ -437,93 +477,63 @@ public class PlayerController : NetworkBehaviour
         //    Cursor.lockState = CursorLockMode.None;
         //    // 여기에 "사망하셨습니다" 같은 UI 띄우기 가능
         //}
-
-        if (playerModel != null) playerModel.SetActive(false);
     }
 
     void PerformReviveEffects()
     {
         Debug.Log($"{gameObject.name}가 부활");
 
-        //if (TryGetComponent(out PlayerMove move)) move.enabled = true;
-        //if (TryGetComponent(out PlayerRotation rot))
-        //{
-        //    if (IsOwner)
-        //    {
-        //        rot.SetSpectatingMode(false);
+        if (playerModel != null) playerModel.SetActive(true);
 
-        //        // [중요] 관전 중이었다면 카메라 타겟을 다시 나(본인)로 돌려놓기 위해 주석 해제!
-        //        if (rot.vcam != null)
-        //        {
-        //            rot.vcam.Follow = rot.cameraTarget;
-        //            rot.vcam.LookAt = null;
-        //        }
-        //    }
-        //}
-        if (IsOwner && playerRotation != null)
+        // 1. 애니메이션 리셋 (누워있는 상태에서 일어나는 상태로)
+        if (TryGetComponent(out PlayerAnim anim))
         {
-            playerRotation.SetSpectatingMode(false);
-            StartCoroutine(RestoreCameraTargetRoutine());
+            anim.ResetAnimation();
         }
-        //// 1. 애니메이션 리셋 (누워있는 상태에서 일어나는 상태로)
-        //if (TryGetComponent(out PlayerAnim anim))
-        //{
-        //    anim.ResetAnimation();
-        //}
 
-        //// 2. 물리 및 충돌체 다시 켜기
-        //var col = GetComponent<Collider>();
-        //if (col != null) col.enabled = true;
+        // 2. 물리 및 충돌체 다시 켜기
+        var col = GetComponent<Collider>();
+        if (col != null) col.enabled = true;
 
-        //var rb = GetComponent<Rigidbody>();
-        //if (rb != null)
-        //{ 
-        //    rb.isKinematic = false;
-        //    rb.linearVelocity = Vector3.zero;
-        //}
+        var rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        { 
+            rb.isKinematic = false;
+            rb.linearVelocity = Vector3.zero;
+        }
 
-        //// 3. 레이어 복구 (몬스터가 다시 감지할 수 있게)
-        //gameObject.layer = LayerMask.NameToLayer("Player");
+        // 3. 레이어 복구 (몬스터가 다시 감지할 수 있게)
+        gameObject.layer = LayerMask.NameToLayer("Player");
 
-        //if (TryGetComponent(out PlayerMove move)) move.enabled = true;
-        //if (TryGetComponent(out PlayerInteraction interact)) interact.enabled = true;
-        //if (TryGetComponent(out PlayerEquipment equip)) equip.enabled = true;
-
-        //// 5. [핵심] 카메라 및 관전 모드 복구 (본인인 경우에만)
-        //if (IsOwner && playerRotation != null)
-        //{
-        //    // 관전 상태 변수 해제 (입력 등 차단 해제)
-        //    playerRotation.SetSpectatingMode(false);
-
-        //    // 시네머신 카메라 타겟을 다시 내 캐릭터의 눈(cameraTarget)으로 설정
-        //    if (playerRotation.vcam != null)
-        //    {
-        //        playerRotation.vcam.Follow = playerRotation.cameraTarget;
-        //        playerRotation.vcam.LookAt = null; // 1인칭일 경우 보통 null
-
-        //        // 카메라 회전값이 관전하던 대상을 바라보고 있을 수 있으므로 초기화 제안
-        //        // vcam.ForceCameraPosition 등은 시네머신 버전에 따라 다를 수 있음
-        //        Debug.Log("[부활] 카메라 타겟을 본인으로 복구했습니다.");
-        //    }
-        //}
-    }
-
-    IEnumerator RestoreCameraTargetRoutine()
-    {
-        // 한 프레임 대기하여 물리/애니메이션 리셋이 완료된 후 실행
-        yield return null;
-
-        if (playerRotation.vcam != null)
+        // 4. 모든 조작 스크립트 재활성화
+        if (TryGetComponent(out PlayerMove move)) move.enabled = true;
+        if (TryGetComponent(out PlayerRotation rot))
         {
-            playerRotation.vcam.Follow = playerRotation.cameraTarget;
-            playerRotation.vcam.LookAt = null;
+            //rot.enabled = true;
 
-            // 시네머신이 이전 타겟(관전 대상)과의 거리 차이로 인해 
-            // 부드럽게 이동(Damping)하느라 못 찾는 것처럼 보일 수 있음 -> 강제 위치 갱신
-            playerRotation.vcam.OnTargetObjectWarped(playerRotation.cameraTarget,
-                playerRotation.cameraTarget.position - playerRotation.vcam.transform.position);
+            if (IsOwner) rot.SetSpectatingMode(false);
 
-            Debug.Log("[부활] 카메라 타겟 강제 복구 완료");
+            // 중요: 관전 중이었다면 카메라 타겟을 다시 나(본인)로 돌려놓아야 함
+            //if (IsOwner && rot.vcam != null)
+            //{
+            //    rot.SetSpectatingMode(false);
+
+            //    rot.vcam.Follow = rot.cameraTarget;
+            //    rot.vcam.LookAt = null;
+
+            //    // 부활 시 카메라 회전값을 현재 내 몸의 정면으로 초기화 (선택 사항)
+            //    //rot.vcam.transform.rotation = transform.rotation;
+            //}
+        }
+        if (TryGetComponent(out PlayerInteraction interact)) interact.enabled = true;
+        if (TryGetComponent(out PlayerEquipment equip)) equip.enabled = true;
+
+        // 5. 본인인 경우 UI 및 커서 복구
+        if (IsOwner)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            // "사망" UI가 있었다면 여기서 끄기
         }
     }
 
@@ -533,13 +543,6 @@ public class PlayerController : NetworkBehaviour
         // Owner(본인)만 본인의 위치를 제어할 수 있는 권한이 있음
         if (IsOwner)
         {
-            // 플레이어 땅박힘 방지
-            if (TryGetComponent(out Rigidbody rb))
-            {
-                rb.linearVelocity = Vector3.zero;
-                rb.angularVelocity = Vector3.zero;
-            }
-
             if (TryGetComponent(out Unity.Netcode.Components.NetworkTransform nt))
             {
                 // 본인이 호출하므로 에러가 발생하지 않음
