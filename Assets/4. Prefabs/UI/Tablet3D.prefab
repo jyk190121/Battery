@@ -25298,7 +25298,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: efff025c4fdf6fd49855b729d5469a77, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShopAddBtn
-  shopManager: {fileID: 0}
+  shopManager: {fileID: 2341401775064826281}
   shopItems:
   - buyButton: {fileID: 8753830409465353293}
     itemData: {fileID: 11400000, guid: 2de26f69c84422e43b6fc65ea431d23d, type: 2}
