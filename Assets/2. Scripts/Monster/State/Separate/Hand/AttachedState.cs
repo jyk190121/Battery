@@ -53,8 +53,8 @@ public class AttachedState : MonsterBaseState
             // 4. 네트워크 트랜스폼 싱크 지연을 고려하여 1프레임 뒤에 정확한 위치(머리 위)로 로컬 고정
             owner.StartCoroutine(FixPositionNextFrame());
 
-            // 5. 해당 플레이어의 화면에만 시야 차단(눈뽕/촉수) UI를 띄우도록 RPC 전송
-            owner.TriggerSnareBlindRpc(true, owner.RpcTarget.Single(_snaredPlayer.OwnerClientId, RpcTargetUse.Temp));
+            //// 5. 해당 플레이어의 화면에만 시야 차단(눈뽕/촉수) UI를 띄우도록 RPC 전송
+            //owner.TriggerSnareBlindRpc(true, owner.RpcTarget.Single(_snaredPlayer.OwnerClientId, RpcTargetUse.Temp));
 
             // 6.  충격으로 인해 현재 들고 있는 아이템 떨어뜨리기
             if (_snaredPlayer.TryGetComponent<PlayerInventory>(out var inventory))
@@ -78,7 +78,7 @@ public class AttachedState : MonsterBaseState
         if (_snaredPlayer != null && _snaredPlayer.IsSpawned)
         {
             _snaredPlayer.isSnared.Value = false;
-            owner.TriggerSnareBlindRpc(false, owner.RpcTarget.Single(_snaredPlayer.OwnerClientId, RpcTargetUse.Temp));
+            //owner.TriggerSnareBlindRpc(false, owner.RpcTarget.Single(_snaredPlayer.OwnerClientId, RpcTargetUse.Temp));
         }
 
         // 2. [네트워크 종속 해제] 플레이어 머리에서 강제로 떨어짐

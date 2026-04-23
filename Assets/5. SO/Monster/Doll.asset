@@ -12,24 +12,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bbc6e2eecad55246b69d412d02592b9, type: 3}
   m_Name: Doll
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
+  type: 2
   monsterPrefab: {fileID: 852133620718461397, guid: dc12781b9407826418d53477881fc9e2, type: 3}
   maxHealth: 100
   spawnCost: 1
   maxSpawnCount: 1
   spawnWeight: 50
-  patrolSpeed: 3.5
-  chaseSpeed: 10
-  attackDamage: 21
-  attackRange: 2
-  attackCooldown: 1.5
-  attackAnimDuration: 2
-  attackTrackingTime: 0.7
-  viewRange: 30
+  patrolSpeed: 2
+  chaseSpeed: 7
+  attackDamage: 0
+  attackRange: 0
+  attackCooldown: 0
+  attackAnimDuration: 0
+  attackTrackingTime: 0
+  viewRange: 20
   viewAngle: 360
-  hearingRange: 35
+  hearingRange: 25
   visionMemoryTime: 3
   maxSearchDuration: 15
-  searchPauseDuration: 3
+  searchPauseDuration: 1.5
   searchNodeRadius: 15
   minWaitTime: 2
   maxWaitTime: 5
@@ -42,11 +43,11 @@ MonoBehaviour:
   patrolDoorOpenChance: 0.2
   doorIgnoreCooldown: 1
   minPatrolDistance: 10
-  alertnessIncreaseRate: 1.5
+  alertnessIncreaseRate: 0.5
   alertnessDecreaseRate: 0.5
   alertnessSyncInterval: 0.2
   alertnessThreshold: 0.05
-  stunDurationMultiplier: 1
+  stunDurationMultiplier: 0
   gimmickCheckDistance: 0
   ceilingAttachChance: 0
   ceilingLayerMask:
@@ -58,3 +59,8 @@ MonoBehaviour:
   snareTickDamage: 0
   fleeDuration: 0
   fleaCeilingCheckInterval: 0
+  dollNormalDistance: 1.5
+  dollStairDistance: 2.8
+  dollBumpDistance: 0.5
+  dollCatchDotThreshold: 0.6
+  dollGracePeriod: 0.5
