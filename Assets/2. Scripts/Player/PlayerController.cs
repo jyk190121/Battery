@@ -175,15 +175,18 @@ public class PlayerController : NetworkBehaviour
         //    AllPlayers.Remove(this);
         //}
 
+        //// 1. 내 모델을 끈다 (내 화면에서 내 몸이 안 보이게)
+        //if (playerModel != null) playerModel.SetActive(false);
+
+        // 2. 관전 모드 활성화 (회전 스크립트에 알림)
+        if (playerRotation != null) playerRotation.SetSpectatingMode(true);
+
+        // 2. 관전 대상 탐색 및 카메라 전환 로직 실행
+        //StartCoroutine(StartSpectating());
         if (IsOwner)
         {
-            // 1. 내 모델을 끈다 (내 화면에서 내 몸이 안 보이게)
-            if (playerModel != null) playerModel.SetActive(false);
-
-            // 2. 관전 모드 활성화 (회전 스크립트에 알림)
-            if (playerRotation != null) playerRotation.SetSpectatingMode(true);
-
-            // 2. 관전 대상 탐색 및 카메라 전환 로직 실행
+            // 이미 실행 중인 관전 루틴이 있다면 정지 (중복 방지)
+            StopAllCoroutines();
             StartCoroutine(StartSpectating());
         }
 
@@ -196,6 +199,8 @@ public class PlayerController : NetworkBehaviour
 
         // 사망 애니메이션 실행, 콜라이더 끄기, 리스폰 로직 등 처리
         CheckAllPlayersDead();
+
+       
     }
 
     [ClientRpc]
@@ -272,6 +277,14 @@ public class PlayerController : NetworkBehaviour
                 }
             }
 
+            for (int i = AllPlayers.Count - 1; i >= 0; i--)
+            {
+                if (AllPlayers[i] != null)
+                {
+                    AllPlayers[i].RevivePlayer();
+                }
+            }
+
             // 2. 모든 플레이어 부활 처리
             //foreach (var player in AllPlayers)
             //{
@@ -328,8 +341,9 @@ public class PlayerController : NetworkBehaviour
         if (newValue) // newValue가 true이면 사망
         {
             playerAnim.PlayDead();
-
             PerformDeathEffects();
+
+            StartCoroutine(HideModelAfterDelay(1.5f));
 
             // 관전 모드 시작 (본인인 경우에만)
             if (IsOwner)
@@ -339,27 +353,21 @@ public class PlayerController : NetworkBehaviour
         }
         else
         {
-            playerAnim.PlayRevive();
-            // 필요하다면 리바인드를 통해 애니메이터를 완전히 초기 상태(Idle)로 강제 정렬합니다.
-            playerAnim.ResetAnimation();
+            StopAllCoroutines();
 
+            if (playerModel != null) playerModel.SetActive(true);
+
+            playerAnim.PlayRevive();
+            playerAnim.ResetAnimation();
             PerformReviveEffects();
         }
-        //if (newValue == true)
-        //{
-        //    PerformDeathEffects();
-
-        //    // 관전 모드 시작 (본인인 경우에만)
-        //    if (IsOwner)
-        //    {
-        //        StartCoroutine(StartSpectating());
-        //    }
-        //}
-        //else // 부활 시 (isDead.Value가 true -> false가 되었을 때)
-        //{
-        //    PerformReviveEffects();
-        //}
     }
+    IEnumerator HideModelAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (playerModel != null) playerModel.SetActive(false);
+    }
+
 
     IEnumerator StartSpectating()
     {
@@ -419,8 +427,6 @@ public class PlayerController : NetworkBehaviour
         }
 
         yield return new WaitForSeconds(1.0f);
-
-        if (playerModel != null) playerModel.SetActive(false);
     }
 
     PlayerRotation FindSpectatableTarget()
