@@ -23,6 +23,8 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
     Dictionary<string, VoiceCopier> playerVoices = new Dictionary<string, VoiceCopier>();
     private Dictionary<string, bool> callStateDict = new Dictionary<string, bool>();
 
+    private Dictionary<string, Speaker> pendingSpeakers = new Dictionary<string, Speaker>();
+
     private void Awake()
     {
         // [수정] 싱글톤 사용
@@ -34,6 +36,18 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
         {
             Destroy(gameObject);
         }
+    }
+
+    private void OnEnable()
+    {
+        // [추가] 닉네임 동기화 완료 이벤트 구독
+        PlayerNameSync.OnNicknameSynced += HandleAvatarReady;
+    }
+
+    private void OnDisable()
+    {
+        // [추가] 이벤트 구독 해제
+        PlayerNameSync.OnNicknameSynced -= HandleAvatarReady;
     }
 
     private void Start()
@@ -124,141 +138,185 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
 
         // 투 트랙 출력을 위해 복제 컴포넌트를 달아줍니다.
         //AvatarVoiceSender sender = speaker.gameObject.AddComponent<AvatarVoiceSender>();
-        StartCoroutine(AttachSpeakerToPlayer(speaker, targetNick));
+        //StartCoroutine(AttachSpeakerToPlayer(speaker, targetNick));
+        TryAttachOrWait(speaker, targetNick);
+    }
+
+    private void TryAttachOrWait(Speaker speaker, string targetNick)
+    {
+        // 1. 현재 씬에 이미 닉네임 동기화가 끝난 아바타가 있는지 먼저 찾아봅니다.
+        PlayerNameSync[] allPlayers = FindObjectsByType<PlayerNameSync>(FindObjectsSortMode.None);
+        foreach (var p in allPlayers)
+        {
+            if (p == null) continue;
+
+            string netcodeNick = p.NetworkNickname.Value.ToString().Replace("\0", "").Trim();
+            if (netcodeNick.Equals(targetNick, StringComparison.OrdinalIgnoreCase))
+            {
+                // 아바타가 이미 준비되어 있다면 즉시 부착
+                AttachSpeakerDirectly(speaker, p.transform, targetNick);
+                return;
+            }
+        }
+
+        // 2. 아직 아바타가 없거나 닉네임 동기화가 안 끝났다면 대기열에 등록합니다.
+        Debug.Log($"<color=yellow>[Global Voice] {targetNick} 아바타 대기 중... 동기화 이벤트 수신 대기</color>");
+        pendingSpeakers[targetNick] = speaker;
+    }
+
+    private void HandleAvatarReady(string targetNick, Transform avatarTransform)
+    {
+        // PlayerNameSync 쪽에서 "나 닉네임 동기화 끝났어!" 라고 이벤트를 쏘면 여기로 들어옵니다.
+        if (pendingSpeakers.TryGetValue(targetNick, out Speaker pendingSpeaker))
+        {
+            if (pendingSpeaker != null)
+            {
+                AttachSpeakerDirectly(pendingSpeaker, avatarTransform, targetNick);
+            }
+            // 부착 완료 후 대기열에서 제거
+            pendingSpeakers.Remove(targetNick);
+        }
+    }
+
+    private void AttachSpeakerDirectly(Speaker speaker, Transform parentTransform, string targetNick)
+    {
+        speaker.transform.SetParent(parentTransform);
+        speaker.transform.localPosition = new Vector3(0, 1.8f, 0.2f);
+        Debug.Log($"<color=green>[Global Voice] {targetNick} 아바타 부착 성공! (이벤트 방식)</color>");
     }
 
     // [수정]
-    private IEnumerator AttachSpeakerToPlayer(Speaker speaker, string targetNick)
-    {
-        //Debug.Log($"[Global Voice] (1/4) 부착 프로세스 시작! 대상의 Voice ID: {photonPlayerId}");
+    //private IEnumerator AttachSpeakerToPlayer(Speaker speaker, string targetNick)
+    //{
+    //    //Debug.Log($"[Global Voice] (1/4) 부착 프로세스 시작! 대상의 Voice ID: {photonPlayerId}");
 
-        //Photon.Realtime.Player photonPlayer = null;
-        //int infoRetries = 0;
+    //    //Photon.Realtime.Player photonPlayer = null;
+    //    //int infoRetries = 0;
 
-        //while (photonPlayer == null && infoRetries < 10)
-        //{
-        //    if (globalVoiceClient.Client.InRoom)
-        //    {
-        //        photonPlayer = globalVoiceClient.Client.CurrentRoom.GetPlayer(photonPlayerId);
-        //    }
+    //    //while (photonPlayer == null && infoRetries < 10)
+    //    //{
+    //    //    if (globalVoiceClient.Client.InRoom)
+    //    //    {
+    //    //        photonPlayer = globalVoiceClient.Client.CurrentRoom.GetPlayer(photonPlayerId);
+    //    //    }
 
-        //    if (photonPlayer == null)
-        //    {
-        //        yield return new WaitForSeconds(0.2f);
-        //        infoRetries++;
-        //    }
-        //}
+    //    //    if (photonPlayer == null)
+    //    //    {
+    //    //        yield return new WaitForSeconds(0.2f);
+    //    //        infoRetries++;
+    //    //    }
+    //    //}
 
-        //if (photonPlayer == null)
-        //{
-        //    Debug.LogError($"[Global Voice] (에러) {photonPlayerId}번 유저의 접속 정보를 찾지 못했습니다.");
-        //    yield break;
-        //}
+    //    //if (photonPlayer == null)
+    //    //{
+    //    //    Debug.LogError($"[Global Voice] (에러) {photonPlayerId}번 유저의 접속 정보를 찾지 못했습니다.");
+    //    //    yield break;
+    //    //}
 
-        //string rawNick = string.IsNullOrEmpty(photonPlayer.NickName) ? "Guest" : photonPlayer.NickName;
-        //string targetNick = rawNick.Replace("\0", "").Trim();
+    //    //string rawNick = string.IsNullOrEmpty(photonPlayer.NickName) ? "Guest" : photonPlayer.NickName;
+    //    //string targetNick = rawNick.Replace("\0", "").Trim();
 
-        //// 딕셔너리에 추가할 때 copier 대신 sender를 넣습니다.
-        //if (!playerVoices.ContainsKey(targetNick))
-        //{
-        //    playerVoices.Add(targetNick, sender);
-        //}
+    //    //// 딕셔너리에 추가할 때 copier 대신 sender를 넣습니다.
+    //    //if (!playerVoices.ContainsKey(targetNick))
+    //    //{
+    //    //    playerVoices.Add(targetNick, sender);
+    //    //}
 
-        //// 통화 상태 동기화 시 SetCall 대신 SetCallMode를 호출합니다.
-        //if (callStateDict.TryGetValue(targetNick, out bool isCalling) && isCalling)
-        //{
-        //    sender.SetCallMode(isCalling);
-        //}
+    //    //// 통화 상태 동기화 시 SetCall 대신 SetCallMode를 호출합니다.
+    //    //if (callStateDict.TryGetValue(targetNick, out bool isCalling) && isCalling)
+    //    //{
+    //    //    sender.SetCallMode(isCalling);
+    //    //}
 
-        //bool isAttached = false;
-        //int maxRetries = 40;
-        //int retries = 0;
+    //    //bool isAttached = false;
+    //    //int maxRetries = 40;
+    //    //int retries = 0;
 
-        //while (!isAttached && retries < maxRetries)
-        //{
-        //    PlayerNameSync[] allPlayers = FindObjectsByType<PlayerNameSync>(FindObjectsSortMode.None);
+    //    //while (!isAttached && retries < maxRetries)
+    //    //{
+    //    //    PlayerNameSync[] allPlayers = FindObjectsByType<PlayerNameSync>(FindObjectsSortMode.None);
 
-        //    foreach (var p in allPlayers)
-        //    {
-        //        if (p == null) continue;
+    //    //    foreach (var p in allPlayers)
+    //    //    {
+    //    //        if (p == null) continue;
 
-        //        string netcodeNick = "";
-        //        try { netcodeNick = p.NetworkNickname.Value.ToString().Replace("\0", "").Trim(); }
-        //        catch { continue; }
+    //    //        string netcodeNick = "";
+    //    //        try { netcodeNick = p.NetworkNickname.Value.ToString().Replace("\0", "").Trim(); }
+    //    //        catch { continue; }
 
-        //        if (netcodeNick == targetNick)
-        //        {
-        //            speaker.transform.SetParent(p.transform);
-        //            speaker.transform.localPosition = new Vector3(0, 1.5f, 0);
+    //    //        if (netcodeNick == targetNick)
+    //    //        {
+    //    //            speaker.transform.SetParent(p.transform);
+    //    //            speaker.transform.localPosition = new Vector3(0, 1.5f, 0);
 
-        //            Debug.Log($"[Global Voice] (4/4 성공!) {targetNick}의 아바타에 스피커 부착 완료.");
-        //            isAttached = true;
-        //            break;
-        //        }
-        //    }
+    //    //            Debug.Log($"[Global Voice] (4/4 성공!) {targetNick}의 아바타에 스피커 부착 완료.");
+    //    //            isAttached = true;
+    //    //            break;
+    //    //        }
+    //    //    }
 
-        //    if (!isAttached)
-        //    {
-        //        retries++;
-        //        yield return new WaitForSeconds(0.5f);
-        //    }
-        //}
+    //    //    if (!isAttached)
+    //    //    {
+    //    //        retries++;
+    //    //        yield return new WaitForSeconds(0.5f);
+    //    //    }
+    //    //}
 
-        //if (!isAttached)
-        //{
-        //    Debug.LogWarning($"[Global Voice] (실패) '{targetNick}'인 플레이어가 없습니다.");
-        //}
+    //    //if (!isAttached)
+    //    //{
+    //    //    Debug.LogWarning($"[Global Voice] (실패) '{targetNick}'인 플레이어가 없습니다.");
+    //    //}
 
-        // [수정]
-        bool isAttached = false;
-        int maxRetries = 40;
-        int retries = 0;
+    //    // [수정]
+    //    bool isAttached = false;
+    //    int maxRetries = 40;
+    //    int retries = 0;
 
-        while (!isAttached && retries < maxRetries)
-        {
-            PlayerNameSync[] allPlayers = FindObjectsByType<PlayerNameSync>(FindObjectsSortMode.None);
+    //    while (!isAttached && retries < maxRetries)
+    //    {
+    //        PlayerNameSync[] allPlayers = FindObjectsByType<PlayerNameSync>(FindObjectsSortMode.None);
 
-            foreach (var p in allPlayers)
-            {
-                if (p == null) continue;
+    //        foreach (var p in allPlayers)
+    //        {
+    //            if (p == null) continue;
 
-                string netcodeNick = "";
-                try
-                {
-                    if (p.NetworkNickname != null)
-                    {
-                        var fixedString = p.NetworkNickname.Value;
-                        netcodeNick = fixedString.ToString().Replace("\0", "").Trim();
-                    }
-                }
-                catch (System.Exception e)
-                {
-                    // 아직 동기화가 안 되었을 경우 로그를 남기지 않고 다음 프레임 기약
-                    continue;
-                }
+    //            string netcodeNick = "";
+    //            try
+    //            {
+    //                if (p.NetworkNickname != null)
+    //                {
+    //                    var fixedString = p.NetworkNickname.Value;
+    //                    netcodeNick = fixedString.ToString().Replace("\0", "").Trim();
+    //                }
+    //            }
+    //            catch (System.Exception e)
+    //            {
+    //                // 아직 동기화가 안 되었을 경우 로그를 남기지 않고 다음 프레임 기약
+    //                continue;
+    //            }
 
-                // 3. 닉네임이 비어있으면 아직 데이터가 안 온 것이므로 대기
-                if (string.IsNullOrEmpty(netcodeNick)) continue;
+    //            // 3. 닉네임이 비어있으면 아직 데이터가 안 온 것이므로 대기
+    //            if (string.IsNullOrEmpty(netcodeNick)) continue;
 
-                if (netcodeNick.Equals(targetNick, StringComparison.OrdinalIgnoreCase))
-                {
-                    speaker.transform.SetParent(p.transform);
-                    speaker.transform.localPosition = new Vector3(0, 1.8f, 0.2f);
+    //            if (netcodeNick.Equals(targetNick, StringComparison.OrdinalIgnoreCase))
+    //            {
+    //                speaker.transform.SetParent(p.transform);
+    //                speaker.transform.localPosition = new Vector3(0, 1.8f, 0.2f);
 
-                    Debug.Log($"<color=green>[Global Voice] {targetNick} 아바타 부착 성공!</color>");
-                    isAttached = true;
-                    break;
-                }
-            }
+    //                Debug.Log($"<color=green>[Global Voice] {targetNick} 아바타 부착 성공!</color>");
+    //                isAttached = true;
+    //                break;
+    //            }
+    //        }
 
-            if (!isAttached)
-            {
-                retries++;
-                // 간격을 조금 줄여서 더 자주 체크하되, 에러는 방지
-                yield return new WaitForSeconds(0.5f);
-            }
-        }
-    }
+    //        if (!isAttached)
+    //        {
+    //            retries++;
+    //            // 간격을 조금 줄여서 더 자주 체크하되, 에러는 방지
+    //            yield return new WaitForSeconds(0.5f);
+    //        }
+    //    }
+    //}
 
     public void SetCallMode(string targetNickname, bool isCalling)
     {

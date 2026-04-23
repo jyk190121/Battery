@@ -14,7 +14,9 @@ public class TabletUIManager : MonoBehaviour
     // 태블릿 상태 변화를 외부(PlayerRotation 등)에 알리기 위한 정적 이벤트
     public static event Action<bool> OnTabletStateChanged;
 
-    //private bool isTabletOpen = false;
+    // 현재 이 인스턴스가 태블릿을 열었는가?
+    private bool isLocalTabletOpen = false;
+
     //private PlayerController currentPlayerController;
     private Canvas playerHudCanvas; // 플레이어의 메인 HUD 캔버스 참조 저장용
 
@@ -27,7 +29,7 @@ public class TabletUIManager : MonoBehaviour
     private void Update()
     {
         // 태블릿이 열려있을 때 ESC 키를 누르면 닫기
-        if (IsAnyTabletOpen && Keyboard.current.escapeKey.wasPressedThisFrame)
+        if (isLocalTabletOpen && Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             CloseTabletUI();
         }
@@ -40,8 +42,10 @@ public class TabletUIManager : MonoBehaviour
     {
         if (IsAnyTabletOpen) return;
 
-        //isTabletOpen = true;
+        // 내가 열었음을 의미하는 플래그 설정
+        isLocalTabletOpen = true;
         IsAnyTabletOpen = true; // 정적 변수 업데이트
+
         OnTabletStateChanged?.Invoke(true);
         //currentPlayerController = player;
 
@@ -77,10 +81,11 @@ public class TabletUIManager : MonoBehaviour
     /// </summary>
     public void CloseTabletUI()
     {
-        if (!IsAnyTabletOpen) return;
+        if (!isLocalTabletOpen) return;
 
-        //IsAnyTabletOpen = false;
         IsAnyTabletOpen = false; // 정적 변수 업데이트
+        isLocalTabletOpen = false;
+
         OnTabletStateChanged?.Invoke(false);
 
         // 1. 이벤트 발송: 구독 중인 스크립트에 알림
