@@ -4,33 +4,53 @@ using Unity.Netcode;
 public class QuestReturnPoint : NetworkBehaviour
 {
     [Header("Quest Settings")]
-    public int targetQuestID;    // 연동된 퀘스트 ID
-    public int requiredItemID;   // 반납해야 할 물건의 ID
+    public int targetQuestID;
+    public int requiredItemID;
 
     [Header("Visual Components")]
-    [Tooltip("반납 전 보여줄 투명한 가이드(큐브 등)")]
     public GameObject ghostModel;
-
-    [Tooltip("반납 성공 시 활성화될(True) 실제 물건 모델")]
     public GameObject realModel;
+    public Outline outline;
 
-    // 서버가 관리하며 모든 클라이언트에게 '반납 완료' 상태를 동기화함
+    // [동기화 데이터] 모든 클라이언트가 실시간으로 공유받는 변수들
     private NetworkVariable<bool> isCompleted = new NetworkVariable<bool>(false);
+    private NetworkVariable<bool> isActivatedByManager = new NetworkVariable<bool>(false);
 
     public override void OnNetworkSpawn()
     {
-        // 처음 나타날 때와 상태가 변할 때 시각적 동기화
+        if (QuestManager.Instance != null)
+            QuestManager.Instance.RegisterReturnPoint(targetQuestID, this);
+
+        // 데이터가 바뀌면 (서버가 바꾸면) 모든 클라이언트에서 화면을 새로고침함
         RefreshState(isCompleted.Value);
         isCompleted.OnValueChanged += (prev, next) => RefreshState(next);
+        isActivatedByManager.OnValueChanged += (prev, next) => RefreshState(isCompleted.Value);
     }
 
-    // PlayerInventory에서 바라보고 E키를 누르면 호출됨
+    public void SetPointActivation(bool isActive)
+    {
+        // 서버만 이 값을 바꿀 수 있고, 바꾸는 순간 모든 클라이언트에 전파됩니다.
+        if (IsServer) isActivatedByManager.Value = isActive;
+    }
+
+    public bool IsInteractable()
+    {
+        return isActivatedByManager.Value && !isCompleted.Value;
+    }
+
     public void Interact(PlayerInventory player)
     {
-        // 이미 완료된 경우 상호작용 차단(Lock)
-        if (isCompleted.Value) return;
+        if (!IsInteractable()) return;
 
-        // 서버에 인벤토리 확인 및 반납 요청
+        // 손에 든 게 정답이 아니면 여기서 컷!
+        ItemBase held = player.HeldItem;
+        if (held == null || held.itemData.itemID != requiredItemID)
+        {
+            Debug.Log($"<color=orange>[Quest] {requiredItemID}번 아이템을 손에 들어야 작동합니다!</color>");
+            return;
+        }
+
+        // 손에 든 게 확실할 때만 서버에 보고
         TryReturnServerRpc(player.OwnerClientId);
     }
 
@@ -39,38 +59,34 @@ public class QuestReturnPoint : NetworkBehaviour
     {
         if (isCompleted.Value) return;
 
-        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(clientId, out NetworkObject playerObj))
+        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client))
         {
-            PlayerInventory inventory = playerObj.GetComponent<PlayerInventory>();
-
-            // 인벤토리에 목표 아이템 ID가 있는지 확인
-            if (inventory != null && inventory.HasItem(requiredItemID))
+            PlayerInventory inv = client.PlayerObject.GetComponent<PlayerInventory>();
+            if (inv != null)
             {
-                // 1. 아이템 제거
-                inventory.RemoveItemByServer(requiredItemID);
-
-                // 2. 완료 상태로 전환 (자동으로 전원 시각적 변경 및 Lock 발생)
-                isCompleted.Value = true;
-
-                // 3. 퀘스트 매니저 통보
-                QuestManager.Instance.NotifyCustomQuestMet(targetQuestID, clientId);
-
-                Debug.Log($"<color=cyan>[Quest]</color> {targetQuestID}번 의뢰물 반납 및 완료 처리.");
+                //  RemoveItemByServer가 true(삭제 성공)를 반환할 때만 진행!
+                if (inv.RemoveItemByServer(requiredItemID))
+                {
+                    isCompleted.Value = true;
+                    QuestManager.Instance.NotifyCustomQuestMet(targetQuestID, clientId);
+                }
+                else
+                {
+                    Debug.LogWarning($"<color=red>[Security]</color> Client {clientId}의 아이템 삭제 실패. 퀘스트 클리어 거부됨.");
+                }
             }
         }
     }
 
     private void RefreshState(bool completed)
     {
-        if (realModel != null) realModel.SetActive(completed);   // 완료 시 실물 등장
-        if (ghostModel != null) ghostModel.SetActive(!completed); // 완료 시 가이드 퇴장
+        // 기획자님이 인스펙터 슬롯에 꽂아준 '진짜 내용물'을 켜줌
+        if (realModel != null) realModel.SetActive(completed);
+        if (ghostModel != null) ghostModel.SetActive(isActivatedByManager.Value && !completed);
 
-        // 완료 시 콜라이더를 꺼서 더 이상 레이캐스트에 잡히지 않게 함 (Lock)
         if (completed)
         {
             if (TryGetComponent(out Collider col)) col.enabled = false;
-            // 외곽선이 켜져 있었다면 강제로 끔
-            Outline outline = GetComponentInChildren<Outline>();
             if (outline != null) outline.enabled = false;
         }
     }

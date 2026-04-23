@@ -23,6 +23,9 @@ public class QuestManager : NetworkBehaviour
 
     public QuestDifficulty selectedDifficulty;
 
+    private Dictionary<int, List<QuestReturnPoint>> returnPointRegistry = new Dictionary<int, List<QuestReturnPoint>>();
+
+
     private void Awake()
     {
         if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
@@ -65,7 +68,7 @@ public class QuestManager : NetworkBehaviour
         foreach (var q in sub) targetList.Add(q.questID);
     }
 
-    // [수정] 출발 전까지 자유롭게 난이도를 갈아탈 수 있는 로직
+    //  출발 전까지 자유롭게 난이도를 갈아탈 수 있는 로직
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void AcceptDifficultyContractServerRpc(QuestDifficulty difficulty)
     {
@@ -83,8 +86,16 @@ public class QuestManager : NetworkBehaviour
 
         if (targetPool != null)
         {
-            foreach (int id in targetPool) activeQuests.Add(id);
-            Debug.Log($"[Quest] {difficulty} 계약으로 변경됨.");
+            string questListStr = "";
+            foreach (int id in targetPool)
+            {
+                activeQuests.Add(id);
+                var data = GetQuestData(id);
+                questListStr += $" - [ID:{id}] {(data != null ? data.questName : "Unknown")}\n";
+            }
+
+            //현재 수락한 4개의 퀘스트 목록 출력
+            Debug.Log($"<color=yellow><b>[QUEST START]</b></color> {difficulty} 난이도 계약 수락! (총 {activeQuests.Count}개)\n<color=white>{questListStr}</color>");
         }
     }
     #endregion
@@ -108,18 +119,56 @@ public class QuestManager : NetworkBehaviour
         CompleteQuest(questID, solverId);
     }
 
+  
     private void CompleteQuest(int questID, ulong solverId)
     {
-        if (!serverCompletedQuests.Contains(questID)) serverCompletedQuests.Add(questID);
+        if (!IsServer) return;
+
+        var data = GetQuestData(questID);
+        string questName = data != null ? data.questName : "Unknown";
+
+        if (!serverCompletedQuests.Contains(questID))
+        {
+            serverCompletedQuests.Add(questID);
+
+            //  서버 진행도 및 잔여 퀘스트 트래킹
+            int total = activeQuests.Count;
+            int cleared = serverCompletedQuests.Count;
+
+            // 아직 클리어하지 않은 남은 퀘스트 찾기
+            string remainingQuests = "";
+            foreach (int id in activeQuests)
+            {
+                if (!serverCompletedQuests.Contains(id)) remainingQuests += $"[{id}] ";
+            }
+            if (string.IsNullOrEmpty(remainingQuests)) remainingQuests = "없음 (ALL CLEAR!)";
+
+            Debug.Log($"<color=lime><b>[SERVER MASTER]</b></color> 퀘스트 클리어: <color=white>[ID:{questID}] {questName}</color> (해결사: Client {solverId})");
+            Debug.Log($"<color=lime><b>[SERVER MASTER]</b></color> 전체 진행도: {cleared}/{total} | 남은 퀘스트: <color=orange>{remainingQuests}</color>");
+            Debug.Log($"<color=yellow><b>[REWARD]</b></color> 누적 예상 보상: {GetCalculatedQuestReward()}원");
+        }
+
+        // 당사자에게만 클리어 통보
         NotifyLocalClientClearClientRpc(questID, RpcTarget.Single(solverId, RpcTargetUse.Temp));
     }
 
+   
     [Rpc(SendTo.SpecifiedInParams)]
     private void NotifyLocalClientClearClientRpc(int questID, RpcParams rpcParams)
     {
-        if (!myActuallyDoneQuests.Contains(questID)) myActuallyDoneQuests.Add(questID);
-    }
+        if (!myActuallyDoneQuests.Contains(questID))
+            myActuallyDoneQuests.Add(questID);
 
+        var data = GetQuestData(questID);
+        string questName = data != null ? data.questName : "Unknown";
+
+        // 💡 [디버그 로그] 개인 클라이언트 패킷 수신 확인
+        int myClearedCount = myActuallyDoneQuests.Count;
+        int total = activeQuests.Count;
+
+        Debug.Log($"<color=cyan><b>[MY QUEST]</b></color> 🎉 서버로부터 클리어 통보 수신: <color=white>[ID:{questID}] {questName}</color>");
+        Debug.Log($"<color=cyan><b>[MY QUEST]</b></color> 나의 기여도(진행도): {myClearedCount}/{total}");
+    }
     public int GetCalculatedQuestReward()
     {
         if (!IsServer) return 0;
@@ -139,14 +188,14 @@ public class QuestManager : NetworkBehaviour
 
     public QuestDataSO GetQuestData(int id) => questDatabase.Find(q => q.questID == id);
 
-    // 💡 [수정] 정산/전멸 시 호출: 데이터를 비우고 '다음 날' 풀을 즉시 생성
+    // [수정] 정산/전멸 시 호출: 데이터를 비우고 '다음 날' 풀을 즉시 생성
     public void ResetDailyQuests()
     {
         if (!IsServer) return;
         activeQuests.Clear();
         serverCompletedQuests.Clear();
 
-        RefreshDailyQuestPools(); // 👈 다음 날을 위한 신규 3+1 생성
+        RefreshDailyQuestPools(); // 다음 날을 위한 신규 3+1 생성
 
         ResetLocalQuestsClientRpc();
     }
@@ -154,4 +203,32 @@ public class QuestManager : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void ResetLocalQuestsClientRpc() => myActuallyDoneQuests.Clear();
     #endregion
+
+
+    // 포인트 등록 함수 (OnNetworkSpawn에서 호출됨)
+    public void RegisterReturnPoint(int questID, QuestReturnPoint point)
+    {
+        if (!returnPointRegistry.ContainsKey(questID))
+            returnPointRegistry[questID] = new List<QuestReturnPoint>();
+
+        returnPointRegistry[questID].Add(point);
+    }
+
+    public void ActivateCurrentSceneReturnPoints()
+    {
+        // 1. 장부의 모든 포인트를 일단 잠재움
+        foreach (var list in returnPointRegistry.Values)
+            foreach (var p in list) p.SetPointActivation(false);
+
+        // 2. 현재 활성화된 퀘스트(activeQuests)에 해당하는 포인트만 깨움
+        foreach (int qId in activeQuests)
+        {
+            if (returnPointRegistry.TryGetValue(qId, out var points))
+            {
+                foreach (var p in points) p.SetPointActivation(true);
+            }
+        }
+    }
+
+
 }
