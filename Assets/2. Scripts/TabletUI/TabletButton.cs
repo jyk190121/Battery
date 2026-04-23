@@ -5,11 +5,9 @@ public class TabletButton : MonoBehaviour
 {
     [Header("퀘스트 UI")]
     public Button questOpenButton;      // 메인 화면의 Quest 아이콘 버튼
-    public GameObject questPanel;       // 퀘스트 화면 패널
 
     [Header("상점 UI")]
     public Button shopOpenButton;       // 메인 화면의 Shop 아이콘 버튼
-    public GameObject shopPanel;        // 상점 화면 패널
 
     public Button closePanelButton;     // 상점/퀘스트 패널 끄는 버튼
 
@@ -22,25 +20,33 @@ public class TabletButton : MonoBehaviour
         if (shopOpenButton != null) shopOpenButton.onClick.AddListener(OpenShop);
 
         // 닫기 버튼 연결
-        if (closePanelButton != null) closePanelButton.onClick.AddListener(ClosePanel);
+        if (closePanelButton != null) closePanelButton.onClick.AddListener(ReturnToMain);
     }
 
     // ================= 퀘스트 패널 제어 =================
     public void OpenQuest()
     {
-        if (questPanel != null) questPanel.SetActive(true);
+        if(TabletUIManager.Instance != null)
+        {
+            TabletUIManager.Instance.RequestScreenChangeServerRpc(TVScreenState.QUEST);
+        }
     }
 
 
     // ================= 상점 패널 제어 =================
     public void OpenShop()
     {
-        if (shopPanel != null) shopPanel.SetActive(true);
+        if(TabletUIManager.Instance != null)
+        {
+            TabletUIManager.Instance.RequestScreenChangeServerRpc(TVScreenState.SHOP_CONSUME);
+        }
     }
 
-    public void ClosePanel()
+    public void ReturnToMain()
     {
-        questPanel.SetActive(false);
-        shopPanel.SetActive(false);
+        if(TabletUIManager.Instance != null)
+        {
+            TabletUIManager.Instance.RequestScreenChangeServerRpc(TVScreenState.MAIN);
+        }
     }
 }

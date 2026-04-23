@@ -25,37 +25,23 @@ public class CartItemUI : MonoBehaviour
         PlusBtn.onClick.AddListener(OnClickPlus);
     }
 
-    public void Setup(ItemDataSO data, ShopManager shopManager)
+    public void Setup(ItemDataSO data, ShopManager shopManager, int networkCount)
     {
         itemData = data;
         this.shopManager = shopManager;
-        currentCount = 1;
+        currentCount = networkCount;
 
         UpdateUI();
     }
 
     public void OnClickPlus()
     {
-        currentCount++;
-        UpdateUI();
-        shopManager.UpdateTotalAmountUI();
+        shopManager.RequestChangeItemCountServerRpc(itemData.itemID, 1);
     }
 
     public void OnClickMinus()
     {
-        currentCount--;
-
-        if (currentCount <= 0)
-        {
-            // 0개가 되면 매니저의 목록에서 지우고 프리팹 파괴
-            shopManager.RemoveItemFromCart(itemData.itemID);
-            Destroy(gameObject);
-        }
-        else
-        {
-            UpdateUI();
-            shopManager.UpdateTotalAmountUI();
-        }
+        shopManager.RequestChangeItemCountServerRpc(itemData.itemID, -1);  
     }
 
     private void UpdateUI()
