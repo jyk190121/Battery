@@ -1,11 +1,9 @@
 using UnityEngine;
-using System.Collections.Generic;
 using UnityEngine.UI;
 
 public class TabletShopCategory : MonoBehaviour
 {
     // 패널 모음
-    public List<GameObject> CategoryPanelList = new List<GameObject>();
     public Button ConsumeBtn;
     public Button DurableBtn;
     public Button StatItemBtn;
@@ -29,11 +27,23 @@ public class TabletShopCategory : MonoBehaviour
 
     public void OpenCategoryPanel(int PanelNumber)
     {
-        foreach (GameObject categoryPanel in CategoryPanelList)
+        if(TabletUIManager.Instance != null)
         {
-            categoryPanel.SetActive(false);
+            switch (PanelNumber)
+            {
+                case 0:
+                    TabletUIManager.Instance.RequestScreenChangeServerRpc(TVScreenState.SHOP_CONSUME);
+                    break;
+                case 1:
+                    TabletUIManager.Instance.RequestScreenChangeServerRpc(TVScreenState.SHOP_DURABLE);
+                    break;
+                case 2:
+                    TabletUIManager.Instance.RequestScreenChangeServerRpc(TVScreenState.SHOP_STAT);
+                    break;
+                case 3:
+                    TabletUIManager.Instance.RequestScreenChangeServerRpc(TVScreenState.SHOP_WEAPON);
+                    break;
+            }
         }
-
-        CategoryPanelList[PanelNumber].SetActive(true);
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +7,24 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class ShopManager : MonoBehaviour
+public struct CartItemData : INetworkSerializable, IEquatable<CartItemData>
+{
+    public int itemID;
+    public int count;
+
+    public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+    {
+        serializer.SerializeValue(ref itemID);
+        serializer.SerializeValue(ref count);
+    }
+    public bool Equals(CartItemData other)
+    {
+        return itemID == other.itemID && count == other.count;
+    }
+}
+
+
+public class ShopManager : NetworkBehaviour
 {
     [Header("UI References")]
     public Transform cartContenParent;
@@ -19,18 +37,31 @@ public class ShopManager : MonoBehaviour
     [Header("Feedback UI")]
     public GameObject duplicateAlertPanel;
     public float alertTime = 2f;
-
-    private Dictionary<int, CartItemUI> activeCartItems = new Dictionary<int, CartItemUI>();
     private Coroutine alertCoroutine;
-
     public Button BuyBtn;
+
+    [Header("Network Sync Cart")]
+    public NetworkList<CartItemData> networkCartItems;
+
+    [Header("Item Database")]
+    public List<ItemDataSO> itemDatabase;
+
+    private void Awake()
+    {
+        networkCartItems = new NetworkList<CartItemData>();
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        networkCartItems.OnListChanged += (changeEvent) => { RebuildCartUI(); };
+    }
 
     private void Start()
     {
         if (duplicateAlertPanel != null) duplicateAlertPanel.SetActive(false);
-        UpdateTotalAmountUI();
+        UpdateTotalAmount();
 
-        // 💡 잔액 변동 시 자동으로 텍스트를 갱신하도록 이벤트 구독 (선택 사항이지만 강력 추천)
+        // 경제 매니저의 잔액이 변경될 때마다 UI를 갱신하도록 이벤트 구독
         if (GameMaster.Instance != null && GameMaster.Instance.economyManager != null)
         {
             GameMaster.Instance.economyManager.availableLoanLimit.OnValueChanged += OnBalanceChanged;
@@ -39,8 +70,10 @@ public class ShopManager : MonoBehaviour
         BuyBtn.onClick.AddListener(OnClickCheckoutCart);
     }
 
-    private void OnDestroy()
+    public override void OnDestroy()
     {
+        base.OnDestroy();
+
         // 씬이 넘어가거나 파괴될 때 메모리 누수 방지를 위해 이벤트 구독 해제
         if (GameMaster.Instance != null && GameMaster.Instance.economyManager != null)
         {
@@ -52,6 +85,7 @@ public class ShopManager : MonoBehaviour
     private void OnEnable()
     {
         UpdateBalanceUI();
+        RebuildCartUI();
     }
 
     // 잔액 텍스트 갱신 함수
@@ -70,105 +104,175 @@ public class ShopManager : MonoBehaviour
         UpdateBalanceUI();
     }
 
+    private ItemDataSO GetItemData(int id)
+    {
+        return itemDatabase.FirstOrDefault(i => i.itemID == id);
+    }
+
+
+    // ================= [네트워크 장바구니 로직] =================
     public void AddItemToCart(ItemDataSO newTargetData)
     {
-        if (activeCartItems.ContainsKey(newTargetData.itemID))
-        {
-            ShowDuplicateFeedback();
-            return;
-        }
-
-        GameObject newCartObj = Instantiate(cartItemPrefab, cartContenParent);
-        CartItemUI cartUI = newCartObj.GetComponent<CartItemUI>();
-
-        cartUI.Setup(newTargetData, this);
-        activeCartItems.Add(newTargetData.itemID, cartUI);
-
-        UpdateTotalAmountUI();
+        RequestAddCartItemServerRpc(newTargetData.itemID);
     }
 
-    public void RemoveItemFromCart(int itemID)
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    private void RequestAddCartItemServerRpc(int itemID)
     {
-        if (activeCartItems.ContainsKey(itemID))
+        for(int i = 0; i < networkCartItems.Count ; i++)
         {
-            activeCartItems.Remove(itemID);
-            UpdateTotalAmountUI();
+            if(networkCartItems[i].itemID == itemID)
+            {
+                ShowDuplicateFeedbackClientRpc();
+                return;
+            }
         }
+
+        networkCartItems.Add(new CartItemData { itemID = itemID, count = 1 });
     }
 
-    public void UpdateTotalAmountUI()
+    // 아이템 수량 변경 요청 (증가/감소)
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void RequestChangeItemCountServerRpc(int itemID, int delta)
     {
-        int totalPrice = activeCartItems.Values.Sum(ui => ui.itemData.basePrice * ui.currentCount);
-
-        if (totalCartPriceText != null)
+        for (int i = 0; i < networkCartItems.Count; i++)
         {
-            totalCartPriceText.text = $"Total: {totalPrice} G";
+            if (networkCartItems[i].itemID == itemID)
+            {
+                CartItemData data = networkCartItems[i];
+                data.count += delta;
+
+                if (data.count <= 0)
+                {
+                    networkCartItems.RemoveAt(i); // 0개면 리스트에서 제거
+                }
+                else
+                {
+                    networkCartItems[i] = data; // 구조체 업데이트
+                }
+                return;
+            }
         }
     }
 
-    // ShopManager.cs 의 OnClickCheckoutCart 함수 수정
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void ShowDuplicateFeedbackClientRpc()
+    {
+        ShowDuplicateFeedback(); // 기존의 코루틴 경고창 함수
+    }
+
+    private void RebuildCartUI()
+    {
+        foreach (Transform child in cartContenParent)
+        {
+            Destroy(child.gameObject);
+        }
+
+        foreach(var cartItem in networkCartItems)
+        {
+            ItemDataSO itemData = GetItemData(cartItem.itemID);
+            if (itemData != null)
+            {
+                GameObject newCartItem = Instantiate(cartItemPrefab, cartContenParent);
+                CartItemUI cartItemUI = newCartItem.GetComponent<CartItemUI>();
+                cartItemUI.Setup(itemData, this, cartItem.count);
+            }
+        }
+
+        UpdateTotalAmount();
+    }
+
+    private void UpdateTotalAmount()
+    {
+        int totalAmount = 0;
+        foreach(var cartItem in networkCartItems)
+        {
+            ItemDataSO itemData = GetItemData(cartItem.itemID);
+            if (itemData != null)
+            {
+                totalAmount += itemData.basePrice * cartItem.count;
+            }
+        }
+        
+        if(totalCartPriceText != null)
+        {
+            totalCartPriceText.text = $"총 금액: {totalAmount} G";
+        }
+    }
 
     public void OnClickCheckoutCart()
     {
-        if (activeCartItems.Count == 0) return;
+        if (networkCartItems.Count == 0) return;
 
-        int totalPrice = activeCartItems.Values.Sum(ui => ui.itemData.basePrice * ui.currentCount);
+        int totalPrice = 0;
+        foreach(var item in networkCartItems)
+        {
+            ItemDataSO itemData = GetItemData(item.itemID);
+            if (itemData != null)
+            {
+                totalPrice += itemData.basePrice * item.count;
+            }
+        }
+
         int currentMoney = GameMaster.Instance.economyManager.availableLoanLimit.Value;
 
-        // 로컬(화면)에서 1차로 잔액 검사 (돈도 없는데 서버에 요청 보내는 것 방지)
-        if (currentMoney >= totalPrice)
+        if(currentMoney >= totalPrice)
         {
-            int[] itemIDs = new int[activeCartItems.Count];
-            int[] count = new int[activeCartItems.Count];
-            int i = 0;
+            int[] itemIDs = new int[networkCartItems.Count];
+            int[] counts = new int[networkCartItems.Count];
 
-            foreach (var kv in activeCartItems)
+            for(int i = 0; i < networkCartItems.Count; i++)
             {
-                itemIDs[i] = kv.Key;
-                count[i] = kv.Value.currentCount;
-                i++;
+                itemIDs[i] = networkCartItems[i].itemID;
+                counts[i] = networkCartItems[i].count;
             }
 
-            // GameMaster의 통합 결제 ServerRpc로 한 번에 보냅니다.
-            ulong myClientId = NetworkManager.Singleton.LocalClientId;
-            GameMaster.Instance.RequestPurchaseServerRpc(totalPrice, itemIDs, count, myClientId);
+            ulong myClinetId = NetworkManager.Singleton.LocalClientId;
+            GameMaster.Instance.RequestPurchaseServerRpc(totalPrice, itemIDs, counts, myClinetId);
 
-            Debug.Log($"<color=cyan>[Tablet UI]</color> 서버에 {totalPrice}G 결제 요청 전송 중...");
-
-            // 주의: 여기서 ClearCartUI()를 바로 호출하지 않습니다. 
-            // 돈이 확실히 깎인 후 서버가 NotifyPurchaseSuccessClientRpc를 보내면 그때 지워집니다.
+            Debug.Log($"구매 요청: 총 {totalPrice} G, 아이템 수: {networkCartItems.Count}");
         }
         else
         {
-            Debug.LogWarning("<color=red>[Tablet UI]</color> 결제 실패: 보유 자금이 부족합니다.");
-            // TODO: 경고 팝업 띄우기
+            Debug.Log("잔액 부족! 구매 실패.");
         }
     }
 
     public void ClearCartUI()
     {
-        activeCartItems.Clear();
-        foreach (Transform child in cartContenParent)
+        if (IsServer)
         {
-            Destroy(child.gameObject);
+            networkCartItems.Clear();
         }
-        UpdateTotalAmountUI();
+        else
+        {
+            RequestClearCartServerRpc();
+        }
+    }
 
-        UpdateBalanceUI();
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    private void RequestClearCartServerRpc()
+    {
+        networkCartItems.Clear();
     }
 
     private void ShowDuplicateFeedback()
     {
-        if (alertCoroutine != null) StopCoroutine(alertCoroutine);
+        if(alertCoroutine != null)
+        {
+            StopCoroutine(alertCoroutine);
+        }
         alertCoroutine = StartCoroutine(DuplicateAlertRoutine());
     }
 
     private IEnumerator DuplicateAlertRoutine()
     {
-        if (duplicateAlertPanel == null) yield break;
-
-        duplicateAlertPanel.SetActive(true);
-        yield return new WaitForSeconds(alertTime);
-        duplicateAlertPanel.SetActive(false);
+        if(duplicateAlertPanel != null)
+        {
+            duplicateAlertPanel.SetActive(true);
+            yield return new WaitForSeconds(alertTime);
+            duplicateAlertPanel.SetActive(false);
+        }
     }
 }

@@ -65,14 +65,28 @@ public class PlayerMove : NetworkBehaviour
         initialHeight = col.height;
         initialCenter = col.center;
 
+        //if (IsOwner)
+        //{
+        //    // 1. 태블릿 상태 변경 이벤트 구독
+        //    TabletUIManager.OnTabletStateChanged += HandleTabletStateChanged;
+
+        //    // 2. [중요] 초기화 시점에 태블릿이 열려있는지 확인 (싱글톤 혹은 정적 변수 참조 가능 시)
+        //    // 만약 TabletUIManager에 정적 프로퍼티가 있다면 여기서 직접 할당
+        //    // isTabletLocked = TabletUIManager.IsAnyTabletOpen; 
+        //}
+
+        TabletUIManager.OnTabletStateChanged += HandleTabletStateChanged;
+
         if (IsOwner)
         {
-            // 1. 태블릿 상태 변경 이벤트 구독
-            TabletUIManager.OnTabletStateChanged += HandleTabletStateChanged;
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
 
-            // 2. [중요] 초기화 시점에 태블릿이 열려있는지 확인 (싱글톤 혹은 정적 변수 참조 가능 시)
-            // 만약 TabletUIManager에 정적 프로퍼티가 있다면 여기서 직접 할당
-            // isTabletLocked = TabletUIManager.IsAnyTabletOpen; 
+            // 물리 상태 강제 해제
+            rb.isKinematic = false;
+            rb.linearVelocity = Vector3.zero;
+            isControlLocked = false;
+            isTabletLocked = false;
         }
     }
 
@@ -108,14 +122,29 @@ public class PlayerMove : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!IsOwner || isControlLocked) return;
+        if (!IsOwner) return;
 
         if (isControlLocked || isTabletLocked)
         {
-            // 애니메이션 파라미터 초기화용
-            inputMagnitude = 0; 
+            inputMagnitude = 0;
+            if (rb != null && isGrounded)
+            {
+                rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
+            }
             return;
         }
+
+        else
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+
+        //if (isControlLocked)
+        //{
+        //    // 애니메이션 파라미터 초기화용
+        //    inputMagnitude = 0; 
+        //    return;
+        //}
 
         if (Keyboard.current == null) return;
 
@@ -138,6 +167,10 @@ public class PlayerMove : NetworkBehaviour
             // 완벽하게 멈추기 위해 물리 속도 제어
             rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
             return;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.Locked;
         }
 
         //Move();
@@ -253,7 +286,7 @@ public class PlayerMove : NetworkBehaviour
         {
             isOnStair = ((1 << hit.collider.gameObject.layer) & stairLayer) != 0;
 
-            if (isOnStair && inputMagnitude < 0.1f)
+            if (isOnStair && inputMagnitude < 0.1f && !isTabletLocked)
             {
                 rb.isKinematic = true;
             }

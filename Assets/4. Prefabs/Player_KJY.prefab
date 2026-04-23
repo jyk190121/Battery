@@ -3334,7 +3334,9 @@ MonoBehaviour:
   breathAudio: {fileID: 0}
   vignetteMaxScale: 3
   vignetteMinScale: 1
-  blindImage: {fileID: 0}
+  micLevelFillImage: {fileID: 0}
+  micLevelText: {fileID: 0}
+  maxVisualMicLevel: 0.2
 --- !u!114 &7772676231503934991
 MonoBehaviour:
   m_ObjectHideFlags: 0
