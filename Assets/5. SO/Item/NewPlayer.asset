@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: NewPlayer
   m_EditorClassIdentifier: Assembly-CSharp::Player
   maxHealth: 100
-  maxStamina: 50
+  maxStamina: 500000
   staminaConsumeRate: 10
   staminaRecoverRate: 5
   staminaExhaustedRecoverRate: 2.5

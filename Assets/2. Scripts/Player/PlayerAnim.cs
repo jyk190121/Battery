@@ -103,13 +103,14 @@ public class PlayerAnim : MonoBehaviour
 
     public void PlayDead()
     {
-        anim.SetTrigger("IsDead");
+        anim.SetBool("IsDead", true);
     }
 
     public void ResetAnimation()
     {
+        anim.SetBool("IsDead", false);
         anim.Rebind();
-        anim.ResetTrigger("IsDead");
+        anim.Update(0f);
     }
 
     public void PlayAttack()
