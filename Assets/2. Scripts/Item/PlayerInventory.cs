@@ -213,14 +213,24 @@ public class PlayerInventory : NetworkBehaviour
 
             if (hit.collider.TryGetComponent(out QuestReturnPoint returnPoint))
             {
-                if (lastLookedReturnPoint != returnPoint)
+                // 내 퀘스트 목록에 있는 포인트일 때만 반응 
+                if (returnPoint.IsInteractable())
+                {
+                    if (lastLookedReturnPoint != returnPoint)
+                    {
+                        ClearHighlight();
+                        lastLookedReturnPoint = returnPoint;
+                        Outline outline = lastLookedReturnPoint.GetComponentInChildren<Outline>();
+                        if (outline != null) outline.enabled = true;
+                    }
+                    return;
+                }
+                // 💡 내 퀘스트가 아니라면 아무것도 잡히지 않은 것처럼 처리
+                else
                 {
                     ClearHighlight();
-                    lastLookedReturnPoint = returnPoint;
-                    Outline outline = lastLookedReturnPoint.GetComponentInChildren<Outline>();
-                    if (outline != null) outline.enabled = true;
+                    return;
                 }
-                return;
             }
 
             if (hit.collider.TryGetComponent(out DoorController door))
@@ -526,27 +536,46 @@ public class PlayerInventory : NetworkBehaviour
         return false;
     }
 
-    public void RemoveItemByServer(int itemID)
+    public bool RemoveItemByServer(int itemID)
     {
-        if (!IsServer) return;
+        if (!IsServer) return false;
 
-        if (twoHandedItem != null && twoHandedItem.itemData.itemID == itemID)
+        ItemBase itemToRemove = HeldItem;
+
+        if (itemToRemove != null && itemToRemove.itemData.itemID == itemID)
         {
-            twoHandedItem.NetworkObject.Despawn();
+            itemToRemove.NetworkObject.Despawn();
+            int slotIdx = (twoHandedItem == itemToRemove) ? -1 : currentSlotIndex;
+            bool isTwoHand = (twoHandedItem == itemToRemove);
+
+            NotifySyncItemRemovedClientRpc(slotIdx, isTwoHand);
+
+            return true; //  성공적으로 삭제했음을 알림!
+        }
+        else
+        {
+            return false; //  삭제 실패 (손에 없거나 ID가 다름)
+        }
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void NotifySyncItemRemovedClientRpc(int slotIdx, bool isTwoHand)
+    {
+        if (isTwoHand)
+        {
             twoHandedItem = null;
-            SyncSlotChangeClientRpc(currentSlotIndex);
-            return;
+            if (IsOwner) OnTwoHandedToggled?.Invoke(false);
+        }
+        else if (slotIdx != -1)
+        {
+            slots[slotIdx] = null; // 정확히 그 슬롯만 비움
         }
 
-        for (int i = 0; i < slots.Length; i++)
+        // UI 즉시 갱신 (4번 아이템 썼을 때 뒤늦게 사라지는 현상 해결)
+        if (IsOwner)
         {
-            if (slots[i] != null && slots[i].itemData.itemID == itemID)
-            {
-                slots[i].NetworkObject.Despawn();
-                slots[i] = null;
-                SyncSlotChangeClientRpc(currentSlotIndex);
-                return;
-            }
+            OnInventoryUpdated?.Invoke();
+            OnSlotChanged?.Invoke(currentSlotIndex);
         }
     }
 
@@ -595,19 +624,11 @@ public class PlayerInventory : NetworkBehaviour
         // 2. 서버에 해당 오브젝트를 게임 세상에서 지워달라고 요청
         if (item.NetworkObject != null)
         {
-            RequestDestroyItemServerRpc(item.NetworkObjectId);
+            RemoveItemByServer(item.itemData.itemID);
         }
     }
 
-    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
-    private void RequestDestroyItemServerRpc(ulong itemNetId)
-    {
-        // 서버가 해당 아이템을 찾아서 완전히 Despawn(삭제) 처리합니다.
-        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(itemNetId, out var netObj))
-        {
-            netObj.Despawn();
-        }
-    }
+   
 
     public void SetControlLock(bool locked)
     {

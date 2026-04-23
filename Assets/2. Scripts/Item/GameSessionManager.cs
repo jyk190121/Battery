@@ -29,6 +29,11 @@ public class GameSessionManager : NetworkBehaviour
 {
     public static GameSessionManager Instance;
 
+    [Header("Lobby Cart (임시 저장소)")]
+    // 출발 버튼을 누르기 전까지 아이템들이 임시로 담기는 장바구니
+    public List<int> shopCart = new List<int>();
+
+
     [Header("Session State (세션 상태)")]
     [Tooltip("현재 방에 접속한 플레이어 중 사망한 사람의 수")]
     public int deadPlayersCount = 0;
@@ -124,6 +129,12 @@ public class GameSessionManager : NetworkBehaviour
         //  씬 이동이 끝났으므로 다음 출발을 위해 자물쇠를 풀어줍니다!
         isStartSequenceActive = false;
 
+        //씬 로딩이 끝났으므로, 매니저가 이번 판의 환원 포인트들을 활성화합니다.
+        if (QuestManager.Instance != null)
+        {
+            QuestManager.Instance.ActivateCurrentSceneReturnPoints();
+        }
+
         Debug.Log($"<color=lime>[GameSessionManager]</color> {sceneName} 씬 로드 완료. 출발 자물쇠 해제.");
     }
 
@@ -153,7 +164,7 @@ public class GameSessionManager : NetworkBehaviour
         return null;
     }
 
-    
+
     /// <summary>
     /// [로비/상점 전용] 결제를 요청하고 성공 시 다음 씬 스폰 대기열에 추가합니다.
     /// </summary>
@@ -195,7 +206,7 @@ public class GameSessionManager : NetworkBehaviour
 
             for (int j = 0; j < count; j++)
             {
-                pendingSpawnItemIDs.Add(id);
+                shopCart.Add(id);
             }
             Debug.Log($"<color=lime>[Server]</color> ID:{id} x {count}개 장부 적재 완료.");
         }
@@ -230,6 +241,14 @@ public class GameSessionManager : NetworkBehaviour
 
         isStartSequenceActive = true;
         Debug.Log($"<color=yellow>[GameSessionManager]</color> 시작 시퀀스 가동. 목적지: {targetSceneName}");
+
+
+        // 1. 장바구니 아이템 확정
+        foreach (int itemID in shopCart)
+        {
+            pendingSpawnItemIDs.Add(itemID);
+        }
+        shopCart.Clear();
 
         // 2. 출발 전 짐 싸기 (의존성 분리: 퀘스트 관련은 QuestManager에게 위임)
         PrepareReturnQuestItems();
