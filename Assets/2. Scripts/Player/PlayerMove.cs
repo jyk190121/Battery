@@ -53,7 +53,9 @@ public class PlayerMove : NetworkBehaviour
 
     bool isControlLocked = false;
 
-    bool isTabletLocked = false;
+
+    bool isTabletOpenRightNow = false;
+    //bool isTabletLocked = false;
 
     PlayerAnim playerAnim;
     PlayerStateManager stateManager;
@@ -65,24 +67,40 @@ public class PlayerMove : NetworkBehaviour
         initialHeight = col.height;
         initialCenter = col.center;
 
+        //if (IsOwner)
+        //{
+        //    // 1. 태블릿 상태 변경 이벤트 구독
+        //    TabletUIManager.OnTabletStateChanged += HandleTabletStateChanged;
+
+        //    // 2. [중요] 초기화 시점에 태블릿이 열려있는지 확인 (싱글톤 혹은 정적 변수 참조 가능 시)
+        //    // 만약 TabletUIManager에 정적 프로퍼티가 있다면 여기서 직접 할당
+        //    // isTabletLocked = TabletUIManager.IsAnyTabletOpen; 
+        //}
+
         if (IsOwner)
         {
-            // 1. 태블릿 상태 변경 이벤트 구독
-            TabletUIManager.OnTabletStateChanged += HandleTabletStateChanged;
+            // [추가] 씬 이동 직후 태블릿 상태와 무관하게 일단 이동 잠금을 해제
+            // 만약 TabletUIManager.IsAnyTabletOpen이 public static이라면 여기서 강제 초기화
+             //TabletUIManager.IsAnyTabletOpen = false; // (접근 가능하다면 추천)
 
-            // 2. [중요] 초기화 시점에 태블릿이 열려있는지 확인 (싱글톤 혹은 정적 변수 참조 가능 시)
-            // 만약 TabletUIManager에 정적 프로퍼티가 있다면 여기서 직접 할당
-            // isTabletLocked = TabletUIManager.IsAnyTabletOpen; 
+            // 물리 상태 초기화
+            rb.isKinematic = false;
+            rb.linearVelocity = Vector3.zero;
+            isControlLocked = false;
+
+            // 커서 상태 강제 재설정 (태블릿이 닫힌 상태가 기본이라면)
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
         }
     }
 
-    public override void OnNetworkDespawn()
-    {
-        if (IsOwner)
-        {
-            TabletUIManager.OnTabletStateChanged -= HandleTabletStateChanged;
-        }
-    }
+    //public override void OnNetworkDespawn()
+    //{
+    //    if (IsOwner)
+    //    {
+    //        TabletUIManager.OnTabletStateChanged -= HandleTabletStateChanged;
+    //    }
+    //}
 
 
     void Start()
@@ -108,14 +126,28 @@ public class PlayerMove : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!IsOwner || isControlLocked) return;
+        if (!IsOwner) return;
 
-        if (isControlLocked || isTabletLocked)
+        // 태블릿 열기 /닫기 확인 
+        isTabletOpenRightNow = TabletUIManager.IsAnyTabletOpen || Cursor.lockState == CursorLockMode.None;
+
+        if (isControlLocked || isTabletOpenRightNow)
         {
-            // 애니메이션 파라미터 초기화용
-            inputMagnitude = 0; 
+            inputMagnitude = 0;
+            if (rb != null && isGrounded)
+            {
+                // [중요] 씬 이동 시 rb가 null이거나 물리 연산이 튀는 것을 방지
+                rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
+            }
             return;
         }
+
+        //if (isControlLocked)
+        //{
+        //    // 애니메이션 파라미터 초기화용
+        //    inputMagnitude = 0; 
+        //    return;
+        //}
 
         if (Keyboard.current == null) return;
 
@@ -132,8 +164,10 @@ public class PlayerMove : NetworkBehaviour
     {
         if (!IsOwner) return;
 
+        isTabletOpenRightNow = TabletUIManager.IsAnyTabletOpen || Cursor.lockState == CursorLockMode.None;
+
         // [수정] 이동 물리 연산도 동일하게 차단
-        if (isControlLocked || isTabletLocked)
+        if (isControlLocked || isTabletOpenRightNow)
         {
             // 완벽하게 멈추기 위해 물리 속도 제어
             rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
@@ -253,7 +287,7 @@ public class PlayerMove : NetworkBehaviour
         {
             isOnStair = ((1 << hit.collider.gameObject.layer) & stairLayer) != 0;
 
-            if (isOnStair && inputMagnitude < 0.1f)
+            if (isOnStair && inputMagnitude < 0.1f && !isTabletOpenRightNow)
             {
                 rb.isKinematic = true;
             }
@@ -476,17 +510,17 @@ public class PlayerMove : NetworkBehaviour
         }
     }
 
-    // 태블릿 상태에 따라 잠금 설정
-    private void HandleTabletStateChanged(bool isOpen)
-    {
-        isTabletLocked = isOpen;
+    //// 태블릿 상태에 따라 잠금 설정
+    //private void HandleTabletStateChanged(bool isOpen)
+    //{
+    //    isTabletLocked = isOpen;
 
-        // 태블릿이 열릴 때 속도 초기화 (미끄러짐 방지)
-        if (isOpen)
-        {
-            currentSpeed = 0;
-            inputMagnitude = 0;
-            if (rb != null) rb.linearVelocity = Vector3.zero;
-        }
-    }
+    //    // 태블릿이 열릴 때 속도 초기화 (미끄러짐 방지)
+    //    if (isOpen)
+    //    {
+    //        currentSpeed = 0;
+    //        inputMagnitude = 0;
+    //        if (rb != null) rb.linearVelocity = Vector3.zero;
+    //    }
+    //}
 }
