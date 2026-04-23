@@ -185,11 +185,20 @@ public class SettlementZone : NetworkBehaviour
                 int questIncome = QuestManager.Instance.GetCalculatedQuestReward();
                 int finalDailyIncome = totalScrapValue + questIncome;
 
-                int missingPhones = Mathf.Max(0, GameSessionManager.Instance.deadPlayersCount - recoveredPhonesCount);
+                // ==========================================================
+                // 💡 [디버깅 로그 추가] 사망자 및 회수 폰 카운트 확인
+                // ==========================================================
+                int deadCount = GameSessionManager.Instance.deadPlayersCount;
+                Debug.Log($"<color=white><b>[Settlement Debug]</b></color> 현재 씬 사망자: <color=red>{deadCount}명</color> | 회수된 스마트폰: <color=lime>{recoveredPhonesCount}개</color>");
+
+                int missingPhones = Mathf.Max(0, deadCount - recoveredPhonesCount);
                 float penaltyMultiplier = 1.0f - (missingPhones * 0.05f);
                 int finalNetIncome = Mathf.RoundToInt(finalDailyIncome * penaltyMultiplier);
 
-                bool isWipedOut = GameSessionManager.Instance.deadPlayersCount >= GameSessionManager.Instance.GetTotalPlayers();
+                Debug.Log($"<color=yellow><b>[Settlement Result]</b></color> {deadCount}명이 사망하였고 {recoveredPhonesCount}개의 스마트폰 반납이 확인되었습니다. (최종 패널티 배율: {penaltyMultiplier * 100}%)");
+                // ==========================================================
+
+                bool isWipedOut = deadCount >= GameSessionManager.Instance.GetTotalPlayers();
 
                 GameMaster.Instance.EndDay(isWipedOut, finalNetIncome);
                 QuestManager.Instance.ResetDailyQuests();
