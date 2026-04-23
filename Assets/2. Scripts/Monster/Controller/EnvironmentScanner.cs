@@ -274,7 +274,18 @@ public class EnvironmentScanner : MonoBehaviour
         }
     }
 
-    private bool IsTargetValid(GameObject target) => !owner.IsInSafeZone(target);
+    private bool IsTargetValid(GameObject target)
+    {
+        if (owner.IsInSafeZone(target)) return false;
+
+        // 플레이어인데 이미 죽었다면 유효하지 않은 타겟으로 무시
+        if (target.TryGetComponent<PlayerController>(out var player) && player.isDead.Value)
+        {
+            return false;
+        }
+
+        return true;
+    }
 
     private bool IsPathReasonable(Transform target)
     {
