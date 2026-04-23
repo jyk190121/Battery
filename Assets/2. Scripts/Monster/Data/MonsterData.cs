@@ -1,5 +1,13 @@
 using UnityEngine;
 
+public enum MonsterType
+{
+     Tracking,
+     Gaze,
+     Special,
+     Ambush
+}
+
 /// <summary>
 /// 몬스터의 스탯, 생성 비용, AI 설정 및 특수 기믹 수치를 정의하는 통합 데이터 에셋입니다.
 /// </summary>
@@ -10,6 +18,8 @@ public class MonsterData : ScriptableObject
     // 1. 기본 스탯 및 스폰 (Core & Spawn)
     // =========================================================
     [Header("--- Core & Spawn Settings ---")]
+    [Tooltip("이 몬스터의 고유 타입")]
+    public MonsterType type;
 
     [Tooltip("이 몬스터의 실제 프리팹 (EnemyManager가 생성할 때 사용)")]
     public GameObject monsterPrefab;
