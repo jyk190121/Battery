@@ -11886,7 +11886,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2809468199272169825}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -272}
   m_LocalScale: {x: 1.05, y: 1.15, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -18954,7 +18954,7 @@ Transform:
   m_GameObject: {fileID: 4311438037032213141}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0.0000000010768416, w: 1}
-  m_LocalPosition: {x: 0.00001699007, y: 0, z: -10}
+  m_LocalPosition: {x: 0.00001699007, y: 0, z: -200}
   m_LocalScale: {x: 8.907691, y: 8.133107, z: 9.353075}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -18999,7 +18999,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 8192
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 8400000, guid: b70aee31e85b4d9428dcb9e42379d8ab, type: 2}
   m_TargetDisplay: 0
@@ -25298,7 +25298,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: efff025c4fdf6fd49855b729d5469a77, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShopAddBtn
-  shopManager: {fileID: 0}
+  shopManager: {fileID: 2341401775064826281}
   shopItems:
   - buyButton: {fileID: 8753830409465353293}
     itemData: {fileID: 11400000, guid: 2de26f69c84422e43b6fc65ea431d23d, type: 2}
