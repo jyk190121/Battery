@@ -122,7 +122,7 @@ public class MultiPlayerSessionManager : NetworkBehaviour
 
         if (GlobalVoiceManager.Instance != null)
         {
-            GlobalVoiceManager.Instance.InitVoice(PlayerNickname);
+            //GlobalVoiceManager.Instance.InitVoice(PlayerNickname);
         }
     }
 

@@ -1,8 +1,9 @@
-using UnityEngine;
-using TMPro;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
+using Unity.Netcode;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class ShopManager : MonoBehaviour
@@ -105,15 +106,16 @@ public class ShopManager : MonoBehaviour
         }
     }
 
+    // ShopManager.cs 의 OnClickCheckoutCart 함수 수정
+
     public void OnClickCheckoutCart()
     {
         if (activeCartItems.Count == 0) return;
 
         int totalPrice = activeCartItems.Values.Sum(ui => ui.itemData.basePrice * ui.currentCount);
-
-        // 구매 버튼을 눌렀을 때 내 잔액이 충분한지 로컬에서 검사
         int currentMoney = GameMaster.Instance.economyManager.availableLoanLimit.Value;
 
+        // 로컬(화면)에서 1차로 잔액 검사 (돈도 없는데 서버에 요청 보내는 것 방지)
         if (currentMoney >= totalPrice)
         {
             int[] itemIDs = new int[activeCartItems.Count];
@@ -127,19 +129,19 @@ public class ShopManager : MonoBehaviour
                 i++;
             }
 
-            // 서버로 결제 및 배송 요청 전달
-            GameSessionManager.Instance.AddItemsToSpawnQueue(itemIDs, count);
+            // GameMaster의 통합 결제 ServerRpc로 한 번에 보냅니다.
+            ulong myClientId = NetworkManager.Singleton.LocalClientId;
+            GameMaster.Instance.RequestPurchaseServerRpc(totalPrice, itemIDs, count, myClientId);
 
-            GameMaster.Instance.RequestPurchase(totalPrice);
+            Debug.Log($"<color=cyan>[Tablet UI]</color> 서버에 {totalPrice}G 결제 요청 전송 중...");
 
-            Debug.Log($"<color=cyan>[Tablet UI]</color> 서버에 {totalPrice}G 결제 요청 완료.");
-            ClearCartUI();
+            // 주의: 여기서 ClearCartUI()를 바로 호출하지 않습니다. 
+            // 돈이 확실히 깎인 후 서버가 NotifyPurchaseSuccessClientRpc를 보내면 그때 지워집니다.
         }
         else
         {
-            // 돈이 부족하면 결제 로직을 아예 태우지 않고 튕겨냅니다.
             Debug.LogWarning("<color=red>[Tablet UI]</color> 결제 실패: 보유 자금이 부족합니다.");
-            // TODO: 여기에 "잔액 부족"이라는 경고 팝업을 띄우는 함수를 연결하세요.
+            // TODO: 경고 팝업 띄우기
         }
     }
 
