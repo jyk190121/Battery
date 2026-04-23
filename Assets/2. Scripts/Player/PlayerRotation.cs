@@ -113,7 +113,7 @@ public class PlayerRotation : NetworkBehaviour
         //}
     }
 
-    void Update()
+    void LateUpdate()
     {
         //if (!IsOwner) return; // 내 캐릭터만 마우스 회전 처리
 
@@ -172,7 +172,6 @@ public class PlayerRotation : NetworkBehaviour
         if (_isSpectating)
         {
             HandleSpectatingLogic();
-            return;
         }
 
         if (vcam == null || _panTilt == null)
@@ -345,11 +344,32 @@ public class PlayerRotation : NetworkBehaviour
 
     private void HandleSpectatingLogic()
     {
+        //if (_isSpectating && _spectatingTarget != null)
+        //{
+        //    _panTilt.PanAxis.Value = _spectatingTarget.GetCurrentPan();
+        //    _panTilt.TiltAxis.Value = _spectatingTarget.GetCurrentTilt();
+        //    if (CameraGroup != null) CameraGroup.transform.rotation = Quaternion.Euler(_panTilt.TiltAxis.Value, _panTilt.PanAxis.Value, 0);
+        //}
+
         if (_isSpectating && _spectatingTarget != null)
         {
+            // 1. 데이터 동기화 (내부 Pan/Tilt 값 일치)
             _panTilt.PanAxis.Value = _spectatingTarget.GetCurrentPan();
             _panTilt.TiltAxis.Value = _spectatingTarget.GetCurrentTilt();
-            if (CameraGroup != null) CameraGroup.transform.rotation = Quaternion.Euler(_panTilt.TiltAxis.Value, _panTilt.PanAxis.Value, 0);
+
+            // 2. [핵심] 가상 카메라의 회전을 대상의 카메라 타겟(눈) 회전과 강제 일치
+            // PanTilt 컴포넌트가 가끔 보간(Smoothing) 때문에 한 박자 늦거나 
+            // 오프셋이 생기는 문제를 트랜스폼 직접 대입으로 해결합니다.
+            vcam.transform.rotation = _spectatingTarget.cameraTarget.rotation;
+
+            // 3. 내 캐릭터의 CameraGroup(휴대폰 모델 등)도 대상의 회전에 맞춤
+            if (CameraGroup != null)
+            {
+                CameraGroup.transform.rotation = _spectatingTarget.cameraTarget.rotation;
+            }
+
+            // 4. 관전 시 롤(Roll, Z축) 값이 꼬이는 것을 방지
+            vcam.Lens.Dutch = 0;
         }
     }
 
@@ -464,16 +484,31 @@ public class PlayerRotation : NetworkBehaviour
         _spectatingTarget = target;
         _isSpectating = (target != null);
         //if (_panTilt != null) _panTilt.enabled = !_isSpectating;
+
+        if (vcam == null) TryFindCamera();
+        if (vcam == null) return;
+
         if (_isSpectating)
         {
             // 1. 관전 대상의 눈(Target) 위치만 추적하도록 설정
             vcam.Follow = target.cameraTarget;
 
-            // 2. 중요: 관전 시 Pan/Tilt 값을 초기화하거나 현재 값을 유지하여 
-            // 대상이 누워있더라도 내 카메라는 수평을 유지하게 함
-            if (vcam.TryGetComponent<CinemachinePanTilt>(out var panTilt))
+            if (_panTilt != null) _panTilt.enabled = false;
+
+            // [추가] 관전 전환 순간에 카메라가 부드럽게 튀지 않도록 워프(Warp) 호출
+            vcam.OnTargetObjectWarped(target.cameraTarget, target.cameraTarget.position - vcam.transform.position);
+        }
+        else
+        {
+            // [중요] target이 null이면 다시 내 카메라 타겟으로 복구
+            vcam.Follow = cameraTarget;
+            if (_panTilt != null) _panTilt.enabled = true;
+
+            // 카메라 회전값 초기화 (선택사항: 부활 시 정면을 보게 함)
+            if (_panTilt != null)
             {
-                panTilt.enabled = true; // 내 마우스 입력을 다시 활성화
+                _panTilt.PanAxis.Value = transform.eulerAngles.y;
+                _panTilt.TiltAxis.Value = 0;
             }
         }
     }

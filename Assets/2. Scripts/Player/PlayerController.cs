@@ -43,6 +43,9 @@ public class PlayerController : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        // 이전 씬의 쓰레기 데이터 정리
+        AllPlayers.RemoveAll(p => p == null);
+
         if (!AllPlayers.Contains(this))
         {
             AllPlayers.Add(this);
@@ -79,13 +82,10 @@ public class PlayerController : NetworkBehaviour
     // 플레이어가 튕기거나 방을 나갈 때 출석부에서 제거합니다.
     public override void OnNetworkDespawn()
     {
-        //if (AllPlayers.Contains(this))
-        //{
-        //    AllPlayers.Remove(this);
-        //    Debug.Log($"[서버 알림] 플레이어 퇴장: 남은 인원 {AllPlayers.Count}명");
-        //}
-
-        //base.OnNetworkDespawn();
+        if (AllPlayers.Contains(this))
+        {
+            AllPlayers.Remove(this);
+        }
 
         StateManager.currentHealth.OnValueChanged -= OnHealthChanged;
         isDead.OnValueChanged -= OnDeadStatusChanged;
@@ -437,10 +437,16 @@ public class PlayerController : NetworkBehaviour
         // 살아있는 다른 플레이어 찾기
         foreach (var player in AllPlayers) // static List 등으로 관리되는 리스트
         {
-            if (player != this && !player.isDead.Value)
+            //if (player != this && !player.isDead.Value)
+            //{
+            //    GetComponent<PlayerRotation>().SetSpectatingTarget(player.GetComponent<PlayerRotation>());
+            //    break;
+            //}
+            // 1. 내가 아니고 2. 리스트에 유효하며 3. 살아있는 플레이어 탐색
+            if (player != null && player != this && !player.isDead.Value)
             {
-                GetComponent<PlayerRotation>().SetSpectatingTarget(player.GetComponent<PlayerRotation>());
-                break;
+                if (player.TryGetComponent<PlayerRotation>(out var targetRot))
+                    return targetRot;
             }
         }
         return null;
@@ -511,7 +517,13 @@ public class PlayerController : NetworkBehaviour
         {
             //rot.enabled = true;
 
-            if (IsOwner) rot.SetSpectatingMode(false);
+            if (IsOwner)
+            {
+                // 1. 관전 모드 종료
+                rot.SetSpectatingMode(false);
+                // 2. 카메라 타겟을 본인으로 초기화 (null 전달 시 본인 타겟으로 복구됨)
+                rot.SetSpectatingTarget(null);
+            }
 
             // 중요: 관전 중이었다면 카메라 타겟을 다시 나(본인)로 돌려놓아야 함
             //if (IsOwner && rot.vcam != null)
@@ -528,13 +540,14 @@ public class PlayerController : NetworkBehaviour
         if (TryGetComponent(out PlayerInteraction interact)) interact.enabled = true;
         if (TryGetComponent(out PlayerEquipment equip)) equip.enabled = true;
 
-        // 5. 본인인 경우 UI 및 커서 복구
-        if (IsOwner)
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-            // "사망" UI가 있었다면 여기서 끄기
-        }
+      
+        //// 5. 본인인 경우 UI 및 커서 복구
+        //if (IsOwner)
+        //{
+        //    Cursor.lockState = CursorLockMode.Locked;
+        //    Cursor.visible = false;
+        //    // "사망" UI가 있었다면 여기서 끄기
+        //}
     }
 
     [ClientRpc]
