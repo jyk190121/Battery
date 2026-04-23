@@ -325,14 +325,14 @@ public class MonsterController : NetworkBehaviour
     /// <summary>
     /// 올무벼룩이 특정 플레이어에게 시야 차단 UI를 켜거나 끄도록 지시하는 서버 RPC입니다.
     /// </summary>
-    [Rpc(SendTo.SpecifiedInParams)]
-    public void TriggerSnareBlindRpc(bool isSnared, RpcParams rpcParams = default)
-    {
-        if (PlayerUIManager.LocalInstance != null)
-        {
-            PlayerUIManager.LocalInstance.SetBlindScreen(isSnared);
-        }
-    }
+    //[Rpc(SendTo.SpecifiedInParams)]
+    //public void TriggerSnareBlindRpc(bool isSnared, RpcParams rpcParams = default)
+    //{
+    //    if (PlayerUIManager.LocalInstance != null)
+    //    {
+    //        PlayerUIManager.LocalInstance.SetBlindScreen(isSnared);
+    //    }
+    //}
 
     [ContextMenu("Test Damage (50)")]
     public void TestDamage()
