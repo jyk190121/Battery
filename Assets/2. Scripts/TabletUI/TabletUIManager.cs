@@ -1,118 +1,236 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System; // Action 이벤트 사용을 위해 필요
+using Unity.Netcode;
+using Unity.VisualScripting;
 
-public class TabletUIManager : MonoBehaviour
+public enum TVScreenState
 {
-    // 외부에서 즉시 확인할 수 있는 정적 변수 (태블릿 On/Off 확인용)
-    public static bool IsAnyTabletOpen { get; private set; } = false;
+    MAIN,
+    QUEST,
+    SHOP_CONSUME,
+    SHOP_DURABLE,
+    SHOP_STAT,
+    SHOP_WEAPON,
+}
+
+public class TabletUIManager : NetworkBehaviour
+{
+    public static TabletUIManager Instance;
+
+    public static event Action<bool> OnTabletStateChanged;
+
+    // TV 화면의 현재 상태를 네트워크 변수로 관리하여 모든 클라이언트가 동기화된 정보를 가질 수 있도록 함
+    [Header("Network States")]
+    public NetworkVariable<TVScreenState> CurrentTVScreenState =new NetworkVariable<TVScreenState>(
+        TVScreenState.MAIN,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
+    [Header("Tablet Occupancy")]
+    public NetworkVariable<ulong> currentTabletUser = new NetworkVariable<ulong>(
+        ulong.MaxValue, // 초기값은 아무도 사용하지 않는 상태를 나타내는 최대값으로 설정
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
+    [Header("UI Panels")]
+    public GameObject mainPanel;
+    public GameObject questPanel;
+    public GameObject shopParentPanel;
+    public GameObject[] shopCategoryPanels;
 
     [Header("Camera & RenderTexture Settings")]
     public Camera uiCamera;
     public RenderTexture tvRenderTexture;
 
-    // 태블릿 상태 변화를 외부(PlayerRotation 등)에 알리기 위한 정적 이벤트
-    public static event Action<bool> OnTabletStateChanged;
-
-    // 현재 이 인스턴스가 태블릿을 열었는가?
+    private Canvas playerHudCanvas;
     private bool isLocalTabletOpen = false;
 
-    //private PlayerController currentPlayerController;
-    private Canvas playerHudCanvas; // 플레이어의 메인 HUD 캔버스 참조 저장용
+    private void Awake()
+    {
+        Instance = this;
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        // TV 화면 상태가 변경될 때마다 UI를 업데이트하도록 이벤트 구독
+        CurrentTVScreenState.OnValueChanged += (oldValue, newValue) => { UpdateLocalUI(newValue); };
+
+        UpdateLocalUI(CurrentTVScreenState.Value); // 초기 UI 설정
+    }
 
     private void Start()
     {
-        // 게임 시작 시 초기 상태 설정 (TV 송출 모드)
-        CloseTabletUI();
+        LocalCloseProcess();
     }
 
     private void Update()
     {
-        // 태블릿이 열려있을 때 ESC 키를 누르면 닫기
-        if (isLocalTabletOpen && Keyboard.current.escapeKey.wasPressedThisFrame)
+        if(isLocalTabletOpen && Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             CloseTabletUI();
         }
     }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void RequestScreenChangeServerRpc(TVScreenState newMode)
+    {
+        CurrentTVScreenState.Value = newMode; // 서버에서 상태 변경, 모든 클라이언트에 자동으로 동기화됨
+    }
+
+    // 태블릿 UI를 닫을 때 호출되는 로컬 함수 (PlayerController에서 호출)
+    public void UpdateLocalUI(TVScreenState state)
+    {
+        if (mainPanel != null) mainPanel.SetActive(false);
+        if (questPanel != null) questPanel.SetActive(false);
+        if (shopParentPanel != null) shopParentPanel.SetActive(false);
+
+        foreach (var panel in shopCategoryPanels)
+        {
+            if (panel != null) panel.SetActive(false);
+        }
+
+        switch(state)
+        {
+            case TVScreenState.MAIN:
+                mainPanel.SetActive(true);
+                break;
+            case TVScreenState.QUEST:
+                questPanel.SetActive(true);
+                break;
+            case TVScreenState.SHOP_CONSUME:
+                if (shopParentPanel != null) shopParentPanel.SetActive(true);
+                if (shopCategoryPanels.Length > 0) shopCategoryPanels[0].SetActive(true);
+                break;
+            case TVScreenState.SHOP_DURABLE:
+                if (shopParentPanel != null) shopParentPanel.SetActive(true);
+                if (shopCategoryPanels.Length > 1) shopCategoryPanels[1].SetActive(true);
+                break;
+            case TVScreenState.SHOP_STAT:
+                if (shopParentPanel != null) shopParentPanel.SetActive(true);
+                if (shopCategoryPanels.Length > 2) shopCategoryPanels[2].SetActive(true);
+                break;
+            case TVScreenState.SHOP_WEAPON:
+                if (shopParentPanel != null) shopParentPanel.SetActive(true);
+                if (shopCategoryPanels.Length > 3) shopCategoryPanels[3].SetActive(true);
+                break;
+        }
+    }
+
 
     /// <summary>
     /// 태블릿을 열고 조작 모드로 전환 (PlayerInteraction에서 호출)
     /// </summary>
     public void OpenTabletUI(PlayerController player)
     {
-        if (IsAnyTabletOpen) return;
+        // 필수 방어 코드: 아직 네트워크에 등록되지 않았다면 실행하지 않음
+        if (!IsSpawned)
+        {
+            Debug.LogWarning("[TabletUI] 아직 네트워크에 스폰되지 않아 열 수 없습니다.");
+            return;
+        }
 
-        // 내가 열었음을 의미하는 플래그 설정
+        if (currentTabletUser.Value != ulong.MaxValue && currentTabletUser.Value != player.OwnerClientId)
+        {
+            Debug.Log("이미 다른 플레이어가 태블릿을 사용 중입니다.");
+            return;
+        }
+
+        // 서버에 태블릿 점유 요청을 보내고, 점유가 허용되면 UI를 열도록 합니다.
+        RequestTabletOccupancyServerRpc(player.OwnerClientId, true);
+
+        // 로컬에서 태블릿이 열렸음을 표시하고 UI 업데이트
         isLocalTabletOpen = true;
-        IsAnyTabletOpen = true; // 정적 변수 업데이트
-
-        OnTabletStateChanged?.Invoke(true);
-        //currentPlayerController = player;
-
-        // 1. 이벤트 발송: 구독 중인 스크립트(PlayerRotation 등)에 알림
         OnTabletStateChanged?.Invoke(true);
 
-        // 2. 카메라 출력을 모니터 화면으로 변경 (2D 팝업 활성화)
-        uiCamera.targetTexture = null;
-        uiCamera.backgroundColor = new Color(0f, 0f, 0f, 0.7f); // 배경 반투명 처리
+        if (uiCamera != null)
+        {
+            uiCamera.targetTexture = null;
+            uiCamera.backgroundColor = new Color(0f, 0f, 0f, 0.7f);
+        }
 
-        // 3. 플레이어 HUD 캔버스 비활성화 (시야 확보 및 최적화)
         if (PlayerUIManager.LocalInstance != null && PlayerUIManager.LocalInstance.playerHpImage != null)
         {
             playerHudCanvas = PlayerUIManager.LocalInstance.playerHpImage.GetComponentInParent<Canvas>();
             if (playerHudCanvas != null) playerHudCanvas.enabled = false;
         }
 
-        // 4. 상호작용 텍스트 UI 강제 비활성화
         if (player.Interaction != null && player.Interaction.interactUI != null)
         {
             player.Interaction.interactUI.SetActive(false);
         }
-
-        //// 5. 캐릭터 조작 잠금 (이동 및 공격 방지)
-        //if (player.TryGetComponent(out PlayerMove move))
-        //{
-        //    move.SetControlLock(true);
-        //}
     }
 
     /// <summary>
     /// 태블릿을 닫고 다시 TV 송출 모드로 전환
     /// </summary>
+    public void CloseTabletUI(PlayerController player)
+    {
+        if(currentTabletUser.Value == player.OwnerClientId)
+        {
+            RequestTabletOccupancyServerRpc(player.OwnerClientId, false);
+        }
+        LocalCloseProcess();
+    }
+
     public void CloseTabletUI()
     {
-        if (!isLocalTabletOpen) return;
-
-        IsAnyTabletOpen = false; // 정적 변수 업데이트
-        isLocalTabletOpen = false;
-
-        OnTabletStateChanged?.Invoke(false);
-
-        // 1. 이벤트 발송: 구독 중인 스크립트에 알림
-        OnTabletStateChanged?.Invoke(false);
-
-        // 2. 카메라 출력을 다시 RenderTexture로 변경 (TV 화면 송출)
-        if (uiCamera != null)
+        if(NetworkManager.Singleton.IsConnectedClient && NetworkManager.Singleton.LocalClient.PlayerObject != null)
         {
-            uiCamera.targetTexture = tvRenderTexture;
-            uiCamera.backgroundColor = Color.black; // 기본 배경색으로 복구
+            var player = NetworkManager.Singleton.LocalClient.PlayerObject.GetComponent<PlayerController>();
+            if(player != null && currentTabletUser.Value == player.OwnerClientId)
+            {
+                RequestTabletOccupancyServerRpc(player.OwnerClientId, false);
+            }
         }
 
-        // 3. 플레이어 HUD 캔버스 다시 활성화
+        LocalCloseProcess();
+    }
+
+    private void LocalCloseProcess()
+    {
+        if(!isLocalTabletOpen) return;
+
+        isLocalTabletOpen = false;
+        OnTabletStateChanged?.Invoke(false);
+
+        if(uiCamera != null)
+        {
+            uiCamera.targetTexture = tvRenderTexture;
+            uiCamera.backgroundColor = Color.black;
+        }
+
         if (playerHudCanvas != null)
         {
             playerHudCanvas.enabled = true;
         }
+    }
 
-        // 4. 캐릭터 조작 잠금 해제
-        //if (currentPlayerController != null)
-        //{
-        //    if (currentPlayerController.TryGetComponent(out PlayerMove move))
-        //    {
-        //        move.SetControlLock(false);
-        //    }
-        //}
-
-        //currentPlayerController = null;
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    private void RequestTabletOccupancyServerRpc(ulong clientId, bool isOccupying)
+    {
+        if(isOccupying)
+        {
+            if(currentTabletUser.Value == ulong.MaxValue) // 아무도 사용 중이지 않을 때만 점유 허용
+            {
+                currentTabletUser.Value = clientId;
+                Debug.Log($"플레이어 {clientId}가 태블릿을 점유했습니다.");
+            }
+            else
+            {
+                Debug.Log($"플레이어 {clientId}가 태블릿 점유를 시도했지만 이미 사용 중입니다.");
+            }
+        }
+        else
+        {
+            if(currentTabletUser.Value == clientId) // 점유 해제는 현재 사용자만 가능
+            {
+                currentTabletUser.Value = ulong.MaxValue;
+                CurrentTVScreenState.Value = TVScreenState.MAIN; // 태블릿 닫을 때 항상 메인 화면으로 초기화
+                Debug.Log($"플레이어 {clientId}가 태블릿 점유를 해제했습니다.");
+            }
+        }
     }
 }
