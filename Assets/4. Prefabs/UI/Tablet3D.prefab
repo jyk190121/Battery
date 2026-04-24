@@ -3346,7 +3346,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c2dde24f73edac4f9021322a7613414, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::QuestDescriptionPanelController
-  DescriptionPanel: {fileID: 1466112871426185009}
+  slotIndex: 1
 --- !u!1 &837034944966650677
 GameObject:
   m_ObjectHideFlags: 0
@@ -4340,7 +4340,6 @@ MonoBehaviour:
   - {fileID: 6297603851219198304}
   - {fileID: 9026873797151104400}
   selectBtn: {fileID: 6576000450815166274}
-  QuestPanel: {fileID: 4317778738851124397}
 --- !u!1 &1073476498656223450
 GameObject:
   m_ObjectHideFlags: 0
@@ -6596,7 +6595,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c2dde24f73edac4f9021322a7613414, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::QuestDescriptionPanelController
-  DescriptionPanel: {fileID: 4051373003289468383}
+  slotIndex: 2
 --- !u!1 &1511153625218073920
 GameObject:
   m_ObjectHideFlags: 0
@@ -6846,7 +6845,6 @@ MonoBehaviour:
   - {fileID: 5352718191509121915}
   - {fileID: 6822053447368542569}
   selectBtn: {fileID: 1816025945558808180}
-  QuestPanel: {fileID: 4317778738851124397}
 --- !u!1 &1707364875261151832
 GameObject:
   m_ObjectHideFlags: 0
@@ -16907,7 +16905,7 @@ GameObject:
   - component: {fileID: 8289504361135771394}
   - component: {fileID: 2704660887264190616}
   - component: {fileID: 2093306720081515363}
-  - component: {fileID: 7068985426925906609}
+  - component: {fileID: 9169859472281835048}
   m_Layer: 13
   m_Name: QuestDescripPanel
   m_TagString: Untagged
@@ -16975,7 +16973,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &7068985426925906609
+--- !u!114 &9169859472281835048
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -24830,7 +24828,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c2dde24f73edac4f9021322a7613414, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::QuestDescriptionPanelController
-  DescriptionPanel: {fileID: 6895381902931230509}
+  slotIndex: 0
 --- !u!1 &5998335712522438336
 GameObject:
   m_ObjectHideFlags: 0
@@ -25250,14 +25248,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3601088539
-  InScenePlacedSourceGlobalObjectIdHash: 0
+  GlobalObjectIdHash: 3936101121
+  InScenePlacedSourceGlobalObjectIdHash: 3601088539
   DeferredDespawnTick: 0
   Ownership: 1
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
   ActiveSceneSynchronization: 0
-  SceneMigrationSynchronization: 1
+  SceneMigrationSynchronization: 0
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
@@ -25346,6 +25344,13 @@ MonoBehaviour:
   - {fileID: 7142283427345206065}
   uiCamera: {fileID: 1586128593754161898}
   tvRenderTexture: {fileID: 8400000, guid: b70aee31e85b4d9428dcb9e42379d8ab, type: 2}
+  hoveredQuestIndex:
+    m_InternalValue: -1
+  questDescriptionPanel:
+  - {fileID: 6895381902931230509}
+  - {fileID: 1466112871426185009}
+  - {fileID: 4051373003289468383}
+  - {fileID: 3786712164795310676}
 --- !u!1 &6040138062565299329
 GameObject:
   m_ObjectHideFlags: 0
@@ -32460,7 +32465,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c2dde24f73edac4f9021322a7613414, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::QuestDescriptionPanelController
-  DescriptionPanel: {fileID: 3786712164795310676}
+  slotIndex: 3
 --- !u!1 &7680008872784631255
 GameObject:
   m_ObjectHideFlags: 0
@@ -34592,7 +34597,6 @@ MonoBehaviour:
   - {fileID: 2003695389384917095}
   - {fileID: 6339580845817628141}
   selectBtn: {fileID: 483922236137601753}
-  QuestPanel: {fileID: 4317778738851124397}
 --- !u!1 &8166787470712711361
 GameObject:
   m_ObjectHideFlags: 0
