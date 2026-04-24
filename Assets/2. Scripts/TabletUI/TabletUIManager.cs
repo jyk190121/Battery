@@ -48,6 +48,16 @@ public class TabletUIManager : NetworkBehaviour
     private Canvas playerHudCanvas;
     private bool isLocalTabletOpen = false;
 
+    [Header("Quest UI Description Sync")]
+    public NetworkVariable<int> hoveredQuestIndex = new NetworkVariable<int>(
+        -1,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
+    public GameObject[] questDescriptionPanel;  // 퀘스트 설명 패널들을 배열로 관리 (인덱스 0: 첫 번째 퀘스트, 1: 두 번째 퀘스트, 2: 세 번째 퀘스트 3: 네 번째 퀘스트)
+
+
     private void Awake()
     {
         Instance = this;
@@ -59,6 +69,8 @@ public class TabletUIManager : NetworkBehaviour
         CurrentTVScreenState.OnValueChanged += (oldValue, newValue) => { UpdateLocalUI(newValue); };
 
         UpdateLocalUI(CurrentTVScreenState.Value); // 초기 UI 설정
+
+        hoveredQuestIndex.OnValueChanged += (oldIndex, newIndex) => { SyncQuestDescription(newIndex); }; // 퀘스트 설명 패널 동기화
     }
 
     private void Start()
@@ -232,5 +244,44 @@ public class TabletUIManager : NetworkBehaviour
                 Debug.Log($"플레이어 {clientId}가 태블릿 점유를 해제했습니다.");
             }
         }
+    }
+
+    // 퀘스트 슬롯 위에 마우스가 올라갔을 때 해당 슬롯 인덱스를 받아서 퀘스트 설명 패널을 동기화하는 함수
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void SetHoveredQuestIndexServerRpc(int index)
+    {
+        hoveredQuestIndex.Value = index; // 서버에서 인덱스 변경, 모든 클라이언트에 자동으로 동기화됨
+    }
+
+    private void SyncQuestDescription(int index)
+    {
+        for (int i = 0; i < questDescriptionPanel.Length; i++)
+        {
+            if (questDescriptionPanel[i] != null)
+                questDescriptionPanel[i].SetActive(false);
+        }
+
+        // 인덱스가 유효한 범위 내에 있는지 먼저 검사
+        if (index != -1 && index < questDescriptionPanel.Length)
+        {
+            // 퀘스트 매니저에 실제 데이터가 있는지 최종 검사
+            if (QuestManager.Instance != null && index < QuestManager.Instance.activeQuests.Count)
+            {
+                GameObject targetPanel = questDescriptionPanel[index];
+                if (targetPanel != null)
+                {
+                    // 패널을 켜기 전 데이터를 먼저 꽂아줍니다.
+                    var descriptUI = targetPanel.GetComponent<AcceptedQuestDescriptUI>();
+                    if (descriptUI != null)
+                    {
+                        descriptUI.questIndex = index;
+                        descriptUI.SetUp(); // 모든 클라이언트에서 최신 정보를 그리도록 강제 실행
+                    }
+
+                    targetPanel.SetActive(true);
+                }
+            }
+        }
+
     }
 }

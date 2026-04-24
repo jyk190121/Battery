@@ -2915,7 +2915,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerRotation
   ShowTopMostFoldoutHeaderGroup: 1
-  mouseSensitivityMultiplier: 3
   vcam: {fileID: 0}
   cameraTarget: {fileID: 8435035688047205567}
   CameraGroup: {fileID: 643760621317042792}
@@ -2932,9 +2931,6 @@ MonoBehaviour:
     m_Bits: 769
   minDistance: 0.1
   collisionRadius: 0.2
-  isHoldingSmartphone: 0
-  NetVerticalRotation:
-    m_InternalValue: 0
 --- !u!114 &1166937674116199471
 MonoBehaviour:
   m_ObjectHideFlags: 0
