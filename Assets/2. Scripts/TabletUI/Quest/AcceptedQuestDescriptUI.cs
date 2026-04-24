@@ -16,11 +16,14 @@ public class AcceptedQuestDescriptUI : MonoBehaviour
         SetUp();
     }
 
-    void SetUp()
+    public void SetUp()
     {
-        // 💡 1. 방어 코드: 리스트가 비어있거나 인덱스를 초과하면 실행하지 않음
-        if (QuestManager.Instance == null || questIndex >= QuestManager.Instance.activeQuests.Count)
+        // 1. QuestManager.Instance.activeQuests.Count 체크 추가하여 인덱스 범위 벗어나는 경우 패널 끄기
+        if (QuestManager.Instance == null || questIndex < 0 || questIndex >= QuestManager.Instance.activeQuests.Count)
+        {
+            gameObject.SetActive(false); // 잘못된 접근 시 패널 끄기
             return;
+        }
 
         int id = QuestManager.Instance.activeQuests[questIndex]; // index 변수명을 id로 변경하여 덜 헷갈리게 함
         QuestDataSO data = QuestManager.Instance.GetQuestData(id);
