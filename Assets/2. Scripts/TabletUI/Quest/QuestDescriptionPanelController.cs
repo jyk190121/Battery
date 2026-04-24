@@ -4,31 +4,32 @@ using UnityEngine.EventSystems;
 
 public class QuestDescriptionPanelController : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    [Header("UI 연결")]
-    public GameObject DescriptionPanel;
-
-    private void Start()
-    {
-        if (DescriptionPanel != null)
-        {
-            DescriptionPanel.SetActive(false);
-        }
-    }
+    public int slotIndex; // 퀘스트 슬롯 인덱스
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        // 현재 퀘스트 매니저에 수락된 퀘스트가 1개라도 있을 때만 설명창을 띄움
-        if (DescriptionPanel != null && QuestManager.Instance.activeQuests.Count > 0)
+        // 점유권을 가진 사람만 서버에 요청 가능
+        if (!IsLocalControlOwner()) return;
+
+        // 퀘스트가 있는 슬롯인지 확인 후 RPC 호출
+        if (QuestManager.Instance != null && slotIndex < QuestManager.Instance.activeQuests.Count)
         {
-            DescriptionPanel.SetActive(true);
+            if (TabletUIManager.Instance != null)
+                TabletUIManager.Instance.SetHoveredQuestIndexServerRpc(slotIndex);
         }
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (DescriptionPanel != null)
-        {
-            DescriptionPanel.SetActive(false);
-        }
+        if (!IsLocalControlOwner()) return;
+
+        if (TabletUIManager.Instance != null)
+            TabletUIManager.Instance.SetHoveredQuestIndexServerRpc(-1);
+    }
+
+    private bool IsLocalControlOwner()
+    {
+        if (TabletUIManager.Instance == null) return false;
+        return TabletUIManager.Instance.currentTabletUser.Value == NetworkManager.Singleton.LocalClientId;
     }
 }
