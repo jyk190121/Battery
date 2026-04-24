@@ -54,14 +54,14 @@ public class SettlementZone : NetworkBehaviour
         // [절대 방어선] 필수 매니저들이 씬에 제대로 있는지부터 검사
         if (GameSessionManager.Instance == null || QuestManager.Instance == null || GameMaster.Instance == null)
         {
-            Debug.LogError("<color=red><b>🚨 [치명적 오류] 씬 이동을 위한 필수 매니저가 씬에 없습니다!</b></color>");
+            Debug.LogError("<color=red><b> [치명적 오류] 씬 이동을 위한 필수 매니저가 씬에 없습니다!</b></color>");
             isTransitioning = false;
             return;
         }
 
         if (GameMaster.Instance.economyManager == null || GameMaster.Instance.dayCycleManager == null)
         {
-            Debug.LogError("<color=red><b>🚨 GameMaster 하위에 EconomyManager 또는 DayCycleManager가 연결되지 않았습니다!</b></color>");
+            Debug.LogError("<color=red><b> GameMaster 하위에 EconomyManager 또는 DayCycleManager가 연결되지 않았습니다!</b></color>");
             isTransitioning = false;
             return;
         }
@@ -165,13 +165,7 @@ public class SettlementZone : NetworkBehaviour
             }
         }
 
-        // 3. 씬에 남아있는 모든 잔여 네트워크 아이템 청소 (중복 생성 방지 핵심)
-        ItemBase[] allItemsInScene = FindObjectsByType<ItemBase>(FindObjectsSortMode.None);
-        foreach (var leftoverItem in allItemsInScene)
-        {
-            if (leftoverItem != null && leftoverItem.NetworkObject != null && leftoverItem.NetworkObject.IsSpawned)
-                leftoverItem.NetworkObject.Despawn();
-        }
+        GameSessionManager.Instance.CleanupAllItemsInScene();
 
 #if UNITY_EDITOR
         UnityEditor.Selection.activeGameObject = null;

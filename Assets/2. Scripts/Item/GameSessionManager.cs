@@ -278,4 +278,24 @@ public class GameSessionManager : NetworkBehaviour
             }
         }
     }
+
+    public void CleanupAllItemsInScene()
+    {
+        if (!IsServer) return; // 오직 서버(방장)만 청소 권한을 가짐
+
+        // 맵에 존재하는 모든 아이템(폐지, 퀘스트템, 버려진 장비 등)을 전부 찾음
+        ItemBase[] allItems = Object.FindObjectsByType<ItemBase>(FindObjectsSortMode.None);
+
+        Debug.Log($"<color=orange>[Cleanup]</color> 씬 전환을 위해 {allItems.Length}개의 아이템을 소각합니다.");
+
+        foreach (var item in allItems)
+        {
+            //네트워크 상에 살아있는 오브젝트라면 세상에서 완전히 지워버림 (Despawn)
+            if (item != null && item.NetworkObject != null && item.NetworkObject.IsSpawned)
+            {
+                item.NetworkObject.Despawn();
+            }
+        }
+    }
+
 }

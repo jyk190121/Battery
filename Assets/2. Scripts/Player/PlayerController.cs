@@ -286,6 +286,7 @@ public class PlayerController : NetworkBehaviour
         if (areAllDead)
         {
             Debug.Log("모든 플레이어 사망. 3초 후 로비로 이동합니다.");
+            GameSessionManager.Instance.CleanupAllItemsInScene();
             StartCoroutine(ReturnToLobbyWithDelay());
         }
     }
