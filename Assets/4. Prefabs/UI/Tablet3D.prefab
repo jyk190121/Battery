@@ -530,7 +530,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &7362768473063763721
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2301,7 +2301,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &8820053862566654745
 RectTransform:
   m_ObjectHideFlags: 0
@@ -12579,8 +12579,8 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3135502149962313314}
-  - {fileID: 340925605524343896}
   - {fileID: 4644982790836698298}
+  - {fileID: 340925605524343896}
   m_Father: {fileID: 3440625881168913791}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
@@ -16699,7 +16699,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &340925605524343896
 RectTransform:
   m_ObjectHideFlags: 0
@@ -20458,7 +20458,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &5412947305141103697
 RectTransform:
   m_ObjectHideFlags: 0
@@ -21837,8 +21837,8 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7600364516932759909}
-  - {fileID: 5412947305141103697}
   - {fileID: 8035266057634705292}
+  - {fileID: 5412947305141103697}
   m_Father: {fileID: 3440625881168913791}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
@@ -25120,6 +25120,7 @@ GameObject:
   - component: {fileID: 7317792790672233284}
   - component: {fileID: 6239987056182240521}
   - component: {fileID: 7491467381443491319}
+  - component: {fileID: 5022258979543539404}
   m_Layer: 11
   m_Name: Tablet3D
   m_TagString: Untagged
@@ -25351,6 +25352,27 @@ MonoBehaviour:
   - {fileID: 1466112871426185009}
   - {fileID: 4051373003289468383}
   - {fileID: 3786712164795310676}
+--- !u!114 &5022258979543539404
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6035682893610976912}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc312d31b252fd4419a9dfb84a972ea1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TabletPlayerStatusUI
+  playerSlots:
+  - playerNameText: {fileID: 1913217624359337937}
+    connectionStatusImage: {fileID: 473533387502662311}
+  - playerNameText: {fileID: 2288897389448437512}
+    connectionStatusImage: {fileID: 3805461867822543044}
+  - playerNameText: {fileID: 5797699667335392371}
+    connectionStatusImage: {fileID: 7604437407340154157}
+  - playerNameText: {fileID: 1420222963797087167}
+    connectionStatusImage: {fileID: 8215442897997576363}
 --- !u!1 &6040138062565299329
 GameObject:
   m_ObjectHideFlags: 0
@@ -26596,8 +26618,8 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4967293494063610489}
-  - {fileID: 8820053862566654745}
   - {fileID: 5800803459544449368}
+  - {fileID: 8820053862566654745}
   m_Father: {fileID: 3440625881168913791}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
@@ -29716,8 +29738,8 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8089389659927856933}
-  - {fileID: 7362768473063763721}
   - {fileID: 7006954668810851759}
+  - {fileID: 7362768473063763721}
   m_Father: {fileID: 3440625881168913791}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
@@ -38432,7 +38454,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &7006954668810851759
 RectTransform:
   m_ObjectHideFlags: 0
