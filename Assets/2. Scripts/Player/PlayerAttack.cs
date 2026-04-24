@@ -6,7 +6,7 @@ public class PlayerAttack : NetworkBehaviour
 {
     private PlayerAnim _playerAnim;
     private PlayerMove _playerMove;
-    private PlayerEquipment _playerEquipment; // 이제 Equipment를 참조합니다.
+    private PlayerEquipment _playerEquipment;
 
     [Header("상태")]
     public bool isAttacking = false;
