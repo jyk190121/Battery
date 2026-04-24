@@ -48,6 +48,16 @@ public class TabletUIManager : NetworkBehaviour
     private Canvas playerHudCanvas;
     private bool isLocalTabletOpen = false;
 
+    [Header("Quest Description Sync")]
+    public NetworkVariable<int> hoveredQuestIndex = new NetworkVariable<int>(
+        -1, // 초기값은 어떤 퀘스트도 호버링하지 않는 상태를 나타내는 -1로 설정
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
+    [Header("Quest Panels")]
+    public GameObject[] questDescriptionPanel;
+
     private void Awake()
     {
         Instance = this;
@@ -59,6 +69,12 @@ public class TabletUIManager : NetworkBehaviour
         CurrentTVScreenState.OnValueChanged += (oldValue, newValue) => { UpdateLocalUI(newValue); };
 
         UpdateLocalUI(CurrentTVScreenState.Value); // 초기 UI 설정
+
+        // 인덱스가 변할 때마다 모든 클라이언트에서 실행
+        hoveredQuestIndex.OnValueChanged += (prev, next) => SyncQuestDescription(next);
+
+        // 초기 상태 반영
+        SyncQuestDescription(hoveredQuestIndex.Value);
     }
 
     private void Start()
@@ -230,6 +246,44 @@ public class TabletUIManager : NetworkBehaviour
                 currentTabletUser.Value = ulong.MaxValue;
                 CurrentTVScreenState.Value = TVScreenState.MAIN; // 태블릿 닫을 때 항상 메인 화면으로 초기화
                 Debug.Log($"플레이어 {clientId}가 태블릿 점유를 해제했습니다.");
+            }
+        }
+    }
+
+
+
+    // 퀘스트 설명 패널 동기화 함수
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void SetHoveredQuestIndexServerRpc(int index)
+    {
+        hoveredQuestIndex.Value = index;
+    }
+
+    private void SyncQuestDescription(int index)
+    {
+        // 1. 모든 패널을 먼저 끄기 (중복 및 잔상 방지)
+        for (int i = 0; i < questDescriptionPanel.Length; i++)
+        {
+            if (questDescriptionPanel[i] != null)
+                questDescriptionPanel[i].SetActive(false);
+        }
+
+        // 2. 유효한 인덱스일 때만 해당 패널 활성화 및 데이터 갱신
+        if (index >= 0 && index < questDescriptionPanel.Length)
+        {
+            if (QuestManager.Instance != null && index < QuestManager.Instance.activeQuests.Count)
+            {
+                GameObject targetPanel = questDescriptionPanel[index];
+                if (targetPanel != null)
+                {
+                    var descriptUI = targetPanel.GetComponent<AcceptedQuestDescriptUI>();
+                    if (descriptUI != null)
+                    {
+                        descriptUI.questIndex = index;
+                        descriptUI.SetUp(); // 최신 데이터 강제 주입
+                    }
+                    targetPanel.SetActive(true);
+                }
             }
         }
     }
