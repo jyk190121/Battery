@@ -981,10 +981,6 @@ PrefabInstance:
       propertyPath: chatManager
       value: 
       objectReference: {fileID: 8872909475001312011}
-    - target: {fileID: 1036625398501661688, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 1246618779381616125, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
       propertyPath: m_fontAsset
       value: 
@@ -1026,12 +1022,8 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: c61d30e6a459e8c43b000be3c74baf01, type: 2}
     - target: {fileID: 2500810964890218847, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
-      propertyPath: m_sharedMaterial
-      value: 
-      objectReference: {fileID: -5514379908419441289, guid: c61d30e6a459e8c43b000be3c74baf01, type: 2}
-    - target: {fileID: 2500810964890218847, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
       propertyPath: m_hasFontAssetChanged
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2508517551116172644, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
       propertyPath: m_fontAsset
@@ -1150,12 +1142,8 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: c61d30e6a459e8c43b000be3c74baf01, type: 2}
     - target: {fileID: 7158323804074078118, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
-      propertyPath: m_sharedMaterial
-      value: 
-      objectReference: {fileID: -5514379908419441289, guid: c61d30e6a459e8c43b000be3c74baf01, type: 2}
-    - target: {fileID: 7158323804074078118, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
       propertyPath: m_hasFontAssetChanged
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7183220325282786787, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
       propertyPath: m_fontAsset
@@ -1300,22 +1288,8 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 9110059613720074729, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2736913611406987366}
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 5032213084006847719, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1068748876225487271}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
---- !u!114 &588604865322844374 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7158323804074078118, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
-  m_PrefabInstance: {fileID: 7745167247473930096}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1 &1023357652447359807 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7300316096096181327, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
@@ -1351,36 +1325,11 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 5032213084006847719, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
   m_PrefabInstance: {fileID: 7745167247473930096}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1068748876225487271
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3362605282208349079}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cc7acca67995d7f40b2553a0b97374cd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PhoneMainTopbarUI
-  WeeklyPaymentText: {fileID: 588604865322844374}
-  DayWeekdayText: {fileID: 5316770672977026607}
 --- !u!1 &4927526762122445348 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3395234632279944532, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
   m_PrefabInstance: {fileID: 7745167247473930096}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &5316770672977026607 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2500810964890218847, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
-  m_PrefabInstance: {fileID: 7745167247473930096}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1 &5457140168927015977 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2362125366174456665, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
