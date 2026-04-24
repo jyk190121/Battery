@@ -480,15 +480,14 @@ public class PlayerController : NetworkBehaviour
         if (TryGetComponent(out PlayerInteraction interact)) interact.enabled = false;
         if (TryGetComponent(out PlayerEquipment equip)) equip.enabled = false;
 
-        // 몬스터가 사망한 플레이어 찾지않도록 레이어 수정
-        gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+        if (IsOwner)
+        {
+            // 몬스터가 사망한 플레이어를 찾지 않도록 레이어 수정
+            gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
 
-        //// 4. (본인인 경우) 마우스 커서 잠금 해제 및 UI 처리
-        //if (IsOwner)
-        //{
-        //    Cursor.lockState = CursorLockMode.None;
-        //    // 여기에 "사망하셨습니다" 같은 UI 띄우기 가능
-        //}
+            // 이 아래에서 PlayerRotation의 카메라 눕히기 로직이 호출된다면 
+            // 오직 죽은 당사자의 화면에서만 카메라가 돌아갑니다.
+        }
     }
 
     void PerformReviveEffects()
