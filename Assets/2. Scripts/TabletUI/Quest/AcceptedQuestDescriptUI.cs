@@ -35,22 +35,16 @@ public class AcceptedQuestDescriptUI : MonoBehaviour
             QuestDescription.text = data.description;
             QuestReward.text = data.baseReward.ToString();
 
-            // 3. 기존에 켜져있던 난이도 아이콘들을 모두 끄고 시작 (잔상 방지)
-            foreach (var icon in difficulty)
-            {
-                if (icon != null) icon.SetActive(false);
-            }
-
-            switch (QuestManager.Instance.selectedDifficulty)
+            switch (QuestManager.Instance.selectedDifficulty.Value)
             {
                 case QuestDifficulty.Easy:
-                    difficulty[0].SetActive(true);
+                    if (difficulty.Length > 0 && difficulty[0] != null) difficulty[0].SetActive(true);
                     break;
                 case QuestDifficulty.Normal:
-                    difficulty[1].SetActive(true);
+                    if (difficulty.Length > 1 && difficulty[1] != null) difficulty[1].SetActive(true);
                     break;
                 case QuestDifficulty.Hard:
-                    difficulty[2].SetActive(true);
+                    if (difficulty.Length > 2 && difficulty[2] != null) difficulty[2].SetActive(true);
                     break;
             }
         }
