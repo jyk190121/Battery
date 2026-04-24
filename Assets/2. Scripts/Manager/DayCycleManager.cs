@@ -7,6 +7,8 @@ public class DayCycleManager : NetworkBehaviour
     public NetworkVariable<int> currentDayIndex = new NetworkVariable<int>(1, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<bool> isSessionActive = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
+    public int CurrentDay;
+
     public void StartNewSession()
     {
         if (!IsServer) return;

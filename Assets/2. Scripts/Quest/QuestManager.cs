@@ -21,7 +21,11 @@ public class QuestManager : NetworkBehaviour
 
     private List<int> myActuallyDoneQuests = new List<int>();
 
-    public QuestDifficulty selectedDifficulty;
+    public NetworkVariable<QuestDifficulty> selectedDifficulty = new NetworkVariable<QuestDifficulty>(
+        QuestDifficulty.Easy,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
 
     private Dictionary<int, List<QuestReturnPoint>> returnPointRegistry = new Dictionary<int, List<QuestReturnPoint>>();
 
@@ -82,7 +86,7 @@ public class QuestManager : NetworkBehaviour
             _ => null
         };
 
-        selectedDifficulty = difficulty;
+        selectedDifficulty.Value = difficulty;
 
         if (targetPool != null)
         {
