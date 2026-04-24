@@ -11,7 +11,7 @@ public class EconomyManager : NetworkBehaviour
 
     [Header("Synced Economy Data")]
     public NetworkVariable<int> dynamicWeeklyQuota = new NetworkVariable<int>(1000, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<int> accumulatedRepayment = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);  
+    public NetworkVariable<int> accumulatedRepayment = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<int> availableLoanLimit = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     // 내부 추적용: 현재 주차의 순수 목표액
