@@ -6,7 +6,7 @@ public class PlayerAttack : NetworkBehaviour
 {
     private PlayerAnim _playerAnim;
     private PlayerMove _playerMove;
-    private PlayerEquipment _playerEquipment; // 이제 Equipment를 참조합니다.
+    private PlayerEquipment _playerEquipment;
 
     [Header("상태")]
     public bool isAttacking = false;
@@ -45,7 +45,13 @@ public class PlayerAttack : NetworkBehaviour
     [ServerRpc]
     private void RequestAttackServerRpc()
     {
+        // [보안/로직 검증] 서버에서도 이 플레이어가 정말 공격 가능한 상태인지 체크
+        if (isAttacking) return;
+
         ExecuteAttackClientRpc();
+
+        // 2. [추가] 서버에서 실제 타격 판정 수행
+        PerformHitDetection();
     }
 
     [ClientRpc]
@@ -70,5 +76,24 @@ public class PlayerAttack : NetworkBehaviour
     {
         isAttacking = false;
         if (_playerMove != null) _playerMove.SetControlLock(false);
+    }
+
+    void PerformHitDetection()
+    {
+        // 공격 범위 설정 (무기 아이템 데이터에서 가져오는 것이 좋음)
+        float attackRange = 2.0f;
+        float attackDamage = 20f; // 예시 데미지
+
+        // 레이캐스트 또는 OverlapSphere로 몬스터 탐색
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position + Vector3.up, transform.forward, out hit, attackRange))
+        {
+            if (hit.collider.TryGetComponent<MonsterController>(out var monster))
+            {
+                // 서버 권한으로 몬스터에게 데미지 부여
+                monster.TakeDamage(attackDamage);
+                Debug.Log($"[Server] 몬스터 {monster.name} 타격 성공!");
+            }
+        }
     }
 }

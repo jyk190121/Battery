@@ -248,6 +248,8 @@ public class MonsterController : NetworkBehaviour
         CurrentHealth.Value -= damage;
         Debug.Log($"<color=red>[몬스터 피격]</color> {gameObject.name} 남은 체력: {CurrentHealth.Value}");
 
+        PlayHitEffectClientRpc();
+
         if (CurrentHealth.Value <= 0)
         {
             CurrentHealth.Value = 0;
@@ -260,6 +262,18 @@ public class MonsterController : NetworkBehaviour
         {
             ChangeState(MonsterStateType.Flee);
         }
+    }
+
+    // [추가]
+    [ClientRpc]
+    private void PlayHitEffectClientRpc()
+    {
+        // 1. 애니메이션 재생 (예: Hit 트리거)
+        if (_animator != null) _animator.SetTrigger("Hit");
+
+        // 2. 이펙트 및 사운드 (필요 시)
+        // AudioSource.PlayClipAtPoint(hitSound, transform.position);
+        Debug.Log($"<color=orange>[Client]</color> {gameObject.name} 피격 비주얼 재생");
     }
 
     /// <summary>

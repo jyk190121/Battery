@@ -365,10 +365,20 @@ public class PlayerRotation : NetworkBehaviour
 
         if (_isSpectating)
         {
-            if (_panTilt != null) _panTilt.enabled = false;
+            // [추가] 내 PanTilt 컴포넌트가 활성화되어 있다면 값을 타겟과 일치시킴
+            // 이렇게 해야 HandleSpectatingLogic()이 실행될 때 튀지 않습니다.
+            if (_panTilt != null)
+            {
+                _panTilt.PanAxis.Value = target.NetHorizontalRotation.Value;
+                _panTilt.TiltAxis.Value = target.NetVerticalRotation.Value;
+                _panTilt.enabled = false; // 내 입력은 차단
+            }
 
             vcam.Follow = null;
             vcam.Lens.Dutch = 0;
+
+            // 즉시 로직 1회 강제 실행하여 위치/회전 고정
+            HandleSpectatingLogic();
         }
         else
         {

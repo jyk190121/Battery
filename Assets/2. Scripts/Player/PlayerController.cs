@@ -211,12 +211,12 @@ public class PlayerController : NetworkBehaviour
 
         // 2. 관전 대상 탐색 및 카메라 전환 로직 실행
         //StartCoroutine(StartSpectating());
-        if (IsOwner)
-        {
-            // 이미 실행 중인 관전 루틴이 있다면 정지 (중복 방지)
-            StopAllCoroutines();
-            StartCoroutine(StartSpectating());
-        }
+        //if (IsOwner)
+        //{
+        //    // 이미 실행 중인 관전 루틴이 있다면 정지 (중복 방지)
+        //    StopAllCoroutines();
+        //    StartCoroutine(StartSpectating());
+        //}
 
         if (TryGetComponent(out PlayerInventory inventory))
         {
@@ -286,13 +286,12 @@ public class PlayerController : NetworkBehaviour
         if (areAllDead)
         {
             Debug.Log("모든 플레이어 사망. 3초 후 로비로 이동합니다.");
-            GameSessionManager.Instance.CleanupAllItemsInScene();
             StartCoroutine(ReturnToLobbyWithDelay());
         }
     }
     IEnumerator ReturnToLobbyWithDelay()
     {
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(2f);
 
         if (IsServer)
         {
@@ -325,6 +324,9 @@ public class PlayerController : NetworkBehaviour
             {
                 player.RevivePlayer();
             }
+
+            GameSessionManager.Instance.CleanupAllItemsInScene();
+            yield return new WaitForSeconds(1f);
 
             // 3. 로비 씬으로 이동
             GameSceneManager.Instance.LoadNetworkScene("KJY_Lobby");
@@ -359,8 +361,22 @@ public class PlayerController : NetworkBehaviour
             StateManager.currentHealth.Value = Data.maxHealth; // 명시적으로 HP 풀로 채움
             StateManager.ResetStatus();
         }
+        ReviveClientRpc();
     }
-    
+
+    [ClientRpc]
+    private void ReviveClientRpc()
+    {
+        // OnDeadStatusChanged가 false일 때 처리를 하지만, 
+        // 여기서 한번 더 확실하게 관전 코루틴을 중지하고 카메라를 복구합니다.
+        StopAllCoroutines();
+        if (IsOwner && playerRotation != null)
+        {
+            playerRotation.SetSpectatingMode(false);
+            playerRotation.SetSpectatingTarget(null);
+        }
+    }
+
     // 사망 상태가 변했을 때 호출되는 함수
 
     void OnDeadStatusChanged(bool previousValue, bool newValue)
@@ -400,31 +416,26 @@ public class PlayerController : NetworkBehaviour
 
     IEnumerator StartSpectating()
     {
-        yield return new WaitForSeconds(1.0f); // 사망 애니메이션을 조금 본 뒤 전환
+        yield return new WaitForSeconds(1.5f); // 사망 애니메이션을 조금 본 뒤 전환
 
-        // 첫 번째 관전 대상 찾기
+        _currentSpectateIndex = -1; // 초기화하여 리스트 처음부터 찾게 함
         SwitchToNextTarget();
 
-        // 살아있는 다른 플레이어 찾기
-        PlayerRotation target = FindSpectatableTarget();
-        if (target != null)
-        {
-            // PlayerRotation에 새로 만든 동기화 함수 호출
-            playerRotation.SetSpectatingTarget(target);
-            Debug.Log($"[관전] {target.gameObject.name} 시점으로 전환합니다.");
-        }
-
-        //foreach (var p in AllPlayers)
+        //// 살아있는 다른 플레이어 찾기
+        //PlayerRotation target = FindSpectatableTarget();
+        //if (target != null)
         //{
-        //    if (p != this && !p.isDead.Value)
-        //    {
-        //        targetPlayer = p;
-        //        break;
-        //    }
+        //    // PlayerRotation에 새로 만든 동기화 함수 호출
+        //    playerRotation.SetSpectatingTarget(target);
+        //    Debug.Log($"[관전] {target.gameObject.name} 시점으로 전환합니다.");
         //}
 
+        PlayerRotation target = playerRotation.GetSpectatingTarget();
+
         if (target != null)
         {
+            Debug.Log($"[관전 시작] 첫 타겟 {target.gameObject.name} 시점 즉시 동기화");
+
             //if (targetPlayer.TryGetComponent<PlayerRotation>(out var targetRot) &&
             //    TryGetComponent<PlayerRotation>(out var myRot))
             //{
@@ -451,41 +462,43 @@ public class PlayerController : NetworkBehaviour
 
                         Debug.Log($"{target.gameObject.name}의 시점을 관전합니다.");
                     }
+                    myRot.vcam.ForceCameraPosition(targetRot.cameraTarget.position, targetRot.cameraTarget.rotation);
                 }
+
             }
         }
 
         yield return new WaitForSeconds(1.0f);
     }
 
-    PlayerRotation FindSpectatableTarget()
-    {
-        //foreach (var p in AllPlayers)
-        //{
-        //    // 내가 아니고 죽지 않은 플레이어
-        //    if (p != this && !p.isDead.Value)
-        //    {
-        //        if (p.TryGetComponent<PlayerRotation>(out var targetRot)) return targetRot;
-        //    }
-        //}
+    //PlayerRotation FindSpectatableTarget()
+    //{
+    //    //foreach (var p in AllPlayers)
+    //    //{
+    //    //    // 내가 아니고 죽지 않은 플레이어
+    //    //    if (p != this && !p.isDead.Value)
+    //    //    {
+    //    //        if (p.TryGetComponent<PlayerRotation>(out var targetRot)) return targetRot;
+    //    //    }
+    //    //}
 
-        // 살아있는 다른 플레이어 찾기
-        foreach (var player in AllPlayers) // static List 등으로 관리되는 리스트
-        {
-            //if (player != this && !player.isDead.Value)
-            //{
-            //    GetComponent<PlayerRotation>().SetSpectatingTarget(player.GetComponent<PlayerRotation>());
-            //    break;
-            //}
-            // 1. 내가 아니고 2. 리스트에 유효하며 3. 살아있는 플레이어 탐색
-            if (player != null && player != this && !player.isDead.Value)
-            {
-                if (player.TryGetComponent<PlayerRotation>(out var targetRot))
-                    return targetRot;
-            }
-        }
-        return null;
-    }
+    //    // 살아있는 다른 플레이어 찾기
+    //    foreach (var player in AllPlayers) // static List 등으로 관리되는 리스트
+    //    {
+    //        //if (player != this && !player.isDead.Value)
+    //        //{
+    //        //    GetComponent<PlayerRotation>().SetSpectatingTarget(player.GetComponent<PlayerRotation>());
+    //        //    break;
+    //        //}
+    //        // 1. 내가 아니고 2. 리스트에 유효하며 3. 살아있는 플레이어 탐색
+    //        if (player != null && player != this && !player.isDead.Value)
+    //        {
+    //            if (player.TryGetComponent<PlayerRotation>(out var targetRot))
+    //                return targetRot;
+    //        }
+    //    }
+    //    return null;
+    //}
 
 
     void PerformDeathEffects()
