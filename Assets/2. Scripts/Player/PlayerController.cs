@@ -108,12 +108,40 @@ public class PlayerController : NetworkBehaviour
 
     void Update()
     {
-        // 본인이 주인이고 사망 상태일 때만 관전 입력 체크
         if (IsOwner && isDead.Value)
         {
             HandleSpectateInput();
+
+            CheckCurrentTargetStatus();
         }
     }
+    void CheckCurrentTargetStatus()
+    {
+        if (playerRotation == null) return;
+
+        // 현재 보고 있는 대상을 가져옴
+        PlayerRotation currentTargetRot = playerRotation.GetSpectatingTarget();
+
+        if (currentTargetRot != null)
+        {
+            // 타겟의 PlayerController 컴포넌트 확인
+            if (currentTargetRot.TryGetComponent<PlayerController>(out var targetController))
+            {
+                // 만약 내가 보고 있는 그 사람도 죽었다면?
+                if (targetController.isDead.Value)
+                {
+                    Debug.Log($"관전 대상 {targetController.gameObject.name}이(가) 사망하여 다음 타겟을 찾습니다.");
+                    SwitchToNextTarget();
+                }
+            }
+        }
+        else
+        {
+            // 타겟이 null인데(예: 튕김) 아직 내가 관전 모드라면 다시 찾기 시도
+            SwitchToNextTarget();
+        }
+    }
+
     void HandleSpectateInput()
     {
         // 마우스 좌클릭 시 다음 타겟으로 전환

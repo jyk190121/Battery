@@ -135,6 +135,12 @@ public class PlayerRotation : NetworkBehaviour
     {
         if (_isSpectating || !IsOwner) return;
 
+
+        if (PhoneUIController.Instance != null)
+        {
+            isHoldingSmartphone = PhoneUIController.Instance.isPhoneActive;
+        }
+
         HandleRotation();
 
         // 동기화 변수에 값 갱신 (HandleRotation에서 Clamp된 최종값을 보냄)
@@ -148,14 +154,14 @@ public class PlayerRotation : NetworkBehaviour
 
     void LateUpdate()
     {
+        if (!IsOwner) return;
+
         // 1. 카메라 및 컴포넌트 체크
         if (vcam == null || _panTilt == null)
         {
             TryFindCamera();
             if (vcam == null || _panTilt == null) return;
         }
-
-        if (!IsOwner) return;
 
         // 관전 모드라면 시네머신이 직접 계산하게 두지 않고 강제 동기화 후 종료
         if (_isSpectating)
@@ -166,6 +172,7 @@ public class PlayerRotation : NetworkBehaviour
 
         if (_isTabletOpen) return;
 
+        ProcessMouseInput();
 
         // 4순위: 상태별 트랜스폼 적용 (사망 vs 생존)
         if (playerController != null && playerController.isDead.Value)
@@ -183,7 +190,6 @@ public class PlayerRotation : NetworkBehaviour
             ApplyLivingRotation();
         }
 
-        ProcessMouseInput();
     }
 
     void UpdateCameraPositionWithCollision()
@@ -229,10 +235,10 @@ public class PlayerRotation : NetworkBehaviour
         Vector2 mouseDelta = Input.GetMouseDelta();
         float finalSensitivity = sensitivity * mouseSensitivityMultiplier;
 
-        // 1. 좌우 회전
+        // 좌우 회전
         _panTilt.PanAxis.Value += mouseDelta.x * finalSensitivity;
 
-        // 2. 상하 회전 (Tilt)
+        // 상하 회전 (Tilt) 제약
         if (playerController != null && playerController.isSnared.Value)
         {
             _panTilt.TiltAxis.Value = Mathf.Lerp(_panTilt.TiltAxis.Value, 0f, Time.deltaTime * transitionSpeed);
@@ -244,12 +250,10 @@ public class PlayerRotation : NetworkBehaviour
         else
         {
             float minTilt = -70f;
-            // [문제 2 해결] 스마트폰을 들고 있다면 아래(양수 값)를 보지 못하게 0으로 제한
-            float maxTilt = isHoldingSmartphone ? 0f : 70f;
+            // [문제 해결] 폰 사용 중일 때 아래(양수)를 못 보게 0도로 제한
+            float maxTilt = isHoldingSmartphone ? 10f : 70f;
 
             float newTilt = _panTilt.TiltAxis.Value - (mouseDelta.y * finalSensitivity);
-
-            // 만약 폰을 드는 순간 이미 0도보다 아래를 보고 있었다면 즉시 Clamp 됨
             _panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, minTilt, maxTilt);
         }
     }
@@ -257,42 +261,6 @@ public class PlayerRotation : NetworkBehaviour
     #region 사망 시 로테이션 변경 점 처리 함수
     void HandleSpectatingLogic()
     {
-        //if (_spectatingTarget == null) return;
-
-        //// 1. 위치 동기화: 타겟의 cameraTarget(눈 위치) 월드 좌표 그대로 따라가기
-        //if (_spectatingTarget.cameraTarget != null)
-        //{
-        //    vcam.transform.position = _spectatingTarget.cameraTarget.position;
-        //}
-
-        //// 2. 타겟의 동기화된 네트워크 값 가져오기
-        //// 관전자의 로컬 PanTilt 수치를 사용하지 않고, 오직 네트워크 변수값만 참조합니다.
-        //float targetPan = _spectatingTarget.NetHorizontalRotation.Value;
-        //float targetTilt = _spectatingTarget.NetVerticalRotation.Value;
-
-        //// 3. 관전자의 PanTilt 컴포넌트 강제 갱신 (오차 누적 및 복귀 시 튀는 현상 방지)
-        //if (_panTilt != null)
-        //{
-        //    _panTilt.PanAxis.Value = targetPan;
-        //    _panTilt.TiltAxis.Value = targetTilt;
-        //}
-
-        //// 4. 월드 회전 생성 (Z축은 0으로 고정하여 관전자가 어지럽지 않게 함)
-        //Quaternion targetRot = Quaternion.Euler(targetTilt, targetPan, 0);
-
-        //// 5. 시네머신 엔진에 강제 주입
-        //// CinemachineCamera.ForceCameraPosition(위치, 회전)은 내부 계산기를 리셋하고 해당 값으로 고정합니다.
-        //vcam.ForceCameraPosition(vcam.transform.position, targetRot);
-        //vcam.transform.rotation = targetRot;
-
-        //// 6. 관전자 화면의 모델(스마트폰 등) 그룹도 동일하게 회전
-        //if (CameraGroup != null)
-        //{
-        //    CameraGroup.transform.rotation = targetRot;
-        //}
-
-        //// 수평 고정 (사망 시 꺾였을지 모르는 화면 수평을 0으로 강제)
-        //vcam.Lens.Dutch = 0;
         if (_spectatingTarget == null) return;
 
         // 타겟의 눈 위치로 카메라 이동
@@ -480,5 +448,14 @@ public class PlayerRotation : NetworkBehaviour
             HandleSpectatingLogic();
         }
     }
+
+    // 현재 내가 관전하고 있는 타겟의 PlayerRotation을 반환
+    public PlayerRotation GetSpectatingTarget()
+    {
+        return _spectatingTarget;
+    }
+
+    // 관전 중인지 여부를 외부에서 확인하기 위한 프로퍼티 (선택 사항)
+    public bool IsSpectating => _isSpectating;
     #endregion
 }
