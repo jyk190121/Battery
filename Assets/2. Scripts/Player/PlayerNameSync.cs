@@ -6,8 +6,6 @@ public class PlayerNameSync : NetworkBehaviour
 {
     public static event System.Action<string, Transform> OnNicknameSynced;
 
-    public static event System.Action OnplayerRosterChanged;
-
     public NetworkVariable<FixedString64Bytes> NetworkNickname = new NetworkVariable<FixedString64Bytes>(
         "", NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
@@ -19,7 +17,7 @@ public class PlayerNameSync : NetworkBehaviour
             string localNick = MultiPlayerSessionManager.Instance.PlayerNickname;
             SetNicknameServerRpc(localNick);
 
-            //NetworkNickname.OnValueChanged += OnNicknameChanged;
+            NetworkNickname.OnValueChanged += OnNicknameChanged;
 
             if (!string.IsNullOrEmpty(NetworkNickname.Value.ToString()))
             {
@@ -37,8 +35,6 @@ public class PlayerNameSync : NetworkBehaviour
 
         }
 
-        NetworkNickname.OnValueChanged += OnNicknameChanged;
-
         // 변수가 바뀌면 UI 매니저에게 갱신 요청
         NetworkNickname.OnValueChanged += (oldV, newV) => {
             if (MultiplayerUIManager.Instance != null) MultiplayerUIManager.Instance.RefreshPlayerList();
@@ -52,14 +48,11 @@ public class PlayerNameSync : NetworkBehaviour
 
         // 네트워크 변수가 바뀔 때도 실행 (다른 사람이 들어왔을 때)
         NetworkNickname.OnValueChanged += (oldV, newV) => ApplyNicknameToUI();
-
-        OnplayerRosterChanged.Invoke();
     }
 
     public override void OnNetworkDespawn()
     {
         NetworkNickname.OnValueChanged -= OnNicknameChanged;
-        OnplayerRosterChanged.Invoke();
     }
 
     // 클라이언트가 서버에 닉네임 설정을 요청하는 통로
@@ -92,7 +85,6 @@ public class PlayerNameSync : NetworkBehaviour
         {
             GlobalVoiceManager.Instance.ConnectVoice(safeNick);
         }
-        OnplayerRosterChanged.Invoke();
     }
 
     void ApplyNicknameToUI(string name)
