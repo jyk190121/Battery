@@ -70,6 +70,30 @@ public class GameSceneManager : NetworkBehaviour
             NetworkManager.Singleton.SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
         }
     }
+    /// <summary>
+    /// 플레이어 리스폰 포지션 초기화
+    /// </summary>
+    /// <param name="clientId"></param>
+    /// <returns></returns>
+
+    public (Vector3 position, Quaternion rotation) GetSpawnPoint(ulong clientId)
+    {
+        // 1. 최신 스폰 포인트 정보 갱신
+        UpdateSpawnPoints();
+
+        if (spawnPoints != null && spawnPoints.Length > 0)
+        {
+            // 2. ClientId를 기반으로 배정된 인덱스 계산
+            int spawnIndex = GetSpawnIndex(clientId);
+            Transform targetPoint = spawnPoints[spawnIndex % spawnPoints.Length];
+
+            return (targetPoint.position, targetPoint.rotation);
+        }
+
+        // 스폰 포인트가 없을 경우 기본값 반환
+        Debug.LogWarning("[GameSceneManager] 스폰 포인트를 찾지 못해 기본 위치를 반환합니다.");
+        return (Vector3.zero, Quaternion.identity);
+    }
 
     ///// <summary>
     ///// 모든 클라이언트가 씬 로딩을 마쳤을 때 호출되는 콜백 (서버에서 실행)
@@ -77,7 +101,7 @@ public class GameSceneManager : NetworkBehaviour
     //private void OnAllClientsLoaded(string sceneName, LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
     //{
     //    // 1. 인게임 씬인지 확인 (타이틀/로비 씬 제외)
-      
+
     //    if (sceneName == "KJY_Lobby") // 이동할 로비 씬 이름
     //    {
     //        foreach (ulong clientId in clientsCompleted)
@@ -86,7 +110,7 @@ public class GameSceneManager : NetworkBehaviour
     //        }
     //    }
     //}
-    
+
     private void OnClientConnected(ulong clientId)
     {
         // 현재 로비 씬인 경우에만 즉시 스폰을 시도합니다.

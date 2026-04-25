@@ -33,6 +33,8 @@ public class PlayerController : NetworkBehaviour
     private int _currentSpectateIndex = -1;
     private PlayerAnim playerAnim;
 
+    bool isReturningToLobby = false; // 클래스 멤버 변수로 추가
+
     private void Awake()
     {
         StateManager = GetComponent<PlayerStateManager>();
@@ -271,7 +273,7 @@ public class PlayerController : NetworkBehaviour
 
     void CheckAllPlayersDead()
     {
-        if (!IsServer) return;
+        if (!IsServer || isReturningToLobby) return; // 이미 진행 중이면 무시
 
         bool areAllDead = true;
         foreach (var player in AllPlayers)
@@ -285,6 +287,7 @@ public class PlayerController : NetworkBehaviour
 
         if (areAllDead)
         {
+            isReturningToLobby = true; // 플래그 설정
             Debug.Log("모든 플레이어 사망. 3초 후 로비로 이동합니다.");
             StartCoroutine(ReturnToLobbyWithDelay());
         }
@@ -305,13 +308,23 @@ public class PlayerController : NetworkBehaviour
                 }
             }
 
-            for (int i = AllPlayers.Count - 1; i >= 0; i--)
+            List<PlayerController> targets = new List<PlayerController>(AllPlayers);
+            foreach (var player in targets)
             {
-                if (AllPlayers[i] != null)
+                if (player != null)
                 {
-                    AllPlayers[i].RevivePlayer();
+                    player.RevivePlayer();
                 }
             }
+
+
+            //for (int i = AllPlayers.Count - 1; i >= 0; i--)
+            //{
+            //    if (AllPlayers[i] != null)
+            //    {
+            //        AllPlayers[i].RevivePlayer();
+            //    }
+            //}
 
             // 2. 모든 플레이어 부활 처리
             //foreach (var player in AllPlayers)
@@ -319,14 +332,15 @@ public class PlayerController : NetworkBehaviour
             //    player.RevivePlayer();
             //}
 
-            var playersToRevive = new List<PlayerController>(AllPlayers);
-            foreach (var player in playersToRevive)
-            {
-                player.RevivePlayer();
-            }
+            //var playersToRevive = new List<PlayerController>(AllPlayers);
+            //foreach (var player in playersToRevive)
+            //{
+            //    player.RevivePlayer();
+            //}
 
             GameSessionManager.Instance.CleanupAllItemsInScene();
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(1.5f);
+            isReturningToLobby = false;
 
             // 3. 로비 씬으로 이동
             GameSceneManager.Instance.LoadNetworkScene("KJY_Lobby");
@@ -361,6 +375,19 @@ public class PlayerController : NetworkBehaviour
             StateManager.currentHealth.Value = Data.maxHealth; // 명시적으로 HP 풀로 채움
             StateManager.ResetStatus();
         }
+        //ReviveClientRpc();
+        if (GameSceneManager.Instance != null)
+        {
+            var spawnData = GameSceneManager.Instance.GetSpawnPoint(OwnerClientId);
+
+            // 획득한 위치로 클라이언트들 텔레포트 명령
+            TeleportToSpawnClientRpc(spawnData.position, spawnData.rotation);
+        }
+        else
+        {
+            Debug.LogError("GameSceneManager 인스턴스를 찾을 수 없습니다!");
+        }
+
         ReviveClientRpc();
     }
 
