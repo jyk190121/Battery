@@ -33,8 +33,6 @@ public class PlayerController : NetworkBehaviour
     private int _currentSpectateIndex = -1;
     private PlayerAnim playerAnim;
 
-    bool isReturningToLobby = false; // 클래스 멤버 변수로 추가
-
     private void Awake()
     {
         StateManager = GetComponent<PlayerStateManager>();
@@ -169,6 +167,9 @@ public class PlayerController : NetworkBehaviour
                 {
                     playerRotation.SetSpectatingTarget(targetRot);
                     Debug.Log($"[관전 전환] {targetPlayer.gameObject.name} 시점으로 전환");
+                    // 2. [중요] 타겟의 현재 네트워크 회전값을 내 로컬 변수에 즉시 강제 할당
+                    // 이 처리를 안 해주면 다음 네트워크 업데이트가 올 때까지 이전 타겟(혹은 내 시점)을 봅니다.
+                    playerRotation.ForceSyncRotation(targetRot.NetHorizontalRotation.Value, targetRot.NetVerticalRotation.Value);
                     return; // 찾았으므로 종료
                 }
             }
@@ -273,7 +274,7 @@ public class PlayerController : NetworkBehaviour
 
     void CheckAllPlayersDead()
     {
-        if (!IsServer || isReturningToLobby) return; // 이미 진행 중이면 무시
+        if (!IsServer) return; // 이미 진행 중이면 무시
 
         bool areAllDead = true;
         foreach (var player in AllPlayers)
@@ -287,72 +288,81 @@ public class PlayerController : NetworkBehaviour
 
         if (areAllDead)
         {
-            isReturningToLobby = true; // 플래그 설정
             Debug.Log("모든 플레이어 사망. 3초 후 로비로 이동합니다.");
             StartCoroutine(ReturnToLobbyWithDelay());
         }
     }
     IEnumerator ReturnToLobbyWithDelay()
     {
-        yield return new WaitForSeconds(2f);
+        if (!IsServer) yield break;
 
-        if (IsServer)
+        // 1. 정리 로직 (몬스터, 아이템 등)
+        MonsterController[] remainingMonsters = FindObjectsByType<MonsterController>(FindObjectsSortMode.None);
+        foreach (var monster in remainingMonsters)
         {
-            // 1. 모든 몬스터 정리 (로비 가기 전 서버에서 실행)
-            MonsterController[] remainingMonsters = FindObjectsByType<MonsterController>(FindObjectsSortMode.None);
-            foreach (var monster in remainingMonsters)
-            {
-                if (monster.NetworkObject != null && monster.NetworkObject.IsSpawned)
-                {
-                    monster.NetworkObject.Despawn(); // 서버에서 디스폰하면 모든 클라에서 사라짐
-                }
-            }
-
-            List<PlayerController> targets = new List<PlayerController>(AllPlayers);
-            foreach (var player in targets)
-            {
-                if (player != null)
-                {
-                    player.RevivePlayer();
-                }
-            }
-
-
-            //for (int i = AllPlayers.Count - 1; i >= 0; i--)
-            //{
-            //    if (AllPlayers[i] != null)
-            //    {
-            //        AllPlayers[i].RevivePlayer();
-            //    }
-            //}
-
-            // 2. 모든 플레이어 부활 처리
-            //foreach (var player in AllPlayers)
-            //{
-            //    player.RevivePlayer();
-            //}
-
-            //var playersToRevive = new List<PlayerController>(AllPlayers);
-            //foreach (var player in playersToRevive)
-            //{
-            //    player.RevivePlayer();
-            //}
-
-            GameSessionManager.Instance.CleanupAllItemsInScene();
-            yield return new WaitForSeconds(1.5f);
-            isReturningToLobby = false;
-
-            // 3. 로비 씬으로 이동
-            GameSceneManager.Instance.LoadNetworkScene("KJY_Lobby");
+            if (monster.NetworkObject != null && monster.NetworkObject.IsSpawned)
+                monster.NetworkObject.Despawn();
         }
-        //// 모든 플레이어 부활 처리 (로비 가기 전 데이터 세팅)
-        //foreach (var player in AllPlayers)
+        GameSessionManager.Instance.CleanupAllItemsInScene();
+
+        // 2. 잠시 대기 (사망 연출을 보여줌)
+        yield return new WaitForSeconds(3.0f);
+
+        // 3. 로비 이동 전 데이터 초기화 (이때 부활시키면 씬 전환 중에 깔끔하게 세팅됨)
+        foreach (var player in AllPlayers)
+        {
+            if (player != null) player.RevivePlayer();
+        }
+
+        // 4. 로비 씬으로 이동
+        GameSceneManager.Instance.LoadNetworkScene("KJY_Lobby");
+
+        //if (IsServer)
         //{
-        //    player.RevivePlayer();
+        //    // 1. 모든 몬스터 정리 (로비 가기 전 서버에서 실행)
+        //    MonsterController[] remainingMonsters = FindObjectsByType<MonsterController>(FindObjectsSortMode.None);
+        //    foreach (var monster in remainingMonsters)
+        //    {
+        //        if (monster.NetworkObject != null && monster.NetworkObject.IsSpawned)
+        //        {
+        //            monster.NetworkObject.Despawn(); // 서버에서 디스폰하면 모든 클라에서 사라짐
+        //        }
+        //    }
+        //    GameSessionManager.Instance.CleanupAllItemsInScene();
+
+        //    foreach (var player in AllPlayers)
+        //    {
+        //        if (player != null) player.RevivePlayer();
+        //    }
+
+
+        //    //for (int i = AllPlayers.Count - 1; i >= 0; i--)
+        //    //{
+        //    //    if (AllPlayers[i] != null)
+        //    //    {
+        //    //        AllPlayers[i].RevivePlayer();
+        //    //    }
+        //    //}
+
+        //    // 2. 모든 플레이어 부활 처리
+        //    //foreach (var player in AllPlayers)
+        //    //{
+        //    //    player.RevivePlayer();
+        //    //}
+
+        //    //var playersToRevive = new List<PlayerController>(AllPlayers);
+        //    //foreach (var player in playersToRevive)
+        //    //{
+        //    //    player.RevivePlayer();
+        //    //}
+
+        //    yield return new WaitForSeconds(3.0f);
+
+        //    // 3. 로비 씬으로 이동
+        //    GameSceneManager.Instance.LoadNetworkScene("KJY_Lobby");
+
+        //    yield return new WaitUntil(() => UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "KJY_Lobby");
         //}
-        //// 로비 씬으로 이동 (NetworkSceneManager 사용 권장)
-        ////NetworkManager.SceneManager.LoadScene("KJY_Lobby", UnityEngine.SceneManagement.LoadSceneMode.Single);
-        //GameSceneManager.Instance.LoadNetworkScene("KJY_Lobby");
     }
 
     public void RevivePlayer()
@@ -376,17 +386,6 @@ public class PlayerController : NetworkBehaviour
             StateManager.ResetStatus();
         }
         //ReviveClientRpc();
-        if (GameSceneManager.Instance != null)
-        {
-            var spawnData = GameSceneManager.Instance.GetSpawnPoint(OwnerClientId);
-
-            // 획득한 위치로 클라이언트들 텔레포트 명령
-            TeleportToSpawnClientRpc(spawnData.position, spawnData.rotation);
-        }
-        else
-        {
-            Debug.LogError("GameSceneManager 인스턴스를 찾을 수 없습니다!");
-        }
 
         ReviveClientRpc();
     }
@@ -409,28 +408,19 @@ public class PlayerController : NetworkBehaviour
     void OnDeadStatusChanged(bool previousValue, bool newValue)
     {
         if (playerAnim == null) playerAnim = GetComponent<PlayerAnim>();
+        if (playerRotation == null) playerRotation = GetComponent<PlayerRotation>();
 
         if (newValue) // newValue가 true이면 사망
         {
-            playerAnim.PlayDead();
             PerformDeathEffects();
 
             StartCoroutine(HideModelAfterDelay(1.5f));
-
-            // 관전 모드 시작 (본인인 경우에만)
-            if (IsOwner)
-            {
-                StartCoroutine(StartSpectating());
-            }
+            if (IsOwner) StartCoroutine(StartSpectating());
         }
         else
         {
             StopAllCoroutines();
-
             if (playerModel != null) playerModel.SetActive(true);
-
-            playerAnim.PlayRevive();
-            playerAnim.ResetAnimation();
             PerformReviveEffects();
         }
     }
@@ -448,54 +438,33 @@ public class PlayerController : NetworkBehaviour
         _currentSpectateIndex = -1; // 초기화하여 리스트 처음부터 찾게 함
         SwitchToNextTarget();
 
-        //// 살아있는 다른 플레이어 찾기
-        //PlayerRotation target = FindSpectatableTarget();
+        //PlayerRotation target = playerRotation.GetSpectatingTarget();
+
         //if (target != null)
         //{
-        //    // PlayerRotation에 새로 만든 동기화 함수 호출
-        //    playerRotation.SetSpectatingTarget(target);
-        //    Debug.Log($"[관전] {target.gameObject.name} 시점으로 전환합니다.");
+        //    Debug.Log($"[관전 시작] 첫 타겟 {target.gameObject.name} 시점 즉시 동기화");
+
+        //    if (target != null)
+        //    {
+        //        if (target.TryGetComponent<PlayerRotation>(out var targetRot) &&
+        //            TryGetComponent<PlayerRotation>(out var myRot))
+        //        {
+        //            if (myRot.vcam != null)
+        //            {
+        //                // [추가] 내 카메라의 마우스 회전 입력을 끄고 정렬함
+        //                myRot.SetSpectatingMode(true);
+
+        //                myRot.vcam.Follow = targetRot.cameraTarget;
+        //                // LookAt을 빼버리면 카메라가 Follow 대상의 회전(시야 방향)을 그대로 따릅니다.
+        //                myRot.vcam.LookAt = null;
+
+        //                Debug.Log($"{target.gameObject.name}의 시점을 관전합니다.");
+        //            }
+        //            myRot.vcam.ForceCameraPosition(targetRot.cameraTarget.position, targetRot.cameraTarget.rotation);
+        //        }
+
+        //    }
         //}
-
-        PlayerRotation target = playerRotation.GetSpectatingTarget();
-
-        if (target != null)
-        {
-            Debug.Log($"[관전 시작] 첫 타겟 {target.gameObject.name} 시점 즉시 동기화");
-
-            //if (targetPlayer.TryGetComponent<PlayerRotation>(out var targetRot) &&
-            //    TryGetComponent<PlayerRotation>(out var myRot))
-            //{
-            //    if (myRot.vcam != null)
-            //    {
-            //        myRot.vcam.Follow = targetRot.cameraTarget;
-            //        myRot.vcam.LookAt = targetRot.cameraTarget;
-            //        Debug.Log($"{targetPlayer.gameObject.name}의 시점을 관전합니다.");
-            //    }
-            //}
-            if (target != null)
-            {
-                if (target.TryGetComponent<PlayerRotation>(out var targetRot) &&
-                    TryGetComponent<PlayerRotation>(out var myRot))
-                {
-                    if (myRot.vcam != null)
-                    {
-                        // [추가] 내 카메라의 마우스 회전 입력을 끄고 정렬함
-                        myRot.SetSpectatingMode(true);
-
-                        myRot.vcam.Follow = targetRot.cameraTarget;
-                        // LookAt을 빼버리면 카메라가 Follow 대상의 회전(시야 방향)을 그대로 따릅니다.
-                        myRot.vcam.LookAt = null;
-
-                        Debug.Log($"{target.gameObject.name}의 시점을 관전합니다.");
-                    }
-                    myRot.vcam.ForceCameraPosition(targetRot.cameraTarget.position, targetRot.cameraTarget.rotation);
-                }
-
-            }
-        }
-
-        yield return new WaitForSeconds(1.0f);
     }
 
     //PlayerRotation FindSpectatableTarget()
@@ -530,24 +499,27 @@ public class PlayerController : NetworkBehaviour
 
     void PerformDeathEffects()
     {
-        // 1. 사망 애니메이션 실행
-        if (GetComponent<PlayerAnim>() != null)
-        {
-            GetComponent<PlayerAnim>().PlayDead();
-        }
+        //// 1. 사망 애니메이션 실행
+        //if (GetComponent<PlayerAnim>() != null)
+        //{
+        //    GetComponent<PlayerAnim>().PlayDead();
+        //}
 
-        // 2. 물리 및 충돌체 비활성화
-        var col = GetComponent<Collider>();
-        if (col != null) col.enabled = false;
-
-        var rb = GetComponent<Rigidbody>();
-        if (rb != null) rb.isKinematic = true; // 물리 엔진 영향 중단
-
+        playerAnim.PlayDead();
         // 3. 조작 스크립트들 비활성화
         if (TryGetComponent(out PlayerMove move)) move.enabled = false;
         //if (TryGetComponent(out PlayerRotation rot)) rot.enabled = false;
         if (TryGetComponent(out PlayerInteraction interact)) interact.enabled = false;
         if (TryGetComponent(out PlayerEquipment equip)) equip.enabled = false;
+
+        StartCoroutine(DisablePhysicsWithDelay(0.5f));
+
+        //// 2. 물리 및 충돌체 비활성화
+        //var col = GetComponent<Collider>();
+        //if (col != null) col.enabled = false;
+
+        //var rb = GetComponent<Rigidbody>();
+        //if (rb != null) rb.isKinematic = true; // 물리 엔진 영향 중단
 
         if (IsOwner)
         {
@@ -559,17 +531,36 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
+    IEnumerator DisablePhysicsWithDelay(float delay)
+    {
+        // 캐릭터가 쓰러지는 초기 동작 동안은 중력을 받도록 기다림
+        yield return new WaitForSeconds(delay);
+
+        var col = GetComponent<Collider>();
+        if (col != null) col.enabled = false;
+
+        var rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero; // 남은 속도 제거
+            rb.isKinematic = true;            // 물리 정지
+        }
+    }
+
     void PerformReviveEffects()
     {
         Debug.Log($"{gameObject.name}가 부활");
 
         if (playerModel != null) playerModel.SetActive(true);
 
-        // 1. 애니메이션 리셋 (누워있는 상태에서 일어나는 상태로)
-        if (TryGetComponent(out PlayerAnim anim))
-        {
-            anim.ResetAnimation();
-        }
+        playerAnim.ResetAnimation();
+        playerAnim.PlayRevive();
+
+        //// 1. 애니메이션 리셋 (누워있는 상태에서 일어나는 상태로)
+        //if (TryGetComponent(out PlayerAnim anim))
+        //{
+        //    anim.ResetAnimation();
+        //}
 
         // 2. 물리 및 충돌체 다시 켜기
         var col = GetComponent<Collider>();
@@ -630,6 +621,13 @@ public class PlayerController : NetworkBehaviour
         // Owner(본인)만 본인의 위치를 제어할 수 있는 권한이 있음
         if (IsOwner)
         {
+            // 1. 물리 속도 초기화 (이전 씬의 움직임이 남지 않도록)
+            if (TryGetComponent(out Rigidbody rb))
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
+
             if (TryGetComponent(out Unity.Netcode.Components.NetworkTransform nt))
             {
                 // 본인이 호출하므로 에러가 발생하지 않음
@@ -637,9 +635,7 @@ public class PlayerController : NetworkBehaviour
             }
             else
             {
-                // NetworkTransform이 없다면 일반 transform 수정
-                transform.position = position;
-                transform.rotation = rotation;
+                transform.SetPositionAndRotation(position, rotation);
             }
         }
     }
