@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 9052848648663012245}
   - component: {fileID: 2722666254282403156}
   - component: {fileID: 2077227735299391530}
+  - component: {fileID: -6454045536833367184}
   m_Layer: 0
   m_Name: VoiceSpeaker
   m_TagString: Untagged
@@ -148,3 +149,20 @@ MonoBehaviour:
     Max: 1000
     SpeedUpPerc: 5
   restartOnDeviceChange: 1
+--- !u!114 &-6454045536833367184
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1170424731464680681}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f231686e02a8cd748b652da7c7a360cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VoiceController
+  defaultMixer: {fileID: -352877016261712758, guid: b5242f4e9a7190c44a2eeaf43ce36f51, type: 2}
+  phoneMixer: {fileID: -6641118869394587661, guid: b5242f4e9a7190c44a2eeaf43ce36f51, type: 2}
+  horizontalTransitionDistance: 15
+  verticalFloorLimit: 10
+  highFidelityThreshold: 0.4

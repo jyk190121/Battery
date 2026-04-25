@@ -1044,6 +1044,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: UI
       objectReference: {fileID: 0}
+    - target: {fileID: 5146883445117055760, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+      propertyPath: speakerPrefab
+      value: 
+      objectReference: {fileID: 1170424731464680681, guid: 8da02f6a157eff3459ee07bd901781fd, type: 3}
     - target: {fileID: 5213042443106156266, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
       propertyPath: m_LocalPosition.x
       value: 850.6606
