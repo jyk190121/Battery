@@ -84,12 +84,6 @@ public class PlayerNameSync : NetworkBehaviour
             OnNicknameSynced?.Invoke(safeNick, transform);
         }
 
-        // 보이스 채팅 연결 (본인인 경우에만 최초 1회 실행되도록 로직 필요)
-        if (IsOwner && GlobalVoiceManager.Instance != null)
-        {
-            GlobalVoiceManager.Instance.ConnectVoice(safeNick);
-        }
-
         OnPlayerRosterChanged?.Invoke();
     }
 

@@ -95,34 +95,34 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         }
     }
     #region 포톤 서비스 순서 정렬을 위한 로직 추가
+
+    private bool _isVoiceConnecting = false;
     public override void OnNetworkSpawn()
     {
-        if (IsServer)
-        {
-            NetworkManager.Singleton.OnClientConnectedCallback += HandleNetcodeConnected;
-        }
-
-        if (IsClient && IsOwner)
-        {
-            HandleNetcodeConnected(NetworkManager.Singleton.LocalClientId);
-        }
+        _isVoiceConnecting = false;
+        HandleNetcodeConnected(NetworkManager.Singleton.LocalClientId);
     }
 
     private void HandleNetcodeConnected(ulong clientId)
     {
         if (clientId == NetworkManager.Singleton.LocalClientId)
         {
+            if (_isVoiceConnecting) return; // 이미 실행 중이면 튕겨냄
+            _isVoiceConnecting = true;
+
             StartCoroutine(InitializePhotonServicesRoutine());
         }
     }
 
     IEnumerator InitializePhotonServicesRoutine()
     {
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(1.0f);
 
         if (GlobalVoiceManager.Instance != null)
         {
-            //GlobalVoiceManager.Instance.InitVoice(PlayerNickname);
+            // [수정] 내 닉네임과, 현재 접속한 세션의 고유 ID를 보이스 매니저에 전달합니다!
+            GlobalVoiceManager.Instance.ConnectVoice(PlayerNickname, CurrentChannelId);
+            Debug.Log($"[Multiplayer] 포톤 보이스 서버 접속 요청 완료 (방: {CurrentChannelId})");
         }
     }
 
