@@ -261,7 +261,7 @@ public class PlayerRotation : NetworkBehaviour
     #region 사망 시 로테이션 변경 점 처리 함수
     void HandleSpectatingLogic()
     {
-        if (_spectatingTarget == null) return;
+        if (_spectatingTarget == null || vcam == null) return;
 
         // 타겟의 눈 위치로 카메라 이동
         if (_spectatingTarget.cameraTarget != null)
@@ -288,7 +288,7 @@ public class PlayerRotation : NetworkBehaviour
 
         if (CameraGroup != null) CameraGroup.transform.rotation = targetRot;
 
-        vcam.Lens.Dutch = 0; // 화면 기울기 완전 초기화
+        //vcam.Lens.Dutch = 0; // 화면 기울기 완전 초기화
     }
     //void ApplyTargetRotation()
     //{
@@ -365,20 +365,18 @@ public class PlayerRotation : NetworkBehaviour
 
         if (_isSpectating)
         {
+            vcam.Follow = null;
+            vcam.LookAt = null;
+
             // [추가] 내 PanTilt 컴포넌트가 활성화되어 있다면 값을 타겟과 일치시킴
             // 이렇게 해야 HandleSpectatingLogic()이 실행될 때 튀지 않습니다.
-            if (_panTilt != null)
-            {
-                _panTilt.PanAxis.Value = target.NetHorizontalRotation.Value;
-                _panTilt.TiltAxis.Value = target.NetVerticalRotation.Value;
-                _panTilt.enabled = false; // 내 입력은 차단
-            }
+            if (_panTilt != null) _panTilt.enabled = false;
 
-            vcam.Follow = null;
-            vcam.Lens.Dutch = 0;
+            // 타겟 설정 직후 즉시 1회 강제 동기화
+            ForceSyncRotation(target.NetHorizontalRotation.Value, target.NetVerticalRotation.Value);
 
             // 즉시 로직 1회 강제 실행하여 위치/회전 고정
-            HandleSpectatingLogic();
+            //HandleSpectatingLogic();
         }
         else
         {
@@ -467,5 +465,18 @@ public class PlayerRotation : NetworkBehaviour
 
     // 관전 중인지 여부를 외부에서 확인하기 위한 프로퍼티 (선택 사항)
     public bool IsSpectating => _isSpectating;
+    // 외부에서 관전 대상을 바꿀 때 강제로 회전값을 맞추는 함수
+    public void ForceSyncRotation(float pan, float tilt)
+    {
+        if (_panTilt != null)
+        {
+            _panTilt.PanAxis.Value = pan;
+            _panTilt.TiltAxis.Value = tilt;
+        }
+
+        // 즉시 시각적 적용
+        HandleSpectatingLogic();
+    }
+
     #endregion
 }

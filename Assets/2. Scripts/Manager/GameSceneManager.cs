@@ -3,7 +3,6 @@ using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UIElements;
 
 public class GameSceneManager : NetworkBehaviour
 {
@@ -70,30 +69,30 @@ public class GameSceneManager : NetworkBehaviour
             NetworkManager.Singleton.SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
         }
     }
-    /// <summary>
-    /// 플레이어 리스폰 포지션 초기화
-    /// </summary>
-    /// <param name="clientId"></param>
-    /// <returns></returns>
+    ///// <summary>
+    ///// 플레이어 리스폰 포지션 초기화
+    ///// </summary>
+    ///// <param name="clientId"></param>
+    ///// <returns></returns>
 
-    public (Vector3 position, Quaternion rotation) GetSpawnPoint(ulong clientId)
-    {
-        // 1. 최신 스폰 포인트 정보 갱신
-        UpdateSpawnPoints();
+    //public (Vector3 position, Quaternion rotation) GetSpawnPoint(ulong clientId)
+    //{
+    //    // 1. 최신 스폰 포인트 정보 갱신
+    //    UpdateSpawnPoints();
 
-        if (spawnPoints != null && spawnPoints.Length > 0)
-        {
-            // 2. ClientId를 기반으로 배정된 인덱스 계산
-            int spawnIndex = GetSpawnIndex(clientId);
-            Transform targetPoint = spawnPoints[spawnIndex % spawnPoints.Length];
+    //    if (spawnPoints != null && spawnPoints.Length > 0)
+    //    {
+    //        // 2. ClientId를 기반으로 배정된 인덱스 계산
+    //        int spawnIndex = GetSpawnIndex(clientId);
+    //        Transform targetPoint = spawnPoints[spawnIndex % spawnPoints.Length];
 
-            return (targetPoint.position, targetPoint.rotation);
-        }
+    //        return (targetPoint.position, targetPoint.rotation);
+    //    }
 
-        // 스폰 포인트가 없을 경우 기본값 반환
-        Debug.LogWarning("[GameSceneManager] 스폰 포인트를 찾지 못해 기본 위치를 반환합니다.");
-        return (Vector3.zero, Quaternion.identity);
-    }
+    //    // 스폰 포인트가 없을 경우 기본값 반환
+    //    Debug.LogWarning("[GameSceneManager] 스폰 포인트를 찾지 못해 기본 위치를 반환합니다.");
+    //    return (Vector3.zero, Quaternion.identity);
+    //}
 
     ///// <summary>
     ///// 모든 클라이언트가 씬 로딩을 마쳤을 때 호출되는 콜백 (서버에서 실행)
@@ -124,11 +123,13 @@ public class GameSceneManager : NetworkBehaviour
     {
         if (sceneName == "KJY_Lobby" || sceneName == "KJY_Player")
         {
-            Debug.Log("[GameSceneManager] 로비 씬 로드 완료. 현재 접속된 모든 인원 스폰 시도");
             foreach (var clientId in clientsCompleted)
             {
+                // 해당 클라이언트의 플레이어 객체를 찾아 위치를 잡아줍니다.
                 SpawnPlayerAtPosition(clientId);
             }
+
+            // 게임 세션 초기화가 필요한 경우 호출
             RequestStartGameServerRpc();
         }
     }
@@ -151,8 +152,10 @@ public class GameSceneManager : NetworkBehaviour
     {
         if (!IsServer) return;
 
+        // 1. 현재 씬에서 "PlayerSpawnZone"을 찾아 spawnPoints 배열 갱신
         UpdateSpawnPoints();
 
+        // 2. 위치 데이터 계산
         Vector3 spawnPos = Vector3.zero;
         Quaternion spawnRot = Quaternion.identity;
 
@@ -171,58 +174,12 @@ public class GameSceneManager : NetworkBehaviour
             Debug.LogWarning("[GameSceneManager] 스폰 포인트가 없어 zero 좌표를 사용합니다.");
         }
 
-        // ★ 핵심: 계산된 좌표를 FinalizeSpawn에 전달하여 실제 생성/이동 수행
         FinalizeSpawn(clientId, spawnPos, spawnRot);
-
-        //if (spawnPoints == null || spawnPoints.Length == 0)
-        //{
-        //    Debug.LogWarning("스폰 포인트가 씬에 존재하지 않습니다.");
-        //    FinalizeSpawn(clientId, Vector3.zero, Quaternion.identity);
-        //    return;
-        //}
-
-        //int spawnIndex = GetSpawnIndex(clientId);
-        //Transform targetPoint = spawnPoints[spawnIndex % spawnPoints.Length];
-        //Vector3 spawnPos = targetPoint.position;
-        //Quaternion spawnRot = targetPoint.rotation;
-
-        //if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client))
-        //{
-        //    // 기존 객체가 있다면? 위치만 옮겨주고 종료 (부활 처리)
-        //    if (client.PlayerObject != null)
-        //    {
-        //        // NetworkTransform을 사용하는 경우 Teleport 기능을 사용해야 부드럽게 동기화됩니다.
-        //        var networkTransform = client.PlayerObject.GetComponent<NetworkTransform>();
-        //        if (networkTransform != null)
-        //        {
-        //            networkTransform.Teleport(spawnPos, spawnRot, client.PlayerObject.transform.localScale);
-        //        }
-        //        else
-        //        {
-        //            //client.PlayerObject.transform.position = targetPoint.position;
-        //            //client.PlayerObject.transform.rotation = targetPoint.rotation;
-        //            client.PlayerObject.transform.SetPositionAndRotation(spawnPos, spawnRot);
-        //        }
-
-        //        // 필요하다면 체력 리셋 로직도 여기서 호출
-        //        // client.PlayerObject.GetComponent<PlayerStateManager>().ResetHealth();
-        //        return;
-        //    }
-        //}
-
-        //// 2. 이름으로 프리팹 찾기
-        //var networkPrefab = NetworkManager.Singleton.NetworkConfig.Prefabs.Prefabs
-        //    .FirstOrDefault(p => p.Prefab.name == playerPrefabName);
-
-        //if(networkPrefab != null && networkPrefab.Prefab != null)
-        //{
-        //    GameObject playerObj = Instantiate(networkPrefab.Prefab, spawnPos, spawnRot);
-        //    var networkObj = playerObj.GetComponent<NetworkObject>();
-        //    networkObj.SpawnAsPlayerObject(clientId);
-        //}
     }
     void FinalizeSpawn(ulong clientId, Vector3 pos, Quaternion rot)
     {
+        if (!IsServer) return;
+
         if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client))
         {
             // A. 이미 플레이어 객체가 있는 경우 (씬 이동 시 위치 재설정)
@@ -231,11 +188,12 @@ public class GameSceneManager : NetworkBehaviour
                 var pc = client.PlayerObject.GetComponent<PlayerController>();
                 if (pc != null)
                 {
+                    pc.RevivePlayer();
+
                     // [중요] 서버에서 직접 바꾸지 않고, 권한을 가진 Owner 클라이언트에게 이동을 명령합니다.
                     pc.TeleportToSpawnClientRpc(pos, rot);
                 }
             }
-            // B. 플레이어 객체가 없는 경우 (최초 스폰)
             else
             {
                 var networkPrefab = NetworkManager.Singleton.NetworkConfig.Prefabs.Prefabs
