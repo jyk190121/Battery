@@ -158,8 +158,8 @@ GameObject:
   - component: {fileID: 6737483484655814712}
   - component: {fileID: 8351278791248112915}
   - component: {fileID: 3727254929513963575}
-  - component: {fileID: 3667305727083535738}
   - component: {fileID: 6846908254052586561}
+  - component: {fileID: 1281402268441430290}
   - component: {fileID: 6664900567721981824}
   m_Layer: 9
   m_Name: Door_G_Door
@@ -262,7 +262,29 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.2119231, y: 2.0852115, z: 0.2}
   m_Center: {x: -0.6058681, y: 0.00000035762787, z: -0.00000013038516}
---- !u!114 &3667305727083535738
+--- !u!114 &6846908254052586561
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6350125821750604089}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27d4d754ff13abb45bb44b5097232cd6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DoorController
+  ShowTopMostFoldoutHeaderGroup: 1
+  doorType: 1
+  isOpen:
+    m_InternalValue: 0
+  isLocked:
+    m_InternalValue: 0
+  requiredKeyID: 
+  speed: 6
+  openAngle: 90
+  openOffset: {x: -1.1, y: 0, z: 0}
+--- !u!114 &1281402268441430290
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -287,28 +309,6 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
---- !u!114 &6846908254052586561
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6350125821750604089}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 27d4d754ff13abb45bb44b5097232cd6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DoorController
-  ShowTopMostFoldoutHeaderGroup: 1
-  doorType: 1
-  isOpen:
-    m_InternalValue: 0
-  isLocked:
-    m_InternalValue: 0
-  requiredKeyID: 
-  speed: 6
-  openAngle: 90
-  openOffset: {x: -1.1, y: 0, z: 0}
 --- !u!208 &6664900567721981824
 NavMeshObstacle:
   m_ObjectHideFlags: 0
