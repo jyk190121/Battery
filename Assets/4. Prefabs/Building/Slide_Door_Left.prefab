@@ -159,7 +159,7 @@ GameObject:
   - component: {fileID: 321855038418399237}
   - component: {fileID: 3626840880881055687}
   - component: {fileID: 511169298838535285}
-  - component: {fileID: 80378033232161009}
+  - component: {fileID: 3720724212307072609}
   - component: {fileID: 6219865890449106254}
   m_Layer: 9
   m_Name: Door_G_Door
@@ -284,7 +284,7 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.2119231, y: 2.0852115, z: 0}
   m_Center: {x: -0.6058681, y: 0.00000035762787, z: 0.0000017769635}
---- !u!114 &80378033232161009
+--- !u!114 &3720724212307072609
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
