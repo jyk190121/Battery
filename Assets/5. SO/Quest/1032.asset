@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: 1032
   m_EditorClassIdentifier: Assembly-CSharp::QuestDataSO
   questID: 1032
-  questName: "\uC625\uC0C1\uC5D0 \uC778\uD615 \uAC16\uB2E4 \uB193\uAE30"
+  questName: "\uC625\uC0C1\uC5D0 \uC778\uD615 \uBE44\uCE58"
   description: "\uC625\uC0C1\uC5D0 \uC778\uD615 \uAC16\uB2E4\uB193\uC544 \uC8FC\uC138\uC694."
   type: 1
   baseReward: 1000

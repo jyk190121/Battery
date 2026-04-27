@@ -154,12 +154,13 @@ public class PlayerInventory : NetworkBehaviour
             Vector3 lookDir = Camera.main.transform.forward;
             heldItem.RequestUseItem(lookDir);
 
-            // 2. 소모품 처리 (섬광탄인 경우 인벤토리에서 즉시 제거)
             if (heldItem is Item_Flashbang)
             {
-                ConsumeItemFromInventory(heldItem);
+                ClearItemReference(heldItem);
             }
+
         }
+
     }
 
     private void ConsumeItemFromInventory(ItemBase item)
@@ -558,6 +559,13 @@ public class PlayerInventory : NetworkBehaviour
         }
     }
 
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    public void RequestRemoveItemServerRpc(int itemID)
+    {
+        // 클라이언트의 요청을 받아 서버가 대신 마스터 함수를 실행해줍니다.
+        RemoveItemByServer(itemID);
+    }
+
     [Rpc(SendTo.Everyone)]
     private void NotifySyncItemRemovedClientRpc(int slotIdx, bool isTwoHand)
     {
@@ -618,22 +626,47 @@ public class PlayerInventory : NetworkBehaviour
     {
         if (item == null) return;
 
-        // 1. 내 주머니(배열)에서 비우기 (UI 업데이트 포함)
-        ConsumeItemFromInventory(item);
-
-        // 2. 서버에 해당 오브젝트를 게임 세상에서 지워달라고 요청
-        if (item.NetworkObject != null)
+        if (IsServer)
         {
             RemoveItemByServer(item.itemData.itemID);
         }
+        else
+        {
+            RequestRemoveItemServerRpc(item.itemData.itemID);
+        }
     }
 
-   
+
 
     public void SetControlLock(bool locked)
     {
         isControlLocked = locked;
         if (locked) ClearHighlight(); 
     }
+    public void ClearItemReference(ItemBase item)
+    {
+        if (item == twoHandedItem)
+        {
+            twoHandedItem = null;
+            if (IsOwner) OnTwoHandedToggled?.Invoke(false);
+        }
+        else
+        {
+            for (int i = 0; i < slots.Length; i++)
+            {
+                if (slots[i] == item)
+                {
+                    slots[i] = null;
+                    break;
+                }
+            }
+        }
 
+        // 내 화면(UI) 즉시 새로고침
+        if (IsOwner)
+        {
+            OnInventoryUpdated?.Invoke();
+            OnSlotChanged?.Invoke(currentSlotIndex);
+        }
+    }
 }

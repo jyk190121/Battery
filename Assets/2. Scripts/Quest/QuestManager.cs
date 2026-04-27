@@ -106,14 +106,30 @@ public class QuestManager : NetworkBehaviour
 
     #region [판정 및 정산 로직]
 
+    // QuestManager.cs 의 NotifyItemCollected 수정
+
     public void NotifyItemCollected(int itemID, ulong solverId)
     {
         if (!IsServer) return;
+
+        Debug.Log($"<color=cyan><b>[Quest 매니저]</b></color> 수집 보고 수신: ID {itemID} (제출자: {solverId}). 활성 퀘스트 대조 시작...");
+
+        bool isMatched = false;
         foreach (int qId in activeQuests)
         {
             var data = GetQuestData(qId);
             if (data != null && data.type == QuestType.Collect && data.targetItemID == itemID)
+            {
+                Debug.Log($"<color=lime><b>[Quest 매치 성공!]</b></color> 현재 활성 퀘스트 [{data.questName}]의 목표 아이템과 일치합니다.");
                 CompleteQuest(qId, solverId);
+                isMatched = true;
+                break; // 1:1 구조이므로 찾으면 중단
+            }
+        }
+
+        if (!isMatched)
+        {
+            Debug.LogWarning($"<color=orange><b>[Quest 매치 실패]</b></color> ID {itemID} 아이템이 감지되었으나, 현재 수락한 수집 퀘스트 목록에 해당 아이템을 요구하는 퀘스트가 없습니다.");
         }
     }
 
