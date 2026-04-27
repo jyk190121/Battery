@@ -72,7 +72,7 @@ public class InteractDoorState : MonsterBaseState
     protected override void OnTick()
     {
         // 내가 문을 열기 전에 이미 누군가(또는 스스로 열리는 문) 문을 열었다면 대기 취소 후 즉시 추격 전환
-        if (owner.TargetDoor != null && owner.TargetDoor.isOpen)
+        if (owner.TargetDoor != null && owner.TargetDoor.isOpen.Value)
         {
             owner.ChangeState(MonsterStateType.Chase);
         }
