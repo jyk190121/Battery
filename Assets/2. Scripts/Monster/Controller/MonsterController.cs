@@ -313,7 +313,7 @@ public class MonsterController : NetworkBehaviour
             var hit = _doorHitColliders[i];
             DoorController door = hit.GetComponentInParent<DoorController>();
 
-            if (door != null && !door.isOpen)
+            if (door != null && !door.isOpen.Value)
             {
                 Vector3 dirToDoor = (hit.bounds.center - transform.position).normalized;
 
