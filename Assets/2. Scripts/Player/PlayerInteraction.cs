@@ -135,7 +135,7 @@ public class PlayerInteraction : NetworkBehaviour
                         string myKeyID = heldItem?.itemData?.keyID ?? "";
 
                         // 열쇠와 문의 판정
-                        if (targetDoor.isLocked && !targetDoor.isOpen && targetDoor.requiredKeyID == myKeyID && !string.IsNullOrEmpty(myKeyID))
+                        if (targetDoor.isLocked.Value && !targetDoor.isOpen.Value && targetDoor.requiredKeyID == myKeyID && !string.IsNullOrEmpty(myKeyID))
                         {
                             // 문 Open.
                             targetDoor.TryOpen(myKeyID);
@@ -208,7 +208,7 @@ public class PlayerInteraction : NetworkBehaviour
 
                 if (targetDoor != null)
                 {
-                    interactText.text = (targetDoor.isLocked && !targetDoor.isOpen) ? "Locked (E)" : (targetDoor.isOpen ? "Close (E)" : "Open (E)");
+                    interactText.text = (targetDoor.isLocked.Value && !targetDoor.isOpen.Value) ? "Locked (E)" : (targetDoor.isOpen.Value ? "Close (E)" : "Open (E)");
                 }
                 else if (targetPortal != null)
                 {
