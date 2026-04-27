@@ -93,6 +93,14 @@ public class PlayerRotation : NetworkBehaviour
         // 관전자 입장에서 타겟의 회전값이 변할 때마다 즉시 반응
         NetHorizontalRotation.OnValueChanged += UpdateRotationFromNetwork;
         NetVerticalRotation.OnValueChanged += UpdateRotationFromNetwork;
+
+        // 사망 상태가 변할 때(부활할 때) 회전값을 초기화하는 이벤트 등록
+        playerController.isDead.OnValueChanged += (oldVal, isDead) => {
+            if (IsOwner && !isDead) // 죽었다가 살아났을 때
+            {
+                ResetRotationOnRespawn();
+            }
+        };
     }
     public override void OnNetworkDespawn()
     {
@@ -102,6 +110,21 @@ public class PlayerRotation : NetworkBehaviour
             TabletUIManager.OnTabletStateChanged -= HandleTabletStateChanged;
         }
         base.OnNetworkDespawn();
+    }
+
+    // 부활 시 회전 초기화 함수
+    void ResetRotationOnRespawn()
+    {
+        if (_panTilt != null)
+        {
+            // 부활 시 정면을 바라보도록 설정
+            _panTilt.TiltAxis.Value = 0f;
+            // 렌즈 기울기(Dutch) 초기화
+            vcam.Lens.Dutch = 0;
+
+            // 현재 몸의 회전을 Pan에 동기화
+            _panTilt.PanAxis.Value = transform.eulerAngles.y;
+        }
     }
 
     // 태블릿이 열리거나 닫힐 때 호출되는 함수
@@ -201,6 +224,8 @@ public class PlayerRotation : NetworkBehaviour
         }
         else
         {
+            // 살아있을 때 시네머신 렌즈의 기울기를 확실히 0으로 밀어줌
+            //vcam.Lens.Dutch = Mathf.Lerp(vcam.Lens.Dutch, 0f, Time.deltaTime * transitionSpeed);
             // 살아있을 때 정상 회전
             ApplyLivingRotation();
         }
@@ -428,12 +453,24 @@ public class PlayerRotation : NetworkBehaviour
     {
         if (!IsOwner || vcam == null || _panTilt == null) return;
 
-        // 1. 시네머신 내부 렌즈 기울기 초기화
-        vcam.Lens.Dutch = 0;
+        //// 1. 시네머신 내부 렌즈 기울기 초기화
+        //vcam.Lens.Dutch = 0;
 
+        //Quaternion targetWorldRotation = Quaternion.Euler(_panTilt.TiltAxis.Value, _panTilt.PanAxis.Value, 0);
+
+        //vcam.ForceCameraPosition(cameraTarget.position + Vector3.up * 0.1f, targetWorldRotation);
+        //vcam.transform.rotation = targetWorldRotation;
+
+        // 1. 렌즈 기울기 초기화 (필요하다면 사망 시엔 살짝 기울여도 좋지만 일단 0으로)
+        vcam.Lens.Dutch = Mathf.Lerp(vcam.Lens.Dutch, 0f, Time.deltaTime * transitionSpeed);
+
+        // 2. 월드 회전 계산
         Quaternion targetWorldRotation = Quaternion.Euler(_panTilt.TiltAxis.Value, _panTilt.PanAxis.Value, 0);
 
-        vcam.ForceCameraPosition(cameraTarget.position + Vector3.up * 0.1f, targetWorldRotation);
+        // 3. [수정 포인트] + Vector3.up 오프셋 제거 
+        // 캐릭터가 쓰러졌을 때 cameraTarget이 바닥 근처로 간다면 그 위치를 그대로 따릅니다.
+        // ForceCameraPosition은 텔레포트 시에만 쓰고, 평소엔 transform.SetPositionAndRotation을 사용합니다.
+        vcam.transform.position = cameraTarget.position;
         vcam.transform.rotation = targetWorldRotation;
 
         if (CameraGroup != null)
@@ -444,6 +481,12 @@ public class PlayerRotation : NetworkBehaviour
 
     void ApplyLivingRotation()
     {
+        // 몸체는 좌우(Pan)만 회전
+        //transform.rotation = Quaternion.Euler(0, _panTilt.PanAxis.Value, 0);
+
+        // 렌즈 기울기 복구
+        vcam.Lens.Dutch = Mathf.Lerp(vcam.Lens.Dutch, 0f, Time.deltaTime * transitionSpeed);
+
         // 몸체는 좌우(Pan)만 회전
         transform.rotation = Quaternion.Euler(0, _panTilt.PanAxis.Value, 0);
 
