@@ -50,7 +50,7 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         // 로비 씬으로 넘어와서 방 접속이 확정되었을 때 챗 서버 연결!
-        if (scene.name == "KJY_Lobby")
+        if (scene.name == "KJY_Lobby" || scene.name == "KJY_Player")
         {
             SetUp();
         }

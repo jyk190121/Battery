@@ -34,7 +34,17 @@ public class VoiceController : MonoBehaviour
 
     private void Update()
     {
-        if (audioSource == null || listener == null) return;
+        if (audioSource == null) return;
+
+        if (listener == null)
+        {
+            if (Camera.main != null)
+            {
+                listener = Camera.main.transform;
+            }
+            else return;
+        }
+        
 
         // 1. 전화 중이 아닐 때: 무조건 3D 사운드 (V키를 누른 소리만 들림)
         if (!isCalling)
