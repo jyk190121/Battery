@@ -117,13 +117,17 @@ public class PlayerRotation : NetworkBehaviour
     {
         if (_panTilt != null)
         {
+            // 시네머신 컴포넌트 강제 활성화 (혹시 꺼져있을 경우 대비)
+            _panTilt.enabled = true;
+
             // 부활 시 정면을 바라보도록 설정
             _panTilt.TiltAxis.Value = 0f;
+
+            // 현재 몸의 회전을 Pan에 동기화 (부활 지점의 회전값 적용)
+            _panTilt.PanAxis.Value = transform.eulerAngles.y;
+
             // 렌즈 기울기(Dutch) 초기화
             vcam.Lens.Dutch = 0;
-
-            // 현재 몸의 회전을 Pan에 동기화
-            _panTilt.PanAxis.Value = transform.eulerAngles.y;
         }
     }
 
@@ -287,17 +291,31 @@ public class PlayerRotation : NetworkBehaviour
         {
             _panTilt.TiltAxis.Value = -10f;
         }
+        else if (playerController != null && playerController.isDead.Value)
+        {
+            // 사망 시에는 마우스 상하 입력을 받지 않음 (ApplyDeathRotation에서 처리)
+            return;
+        }
         else
         {
-            float minTilt = -70f;
-            float _currentMaxTilt = 70f;
-            //float maxTilt = isHoldingSmartphone ? 20f : 70f;
-            //_panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, minTilt, maxTilt);
+            //float minTilt = -70f;
+            //float _currentMaxTilt = 70f;
+            ////float maxTilt = isHoldingSmartphone ? 20f : 70f;
+            ////_panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, minTilt, maxTilt);
 
-            float targetMaxTilt = isHoldingSmartphone ? 20f : 70f;
+            //float targetMaxTilt = isHoldingSmartphone ? 20f : 70f;
+            //float newTilt = _panTilt.TiltAxis.Value - (mouseDelta.y * finalSensitivity);
+            //_currentMaxTilt = Mathf.Lerp(_currentMaxTilt, targetMaxTilt, Time.deltaTime * transitionSpeed);
+            //_panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, minTilt, _currentMaxTilt);
+
+            // 정상 상태: 상하 회전 가능
+            float minTilt = -70f;
+
             float newTilt = _panTilt.TiltAxis.Value - (mouseDelta.y * finalSensitivity);
-            _currentMaxTilt = Mathf.Lerp(_currentMaxTilt, targetMaxTilt, Time.deltaTime * transitionSpeed);
-            _panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, minTilt, _currentMaxTilt);
+
+            // 현재 적용 중인 MaxTilt를 부드럽게 전환 (갑자기 툭 끊기지 않게)
+            float currentMaxTilt = isHoldingSmartphone ? 20f : 70f;
+            _panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, minTilt, currentMaxTilt);
         }
     }
 
@@ -333,20 +351,6 @@ public class PlayerRotation : NetworkBehaviour
 
         //vcam.Lens.Dutch = 0; // 화면 기울기 완전 초기화
     }
-    //void ApplyTargetRotation()
-    //{
-    //    if (_spectatingTarget == null) return;
-
-    //    // 대상의 상하 회전값 가져오기
-    //    float targetTilt = _spectatingTarget.NetVerticalRotation.Value;
-
-    //    // 내 시네머신 카메라의 각도를 대상과 동기화
-    //    if (vcam.TryGetComponent<CinemachinePanTilt>(out var myPanTilt))
-    //    {
-    //        myPanTilt.TiltAxis.Value = targetTilt;
-    //        // 좌우 회전은 대상의 몸체(Transform)를 Follow하므로 자동으로 따라갑니다.
-    //    }
-    //}
 
     void HandleRotation()
     {
@@ -453,24 +457,19 @@ public class PlayerRotation : NetworkBehaviour
     {
         if (!IsOwner || vcam == null || _panTilt == null) return;
 
-        //// 1. 시네머신 내부 렌즈 기울기 초기화
-        //vcam.Lens.Dutch = 0;
-
-        //Quaternion targetWorldRotation = Quaternion.Euler(_panTilt.TiltAxis.Value, _panTilt.PanAxis.Value, 0);
-
-        //vcam.ForceCameraPosition(cameraTarget.position + Vector3.up * 0.1f, targetWorldRotation);
-        //vcam.transform.rotation = targetWorldRotation;
-
         // 1. 렌즈 기울기 초기화 (필요하다면 사망 시엔 살짝 기울여도 좋지만 일단 0으로)
         vcam.Lens.Dutch = Mathf.Lerp(vcam.Lens.Dutch, 0f, Time.deltaTime * transitionSpeed);
+
+        // 만약 애니메이션 중에도 붕 뜬다면, Vector3.down 오프셋을 살짝 섞어줄 수 있습니다.
+        //Vector3 targetPos = cameraTarget.position;
+
+        Vector3 deathAnchorPos = transform.position + Vector3.up * 0.2f;
 
         // 2. 월드 회전 계산
         Quaternion targetWorldRotation = Quaternion.Euler(_panTilt.TiltAxis.Value, _panTilt.PanAxis.Value, 0);
 
-        // 3. [수정 포인트] + Vector3.up 오프셋 제거 
-        // 캐릭터가 쓰러졌을 때 cameraTarget이 바닥 근처로 간다면 그 위치를 그대로 따릅니다.
-        // ForceCameraPosition은 텔레포트 시에만 쓰고, 평소엔 transform.SetPositionAndRotation을 사용합니다.
-        vcam.transform.position = cameraTarget.position;
+        // 부드럽게 사망 위치로 이동 (갑자기 튀는 것 방지)
+        vcam.transform.position = Vector3.Lerp(vcam.transform.position, deathAnchorPos, Time.deltaTime * 5f);
         vcam.transform.rotation = targetWorldRotation;
 
         if (CameraGroup != null)
@@ -493,7 +492,12 @@ public class PlayerRotation : NetworkBehaviour
         // 시선은 상하좌우(Pan/Tilt) 모두 회전
         if (CameraGroup != null)
         {
-            CameraGroup.transform.rotation = Quaternion.Euler(_panTilt.TiltAxis.Value, _panTilt.PanAxis.Value, 0);
+            //CameraGroup.transform.rotation = Quaternion.Euler(_panTilt.TiltAxis.Value, _panTilt.PanAxis.Value, 0);
+            // 매달린 상태가 아니라면 PanTilt의 값을 정상적으로 반영
+            if (playerController != null && !playerController.isSnared.Value)
+            {
+                CameraGroup.transform.localRotation = Quaternion.Euler(_panTilt.TiltAxis.Value, 0, 0);
+            }
         }
 
         UpdateCameraPositionWithCollision();
