@@ -23,6 +23,7 @@ public class PlayerEquipment : NetworkBehaviour
     GameObject spawnedPhone;
 
     PlayerAnim playerAnim;
+    GameObject _phoneUIParent;
 
     // 네트워크 동기화 변수: 모든 클라이언트가 상태를 공유함
     private NetworkVariable<bool> isUsingPhone = new NetworkVariable<bool>(
@@ -59,6 +60,35 @@ public class PlayerEquipment : NetworkBehaviour
         if (Keyboard.current.qKey.wasPressedThisFrame)
         {
             isUsingPhone.Value = !isUsingPhone.Value;
+        }
+
+        UpdateAnimationByUIState();
+    }
+
+    void UpdateAnimationByUIState()
+    {
+        if (PhoneUIController.Instance != null)
+        {
+            if (_phoneUIParent == null)
+                _phoneUIParent = PhoneUIController.Instance.phoneUIParent;
+
+            if (_phoneUIParent != null)
+            {
+                // 실제 UI 게임 오브젝트가 켜져 있는지 확인
+                bool isActualShowing = _phoneUIParent.activeInHierarchy;
+
+                // 애니메이션 업데이트 (손을 올리거나 내리는 동작)
+                if (playerAnim != null)
+                {
+                    playerAnim.UpdatePhoneAnimation(isActualShowing);
+                }
+
+                // 폰을 집어넣었는데 모델이 남아있다면 제거 (예외 상황 방지)
+                if (!isActualShowing && spawnedPhone != null)
+                {
+                    DestroySmartPhoneModel();
+                }
+            }
         }
     }
 

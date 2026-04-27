@@ -42,6 +42,7 @@ public class PlayerRotation : NetworkBehaviour
 
     [Header("폰사용중 상태 확인")]
     public bool isHoldingSmartphone = false; // [추가] 스마트폰 사용 여부
+    GameObject _phoneUIParent;
 
     private CinemachinePanTilt _panTilt;
 
@@ -138,7 +139,21 @@ public class PlayerRotation : NetworkBehaviour
 
         if (PhoneUIController.Instance != null)
         {
-            isHoldingSmartphone = PhoneUIController.Instance.isPhoneActive;
+            // 처음 한 번만 참조를 가져옴
+            if (_phoneUIParent == null)
+            {
+                _phoneUIParent = PhoneUIController.Instance.phoneUIParent;
+            }
+
+            // 실제 부모 오브젝트가 켜져 있을 때만 '들고 있다'고 판단
+            if (_phoneUIParent != null)
+            {
+                isHoldingSmartphone = _phoneUIParent.activeInHierarchy;
+            }
+            else
+            {
+                isHoldingSmartphone = PhoneUIController.Instance.isPhoneActive;
+            }
         }
 
         HandleRotation();
@@ -250,11 +265,14 @@ public class PlayerRotation : NetworkBehaviour
         else
         {
             float minTilt = -70f;
-            // [문제 해결] 폰 사용 중일 때 아래(양수)를 못 보게 0도로 제한
-            float maxTilt = isHoldingSmartphone ? 10f : 70f;
+            float _currentMaxTilt = 70f;
+            //float maxTilt = isHoldingSmartphone ? 20f : 70f;
+            //_panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, minTilt, maxTilt);
 
+            float targetMaxTilt = isHoldingSmartphone ? 20f : 70f;
             float newTilt = _panTilt.TiltAxis.Value - (mouseDelta.y * finalSensitivity);
-            _panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, minTilt, maxTilt);
+            _currentMaxTilt = Mathf.Lerp(_currentMaxTilt, targetMaxTilt, Time.deltaTime * transitionSpeed);
+            _panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, minTilt, _currentMaxTilt);
         }
     }
 
