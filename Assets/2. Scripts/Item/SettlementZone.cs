@@ -1,88 +1,111 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Netcode;
+using System.Linq;
 
 [RequireComponent(typeof(BoxCollider))]
 public class SettlementZone : NetworkBehaviour
 {
     private bool isTransitioning = false;
     public Transform anchor;
+    public Transform deliveryDropPoint;
+    public float dropRadius = 2.0f;
 
-    public Transform deliveryDropPoint; // 트럭 외부 (상점템+퀘스트템 스폰 위치)
-    public float dropRadius = 2.0f;     // 아이템이 흩뿌려질 반경
+    private BoxCollider zoneCol;
+
+    private void Awake()
+    {
+        zoneCol = GetComponent<BoxCollider>();
+        zoneCol.isTrigger = true; //실시간 감지를 위해 반드시 켜주세요
+    }
 
     private void Start() => SpawnItems();
 
+    //수집 퀘스트 트럭 입출고 감지
+    private void OnTriggerEnter(Collider other)
+    {
+        if (!IsServer) return;
+
+        // 💡 [최적화] ItemBase 전체가 아니라 처음부터 Item_Quest인지 콕 집어서 검사합니다.
+        Item_Quest questItem = other.GetComponentInParent<Item_Quest>();
+
+        if (questItem != null)
+        {
+            int qId = questItem.itemData.itemID;
+            if (!QuestManager.Instance.itemsInTruck.Contains(qId))
+                QuestManager.Instance.itemsInTruck.Add(qId);
+
+            // 당사자 폰에만 귓속말
+            QuestManager.Instance.NotifyLocalClientToggleClientRpc(qId, true,
+                RpcTarget.Single(questItem.lastHolderId, RpcTargetUse.Temp));
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (!IsServer) return;
+        Item_Quest questItem = other.GetComponentInParent<Item_Quest>();
+
+        if (questItem != null)
+        {
+            int qId = questItem.itemData.itemID;
+            if (QuestManager.Instance.itemsInTruck.Contains(qId))
+                QuestManager.Instance.itemsInTruck.Remove(qId);
+
+            QuestManager.Instance.NotifyLocalClientToggleClientRpc(qId, false,
+                RpcTarget.Single(questItem.lastHolderId, RpcTargetUse.Temp));
+        }
+    }
+
+    //씬 이동 및 최종 정산 실행 (버튼/상호작용 진입점)
     public void ExecuteTransition(PlayerInventory player, string targetScene, bool doSettlement)
     {
-        // 이미 이동 중이거나 스폰되지 않았으면 무시 (연타 방지)
         if (!IsSpawned || isTransitioning) return;
 
         string cleanedScene = targetScene.Trim();
-        Debug.Log($"<color=cyan><b>[Ship System]</b> 이동 요청 접수 (목적지: {cleanedScene} / 정산여부: {doSettlement})</color>");
-
-       
+        Debug.Log($"<color=cyan>[Ship System]</color> 이동 요청 접수 (목적지: {cleanedScene} / 정산여부: {doSettlement})");
 
         if (IsServer)
-        {
-            PerformTransitionLogic(player, cleanedScene, doSettlement);
-        }
+            StartCoroutine(PerformTransitionSequence(cleanedScene, doSettlement));
         else
-        {
             RequestTransitionServerRpc(cleanedScene, doSettlement);
-        }
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     private void RequestTransitionServerRpc(string targetScene, bool doSettlement, RpcParams rpcParams = default)
     {
-        var clientId = rpcParams.Receive.SenderClientId;
-        var playerObj = NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject;
-        var playerInv = playerObj.GetComponent<PlayerInventory>();
-
-        PerformTransitionLogic(playerInv, targetScene, doSettlement);
+        StartCoroutine(PerformTransitionSequence(targetScene, doSettlement));
     }
 
-    private void PerformTransitionLogic(PlayerInventory callerPlayer, string targetScene, bool doSettlement)
+    //실제 정산 및 이동 시퀀스 (코루틴)
+    private IEnumerator PerformTransitionSequence(string targetScene, bool doSettlement)
     {
-        //[방어 코드] 서버에서만 실행되도록 보장
-        if (!IsServer) return;
-
-        if (isTransitioning) return;
+        if (!IsServer || isTransitioning) yield break;
         isTransitioning = true;
-        // [절대 방어선] 필수 매니저들이 씬에 제대로 있는지부터 검사
+
         if (GameSessionManager.Instance == null || QuestManager.Instance == null || GameMaster.Instance == null)
         {
-            Debug.LogError("<color=red><b> [치명적 오류] 씬 이동을 위한 필수 매니저가 씬에 없습니다!</b></color>");
+            Debug.LogError("<color=red>[치명적 오류] 씬 이동을 위한 필수 매니저 없음!</color>");
             isTransitioning = false;
-            return;
+            yield break;
         }
 
-        if (GameMaster.Instance.economyManager == null || GameMaster.Instance.dayCycleManager == null)
-        {
-            Debug.LogError("<color=red><b> GameMaster 하위에 EconomyManager 또는 DayCycleManager가 연결되지 않았습니다!</b></color>");
-            isTransitioning = false;
-            return;
-        }
-
-        // ==========================================================
-        // 💡 [중복 방지] 저장하기 전, 기존에 담겨있던 명단을 완전히 비웁니다.
-        // ==========================================================
         GameSessionManager.Instance.truckItems.Clear();
         GameSessionManager.Instance.playerItems.Clear();
 
-        BoxCollider zoneCol = GetComponent<BoxCollider>();
+        //1. OverlapBox로 현재 트럭 안의 생존자와 아이템 스냅샷
         Vector3 center = transform.position + transform.TransformDirection(zoneCol.center);
         Vector3 halfExtents = Vector3.Scale(zoneCol.size, transform.lossyScale) * 0.5f;
-
         Collider[] targets = Physics.OverlapBox(center, halfExtents, transform.rotation);
 
         int totalScrapValue = 0;
         int recoveredPhonesCount = 0;
         List<PlayerInventory> playersInTruck = new List<PlayerInventory>();
+        List<ulong> survivorIds = new List<ulong>();
 
-        // 1. 트럭 바닥에 있는 아이템 처리
+        //트럭 바닥 & 플레이어 상태 스캔
         foreach (var t in targets)
         {
             ItemBase item = t.GetComponentInParent<ItemBase>();
@@ -91,39 +114,32 @@ public class SettlementZone : NetworkBehaviour
                 if (doSettlement)
                 {
                     if (item.itemData.category == ItemCategory.Scrap)
-                    {
                         totalScrapValue += (item is Item_Scrap scrap) ? scrap.currentScrapValue : item.itemData.basePrice;
-                    }
                     else if (item.itemData.category == ItemCategory.Quest)
-                    {
-                        QuestManager.Instance.NotifyItemCollected(item.itemData.itemID, NetworkManager.ServerClientId);
-                    }
+                        QuestManager.Instance.NotifyFinalClear(item.itemData.itemID, NetworkManager.ServerClientId);
                     else if (item.itemData.category == ItemCategory.Phone)
-                    {
                         recoveredPhonesCount++;
-                    }
                     else
-                    {
                         SaveToTruck(item);
-                    }
                 }
-                else
-                {
-                    SaveToTruck(item);
-                }
+                else SaveToTruck(item);
 
-                // 정산된 아이템은 제거
                 if (doSettlement && (item.itemData.category == ItemCategory.Scrap || item.itemData.category == ItemCategory.Quest || item.itemData.category == ItemCategory.Phone))
                 {
-                    if (item.NetworkObject != null && item.NetworkObject.IsSpawned) item.NetworkObject.Despawn();
+                    if (item.NetworkObject != null && item.NetworkObject.IsSpawned)
+                        item.NetworkObject.Despawn();
                 }
             }
 
             PlayerInventory p = t.GetComponentInParent<PlayerInventory>();
-            if (p != null && !playersInTruck.Contains(p)) playersInTruck.Add(p);
+            if (p != null && !playersInTruck.Contains(p))
+            {
+                playersInTruck.Add(p);
+                survivorIds.Add(p.OwnerClientId); //생존자 ID 확보
+            }
         }
 
-        // 2. 플레이어 인벤토리 아이템 처리
+        //인벤토리 아이템 처리
         foreach (var p in playersInTruck)
         {
             for (int i = 0; i < p.slots.Length; i++)
@@ -134,25 +150,19 @@ public class SettlementZone : NetworkBehaviour
                     if (doSettlement)
                     {
                         if (slotItem.itemData.category == ItemCategory.Scrap)
-                        {
                             totalScrapValue += (slotItem is Item_Scrap s) ? s.currentScrapValue : slotItem.itemData.basePrice;
-                        }
                         else if (slotItem.itemData.category == ItemCategory.Quest)
-                        {
-                            QuestManager.Instance.NotifyItemCollected(slotItem.itemData.itemID, p.OwnerClientId);
-                        }
+                            QuestManager.Instance.NotifyFinalClear(slotItem.itemData.itemID, p.OwnerClientId);
                         else if (slotItem.itemData.category == ItemCategory.Phone)
-                        {
                             recoveredPhonesCount++;
-                        }
-                        else { SaveToPlayer(slotItem, i, p.OwnerClientId); }
+                        else SaveToPlayer(slotItem, i, p.OwnerClientId);
                     }
-                    else { SaveToPlayer(slotItem, i, p.OwnerClientId); }
+                    else SaveToPlayer(slotItem, i, p.OwnerClientId);
 
-                    // 정산 품목은 인벤토리에서도 제거(Despawn)
                     if (doSettlement && (slotItem.itemData.category == ItemCategory.Scrap || slotItem.itemData.category == ItemCategory.Quest || slotItem.itemData.category == ItemCategory.Phone))
                     {
-                        if (slotItem.NetworkObject != null && slotItem.NetworkObject.IsSpawned) slotItem.NetworkObject.Despawn();
+                        if (slotItem.NetworkObject != null && slotItem.NetworkObject.IsSpawned)
+                            slotItem.NetworkObject.Despawn();
                     }
                     p.slots[i] = null;
                 }
@@ -171,7 +181,16 @@ public class SettlementZone : NetworkBehaviour
         UnityEditor.Selection.activeGameObject = null;
 #endif
 
-        // 4. 정산 결과 계산 및 보고
+        //2. [지연 보고 핵심] 생존자들에게 사진 제출 명령
+        if (doSettlement && QuestCameraBridge.Instance != null)
+        {
+            QuestCameraBridge.Instance.CommandSubmitDataClientRpc(survivorIds.ToArray());
+
+            //클라이언트들의 앨범 데이터가 서버로 도달할 찰나의 시간 확보
+            yield return new WaitForSeconds(0.15f);
+        }
+
+        //3. 정산 금액 산정 및 게임 마스터 보고
         if (doSettlement)
         {
             try
@@ -179,52 +198,44 @@ public class SettlementZone : NetworkBehaviour
                 int questIncome = QuestManager.Instance.GetCalculatedQuestReward();
                 int finalDailyIncome = totalScrapValue + questIncome;
 
-                // ==========================================================
-                // 💡 [디버깅 로그 추가] 사망자 및 회수 폰 카운트 확인
-                // ==========================================================
                 int deadCount = GameSessionManager.Instance.deadPlayersCount;
-                Debug.Log($"<color=white><b>[Settlement Debug]</b></color> 현재 씬 사망자: <color=red>{deadCount}명</color> | 회수된 스마트폰: <color=lime>{recoveredPhonesCount}개</color>");
+                Debug.Log($"<color=white>[Settlement Debug]</color> 현재 씬 사망자: <color=red>{deadCount}명</color> | 회수된 스마트폰: <color=lime>{recoveredPhonesCount}개</color>");
 
                 int missingPhones = Mathf.Max(0, deadCount - recoveredPhonesCount);
                 float penaltyMultiplier = 1.0f - (missingPhones * 0.05f);
                 int finalNetIncome = Mathf.RoundToInt(finalDailyIncome * penaltyMultiplier);
 
-                Debug.Log($"<color=yellow><b>[Settlement Result]</b></color> {deadCount}명이 사망하였고 {recoveredPhonesCount}개의 스마트폰 반납이 확인되었습니다. (최종 패널티 배율: {penaltyMultiplier * 100}%)");
-                // ==========================================================
+                Debug.Log($"<color=yellow>[Settlement Result]</color> {deadCount}명이 사망하였고 {recoveredPhonesCount}개의 스마트폰 반납이 확인되었습니다. (최종 패널티 배율: {penaltyMultiplier * 100}%)");
 
                 bool isWipedOut = deadCount >= GameSessionManager.Instance.GetTotalPlayers();
 
                 GameMaster.Instance.EndDay(isWipedOut, finalNetIncome);
                 QuestManager.Instance.ResetDailyQuests();
             }
-            catch (System.Exception e)
-            {
-                Debug.LogWarning($"[Settlement] 정산 계산 중 오류 발생 (무시하고 이동): {e.Message}");
-            }
+            catch (System.Exception e) { Debug.LogWarning($"[Settlement] 정산 오류 무시: {e.Message}"); }
         }
 
-        // 5. 💡 최종 씬 이동
+        //4. 다음 씬으로 이동
         if (NetworkManager.Singleton.SceneManager != null)
-        {
             NetworkManager.Singleton.SceneManager.LoadScene(targetScene, UnityEngine.SceneManagement.LoadSceneMode.Single);
-        }
         else
-        {
             isTransitioning = false;
-        }
     }
 
+    //트럭에 아이템 저장
     private void SaveToTruck(ItemBase item)
     {
         GameSessionManager.Instance.truckItems.Add(new ItemSaveData { itemID = item.itemData.itemID, localPos = anchor.InverseTransformPoint(item.transform.position), localRot = Quaternion.Inverse(anchor.rotation) * item.transform.rotation, stateValue1 = (item is Item_Durability dur) ? dur.currentDurability : 0, slotIndex = -1 });
     }
 
+    //플레이어 인벤토리에 아이템 저장
     private void SaveToPlayer(ItemBase item, int index, ulong pId)
     {
         if (!GameSessionManager.Instance.playerItems.ContainsKey(pId)) GameSessionManager.Instance.playerItems[pId] = new List<ItemSaveData>();
         GameSessionManager.Instance.playerItems[pId].Add(new ItemSaveData { itemID = item.itemData.itemID, slotIndex = index, stateValue1 = (item is Item_Durability dur) ? dur.currentDurability : 0 });
     }
 
+    //아이템 스폰 및 복구
     private void SpawnItems()
     {
         if (!IsServer || GameSessionManager.Instance == null) return;
@@ -242,11 +253,11 @@ public class SettlementZone : NetworkBehaviour
             spawned.GetComponent<NetworkObject>().Spawn();
         }
 
-        // 씬에 다 뿌렸으므로 트럭 리스트를 비워줍니다. 
-        // 이걸 안 하면 다음 씬 이동 시 "이전 씬 아이템 + 현재 씬 아이템"이 합쳐져서 저장됩니다.
+        //씬에 다 뿌렸으므로 트럭 리스트를 비워줍니다. 
+        //이걸 안 하면 다음 씬 이동 시 "이전 씬 아이템 + 현재 씬 아이템"이 합쳐져서 저장됩니다.
         GameSessionManager.Instance.truckItems.Clear();
 
-        // (상점/퀘스트 대기열 스폰 로직은 그대로 유지)
+        //상점/퀘스트 대기열 스폰 로직은 그대로 유지
         if (deliveryDropPoint != null)
         {
             foreach (int itemID in GameSessionManager.Instance.pendingSpawnItemIDs)
@@ -265,7 +276,7 @@ public class SettlementZone : NetworkBehaviour
         }
     }
 
-    // 플레이어 되살리기 로직 실행
+    //플레이어 되살리기 로직 실행
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void RequestReviveAllPlayersServerRpc()
     {
@@ -277,7 +288,7 @@ public class SettlementZone : NetworkBehaviour
         }
     }
 
-
+    //디버그 기즈모 그리기
     private void OnDrawGizmos()
     {
         if (deliveryDropPoint != null)

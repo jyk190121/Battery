@@ -13,8 +13,7 @@ MonoBehaviour:
   m_Name: 1033
   m_EditorClassIdentifier: Assembly-CSharp::QuestDataSO
   questID: 1033
-  questName: "\uCF5C\uB77C\uC640 \uAC74\uBB3C\uB0B4\uBD80 \uC0DD\uBA85\uCCB4\uAC00
-    \uD568\uAED8 \uB098\uC624\uAC8C \uCD2C\uC601"
+  questName: "\uCF5C\uB77C\uC640 \uC0DD\uBA85\uCCB4\uAC00 \uCD2C\uC601"
   description: "(\uAD11\uACE0 PPL) \uCF5C\uB77C\uC640 \uAC74\uBB3C\uB0B4\uBD80 \uC0DD\uBA85\uCCB4\uAC00
     \uD568\uAED8 \uB098\uC624\uAC8C \uCD2C\uC601"
   type: 2
