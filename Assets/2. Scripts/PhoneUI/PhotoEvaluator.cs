@@ -44,6 +44,12 @@ public class PhotoEvaluator : MonoBehaviour
             {
                 // 4. 벽에 가려지지 않았는가? (Raycast Check - 사실적인 현장감 부여)
                 Vector3 directionToTarget = target.bounds.center - captureCam.transform.position;
+
+                bool isBlocked = Physics.Raycast(captureCam.transform.position, directionToTarget.normalized, directionToTarget.magnitude, obstacleLayer);
+
+                Color rayColor = isBlocked ? Color.red : Color.green;
+                Debug.DrawRay(captureCam.transform.position, directionToTarget, rayColor, 3f);
+                // ==========================================
                 if (!Physics.Raycast(captureCam.transform.position, directionToTarget.normalized, directionToTarget.magnitude, obstacleLayer))
                 {
                     // 콜라이더에서 PhotoTarget 컴포넌트를 뽑아냄
@@ -60,5 +66,19 @@ public class PhotoEvaluator : MonoBehaviour
         newData.playersInFrame = playerCount;
 
         return newData;
+    }
+
+    private void OnDrawGizmos()
+    {
+        // 캡처 카메라가 어디있는지 찾아서 그 주변으로 원을 그림 (에디터 실행 중에만 작동)
+        if (Application.isPlaying)
+        {
+            CameraConnect camConnect = FindAnyObjectByType<CameraConnect>();
+            if (camConnect != null && camConnect.CaptureCamera != null)
+            {
+                Gizmos.color = new Color(0, 1, 0, 0.3f); // 반투명한 초록색
+                Gizmos.DrawWireSphere(camConnect.CaptureCamera.transform.position, maxCaptureDistance);
+            }
+        }
     }
 }
