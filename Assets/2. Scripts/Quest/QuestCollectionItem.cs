@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Item_Quest : ItemBase
+public class QuestCollectionItem : ItemBase
 {
     //에러 해결을 위해 추가 (수집 퀘스트 실시간 피드백용 소유권 추적)
     [Header("Quest Tracking")]
