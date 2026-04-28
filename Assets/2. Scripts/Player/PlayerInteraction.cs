@@ -212,7 +212,7 @@ public class PlayerInteraction : NetworkBehaviour
                 }
                 else if (targetPortal != null)
                 {
-                    interactText.text = targetPortal.GetInteractText();
+                    interactText.text = targetPortal.GetInteractText(controller.isInsideFacility.Value);
                 }
                 else if (targetLocker != null) 
                 {
