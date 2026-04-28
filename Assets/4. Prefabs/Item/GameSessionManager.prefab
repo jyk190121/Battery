@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 3852236523237432094}
   - component: {fileID: 3082285024704119878}
   - component: {fileID: 8195691170999809342}
+  - component: {fileID: -5831342451411738885}
   m_Layer: 0
   m_Name: GameSessionManager
   m_TagString: Untagged
@@ -147,3 +148,16 @@ MonoBehaviour:
   helpMessage: "F1:Easy\uC218\uB77D, F6:Normal\uC218\uB77D, F7:Hard\uC218\uB77D\nF2:\uD15C\uC18C\uD658,
     F3:ID\uAC15\uC81C\uC644\uB8CC, F4:\uC0C1\uD0DC\uCD9C\uB825\nF5:\uB3C8\uCD94\uAC00,
     F8:\uC77C\uC77C\uD018\uC2A4\uD2B8 \uC0C8\uB85C\uACE0\uCE68(\uB2E4\uC74C\uB0A0)"
+--- !u!114 &-5831342451411738885
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1063555221024840097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a295102e792da5c4682f0a701186d2fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestCameraBridge
+  ShowTopMostFoldoutHeaderGroup: 1
