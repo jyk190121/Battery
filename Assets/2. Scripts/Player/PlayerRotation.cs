@@ -84,6 +84,12 @@ public class PlayerRotation : NetworkBehaviour
 
         if (IsOwner)
         {
+            // [추가] 스폰 시점에 저장된 감도 값을 즉시 적용
+            if (GameSettingsManager.Instance != null)
+            {
+                mouseSensitivityMultiplier = GameSettingsManager.Instance.CurrentSensitivity;
+            }
+
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
 
