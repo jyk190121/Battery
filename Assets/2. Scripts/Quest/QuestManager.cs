@@ -49,24 +49,34 @@ public class QuestManager : NetworkBehaviour
         if (IsServer) RefreshDailyQuestPools(); // 서버 시작 시 첫 풀 생성
     }
 
- 
+
 
     // [스마트폰 UI API] 개인별 퀘스트 클리어 여부 체크.
     public bool IsQuestCleared(int questID)
     {
-
-        //현재 수락된 퀘스트 목록에 없는 경우, 무조건 false(과거 데이터 방지)
+        //  현재 수락된 퀘스트 목록에 없는 경우, 무조건 false (과거 데이터 방지)
         if (!activeQuests.Contains(questID)) return false;
 
-        // 1. 공식 완료거나 내 개인 장부에 있는가? (환원 등)
-        if (serverCompletedQuests.Contains(questID) || myActuallyDoneQuests.Contains(questID)) return true;
-
-        // 2. 실시간 트럭 내 수집 아이템인가?
+        // 데이터베이스에서 퀘스트 정보 가져오기 (실패 시 조기 리턴)
         var data = GetQuestData(questID);
-        if (data?.type == QuestType.Collect && itemsInTruck.Contains(data.targetItemID)) return true;
+        if (data == null) return false;
 
-        // 3. 앨범에 찍어둔 사진이 있는가?
-        if (QuestCameraBridge.Instance != null && QuestCameraBridge.Instance.IsPhotoInLocalAlbum(questID)) return true;
+        // 서버가 공식적으로 완료 처리했거나, 즉시 클리어된 기록이 있는가?
+        if (serverCompletedQuests.Contains(questID) || myActuallyDoneQuests.Contains(questID))
+            return true;
+
+        //  아이템 수집 타입인 경우: 트럭 안에 타겟 아이템이 들어있는가?
+        if (data.type == QuestType.Collect)
+        {
+            if (itemsInTruck.Contains(data.targetItemID)) return true;
+        }
+
+        // 촬영 또는 기록 타입인 경우: 내 개인 앨범에 사진이 있는가?
+        if (data.type == QuestType.Photo || data.type == QuestType.Record)
+        {
+            if (QuestCameraBridge.Instance != null && QuestCameraBridge.Instance.IsPhotoInLocalAlbum(questID))
+                return true;
+        }
 
         return false;
     }
