@@ -2957,7 +2957,7 @@ MonoBehaviour:
   jumpForce: 5
   groundLayer:
     serializedVersion: 2
-    m_Bits: 1160
+    m_Bits: 1032
   groundCheckDistance: 0.3
   stairLayer:
     serializedVersion: 2
@@ -2967,7 +2967,6 @@ MonoBehaviour:
   stepHeight: 0.35
   stepSmoothing: 0.1
   crouchHeight: 1.2
-  crouchCenter: {x: 0, y: 0.6, z: 0}
 --- !u!54 &8234240459708401988
 Rigidbody:
   m_ObjectHideFlags: 0

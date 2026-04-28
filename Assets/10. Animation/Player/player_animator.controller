@@ -305,8 +305,8 @@ AnimatorStateTransition:
   m_PrefabAsset: {fileID: 0}
   m_Name: 
   m_Conditions:
-  - m_ConditionMode: 4
-    m_ConditionEvent: Speed
+  - m_ConditionMode: 2
+    m_ConditionEvent: IsStair
     m_EventTreshold: 0.1
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 1377951461031192144}
@@ -319,7 +319,7 @@ AnimatorStateTransition:
   m_ExitTime: 0.81707317
   m_HasExitTime: 0
   m_HasFixedDuration: 0
-  m_InterruptionSource: 0
+  m_InterruptionSource: 2
   m_OrderedInterruption: 0
   m_CanTransitionToSelf: 1
 --- !u!1102 &-3186557174876734282
