@@ -16,7 +16,15 @@ public class Item_Consumable : ItemBase
 
         if (IsOwner)
         {
-            PlayerInventory.LocalInstance.RemoveItemByServer(itemData.itemID);
+            //  호스트(서버)면 직접 지우고, 클라이언트면 서버에게 삭제를 요청(RPC)합니다!
+            if (IsServer)
+            {
+                PlayerInventory.LocalInstance.RemoveItemByServer(itemData.itemID);
+            }
+            else
+            {
+                PlayerInventory.LocalInstance.RequestRemoveItemServerRpc(itemData.itemID);
+            }
         }
     }
 }
