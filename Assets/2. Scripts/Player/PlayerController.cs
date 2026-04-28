@@ -413,8 +413,6 @@ public class PlayerController : NetworkBehaviour
 
         if (newValue)
         {
-            PerformDeathEffects();
-
             if (IsOwner)
             {
                 // 2. 물리 차단이 예약된 후 카메라 모드 변경
@@ -422,8 +420,10 @@ public class PlayerController : NetworkBehaviour
                 {
                     playerRotation.SetSpectatingMode(true);
                 }
-                StartCoroutine(StartSpectating());
+                StartCoroutine(StartSpectatingOnlyOwner());
             }
+            PerformDeathEffects();
+            StartCoroutine(HideModelAfterDelay(2.0f));
         }
         else
         {
@@ -432,13 +432,19 @@ public class PlayerController : NetworkBehaviour
             PerformReviveEffects();
         }
     }
+    // 모든 클라이언트에서 실행될 모델 숨기기 코루틴
+    IEnumerator HideModelAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (playerModel != null)
+        {
+            playerModel.SetActive(false);
+        }
+    }
 
-
-    IEnumerator StartSpectating()
+    IEnumerator StartSpectatingOnlyOwner()
     {
         yield return new WaitForSeconds(2.0f);
-
-        if (playerModel != null) playerModel.SetActive(false);
 
         _currentSpectateIndex = -1; // 초기화하여 리스트 처음부터 찾게 함
         SwitchToNextTarget();
