@@ -37,10 +37,11 @@ public class StartManager : MonoBehaviour
     [Header("취소 버튼")]
     public Button createCancelBtn;
     public Button joinCancelBtn;
+
+    [Header("설정창 닫기 버튼")]
+    public Button closeSettingBtn;
     
     bool isCancelling = false;
-
-    PhotonChatManager photonChatManager;
 
     void OnEnable()
     {
@@ -54,8 +55,6 @@ public class StartManager : MonoBehaviour
 
     void Start()
     {
-
-        photonChatManager = FindAnyObjectByType<PhotonChatManager>();
 
         TrySubscribeEvents();
 
@@ -88,6 +87,8 @@ public class StartManager : MonoBehaviour
         if (refreshBtn != null) refreshBtn.onClick.AddListener(OnRefreshClicked); // 새로고침(Reset) 버튼
 
         if (joinPanelBackBtn != null) joinPanelBackBtn.onClick.AddListener(OnBackToMain); // 뒤로가기 버튼
+
+        if (closeSettingBtn != null) closeSettingBtn.onClick.AddListener(() => ShowPanel(mainPanel));
     }
     void TrySubscribeEvents()
     {
