@@ -369,6 +369,7 @@ public class PlayerController : NetworkBehaviour
     {
         if (!IsServer) return;
         isDead.Value = false;
+        isSnared.Value = false;
 
         gameObject.layer = LayerMask.NameToLayer("Player");
 
@@ -410,12 +411,19 @@ public class PlayerController : NetworkBehaviour
         if (playerAnim == null) playerAnim = GetComponent<PlayerAnim>();
         if (playerRotation == null) playerRotation = GetComponent<PlayerRotation>();
 
-        if (newValue) // newValue가 true이면 사망
+        if (newValue)
         {
             PerformDeathEffects();
 
-            StartCoroutine(HideModelAfterDelay(1.5f));
-            if (IsOwner) StartCoroutine(StartSpectating());
+            if (IsOwner)
+            {
+                // 2. 물리 차단이 예약된 후 카메라 모드 변경
+                if (playerRotation != null)
+                {
+                    playerRotation.SetSpectatingMode(true);
+                }
+                StartCoroutine(StartSpectating());
+            }
         }
         else
         {
@@ -424,78 +432,17 @@ public class PlayerController : NetworkBehaviour
             PerformReviveEffects();
         }
     }
-    IEnumerator HideModelAfterDelay(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        if (playerModel != null) playerModel.SetActive(false);
-    }
 
 
     IEnumerator StartSpectating()
     {
-        yield return new WaitForSeconds(1.5f); // 사망 애니메이션을 조금 본 뒤 전환
+        yield return new WaitForSeconds(2.0f);
+
+        if (playerModel != null) playerModel.SetActive(false);
 
         _currentSpectateIndex = -1; // 초기화하여 리스트 처음부터 찾게 함
         SwitchToNextTarget();
-
-        //PlayerRotation target = playerRotation.GetSpectatingTarget();
-
-        //if (target != null)
-        //{
-        //    Debug.Log($"[관전 시작] 첫 타겟 {target.gameObject.name} 시점 즉시 동기화");
-
-        //    if (target != null)
-        //    {
-        //        if (target.TryGetComponent<PlayerRotation>(out var targetRot) &&
-        //            TryGetComponent<PlayerRotation>(out var myRot))
-        //        {
-        //            if (myRot.vcam != null)
-        //            {
-        //                // [추가] 내 카메라의 마우스 회전 입력을 끄고 정렬함
-        //                myRot.SetSpectatingMode(true);
-
-        //                myRot.vcam.Follow = targetRot.cameraTarget;
-        //                // LookAt을 빼버리면 카메라가 Follow 대상의 회전(시야 방향)을 그대로 따릅니다.
-        //                myRot.vcam.LookAt = null;
-
-        //                Debug.Log($"{target.gameObject.name}의 시점을 관전합니다.");
-        //            }
-        //            myRot.vcam.ForceCameraPosition(targetRot.cameraTarget.position, targetRot.cameraTarget.rotation);
-        //        }
-
-        //    }
-        //}
     }
-
-    //PlayerRotation FindSpectatableTarget()
-    //{
-    //    //foreach (var p in AllPlayers)
-    //    //{
-    //    //    // 내가 아니고 죽지 않은 플레이어
-    //    //    if (p != this && !p.isDead.Value)
-    //    //    {
-    //    //        if (p.TryGetComponent<PlayerRotation>(out var targetRot)) return targetRot;
-    //    //    }
-    //    //}
-
-    //    // 살아있는 다른 플레이어 찾기
-    //    foreach (var player in AllPlayers) // static List 등으로 관리되는 리스트
-    //    {
-    //        //if (player != this && !player.isDead.Value)
-    //        //{
-    //        //    GetComponent<PlayerRotation>().SetSpectatingTarget(player.GetComponent<PlayerRotation>());
-    //        //    break;
-    //        //}
-    //        // 1. 내가 아니고 2. 리스트에 유효하며 3. 살아있는 플레이어 탐색
-    //        if (player != null && player != this && !player.isDead.Value)
-    //        {
-    //            if (player.TryGetComponent<PlayerRotation>(out var targetRot))
-    //                return targetRot;
-    //        }
-    //    }
-    //    return null;
-    //}
-
 
     void PerformDeathEffects()
     {
@@ -512,23 +459,20 @@ public class PlayerController : NetworkBehaviour
         if (TryGetComponent(out PlayerInteraction interact)) interact.enabled = false;
         if (TryGetComponent(out PlayerEquipment equip)) equip.enabled = false;
 
-        StartCoroutine(DisablePhysicsWithDelay(0.5f));
-
-        //// 2. 물리 및 충돌체 비활성화
-        //var col = GetComponent<Collider>();
-        //if (col != null) col.enabled = false;
-
-        //var rb = GetComponent<Rigidbody>();
-        //if (rb != null) rb.isKinematic = true; // 물리 엔진 영향 중단
+        gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
 
         if (IsOwner)
         {
-            // 몬스터가 사망한 플레이어를 찾지 않도록 레이어 수정
-            gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+            if (TryGetComponent(out Collider col)) col.enabled = false;
 
-            // 이 아래에서 PlayerRotation의 카메라 눕히기 로직이 호출된다면 
-            // 오직 죽은 당사자의 화면에서만 카메라가 돌아갑니다.
+            if (TryGetComponent(out Rigidbody rb))
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.isKinematic = true;
+            }
         }
+
+        StartCoroutine(DisablePhysicsWithDelay(2.0f));
     }
 
     IEnumerator DisablePhysicsWithDelay(float delay)
