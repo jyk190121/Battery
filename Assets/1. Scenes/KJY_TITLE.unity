@@ -1091,7 +1091,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5440378645317192274, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1120977357}
   m_SourcePrefab: {fileID: 100100000, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
 --- !u!4 &308376625 stripped
 Transform:
@@ -4177,6 +4180,30 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1109823160}
   m_CullTransparentMesh: 1
+--- !u!1 &1120977356 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5440378645317192274, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+  m_PrefabInstance: {fileID: 308376624}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1120977357
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1120977356}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d702f065274855d42b4ac8b47eff60bf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PhotoEvaluator
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 1800
+  targetLayer:
+    serializedVersion: 2
+    m_Bits: 135168
+  maxCaptureDistance: 10
 --- !u!1 &1144062866
 GameObject:
   m_ObjectHideFlags: 0

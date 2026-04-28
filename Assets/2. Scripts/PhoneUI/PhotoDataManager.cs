@@ -8,10 +8,12 @@ public class PhotoData
     public Texture2D image;          // 메모리에 올라간 실제 사진 이미지
 
     // --- 판정용 메타데이터 (수정 가능) ---
-    public bool hasMonster;          // 몬스터가 찍혔는가?
-    public bool isBrightEnough;      // 충분히 밝은 상태에서 찍었는가?
-    public bool hasSpecificItem;     // 특정 아이템이 찍혔는가?
-    public int playersInFrame;       // 사진 안에 팀원이 몇 명 있는가?
+    public List<string> capturedTargets = new List<string>();
+
+    [Header("Quest Linkage")]
+    public List<int> satisfiedQuestIDs = new List<int>();
+
+    public int playersInFrame = 0; // 사진에 찍힌 플레이어 수 
 }
 
 // 왜 PhotoDataManager여야 하는가?
@@ -45,6 +47,7 @@ public class PhotoDataManager : MonoBehaviour
         if (currentPhotos.Count >= maxPhotos) return false;
 
         currentPhotos.Add(newPhoto);
+        QuestCameraBridge.Instance.RecalculateLocalDeferredQuests(); // 사진이 추가될 때마다 제출 대기 퀘스트 목록 갱신
         return true;
     }
 
@@ -59,6 +62,7 @@ public class PhotoDataManager : MonoBehaviour
                 Destroy(currentPhotos[index].image);
             }
             currentPhotos.RemoveAt(index);
+            QuestCameraBridge.Instance.RecalculateLocalDeferredQuests(); // 사진이 삭제될 때마다 제출 대기 퀘스트 목록 갱신
         }
     }
 
