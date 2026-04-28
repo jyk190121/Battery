@@ -2929,7 +2929,7 @@ MonoBehaviour:
   sensitivity: 0.02
   collisionLayers:
     serializedVersion: 2
-    m_Bits: 769
+    m_Bits: 768
   minDistance: 0.1
   collisionRadius: 0.2
   isHoldingSmartphone: 0

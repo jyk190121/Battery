@@ -143,6 +143,12 @@ public class MonsterController : NetworkBehaviour
             navAgent.enabled = false;
         }
 
+        // 특정 타입(Ambush)일 때만 카메라 등록 진행
+        if (monsterData != null && monsterData.type == MonsterType.Ambush)
+        {
+            RegisterAmbushCamera();
+        }
+
         ResetMonsterState();
     }
 
@@ -515,6 +521,27 @@ public class MonsterController : NetworkBehaviour
             Alertness.Value = _serverAlertness;
             _lastSyncedAlertness = _serverAlertness;
             _alertnessSyncTimer = 0f;
+        }
+    }
+    /// <summary>
+    /// 카메라 찾는  몬스터 유형설정
+    /// </summary>
+    void RegisterAmbushCamera()
+    {
+        // 싱글톤 인스턴스 확인
+        if (CinemachineController.Instance != null)
+        {
+            // 자식 오브젝트 중에서 시네머신 카메라 검색 (비활성화 상태여도 찾음)
+            var vcam = GetComponentInChildren<Unity.Cinemachine.CinemachineCamera>(true);
+
+            if (vcam != null)
+            {
+                CinemachineController.Instance.RegisterMonsterCamera(vcam);
+            }
+            else
+            {
+                Debug.LogWarning($"[MonsterController] {gameObject.name}는 Ambush 타입이지만 자식에 CinemachineCamera가 없습니다.");
+            }
         }
     }
 }
