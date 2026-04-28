@@ -19,6 +19,8 @@ public class QuestDataSO : ScriptableObject
     [Header("Generation Logic")]
     [Range(1, 10)]
     public int questLevel; // 1~3(초급), 4~7(노말), 8~10(하드) 판정용
+
+    public string targetType;
 }
 
 public enum QuestType { Collect, Return, Photo, Record }

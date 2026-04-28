@@ -177,22 +177,25 @@ public class CameraUI : MonoBehaviour
         RenderTexture.active = null;
         Destroy(rt);
 
-        // =========================================================
-        // 기존의 파일 저장 과정 삭제, 메모리 기반 데이터 조립
-        // =========================================================
-        PhotoData newPhoto = new PhotoData
-        {
-            image = screenShot,
-            // TODO: 나중에 여기에 Physics.Raycast 등을 이용한 판정 함수를 연동하기 -> 퀘스트 판정
-            hasMonster = false,     // 예: CheckMonsterInFrame()
-            isBrightEnough = true,  // 예: CheckLightLevel()
-            hasSpecificItem = false,
-            playersInFrame = 1      // 예: CountPlayersInFrame()
-        };
+        // 1. PhotoEvaluator를 통해 사진 판독 (절두체, 레이캐스트 검사)
+        PhotoData evaluatedData = PhotoEvaluator.Instance.EvaluateCapture(captureCamera, screenShot);
 
-        // 매니저에 사진 등록
-        PhotoDataManager.Instance.AddPhoto(newPhoto);
-        Debug.Log("[CameraUI] 찰칵! 무손실 메모리 저장 및 메타데이터 판정 완료.");
+        // 2. 현재 수락된 퀘스트(activeQuests)를 순회하며 조건 달성 여부 확인
+        foreach (int qId in QuestManager.Instance.activeQuests)
+        {
+            QuestDataSO questData = QuestManager.Instance.GetQuestData(qId);
+            if (questData == null) continue;
+
+            // 퀘스트가 요구하는 targetType(예: "Monster")이, 방금 찍은 사진의 피사체 명단에 들어있는가?
+            if (questData.type == QuestType.Photo && evaluatedData.capturedTargets.Contains(questData.targetType))
+            {
+                evaluatedData.satisfiedQuestIDs.Add(qId);
+            }
+        }
+
+        // 3. 매니저에 최종 데이터 등록
+        PhotoDataManager.Instance.AddPhoto(evaluatedData);
+        Debug.Log($"[CameraUI] 찰칵! 메타데이터 판정 완료. 클리어된 퀘스트 수: {evaluatedData.satisfiedQuestIDs.Count}");
 
         isCapturing = false;
     }

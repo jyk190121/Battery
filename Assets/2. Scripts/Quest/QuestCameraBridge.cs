@@ -66,4 +66,24 @@ public class QuestCameraBridge : NetworkBehaviour
 
     //스마트폰 UI 판독기에서 앨범 상태를 물어볼 때 사용
     public bool IsPhotoInLocalAlbum(int id) => myLocalDeferredQuests.Contains(id);
+
+    // 갤러리에 사진이 추가되거나 삭제될 때마다 현재 제출 대기 중인 퀘스트 목록을 로컬 갱신하는 함수입니다.
+    public void RecalculateLocalDeferredQuests()
+    {
+        myLocalDeferredQuests.Clear();
+
+        // 현재 갤러리에 있는 모든 사진을 뒤져서
+        foreach (var photo in PhotoDataManager.Instance.currentPhotos)
+        {
+            foreach (int qId in photo.satisfiedQuestIDs)
+            {
+                // 중복 없이 클리어 예정 퀘스트 목록에 담습니다.
+                if (!myLocalDeferredQuests.Contains(qId))
+                {
+                    myLocalDeferredQuests.Add(qId);
+                }
+            }
+        }
+        Debug.Log($"<color=orange>[스마트폰 앨범 상태 갱신]</color> 현재 제출 대기 중인 퀘스트 개수: {myLocalDeferredQuests.Count}");
+    }
 }
