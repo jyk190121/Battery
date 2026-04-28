@@ -297,7 +297,7 @@ public class PlayerInventory : NetworkBehaviour
 
         item.isEquipped = true;
 
-        if (item is Item_Quest questItem)
+        if (item is QuestCollectionItem questItem)
         {
             questItem.lastHolderId = rpcParams.Receive.SenderClientId;
         }

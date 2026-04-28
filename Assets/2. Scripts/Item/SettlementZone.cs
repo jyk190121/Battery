@@ -29,7 +29,7 @@ public class SettlementZone : NetworkBehaviour
         if (!IsServer) return;
 
         // 💡 [최적화] ItemBase 전체가 아니라 처음부터 Item_Quest인지 콕 집어서 검사합니다.
-        Item_Quest questItem = other.GetComponentInParent<Item_Quest>();
+        QuestCollectionItem questItem = other.GetComponentInParent<QuestCollectionItem>();
 
         if (questItem != null)
         {
@@ -46,7 +46,7 @@ public class SettlementZone : NetworkBehaviour
     private void OnTriggerExit(Collider other)
     {
         if (!IsServer) return;
-        Item_Quest questItem = other.GetComponentInParent<Item_Quest>();
+        QuestCollectionItem questItem = other.GetComponentInParent<QuestCollectionItem>();
 
         if (questItem != null)
         {
