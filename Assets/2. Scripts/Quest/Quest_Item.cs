@@ -2,6 +2,10 @@ using UnityEngine;
 
 public class Item_Quest : ItemBase
 {
+    //에러 해결을 위해 추가 (수집 퀘스트 실시간 피드백용 소유권 추적)
+    [Header("Quest Tracking")]
+    public ulong lastHolderId;
+
     protected override void Start()
     {
         base.Start();

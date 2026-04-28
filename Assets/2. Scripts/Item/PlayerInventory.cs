@@ -296,6 +296,11 @@ public class PlayerInventory : NetworkBehaviour
         if (item == null || item.isEquipped) return;
 
         item.isEquipped = true;
+
+        if (item is Item_Quest questItem)
+        {
+            questItem.lastHolderId = rpcParams.Receive.SenderClientId;
+        }
         item.NetworkObject.ChangeOwnership(rpcParams.Receive.SenderClientId);
         NotifyPickUpClientRpc(itemNetId);
     }
