@@ -42,6 +42,14 @@ public class AttachedState : MonsterBaseState
         {
             _snaredPlayer.isSnared.Value = true;
 
+            // --- [카메라 제어 추가] ---
+            // 잡힌 플레이어가 로컬 플레이어(나)라면 카메라를 몬스터용으로 전환
+            if (_snaredPlayer.IsOwner && CinemachineController.Instance != null)
+            {
+                CinemachineController.Instance.SetMonsterCameraActive();
+            }
+            // --------------------------
+
             // 2. 에이전트 정지 (숙주를 따라가야 하므로 스스로의 길찾기/물리 이동 차단)
             owner.navAgent.enabled = false;
             // [TODO] 콜라이더를 꺼야 할 경우 아래 주석 해제
@@ -79,6 +87,14 @@ public class AttachedState : MonsterBaseState
         {
             _snaredPlayer.isSnared.Value = false;
             //owner.TriggerSnareBlindRpc(false, owner.RpcTarget.Single(_snaredPlayer.OwnerClientId, RpcTargetUse.Temp));
+
+            // --- [카메라 제어 추가] ---
+            // 풀려날 때 로컬 플레이어라면 다시 메인 카메라로 복구
+            if (_snaredPlayer.IsOwner && CinemachineController.Instance != null)
+            {
+                CinemachineController.Instance.SetMainCameraActive();
+            }
+            // --------------------------
         }
 
         // 2. [네트워크 종속 해제] 플레이어 머리에서 강제로 떨어짐
