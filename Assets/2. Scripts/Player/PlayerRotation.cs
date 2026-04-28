@@ -10,31 +10,31 @@ public class PlayerRotation : NetworkBehaviour
     public float mouseSensitivityMultiplier = 1.0f; // 이 값을 설정창에서 조절
 
     [Header("참조")]
-    public CinemachineCamera vcam;          // 인스펙터에서 시네머신 카메라 할당
-    public Transform cameraTarget;          // eye_Cinemachine 오브젝트를 여기에 할당
-    PlayerMove playerMove;                  // 이동 속도를 체크하기 위해 참조
-    PlayerController playerController;      // 플레이어 상태에 따라 로테이션처리를 하기위한 참조
-    public GameObject CameraGroup;          // 휴대폰 촬영용 카메라도 같이 회전 처리
+    public CinemachineCamera vcam;                  // 인스펙터에서 시네머신 카메라 할당
+    public Transform cameraTarget;                  // eye_Cinemachine 오브젝트를 여기에 할당
+    PlayerMove playerMove;                          // 이동 속도를 체크하기 위해 참조
+    PlayerController playerController;              // 플레이어 상태에 따라 로테이션처리를 하기위한 참조
+    public GameObject CameraGroup;                  // 휴대폰 촬영용 카메라도 같이 회전 처리
 
     [Header("카메라 위치 제어")]
     public float originYoffset = 0.0961f;
-    public float walkYPos = 0.1f;           // 평소(걷기) Z 위치
-    public float runYPos = 0.4f;            // 달리기 시 Z 위치 (입안이 안 보이게 앞으로 밀기)
-    public float transitionSpeed = 10f;     // 위치 전환 부드러움 정도
-    public float crouchZPos = 0f;           // 앉았을 때 눈높이 (수치 최적화 필요)
+    public float walkYPos = 0.1f;                   // 평소(걷기) Z 위치
+    public float runYPos = 0.4f;                    // 달리기 시 Z 위치 (입안이 안 보이게 앞으로 밀기)
+    public float transitionSpeed = 10f;             // 위치 전환 부드러움 정도
+    public float crouchZPos = 0f;                   // 앉았을 때 눈높이 (수치 최적화 필요)
 
     [Header("카메라 전방 거리(Z축) 제어")]
-    public float walkZPos = 0.15f;          // 평소 앞뒤 위치
-    public float crouchYPos = 0.6f;         // 앉았을 때 카메라 위치 앞으로 조정
+    public float walkZPos = 0.15f;                  // 평소 앞뒤 위치
+    public float crouchYPos = 0.6f;                 // 앉았을 때 카메라 위치 앞으로 조정
 
     [Header("회전 설정")]
     public float sensitivity = 0.1f;
     private bool _isTabletOpen = false;
 
     [Header("벽 뚫기 방지 설정")]
-    public LayerMask collisionLayers;       // 벽(Default), 몬스터(Enemy) 레이어 선택
-    public float minDistance = 0.1f;        // 최소 유지 거리
-    public float collisionRadius = 0.2f;    // 충돌 감지 반경
+    public LayerMask collisionLayers;               // 벽(Default), 몬스터(Enemy) 레이어 선택
+    public float minDistance = 0.1f;                // 최소 유지 거리
+    public float collisionRadius = 0.2f;            // 충돌 감지 반경
 
     [Header("관전 상태")]
     bool _isSpectating = false;
@@ -50,22 +50,38 @@ public class PlayerRotation : NetworkBehaviour
     public NetworkVariable<float> NetVerticalRotation = new NetworkVariable<float>(0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     public NetworkVariable<float> NetHorizontalRotation = new NetworkVariable<float>(0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
+    CinemachineController cameraController;
+
     public override void OnNetworkSpawn()
     {
         playerMove = GetComponent<PlayerMove>();
         playerController = GetComponent<PlayerController>();
 
-        if (playerMove == null || playerController == null) { print("플레이어의 무브나 컨트롤이 없음");  return;  }
+        cameraController = FindAnyObjectByType<CinemachineController>();
 
-        //if (IsOwner)
-        //{
-        //    // [추가] 초기 커서 상태 설정: 태블릿이 꺼진 상태로 시작하므로 잠금
-        //    Cursor.lockState = CursorLockMode.Locked;
-        //    Cursor.visible = false;
+        // [중요] 잡힌 상태(isSnared)가 변할 때 카메라 전환
+        playerController.isSnared.OnValueChanged += (oldVal, isSnared) => {
+            if (IsOwner)
+            {
+                // [추가] 방어 코드: 인스턴스가 없을 경우 다시 한번 찾음
+                if (cameraController == null) cameraController = FindAnyObjectByType<CinemachineController>();
 
-        //    TabletUIManager.OnTabletStateChanged += HandleTabletStateChanged;
-        //    TryFindCamera();
-        //}
+                if (cameraController != null) // 최종 확인
+                {
+                    if (isSnared)
+                        cameraController.SetMonsterCameraActive();
+                    else
+                        cameraController.SetMainCameraActive();
+                }
+                else
+                {
+                    Debug.LogError("CinemachineController 찾을 수 없습니다!");
+                }
+            }
+        };
+
+        if (playerMove == null || playerController == null) { print("플레이어의 무브나 컨트롤이 없음"); return; }
+
         if (IsOwner)
         {
             Cursor.lockState = CursorLockMode.Locked;
@@ -117,13 +133,17 @@ public class PlayerRotation : NetworkBehaviour
     {
         if (_panTilt != null)
         {
+            // 시네머신 컴포넌트 강제 활성화 (혹시 꺼져있을 경우 대비)
+            _panTilt.enabled = true;
+
             // 부활 시 정면을 바라보도록 설정
             _panTilt.TiltAxis.Value = 0f;
+
+            // 현재 몸의 회전을 Pan에 동기화 (부활 지점의 회전값 적용)
+            _panTilt.PanAxis.Value = transform.eulerAngles.y;
+
             // 렌즈 기울기(Dutch) 초기화
             vcam.Lens.Dutch = 0;
-
-            // 현재 몸의 회전을 Pan에 동기화
-            _panTilt.PanAxis.Value = transform.eulerAngles.y;
         }
     }
 
@@ -136,23 +156,41 @@ public class PlayerRotation : NetworkBehaviour
         Cursor.visible = isOpen;
     }
 
-    private void TryFindCamera()
+    void TryFindCamera()
     {
+
+        //if (vcam != null) return;
+
+        //vcam = FindAnyObjectByType<CinemachineCamera>();
+        //if (vcam != null)
+        //{
+        //    _panTilt = vcam.GetComponent<CinemachinePanTilt>();
+        //    if (IsOwner)
+        //    {
+        //        vcam.Follow = cameraTarget;
+        //        vcam.LookAt = null;
+        //        if (_panTilt != null) _panTilt.PanAxis.Value = transform.eulerAngles.y;
+        //    }
+        //}
+
 
         if (vcam != null) return;
 
-        vcam = FindAnyObjectByType<CinemachineCamera>();
-        if (vcam != null)
+        // 씬 전체를 뒤지는 대신, 컨트롤러에 등록된 메인 카메라를 바로 가져옴
+        if (CinemachineController.Instance != null)
         {
-            _panTilt = vcam.GetComponent<CinemachinePanTilt>();
-            if (IsOwner)
+            vcam = CinemachineController.Instance.mainVcam;
+
+            if (vcam != null)
             {
-                vcam.Follow = cameraTarget;
-                vcam.LookAt = null;
-                if (_panTilt != null) _panTilt.PanAxis.Value = transform.eulerAngles.y;
+                _panTilt = vcam.GetComponent<CinemachinePanTilt>();
+                if (IsOwner)
+                {
+                    vcam.Follow = cameraTarget;
+                    if (_panTilt != null) _panTilt.PanAxis.Value = transform.eulerAngles.y;
+                }
             }
         }
-
     }
 
     void Update()
@@ -238,11 +276,28 @@ public class PlayerRotation : NetworkBehaviour
 
         float currentTilt = _panTilt.TiltAxis.Value;
 
-        // 목표로 하는 기본 위치(Z축) 결정
+        bool isSnared = playerController != null && playerController.isSnared.Value;
+
+        // --- 1. 기본 목표값 설정 ---
         bool isRunning = playerMove.currentSpeed > playerMove.walkSpeed + 0.1f;
         float targetZ = playerMove.IsCrouching ? 0.6f : (isRunning ? runYPos : walkZPos);
-        //float targetZ = playerMove.IsCrouching ? 0.6f : (playerMove.currentSpeed > playerMove.walkSpeed + 0.1f ? runYPos : walkZPos);
+        float targetY = originYoffset;
 
+        // --- 2. 몬스터에게 잡혔을 때 (Snared) 특수 처리 ---
+        if (isSnared)
+        {
+            // 몬스터 Mesh가 카메라를 가리지 않도록, 카메라를 플레이어 머리보다 약간 앞/위로 배치
+            // 몬스터 모델 내부로 진입하여 얼굴(발바닥 방향)을 바라보게 합니다.
+            targetZ = 0.2f;  // 앞으로 살짝 밀어서 몬스터 모델 안으로 진입
+            targetY = originYoffset + 0.1f;
+
+            // 잡혔을 때는 부드러운 이동보다 즉각적인 위치 고정이 중요하므로 Lerp 속도를 높임
+            Vector3 snaredPos = new Vector3(0, targetY, targetZ);
+            cameraTarget.localPosition = Vector3.Lerp(cameraTarget.localPosition, snaredPos, Time.deltaTime * transitionSpeed * 2f);
+
+            // 중요: Snared 상태일 때는 아래의 벽 뚫기 방지 로직(SphereCast)을 타지 않음
+            return;
+        }
 
         // 0(정면) ~ 1(바닥)
         float tiltOffsetFactor = Mathf.Clamp01(currentTilt / 70f);
@@ -253,8 +308,6 @@ public class PlayerRotation : NetworkBehaviour
 
 
         // --- 벽 뚫기 방지 (Raycast) 로직 ---
-        // 눈 위치(cameraTarget의 부모 위치 등)에서 시선 방향으로 레이를 쏩니다.
-        //Vector3 origin = transform.position + Vector3.up * (originYoffset + (playerMove.IsCrouching ? 0.6f : 1.5f));
         Vector3 headOffset = Vector3.up * (originYoffset + (playerMove.IsCrouching ? 0.5f : 1.5f));
         Vector3 origin = transform.position + headOffset;
         Vector3 direction = cameraTarget.forward;
@@ -266,7 +319,6 @@ public class PlayerRotation : NetworkBehaviour
             dynamicZ = Mathf.Max(0, hit.distance - minDistance);
         }
 
-        // 부드럽게 위치 적용
         Vector3 targetLocalPos = new Vector3(0, dynamicY, dynamicZ);
         cameraTarget.localPosition = Vector3.Lerp(cameraTarget.localPosition, targetLocalPos, Time.deltaTime * transitionSpeed);
     }
@@ -281,23 +333,39 @@ public class PlayerRotation : NetworkBehaviour
         // 상하 회전 (Tilt) 제약
         if (playerController != null && playerController.isSnared.Value)
         {
-            _panTilt.TiltAxis.Value = Mathf.Lerp(_panTilt.TiltAxis.Value, 0f, Time.deltaTime * transitionSpeed);
+            // 몬스터 카메라가 활성화된 상태이므로 메인 카메라의 Tilt는 조작하지 않거나 0으로 고정
+            _panTilt.TiltAxis.Value = 0f;
+            return;
         }
+
         else if (playerMove != null && playerMove.IsCrouching)
         {
             _panTilt.TiltAxis.Value = -10f;
         }
+        else if (playerController != null && playerController.isDead.Value)
+        {
+            // 사망 시에는 마우스 상하 입력을 받지 않음 (ApplyDeathRotation에서 처리)
+            return;
+        }
         else
         {
-            float minTilt = -70f;
-            float _currentMaxTilt = 70f;
-            //float maxTilt = isHoldingSmartphone ? 20f : 70f;
-            //_panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, minTilt, maxTilt);
+            //float minTilt = -70f;
+            //float _currentMaxTilt = 70f;
+            ////float maxTilt = isHoldingSmartphone ? 20f : 70f;
+            ////_panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, minTilt, maxTilt);
 
-            float targetMaxTilt = isHoldingSmartphone ? 20f : 70f;
+            //float targetMaxTilt = isHoldingSmartphone ? 20f : 70f;
+            //float newTilt = _panTilt.TiltAxis.Value - (mouseDelta.y * finalSensitivity);
+            //_currentMaxTilt = Mathf.Lerp(_currentMaxTilt, targetMaxTilt, Time.deltaTime * transitionSpeed);
+            //_panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, minTilt, _currentMaxTilt);
+
+            // 정상 상태: 상하 회전 가능
+            float minTilt = -70f;
+
             float newTilt = _panTilt.TiltAxis.Value - (mouseDelta.y * finalSensitivity);
-            _currentMaxTilt = Mathf.Lerp(_currentMaxTilt, targetMaxTilt, Time.deltaTime * transitionSpeed);
-            _panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, minTilt, _currentMaxTilt);
+
+            float currentMaxTilt = isHoldingSmartphone ? 20f : 70f;
+            _panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, minTilt, currentMaxTilt);
         }
     }
 
@@ -333,20 +401,6 @@ public class PlayerRotation : NetworkBehaviour
 
         //vcam.Lens.Dutch = 0; // 화면 기울기 완전 초기화
     }
-    //void ApplyTargetRotation()
-    //{
-    //    if (_spectatingTarget == null) return;
-
-    //    // 대상의 상하 회전값 가져오기
-    //    float targetTilt = _spectatingTarget.NetVerticalRotation.Value;
-
-    //    // 내 시네머신 카메라의 각도를 대상과 동기화
-    //    if (vcam.TryGetComponent<CinemachinePanTilt>(out var myPanTilt))
-    //    {
-    //        myPanTilt.TiltAxis.Value = targetTilt;
-    //        // 좌우 회전은 대상의 몸체(Transform)를 Follow하므로 자동으로 따라갑니다.
-    //    }
-    //}
 
     void HandleRotation()
     {
@@ -453,24 +507,19 @@ public class PlayerRotation : NetworkBehaviour
     {
         if (!IsOwner || vcam == null || _panTilt == null) return;
 
-        //// 1. 시네머신 내부 렌즈 기울기 초기화
-        //vcam.Lens.Dutch = 0;
-
-        //Quaternion targetWorldRotation = Quaternion.Euler(_panTilt.TiltAxis.Value, _panTilt.PanAxis.Value, 0);
-
-        //vcam.ForceCameraPosition(cameraTarget.position + Vector3.up * 0.1f, targetWorldRotation);
-        //vcam.transform.rotation = targetWorldRotation;
-
         // 1. 렌즈 기울기 초기화 (필요하다면 사망 시엔 살짝 기울여도 좋지만 일단 0으로)
         vcam.Lens.Dutch = Mathf.Lerp(vcam.Lens.Dutch, 0f, Time.deltaTime * transitionSpeed);
+
+        // 만약 애니메이션 중에도 붕 뜬다면, Vector3.down 오프셋을 살짝 섞어줄 수 있습니다.
+        //Vector3 targetPos = cameraTarget.position;
+
+        Vector3 deathAnchorPos = transform.position + Vector3.up * 0.2f;
 
         // 2. 월드 회전 계산
         Quaternion targetWorldRotation = Quaternion.Euler(_panTilt.TiltAxis.Value, _panTilt.PanAxis.Value, 0);
 
-        // 3. [수정 포인트] + Vector3.up 오프셋 제거 
-        // 캐릭터가 쓰러졌을 때 cameraTarget이 바닥 근처로 간다면 그 위치를 그대로 따릅니다.
-        // ForceCameraPosition은 텔레포트 시에만 쓰고, 평소엔 transform.SetPositionAndRotation을 사용합니다.
-        vcam.transform.position = cameraTarget.position;
+        // 부드럽게 사망 위치로 이동 (갑자기 튀는 것 방지)
+        vcam.transform.position = Vector3.Lerp(vcam.transform.position, deathAnchorPos, Time.deltaTime * 5f);
         vcam.transform.rotation = targetWorldRotation;
 
         if (CameraGroup != null)
@@ -493,7 +542,12 @@ public class PlayerRotation : NetworkBehaviour
         // 시선은 상하좌우(Pan/Tilt) 모두 회전
         if (CameraGroup != null)
         {
-            CameraGroup.transform.rotation = Quaternion.Euler(_panTilt.TiltAxis.Value, _panTilt.PanAxis.Value, 0);
+            //CameraGroup.transform.rotation = Quaternion.Euler(_panTilt.TiltAxis.Value, _panTilt.PanAxis.Value, 0);
+            // 매달린 상태가 아니라면 PanTilt의 값을 정상적으로 반영
+            if (playerController != null && !playerController.isSnared.Value)
+            {
+                CameraGroup.transform.localRotation = Quaternion.Euler(_panTilt.TiltAxis.Value, 0, 0);
+            }
         }
 
         UpdateCameraPositionWithCollision();
