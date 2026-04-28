@@ -189,6 +189,11 @@ public class GalleryUI : ScrollSelectionUI
         PhotoDataManager.Instance.RemovePhoto(currentIndex);
         Debug.Log($"[GalleryUI] {currentIndex}번 사진 및 데이터 삭제 완료");
 
+        if (QuestCameraBridge.Instance != null)
+        {
+            QuestCameraBridge.Instance.RecalculateLocalDeferredQuests();
+        }
+
         LoadPhotos();
         UpdateMainDisplay();
     }
