@@ -175,7 +175,10 @@ GameObject:
   - component: {fileID: 7683043943967681628}
   - component: {fileID: 6359369613765853642}
   - component: {fileID: 8096165096405324569}
-  m_Layer: 0
+  - component: {fileID: 2223224289162213056}
+  - component: {fileID: 398740664534821263}
+  - component: {fileID: 7510101684017071532}
+  m_Layer: 9
   m_Name: L_SlidingDoor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -254,6 +257,74 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &2223224289162213056
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7309771175897130471}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2.1042998, y: 2.0059357, z: 2.000001}
+  m_Center: {x: 0.05216481, y: 0.0029676557, z: 1.33042025e-14}
+--- !u!114 &398740664534821263
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7309771175897130471}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 3286706225
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
+--- !u!114 &7510101684017071532
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7309771175897130471}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27d4d754ff13abb45bb44b5097232cd6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DoorController
+  ShowTopMostFoldoutHeaderGroup: 1
+  doorType: 1
+  isOpen:
+    m_InternalValue: 0
+  isLocked:
+    m_InternalValue: 0
+  requiredKeyID: 
+  speed: 3
+  openAngle: 90
+  openOffset: {x: -1, y: 0, z: 0}
 --- !u!1 &7964367980920663069
 GameObject:
   m_ObjectHideFlags: 0
@@ -265,7 +336,9 @@ GameObject:
   - component: {fileID: 7707265895842487937}
   - component: {fileID: 112069757968815985}
   - component: {fileID: 2797465970807521975}
-  m_Layer: 0
+  - component: {fileID: 4078413270147253505}
+  - component: {fileID: 8318453359412430055}
+  m_Layer: 9
   m_Name: R_SlidingDoor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -344,6 +417,49 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &4078413270147253505
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7964367980920663069}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2.1042998, y: 2.0059357, z: 2.000001}
+  m_Center: {x: 0.052134294, y: 0.0029681325, z: -1.1857431e-14}
+--- !u!114 &8318453359412430055
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7964367980920663069}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27d4d754ff13abb45bb44b5097232cd6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DoorController
+  ShowTopMostFoldoutHeaderGroup: 1
+  doorType: 1
+  isOpen:
+    m_InternalValue: 0
+  isLocked:
+    m_InternalValue: 0
+  requiredKeyID: 
+  speed: 3
+  openAngle: 90
+  openOffset: {x: 1, y: 0, z: 0}
 --- !u!1 &8858257830296672250
 GameObject:
   m_ObjectHideFlags: 0
