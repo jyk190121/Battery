@@ -65,7 +65,7 @@ public class CinemachineController : MonoBehaviour
 
         // 2. 씬에 있는 모든 오브젝트 중 FaceMonster 레이어를 가진 것들 검색
         // (성능을 위해 FindObjectsByType보다 효율적인 방식 선택)
-        GameObject[] allObjects = GameObject.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+        GameObject[] allObjects = FindObjectsByType<GameObject>(FindObjectsSortMode.None);
 
         foreach (GameObject obj in allObjects)
         {
