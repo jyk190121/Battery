@@ -3222,6 +3222,9 @@ MonoBehaviour:
   itemLayer:
     serializedVersion: 2
     m_Bits: 131072
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 38856
   leftHandName: OneHandle
   bothHandsName: BothHandle
   leftHandTransform: {fileID: 0}
