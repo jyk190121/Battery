@@ -15,7 +15,7 @@ MonoBehaviour:
   itemID: 401
   itemName: Flashbang
   handType: 0
-  category: 4
+  category: 1
   basePrice: 150
   icon: {fileID: -1659656459, guid: 4e57a1c5bdba81d459fb34b5e0130ea8, type: 3}
   animType: 2
