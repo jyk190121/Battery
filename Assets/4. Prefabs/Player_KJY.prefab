@@ -3176,6 +3176,9 @@ MonoBehaviour:
   TabletLayer:
     serializedVersion: 2
     m_Bits: 2048
+  Interactable:
+    serializedVersion: 2
+    m_Bits: 65536
   interactUI: {fileID: 0}
   progressImage: {fileID: 0}
   requiredHoldTime: 2
