@@ -15,6 +15,7 @@ public class PlayerInteraction : NetworkBehaviour
     Player data => controller.Data;
     public LayerMask DoorLayer;                         // 문 레이어
     public LayerMask TabletLayer;                       // 태블릿 레이어
+    public LayerMask Interactable;                      // 발전기 레이어
     public GameObject interactUI;                       // UI오브젝트
     TextMeshProUGUI interactText;                       // 텍스트
     public Image progressImage;
@@ -34,6 +35,7 @@ public class PlayerInteraction : NetworkBehaviour
     private PortalController targetPortal = null;
     private TabletUIManager targetTabletUI = null;
     private LockerController targetLocker = null;
+    private GeneratorController targetGenerator = null;
     CarController carDoor = null;
 
     public override void OnNetworkSpawn()
@@ -168,6 +170,25 @@ public class PlayerInteraction : NetworkBehaviour
                     carDoor.TryOpen(currentKey);
                 }
             }
+            else if (targetGenerator != null && !targetGenerator.isRepaired.Value)
+            {
+                if (Keyboard.current.eKey.isPressed)
+                {
+                    currentHoldTime += Time.deltaTime;
+                    // 발전기마다 설정된 repairTime 사용
+                    if (progressImage != null) progressImage.fillAmount = currentHoldTime / targetGenerator.repairTime;
+
+                    if (currentHoldTime >= targetGenerator.repairTime)
+                    {
+                        targetGenerator.CompleteRepairServerRpc();
+                        ResetHold();
+                    }
+                }
+            }
+            else
+            {
+                ResetHold();
+            }
         }
         else
         {
@@ -188,7 +209,7 @@ public class PlayerInteraction : NetworkBehaviour
 
         RaycastHit hit;
 
-        LayerMask combinedLayer = DoorLayer | TabletLayer;
+        LayerMask combinedLayer = DoorLayer | TabletLayer | Interactable;
 
         if (Physics.Raycast(camTransform.position, camTransform.forward, out hit, data.interactDistance, combinedLayer))
         {
@@ -197,11 +218,12 @@ public class PlayerInteraction : NetworkBehaviour
             targetPortal = hit.collider.GetComponentInParent<PortalController>();
             carDoor = hit.collider.GetComponentInParent<CarController>();
             targetLocker = hit.collider.GetComponentInParent<LockerController>();
+            targetGenerator = hit.collider.GetComponentInParent<GeneratorController>();
 
             targetTabletUI = hit.collider.GetComponentInChildren<TabletUIManager>();
             if (targetTabletUI == null) targetTabletUI = hit.collider.GetComponentInParent<TabletUIManager>();
 
-            if (targetDoor != null || targetPortal != null || targetTabletUI != null || carDoor != null || targetLocker != null)
+            if (targetDoor != null || targetPortal != null || targetTabletUI != null || carDoor != null || targetLocker != null || targetGenerator != null)
             {
                 if (!isLookingAtInteractable) interactUI.SetActive(true);
                 isLookingAtInteractable = true;
@@ -225,6 +247,10 @@ public class PlayerInteraction : NetworkBehaviour
                 else if (carDoor != null)
                 {
                     interactText.text = carDoor.isOpen.Value ? "Close (E)" : "Open (E)";
+                }
+                else if (targetGenerator != null)
+                {
+                    interactText.text = targetGenerator.GetInteractText();
                 }
                 return; // 찾았으므로 종료
             }
