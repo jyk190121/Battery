@@ -1,5 +1,6 @@
 using Unity.Cinemachine;
 using Unity.Netcode;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerRotation : NetworkBehaviour
@@ -58,6 +59,7 @@ public class PlayerRotation : NetworkBehaviour
         playerController = GetComponent<PlayerController>();
 
         cameraController = FindAnyObjectByType<CinemachineController>();
+
 
         // [중요] 잡힌 상태(isSnared)가 변할 때 카메라 전환
         playerController.isSnared.OnValueChanged += (oldVal, isSnared) => {
@@ -180,7 +182,8 @@ public class PlayerRotation : NetworkBehaviour
         //}
 
 
-        if (vcam != null) return;
+        //if (vcam != null) return;
+        if (vcam != null && _panTilt != null) return;
 
         // 씬 전체를 뒤지는 대신, 컨트롤러에 등록된 메인 카메라를 바로 가져옴
         if (CinemachineController.Instance != null)
@@ -190,6 +193,9 @@ public class PlayerRotation : NetworkBehaviour
             if (vcam != null)
             {
                 _panTilt = vcam.GetComponent<CinemachinePanTilt>();
+
+                if (_panTilt == null) _panTilt = cameraController.GetComponent<CinemachinePanTilt>();
+
                 if (IsOwner)
                 {
                     vcam.Follow = cameraTarget;
@@ -422,7 +428,6 @@ public class PlayerRotation : NetworkBehaviour
 
         // 1. 좌우 회전 업데이트
         //_panTilt.PanAxis.Value += mouseDelta.x * sensitivity;
-
         float finalSensitivity = sensitivity * mouseSensitivityMultiplier;
         _panTilt.PanAxis.Value += mouseDelta.x * finalSensitivity;
 

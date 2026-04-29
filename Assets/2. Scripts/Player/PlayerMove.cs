@@ -38,7 +38,10 @@ public class PlayerMove : NetworkBehaviour
     private float initialHeight;
     private Vector3 initialCenter;
 
-    [SerializeField] float crouchHeight = 1.2f;                      // 앉았을 때 높이 (캐릭터에 맞춰 조절)
+    [Header("상태 체크")]
+    private bool isFaceMonsterAttached = false;     // 몬스터 부착 여부
+
+    [SerializeField] float crouchHeight = 1.2f;     // 앉았을 때 높이 (캐릭터에 맞춰 조절)
 
     // [Header("앉기 체크 설정")]
     bool isCrouching = false;
@@ -189,7 +192,7 @@ public class PlayerMove : NetworkBehaviour
         RaycastHit hit;
         // 이전프레임 계단 저장 [추가]
         wasOnStair = isOnStair;
-       
+
         Vector3 rayOrigin = transform.position + Vector3.up * 0.1f;
         float rayDistance = 0.1f + groundCheckDistance;
         if (wasOnStair) rayDistance *= 1.3f;
@@ -305,12 +308,13 @@ public class PlayerMove : NetworkBehaviour
 
     void HandleActions()
     {
-        isCrouching = Keyboard.current.leftCtrlKey.isPressed && isGrounded;
+        isCrouching = Keyboard.current.leftCtrlKey.isPressed && isGrounded && !isFaceMonsterAttached;
+
+        //isCrouching = Keyboard.current.leftCtrlKey.isPressed && isGrounded;
 
         //playerAnim.UpdateCrouchStatus(isCrouching);
 
-       playerAnim.UpdateCrouchStatus(isCrouching);
-
+        playerAnim.UpdateCrouchStatus(isCrouching);
 
         if (isCrouching) return;
 
@@ -457,6 +461,11 @@ public class PlayerMove : NetworkBehaviour
             currentSpeed = 0f;
             rb.linearVelocity = Vector3.zero;
         }
+        else
+        {
+            // 잠금이 풀릴 때 기본 속도로 복구
+            currentSpeed = walkSpeed;
+        }
     }
 
     // 태블릿 상태에 따라 잠금 설정
@@ -470,6 +479,19 @@ public class PlayerMove : NetworkBehaviour
             currentSpeed = 0;
             inputMagnitude = 0;
             if (rb != null) rb.linearVelocity = Vector3.zero;
+        }
+    }
+
+    public void SetFaceMonsterAttached(bool isAttached)
+    {
+        isFaceMonsterAttached = isAttached;
+
+        // 만약 앉아있는 상태에서 붙었다면 즉시 앉기 해제
+        if (isAttached && isCrouching)
+        {
+            isCrouching = false;
+            UpdateCollider(); // 콜라이더 즉시 복구
+            playerAnim.UpdateCrouchStatus(false);
         }
     }
 }
