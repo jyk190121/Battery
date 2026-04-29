@@ -1,5 +1,4 @@
 using System.Collections;
-using Unity.Netcode;
 using UnityEngine;
 
 /// <summary>
@@ -50,6 +49,13 @@ public class AttachedState : MonsterBaseState
             }
             // --------------------------
 
+            // [플레이어 앉기(확장가능) 제한]
+            if (_snaredPlayer.TryGetComponent<PlayerMove>(out var move))
+            {
+                move.SetFaceMonsterAttached(true);
+                // PlayerMove 내부의 SetFaceMonsterAttached에서 앉기 강제 해제 및 LCtrl 입력을 차단함
+            }
+
             // 2. 에이전트 정지 (숙주를 따라가야 하므로 스스로의 길찾기/물리 이동 차단)
             owner.navAgent.enabled = false;
             // [TODO] 콜라이더를 꺼야 할 경우 아래 주석 해제
@@ -94,7 +100,17 @@ public class AttachedState : MonsterBaseState
             {
                 CinemachineController.Instance.SetMainCameraActive();
             }
-            // --------------------------
+
+            // 앉기 복구 (추가)
+            if (_snaredPlayer.TryGetComponent<PlayerMove>(out var move))
+            {
+                move.SetFaceMonsterAttached(false);
+            }
+
+            if (_snaredPlayer.IsOwner && CinemachineController.Instance != null)
+            {
+                CinemachineController.Instance.SetMainCameraActive();
+            }
         }
 
         // 2. [네트워크 종속 해제] 플레이어 머리에서 강제로 떨어짐
