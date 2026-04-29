@@ -461,6 +461,11 @@ public class PlayerMove : NetworkBehaviour
             currentSpeed = 0f;
             rb.linearVelocity = Vector3.zero;
         }
+        else
+        {
+            // 잠금이 풀릴 때 기본 속도로 복구
+            currentSpeed = walkSpeed;
+        }
     }
 
     // 태블릿 상태에 따라 잠금 설정

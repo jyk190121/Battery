@@ -1,3 +1,4 @@
+using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -23,7 +24,7 @@ public class PlayerAttack : NetworkBehaviour
         if (!IsOwner) return;
 
         // 마우스 좌클릭 입력
-        if (Mouse.current.leftButton.wasPressedThisFrame)
+        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
         {
             if (CanAttack())
             {
@@ -69,6 +70,18 @@ public class PlayerAttack : NetworkBehaviour
 
         // 이동 제한
         if (_playerMove != null) _playerMove.SetControlLock(true);
+
+        StopCoroutine(nameof(AttackTimeoutRoutine));
+        StartCoroutine(nameof(AttackTimeoutRoutine));
+    }
+
+    IEnumerator AttackTimeoutRoutine()
+    {
+        yield return new WaitForSeconds(1.5f); // 공격 애니메이션 평균 시간보다 조금 길게 설정
+        if (isAttacking)
+        {
+            OnAttackEnd();
+        }
     }
 
     // 애니메이션 이벤트(OnAttackEnd) 연동 필수
