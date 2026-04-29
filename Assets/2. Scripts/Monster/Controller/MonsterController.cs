@@ -102,7 +102,7 @@ public class MonsterController : NetworkBehaviour
                 _states.Add(MonsterStateType.Stalk, new StalkState(this));
                 _states.Add(MonsterStateType.Scream, new ScreamState(this));
             }
-            // 올무벼룩 전용 상태 등록
+            // 올무벼룩 전용 상태 등록s
             else if (monsterData.type == MonsterType.Ambush)
             {
                 _states.Add(MonsterStateType.CeilingWait, new CeilingWaitState(this));
