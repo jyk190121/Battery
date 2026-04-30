@@ -209,8 +209,8 @@ public class SettlementZone : NetworkBehaviour
 
                 bool isWipedOut = deadCount >= GameSessionManager.Instance.GetTotalPlayers();
 
-                GameMaster.Instance.EndDay(isWipedOut, finalNetIncome);
-                //GameMaster.Instance.EndDay(isWipedOut, finalNetIncome, questScore);
+               
+                GameMaster.Instance.EndDay(isWipedOut, finalNetIncome, questScore);
 
                 QuestManager.Instance.ResetDailyQuests();
             }

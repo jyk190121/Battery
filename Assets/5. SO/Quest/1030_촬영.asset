@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::QuestDataSO
   questID: 1030
   questName: "\uC99D\uAC70\uC0AC\uC9C4 \uCD2C\uC601"
-  description: "\uAC74\uBB3C \uB0B4\uBD80\uC758 \uBB34\uC11C\uC6B4 \uAC83\uC744 \uCD2C\uC601\uD574
-    \uC640\uC8FC\uC138\uC694."
+  description: "\uC18C\uBB38\uC774 \uBB34\uC131\uD55C \uBAAC\uC2A4\uD130\uB97C \uCD2C\uC601\uD574\uC8FC\uC138\uC694!"
   type: 2
   difficulty: 0
   targetType: 

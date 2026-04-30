@@ -114,9 +114,11 @@ public class GameMaster : NetworkBehaviour
     }
 
     // 2. 정산 구역(SettlementZone)에서 탈출 시 호출
-    public void EndDay(bool isWipedOut, int dailyIncome)
+    public void EndDay(bool isWipedOut, int dailyIncome, int questScore = 0)
     {
         if (!IsServer) return;
+
+        Debug.Log(questScore);
 
         // [순서 보장 1] 경제 매니저에게 정산 지시 (돈부터 먼저 확실히 계산)
         economyManager.ProcessDailyIncome(isWipedOut ? 0 : dailyIncome, dayCycleManager.currentDayIndex.Value);

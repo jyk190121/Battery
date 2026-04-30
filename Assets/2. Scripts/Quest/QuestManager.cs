@@ -54,29 +54,45 @@ public class QuestManager : NetworkBehaviour
     // [스마트폰 UI API] 개인별 퀘스트 클리어 여부 체크.
     public bool IsQuestCleared(int questID)
     {
-        //  현재 수락된 퀘스트 목록에 없는 경우, 무조건 false (과거 데이터 방지)
+        // 현재 수락된 퀘스트 목록에 없는 경우, 무조건 false (과거 데이터 방지)
         if (!activeQuests.Contains(questID)) return false;
 
         // 데이터베이스에서 퀘스트 정보 가져오기 (실패 시 조기 리턴)
         var data = GetQuestData(questID);
         if (data == null) return false;
 
-        // 서버가 공식적으로 완료 처리했거나, 즉시 클리어된 기록이 있는가?
-        if (serverCompletedQuests.Contains(questID) || myActuallyDoneQuests.Contains(questID))
-            return true;
+        // 💡 로그 출력을 위해 퀘스트 이름(questName) 변수화
+        string qName = data.questName;
 
-        //  아이템 수집 타입인 경우: 트럭 안에 타겟 아이템이 들어있는가?
-        if (data.type == QuestType.Collect)
+        // 1. 서버가 공식적으로 완료 처리했거나, 즉시 클리어된 기록이 있는가?
+        if (serverCompletedQuests.Contains(questID) || myActuallyDoneQuests.Contains(questID))
         {
-            if (itemsInTruck.Contains(data.targetItemID)) return true;
+            Debug.Log($"<color=lime>[Quest UI]</color> 퀘스트 완료: <b>[ID:{questID}] {qName}</b> (사유: 서버 기록 또는 확정 클리어)");
+            return true;
         }
 
-        // 촬영 또는 기록 타입인 경우: 내 개인 앨범에 사진이 있는가?
+        // 2. 아이템 수집 타입인 경우: 트럭 안에 타겟 아이템이 들어있는가?
+        if (data.type == QuestType.Collect)
+        {
+            if (itemsInTruck.Contains(data.targetItemID))
+            {
+                Debug.Log($"<color=lime>[Quest UI]</color> 퀘스트 완료: <b>[ID:{questID}] {qName}</b> (사유: 트럭 내 목표물({data.targetItemID}) 감지됨)");
+                return true;
+            }
+        }
+
+        // 3. 촬영 또는 기록 타입인 경우: 내 개인 앨범에 사진이 있는가?
         if (data.type == QuestType.Photo || data.type == QuestType.Record)
         {
             if (QuestCameraBridge.Instance != null && QuestCameraBridge.Instance.IsPhotoInLocalAlbum(questID))
+            {
+                Debug.Log($"<color=lime>[Quest UI]</color> 퀘스트 완료: <b>[ID:{questID}] {qName}</b> (사유: 개인 스마트폰 앨범에 사진 존재)");
                 return true;
+            }
         }
+
+        // 미완료 상태 (너무 많이 출력될 수 있어 주석 처리. 필요시 해제하세요)
+        // Debug.Log($"<color=grey>[Quest UI]</color> 진행 중: [ID:{questID}] {qName}");
 
         return false;
     }
