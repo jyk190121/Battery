@@ -110,8 +110,9 @@ public class QuestDebugManager : NetworkBehaviour
         foreach (var id in QuestManager.Instance.serverCompletedQuests) sb.Append($"<color=green>[{id}]</color> ");
         sb.AppendLine();
 
-        int reward = QuestManager.Instance.GetCalculatedQuestReward();
-        sb.AppendLine($"<b>[예상 보너스]</b> <color=yellow>{reward}원</color>");
+        var results = QuestManager.Instance.GetCalculatedQuestResults();
+        sb.AppendLine($"<b>[예상 보너스]</b> <color=yellow>{results.money}원</color>");
+        sb.AppendLine($"<b>[예상 실적]</b> <color=cyan>{results.score}pt</color>");
 
         Debug.Log(sb.ToString());
     }

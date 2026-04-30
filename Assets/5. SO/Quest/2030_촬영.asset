@@ -10,14 +10,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: eca90f6eedaab2644a9ec07173f310a4, type: 3}
-  m_Name: 1034
+  m_Name: "2030_\uCD2C\uC601"
   m_EditorClassIdentifier: Assembly-CSharp::QuestDataSO
-  questID: 1034
-  questName: "\uAC01\uCE35 \uD654\uC7A5\uC2E4\uC758 \uBB38\uAD6C \uCD2C\uC601"
-  description: "\uAC01\uCE35 \uD654\uC7A5\uC2E4\uC758 \uBB38\uAD6C \uCD2C\uC601"
-  type: 3
-  baseReward: 1100
+  questID: 2030
+  questName: "\uC99D\uAC70\uC0AC\uC9C4 \uCD2C\uC601"
+  description: "\uAC74\uBB3C \uB0B4\uBD80\uC758 \uBB34\uC11C\uC6B4 \uAC83\uC744 \uCD2C\uC601\uD574
+    \uC640\uC8FC\uC138\uC694."
+  type: 2
+  difficulty: 1
+  targetType: 
+  baseReward: 600
   bonusMultiplier: 1
-  isHazardQuest: 0
+  isHazardQuest: 1
+  performancePoint: 40
   targetItemID: 0
-  questLevel: 10
+  passwordCount: 0
+  materialCount: 0
+  hasSpeedDebuff: 0
+  hasMonsterAggro: 0
+  hasHallucination: 0

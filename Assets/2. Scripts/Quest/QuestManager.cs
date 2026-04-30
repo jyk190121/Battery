@@ -15,7 +15,7 @@ public class QuestManager : NetworkBehaviour
     public NetworkList<int> serverCompletedQuests;  // 게임 중 완료한 퀘스트
     public NetworkList<int> itemsInTruck;           // 실시간 수집 감지 목록
 
-    [Header("Daily Offered Pools (3+1)")]
+    [Header("Daily Offered Pools (Difficulty Based)")]
     public NetworkList<int> easyOffered;
     public NetworkList<int> normalOffered;
     public NetworkList<int> hardOffered;
@@ -129,21 +129,47 @@ public class QuestManager : NetworkBehaviour
     private void RefreshDailyQuestPools()
     {
         if (!IsServer) return;
-        Generate3Plus1(easyOffered, 1, 3, 4, 7);
-        Generate3Plus1(normalOffered, 4, 7, 8, 10);
-        Generate3Plus1(hardOffered, 8, 10, 4, 7);
-        Debug.Log("<color=yellow>[Quest] 신규 일일 퀘스트 풀 생성 완료.</color>");
+
+        GenerateDifficultyPool(easyOffered, QuestDifficulty.Easy, 4);
+        GenerateDifficultyPool(normalOffered, QuestDifficulty.Normal, 4);
+        GenerateDifficultyPool(hardOffered, QuestDifficulty.Hard, 4);
+
+        Debug.Log("<color=yellow>[Quest] 난이도별 4개 추출 풀 생성 완료.</color>");
     }
 
-    private void Generate3Plus1(NetworkList<int> targetList, int minMain, int maxMain, int minSub, int maxSub)
+    private void GenerateDifficultyPool(NetworkList<int> targetList, QuestDifficulty diff, int count)
     {
         targetList.Clear();
-        var main = questDatabase.Where(q => q.questLevel >= minMain && q.questLevel <= maxMain).OrderBy(x => Random.value).Take(3);
-        var sub = questDatabase.Where(q => q.questLevel >= minSub && q.questLevel <= maxSub).OrderBy(x => Random.value).Take(1);
+        var pool = questDatabase.Where(q => q.difficulty == diff)
+                                .OrderBy(x => Random.value)
+                                .Take(count);
 
-        foreach (var q in main) targetList.Add(q.questID);
-        foreach (var q in sub) targetList.Add(q.questID);
+        foreach (var q in pool) targetList.Add(q.questID);
     }
+    
+
+    public (int money, int score) GetCalculatedQuestResults()
+    {
+        if (!IsServer) return (0, 0);
+
+        int totalMoney = 0;
+        int totalScore = 0;
+
+        foreach (int qId in serverCompletedQuests)
+        {
+            var data = GetQuestData(qId);
+            if (data == null) continue;
+
+            // 재화 계산 (기본 보상 + 배율 + 위험 보너스)
+            float totalMult = 1.0f + data.bonusMultiplier + (data.isHazardQuest ? 0.2f : 0f);
+            totalMoney += Mathf.RoundToInt(data.baseReward * totalMult);
+
+            // 실적 포인트 합산
+            totalScore += data.performancePoint;
+        }
+        return (totalMoney, totalScore);
+    }
+
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void AcceptDifficultyContractServerRpc(QuestDifficulty difficulty)
@@ -171,23 +197,6 @@ public class QuestManager : NetworkBehaviour
             }
             Debug.Log($"<color=yellow><b>[QUEST START]</b></color> {difficulty} 난이도 계약 수락! (총 {activeQuests.Count}개)\n<color=white>{questListStr}</color>");
         }
-    }
-
-    public int GetCalculatedQuestReward()
-    {
-        if (!IsServer) return 0;
-        int questReward = 0;
-        float totalMult = 0f;
-
-        foreach (int qId in serverCompletedQuests)
-        {
-            var data = GetQuestData(qId);
-            if (data == null) continue;
-            questReward += data.baseReward;
-            totalMult += data.bonusMultiplier;
-            if (data.isHazardQuest) totalMult += 0.2f;
-        }
-        return Mathf.RoundToInt(questReward * (1.0f + totalMult));
     }
 
     public QuestDataSO GetQuestData(int id) => questDatabase.Find(q => q.questID == id);
@@ -230,4 +239,37 @@ public class QuestManager : NetworkBehaviour
         }
     }
     #endregion
+
+
+    //구형 로직 --------------------------------------------------------------------------------------------------------------------
+
+    //private void Generate3Plus1(NetworkList<int> targetList, int minMain, int maxMain, int minSub, int maxSub)
+    //{
+    //    targetList.Clear();
+    //    var main = questDatabase.Where(q => q.questLevel >= minMain && q.questLevel <= maxMain).OrderBy(x => Random.value).Take(3);
+    //    var sub = questDatabase.Where(q => q.questLevel >= minSub && q.questLevel <= maxSub).OrderBy(x => Random.value).Take(1);
+
+    //    foreach (var q in main) targetList.Add(q.questID);
+    //    foreach (var q in sub) targetList.Add(q.questID);
+    //}
+
+    // 정산시 보상 계산 로직(구형)
+    //public int GetCalculatedQuestReward()
+    //{
+    //    if (!IsServer) return 0;
+    //    int questReward = 0;
+    //    float totalMult = 0f;
+
+    //    foreach (int qId in serverCompletedQuests)
+    //    {
+    //        var data = GetQuestData(qId);
+    //        if (data == null) continue;
+    //        questReward += data.baseReward;
+    //        totalMult += data.bonusMultiplier;
+    //        if (data.isHazardQuest) totalMult += 0.2f;
+    //    }
+    //    return Mathf.RoundToInt(questReward * (1.0f + totalMult));
+    //}
+
+
 }

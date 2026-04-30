@@ -23,12 +23,12 @@ public class SettlementZone : NetworkBehaviour
 
     private void Start() => SpawnItems();
 
-    //수집 퀘스트 트럭 입출고 감지
+    // 수집 퀘스트 트럭 입출고 감지
     private void OnTriggerEnter(Collider other)
     {
         if (!IsServer) return;
 
-        // 💡 [최적화] ItemBase 전체가 아니라 처음부터 Item_Quest인지 콕 집어서 검사합니다.
+        // ItemBase 전체가 아니라 처음부터 Item_Quest인지 콕 집어서 검사합니다.
         QuestCollectionItem questItem = other.GetComponentInParent<QuestCollectionItem>();
 
         if (questItem != null)
@@ -37,9 +37,8 @@ public class SettlementZone : NetworkBehaviour
             if (!QuestManager.Instance.itemsInTruck.Contains(qId))
                 QuestManager.Instance.itemsInTruck.Add(qId);
 
-            // 당사자 폰에만 귓속말
-            QuestManager.Instance.NotifyLocalClientToggleClientRpc(qId, true,
-                RpcTarget.Single(questItem.lastHolderId, RpcTargetUse.Temp));
+            // 변경된 내용 전체 체크.
+            QuestManager.Instance.NotifyLocalClientToggleClientRpc(qId, true, RpcTarget.Everyone);
         }
     }
 
@@ -54,10 +53,11 @@ public class SettlementZone : NetworkBehaviour
             if (QuestManager.Instance.itemsInTruck.Contains(qId))
                 QuestManager.Instance.itemsInTruck.Remove(qId);
 
-            QuestManager.Instance.NotifyLocalClientToggleClientRpc(qId, false,
-                RpcTarget.Single(questItem.lastHolderId, RpcTargetUse.Temp));
+            // 팀원 UI를 위한 해제 신호 발생
+            QuestManager.Instance.NotifyLocalClientToggleClientRpc(qId, false,RpcTarget.Everyone);
         }
     }
+    
 
     //씬 이동 및 최종 정산 실행 (버튼/상호작용 진입점)
     public void ExecuteTransition(PlayerInventory player, string targetScene, bool doSettlement)
@@ -195,7 +195,7 @@ public class SettlementZone : NetworkBehaviour
         {
             try
             {
-                int questIncome = QuestManager.Instance.GetCalculatedQuestReward();
+                var (questIncome, questScore) = QuestManager.Instance.GetCalculatedQuestResults();
                 int finalDailyIncome = totalScrapValue + questIncome;
 
                 int deadCount = GameSessionManager.Instance.deadPlayersCount;
@@ -210,6 +210,8 @@ public class SettlementZone : NetworkBehaviour
                 bool isWipedOut = deadCount >= GameSessionManager.Instance.GetTotalPlayers();
 
                 GameMaster.Instance.EndDay(isWipedOut, finalNetIncome);
+                //GameMaster.Instance.EndDay(isWipedOut, finalNetIncome, questScore);
+
                 QuestManager.Instance.ResetDailyQuests();
             }
             catch (System.Exception e) { Debug.LogWarning($"[Settlement] 정산 오류 무시: {e.Message}"); }
