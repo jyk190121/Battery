@@ -2,9 +2,28 @@ using UnityEngine;
 
 public class QuestCollectionItem : ItemBase
 {
-    //에러 해결을 위해 추가 (수집 퀘스트 실시간 피드백용 소유권 추적)
-    [Header("Quest Tracking")]
-    public ulong lastHolderId;
+
+    public static void ApplyDifficultyDebuffs(int tier)
+    {
+        switch (tier)
+        {
+            case 1: // ID 1020: Easy (1단계만)
+                Debug.Log("<color=yellow>[Tier 1]</color> 속도감소");
+                break;
+
+            case 2: // ID 2020: Normal (1~2단계)
+                Debug.Log("<color=orange>[Tier 2]</color> 속도감소 + 환청");
+                break;
+
+            case 3: // ID 3020: Hard (1~3단계)
+                Debug.Log("<color=red>[Tier 3]</color> 속도감소 + 환청 + 어그로");
+                break;
+
+            default: // 해당 아이템이 없을 때 (0)
+                Debug.Log("<color=white>[Clean]</color> 디버프 해제");
+                break;
+        }
+    }
 
     protected override void Start()
     {

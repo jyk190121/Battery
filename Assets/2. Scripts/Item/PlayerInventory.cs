@@ -332,10 +332,7 @@ public class PlayerInventory : NetworkBehaviour
 
         item.isEquipped = true;
 
-        if (item is QuestCollectionItem questItem)
-        {
-            questItem.lastHolderId = rpcParams.Receive.SenderClientId;
-        }
+      
         item.NetworkObject.ChangeOwnership(rpcParams.Receive.SenderClientId);
         NotifyPickUpClientRpc(itemNetId);
     }
@@ -381,6 +378,7 @@ public class PlayerInventory : NetworkBehaviour
         }
 
         if (IsOwner) OnInventoryUpdated?.Invoke();
+        RefreshQuestDebuffTiming();
     }
 
     public void RequestDropCurrentItem()
@@ -467,7 +465,11 @@ public class PlayerInventory : NetworkBehaviour
             }
         }
 
-        if (IsOwner) OnInventoryUpdated?.Invoke();
+        if (IsOwner)
+        {
+            OnInventoryUpdated?.Invoke();
+            RefreshQuestDebuffTiming();
+        }
     }
 
     private void HandleSlotChange()
@@ -543,6 +545,7 @@ public class PlayerInventory : NetworkBehaviour
 
             OnInventoryUpdated?.Invoke();
             OnSlotChanged?.Invoke(currentSlotIndex);
+            RefreshQuestDebuffTiming();
         }
     }
 
@@ -624,6 +627,7 @@ public class PlayerInventory : NetworkBehaviour
         {
             OnInventoryUpdated?.Invoke();
             OnSlotChanged?.Invoke(currentSlotIndex);
+            RefreshQuestDebuffTiming();
         }
     }
 
@@ -708,5 +712,31 @@ public class PlayerInventory : NetworkBehaviour
             OnInventoryUpdated?.Invoke();
             OnSlotChanged?.Invoke(currentSlotIndex);
         }
+    }
+
+    private void RefreshQuestDebuffTiming()
+    {
+        if (!IsOwner) return;
+
+        int tier = 0; // 0: 디버프 없음
+
+        // 인벤토리 슬롯과 양손 아이템을 합쳐서 검사
+        List<ItemBase> checkList = new List<ItemBase>(slots);
+        if (twoHandedItem != null) checkList.Add(twoHandedItem);
+
+        foreach (var item in checkList)
+        {
+            if (item == null) continue;
+
+            int id = item.itemData.itemID;
+
+            // 기획서의 특정 ID만 체크하여 단계(tier) 설정 (가장 높은 단계가 우선순위)
+            if (id == 3020) tier = 3;
+            else if (id == 2020 && tier < 2) tier = 2;
+            else if (id == 1020 && tier < 1) tier = 1;
+        }
+
+        // 딱 숫자(1, 2, 3)만 던집니다.
+        QuestCollectionItem.ApplyDifficultyDebuffs(tier);
     }
 }
