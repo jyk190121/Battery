@@ -5,7 +5,8 @@ public enum MonsterType
      Tracking,
      Gaze,
      Special,
-     Ambush
+     Ambush,
+    Ghost
 }
 
 /// <summary>

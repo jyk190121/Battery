@@ -22,6 +22,12 @@ public class EnemyManager : NetworkBehaviour
     [Tooltip("맵에 배치된 몬스터 스폰 지점(환풍구 등)")]
     public List<VentController> ventPoints;
 
+    [Header("--- Special Spawn (고스트) ---")]
+    [Tooltip("영적 세계 기믹용 고스트 데이터")]
+    public MonsterData ghostData;
+    [Tooltip("영적 세계 고스트 전용 스폰 환풍구")]
+    public VentController ghostVent;
+
     [Header("--- Budget Settings ---")]
     [Tooltip("기본 스폰 예산")]
     public int baseMaxBudget = 10;
@@ -40,6 +46,7 @@ public class EnemyManager : NetworkBehaviour
     private int _currentSpentBudget = 0;
     private bool _isDayActive = false;
     private Coroutine _spawnRoutine;
+    private bool _isGhostSpawned = false;
 
     private List<NetworkObject> _activeMonsters = new List<NetworkObject>();
     private Dictionary<MonsterData, int> _currentSpawnCounts = new Dictionary<MonsterData, int>();
@@ -72,6 +79,7 @@ public class EnemyManager : NetworkBehaviour
                 StartSpawnCycle(difficulty);
             }
         }
+        //QuestManager.OnSpiritualWorldEntered += HandleGhostSpawn;
     }
 
     public override void OnNetworkDespawn()
@@ -83,6 +91,8 @@ public class EnemyManager : NetworkBehaviour
             GameMaster.Instance.OnDayStarted -= StartSpawnCycle;
             GameMaster.Instance.OnDayEnded -= StopSpawnCycle;
         }
+
+        //QuestManager.OnSpiritualWorldEntered -= HandleGhostSpawn;
 
         if (_spawnRoutine != null)
         {
@@ -269,6 +279,7 @@ public class EnemyManager : NetworkBehaviour
     private void StopSpawnCycle(bool isWipedOut, int dailyIncome)
     {
         _isDayActive = false;
+        _isGhostSpawned = false;
 
         if (_spawnRoutine != null)
         {
@@ -292,5 +303,29 @@ public class EnemyManager : NetworkBehaviour
 
         _activeMonsters.Clear();
         Debug.Log("<color=red>[EnemyManager]</color> 사이클 종료! 모든 몬스터를 수거했습니다.");
+    }
+
+    /// <summary>
+    /// 이벤트 발생 시 영적 세계 벤트에서 귀신을 스폰합니다.
+    /// </summary>
+    private void HandleGhostSpawn()
+    {
+        if (!IsServer || _isGhostSpawned || ghostVent == null) return;
+
+        // availableMonsters 리스트 안에서 Ghost 타입인 데이터를 찾습니다.
+        MonsterData ghostData = availableMonsters.Find(m => m.type == MonsterType.Ghost);
+
+        if (ghostData != null)
+        {
+            // 귀신 전용 벤트에서 스폰 (예산 무시 옵션인 ignoreBudget=true 적용 가능)
+            ghostVent.TriggerSpawn(ghostData);
+            _isGhostSpawned = true; 
+
+            Debug.Log("<color=magenta>[EnemyManager]</color> 영적 세계 진입 감지 전용 벤트에서 Ghost를 확정 스폰합니다.");
+        }
+        else
+        {
+            Debug.LogWarning("[EnemyManager] availableMonsters 리스트에 Ghost 타입의 몬스터 데이터가 없습니다!");
+        }
     }
 }

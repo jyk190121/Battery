@@ -1,0 +1,66 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1bbc6e2eecad55246b69d412d02592b9, type: 3}
+  m_Name: Ghost
+  m_EditorClassIdentifier: Assembly-CSharp::MonsterData
+  type: 4
+  monsterPrefab: {fileID: 6547760336824320671, guid: a6d3c745529fa8d4f97794ad3c6b3ccf, type: 3}
+  maxHealth: 10000
+  spawnCost: 1
+  maxSpawnCount: 1
+  spawnWeight: 50
+  patrolSpeed: 2
+  chaseSpeed: 4
+  attackDamage: 9999
+  attackRange: 2
+  attackCooldown: 0
+  attackAnimDuration: 0
+  attackTrackingTime: 0.5
+  viewRange: 100
+  viewAngle: 360
+  hearingRange: 100
+  visionMemoryTime: 3
+  maxSearchDuration: 15
+  searchPauseDuration: 3
+  searchNodeRadius: 15
+  minWaitTime: 2
+  maxWaitTime: 5
+  maxPatrolMoveTime: 10
+  aiTickInterval: 0.2
+  fastTickInterval: 0.05
+  predictiveChaseTime: 0.8
+  predictionTime: 1.5
+  pathUpdateThreshold: 1
+  patrolDoorOpenChance: 0.2
+  doorIgnoreCooldown: 1
+  minPatrolDistance: 10
+  alertnessIncreaseRate: 1.5
+  alertnessDecreaseRate: 0.5
+  alertnessSyncInterval: 0.2
+  alertnessThreshold: 0.05
+  stunDurationMultiplier: 0
+  gimmickCheckDistance: 0
+  ceilingAttachChance: 0
+  ceilingLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
+  ceilingCheckDistance: 0
+  dropTriggerRadius: 0
+  snareTickRate: 0
+  snareTickDamage: 0
+  fleeDuration: 0
+  fleaCeilingCheckInterval: 0
+  dollNormalDistance: 0
+  dollStairDistance: 0
+  dollBumpDistance: 0
+  dollCatchDotThreshold: -1
+  dollGracePeriod: 0
