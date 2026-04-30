@@ -22,8 +22,10 @@ public class EnemyManager : NetworkBehaviour
     [Tooltip("맵에 배치된 몬스터 스폰 지점(환풍구 등)")]
     public List<VentController> ventPoints;
 
-    [Header("--- Spiritual World Event ---")]
-    [Tooltip("영적 세계(지하) 맵에 배치된 귀신 전용 스폰 환풍구")]
+    [Header("--- Special Spawn (고스트) ---")]
+    [Tooltip("영적 세계 기믹용 고스트 데이터")]
+    public MonsterData ghostData;
+    [Tooltip("영적 세계 고스트 전용 스폰 환풍구")]
     public VentController ghostVent;
 
     [Header("--- Budget Settings ---")]
@@ -277,6 +279,7 @@ public class EnemyManager : NetworkBehaviour
     private void StopSpawnCycle(bool isWipedOut, int dailyIncome)
     {
         _isDayActive = false;
+        _isGhostSpawned = false;
 
         if (_spawnRoutine != null)
         {
@@ -318,7 +321,7 @@ public class EnemyManager : NetworkBehaviour
             ghostVent.TriggerSpawn(ghostData);
             _isGhostSpawned = true; 
 
-            Debug.Log("<color=magenta>[EnemyManager]</color> 영적 세계 진입 감지! 전용 벤트에서 Ghost를 확정 스폰합니다.");
+            Debug.Log("<color=magenta>[EnemyManager]</color> 영적 세계 진입 감지 전용 벤트에서 Ghost를 확정 스폰합니다.");
         }
         else
         {
