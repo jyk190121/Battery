@@ -632,7 +632,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 1
+  m_PresetInfoIsWorld: 0
 --- !u!1 &2303921294396319335
 GameObject:
   m_ObjectHideFlags: 0
@@ -643,6 +643,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2303921294396319333}
   - component: {fileID: 2303921294396319332}
+  - component: {fileID: 6873467110353291720}
   m_Layer: 0
   m_Name: KeypadStandard
   m_TagString: Untagged
@@ -660,7 +661,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.2563773, y: 1.2563773, z: 31.156286}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1761916018302555948}
@@ -763,6 +764,18 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &6873467110353291720
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2303921294396319335}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b86d083cac1c7641b9b572b072dae37, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KeypadController
 --- !u!1 &2742457487408926263
 GameObject:
   m_ObjectHideFlags: 0

@@ -16,6 +16,7 @@ public class PlayerInteraction : NetworkBehaviour
     public LayerMask DoorLayer;                         // 문 레이어
     public LayerMask TabletLayer;                       // 태블릿 레이어
     public LayerMask Interactable;                      // 발전기 레이어
+    public LayerMask KeypadLayer;                       // 키패드 레이어
     public GameObject interactUI;                       // UI오브젝트
     TextMeshProUGUI interactText;                       // 텍스트
     public Image progressImage;
