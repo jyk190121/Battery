@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eca90f6eedaab2644a9ec07173f310a4, type: 3}
+  m_Name: "3000_\uC218\uC9D1"
+  m_EditorClassIdentifier: Assembly-CSharp::QuestDataSO
+  questID: 3000
+  questName: "\uADC0\uC911\uD488 \uC218\uC9D1"
+  description: "1~3\uCE35\uC5D0 \uC788\uB294 4\uAC1C\uC758 \uBE44\uBC00\uBC88\uD638\uB97C
+    \uCC3E\uC544 \uAE08\uACE0\uB97C \uC5F4\uC5B4 \uADC0\uC911\uD488\uC744 \uAC00\uC838\uC640
+    \uC8FC\uC138\uC694."
+  type: 0
+  difficulty: 2
+  targetType: 
+  baseReward: 1000
+  bonusMultiplier: 1
+  isHazardQuest: 0
+  performancePoint: 80
+  targetItemID: 0
+  passwordCount: 0
+  materialCount: 0
+  hasSpeedDebuff: 0
+  hasMonsterAggro: 0
+  hasHallucination: 0
