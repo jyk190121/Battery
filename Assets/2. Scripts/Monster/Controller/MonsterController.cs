@@ -231,7 +231,7 @@ public class MonsterController : NetworkBehaviour
         if (!IsServer || CurrentStateNet.Value == MonsterStateType.Dead || CurrentStateNet.Value == MonsterStateType.Attached)
             return;
 
-        if (monsterData.name == "Doll") return;
+        if (monsterData.type == MonsterType.Ghost || monsterData.type == MonsterType.Special) return;
 
         float finalDuration = baseDuration * (monsterData != null ? monsterData.stunDurationMultiplier : 1.0f);
         if (finalDuration <= 0f) return;
@@ -249,7 +249,7 @@ public class MonsterController : NetworkBehaviour
     {
         if (!IsServer || CurrentStateNet.Value == MonsterStateType.Dead) return;
 
-        if (monsterData.name == "Doll") return;
+        if (monsterData.type == MonsterType.Ghost || monsterData.type == MonsterType.Special) return;
 
         CurrentHealth.Value -= damage;
         Debug.Log($"<color=red>[몬스터 피격]</color> {gameObject.name} 남은 체력: {CurrentHealth.Value}");
