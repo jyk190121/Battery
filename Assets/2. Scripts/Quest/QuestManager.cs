@@ -256,6 +256,57 @@ public class QuestManager : NetworkBehaviour
     }
     #endregion
 
+    // ==========================================================
+    // [팀원 협업용 API] 특정 기믹 퀘스트 연동 함수들
+    // ==========================================================
+
+    /// <summary>
+    /// 금고 내부 스폰 포인트를 전달받아, 수집1(금고) 퀘스트가 활성화 상태면 
+    /// 해당 퀘스트 아이템을 스폰하고 true를 반환합니다.
+    /// </summary>
+    public bool TrySetupSafeGimmick(Transform safeInsidePoint)
+    {
+        // 1. 아이템 스폰과 기믹 활성화 결정은 서버(방장)만 수행합니다.
+        if (!IsServer) return false;
+
+        // 2. 전달해주신 난이도별 금고 퀘스트 ID 확인
+        int[] safeQuests = { 1000, 2000, 3000 }; // Easy, Normal, Hard
+        int activeId = 0;
+
+        foreach (int id in safeQuests)
+        {
+            if (activeQuests.Contains(id))
+            {
+                activeId = id;
+                break;
+            }
+        }
+
+        // 3. 이번 판에 금고 퀘스트가 없다면 false를 반환하여 팀원분이 기믹을 끄게 합니다.
+        if (activeId == 0) return false;
+
+        // 4. 금고 퀘스트가 있다면, 목표 아이템을 찾아 팀원분이 넘겨준 좌표에 스폰합니다!
+        QuestDataSO questData = GetQuestData(activeId);
+        if (questData != null && questData.targetItemID != 0)
+        {
+            // GameSessionManager의 GetPrefab을 활용하여 원본 프리팹 가져오기
+            ItemBase prefab = GameSessionManager.Instance.GetPrefab(questData.targetItemID);
+            if (prefab != null)
+            {
+                // 팀원분이 만든 빈 오브젝트(safeInsidePoint)의 위치와 회전값에 스폰
+                ItemBase spawned = Instantiate(prefab, safeInsidePoint.position, safeInsidePoint.rotation);
+
+                // 네트워크 상에 생성 (모든 클라이언트에게 보임)
+                spawned.GetComponent<NetworkObject>().Spawn();
+
+                Debug.Log($"<color=lime>[Quest API]</color> 금고 연동 성공! 내부에 '{prefab.itemData.itemName}' 스폰 완료.");
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 
     //구형 로직 --------------------------------------------------------------------------------------------------------------------
 

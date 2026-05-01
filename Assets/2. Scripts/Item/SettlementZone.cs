@@ -54,10 +54,10 @@ public class SettlementZone : NetworkBehaviour
                 QuestManager.Instance.itemsInTruck.Remove(qId);
 
             // 팀원 UI를 위한 해제 신호 발생
-            QuestManager.Instance.NotifyLocalClientToggleClientRpc(qId, false,RpcTarget.Everyone);
+            QuestManager.Instance.NotifyLocalClientToggleClientRpc(qId, false, RpcTarget.Everyone);
         }
     }
-    
+
 
     //씬 이동 및 최종 정산 실행 (버튼/상호작용 진입점)
     public void ExecuteTransition(PlayerInventory player, string targetScene, bool doSettlement)
@@ -139,9 +139,10 @@ public class SettlementZone : NetworkBehaviour
             }
         }
 
-        //인벤토리 아이템 처리
+        //인벤토리 아이템 처리 (단축키 슬롯 및 💡양손 무기 모두 정산)
         foreach (var p in playersInTruck)
         {
+            // [1] 단축키 슬롯 정산
             for (int i = 0; i < p.slots.Length; i++)
             {
                 ItemBase slotItem = p.slots[i];
@@ -168,8 +169,28 @@ public class SettlementZone : NetworkBehaviour
                 }
             }
 
+            // [2] 양손 아이템 정산 (💡 누락되었던 로직 추가됨)
             if (p.twoHandedItem != null)
             {
+                ItemBase tItem = p.twoHandedItem;
+                if (doSettlement)
+                {
+                    if (tItem.itemData.category == ItemCategory.Scrap)
+                        totalScrapValue += (tItem is Item_Scrap s) ? s.currentScrapValue : tItem.itemData.basePrice;
+                    else if (tItem.itemData.category == ItemCategory.Quest)
+                        QuestManager.Instance.NotifyFinalClear(tItem.itemData.itemID, p.OwnerClientId);
+                    else if (tItem.itemData.category == ItemCategory.Phone)
+                        recoveredPhonesCount++;
+                    else SaveToPlayer(tItem, -1, p.OwnerClientId);
+                }
+                else SaveToPlayer(tItem, -1, p.OwnerClientId);
+
+                if (doSettlement && (tItem.itemData.category == ItemCategory.Scrap || tItem.itemData.category == ItemCategory.Quest || tItem.itemData.category == ItemCategory.Phone))
+                {
+                    if (tItem.NetworkObject != null && tItem.NetworkObject.IsSpawned)
+                        tItem.NetworkObject.Despawn();
+                }
+
                 p.twoHandedItem = null;
                 p.OnTwoHandedToggled?.Invoke(false);
             }
@@ -186,8 +207,8 @@ public class SettlementZone : NetworkBehaviour
         {
             QuestCameraBridge.Instance.CommandSubmitDataClientRpc(survivorIds.ToArray());
 
-            //클라이언트들의 앨범 데이터가 서버로 도달할 찰나의 시간 확보
-            yield return new WaitForSeconds(0.15f);
+            // 💡 클라이언트들의 앨범 데이터가 서버로 도달할 찰나의 시간 확보 (0.15f -> 1.0f로 증가)
+            yield return new WaitForSeconds(1.0f);
         }
 
         //3. 정산 금액 산정 및 게임 마스터 보고
@@ -196,6 +217,16 @@ public class SettlementZone : NetworkBehaviour
             try
             {
                 var (questIncome, questScore) = QuestManager.Instance.GetCalculatedQuestResults();
+
+                //최종 결산 로그 =========================================================================
+                int totalQuests = QuestManager.Instance.activeQuests.Count;
+                int clearedQuests = QuestManager.Instance.serverCompletedQuests.Count;
+
+                Debug.Log($"<color=cyan><b>[최종 퀘스트 결산]</b></color> " +
+                          $"총 {totalQuests}개 중 <color=lime>{clearedQuests}개</color> 클리어 완료! " +
+                          $"(획득 자금: {questIncome} / 획득 실적: {questScore}pt)");
+                // =========================================================================
+
                 int finalDailyIncome = totalScrapValue + questIncome;
 
                 int deadCount = GameSessionManager.Instance.deadPlayersCount;
@@ -209,7 +240,6 @@ public class SettlementZone : NetworkBehaviour
 
                 bool isWipedOut = deadCount >= GameSessionManager.Instance.GetTotalPlayers();
 
-               
                 GameMaster.Instance.EndDay(isWipedOut, finalNetIncome, questScore);
 
                 QuestManager.Instance.ResetDailyQuests();

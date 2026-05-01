@@ -87,6 +87,12 @@ public class ItemSpawner : NetworkBehaviour
 
                     if (targetItemData != null)
                     {
+                        //  수집1 금고 퀘스트는 여기서 스폰하지 않고 패스합니다!
+                        if (activeQuestID == 1000 || activeQuestID == 2000 || activeQuestID == 3000)
+                        {
+                            continue; // 아래 스폰 로직을 건너뜀
+                        }
+
                         if (TrySpawnSpecificItem(targetItemData, spawnDict)) successCount++;
                     }
                 }
