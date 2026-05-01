@@ -580,33 +580,55 @@ public class PlayerInventory : NetworkBehaviour
         return false;
     }
 
+    // (기존 PlayerInventory.cs 내부에 위치)
+
     public bool RemoveItemByServer(int itemID)
     {
         if (!IsServer) return false;
 
-        ItemBase itemToRemove = HeldItem;
+        ItemBase itemToRemove = null;
+        int slotIdx = -1;
+        bool isTwoHand = false;
 
-        if (itemToRemove != null && itemToRemove.itemData.itemID == itemID)
+        // 양손 무기 검사
+        if (twoHandedItem != null && twoHandedItem.itemData.itemID == itemID)
         {
-            itemToRemove.NetworkObject.Despawn();
-            int slotIdx = (twoHandedItem == itemToRemove) ? -1 : currentSlotIndex;
-            bool isTwoHand = (twoHandedItem == itemToRemove);
-
-            NotifySyncItemRemovedClientRpc(slotIdx, isTwoHand);
-
-            return true; //  성공적으로 삭제했음을 알림!
-        }
+            itemToRemove = twoHandedItem;
+            isTwoHand = true;
+        }
         else
         {
-            return false; //  삭제 실패 (손에 없거나 ID가 다름)
-        }
+            // 단축키 슬롯 전수 검사
+            for (int i = 0; i < slots.Length; i++)
+            {
+                if (slots[i] != null && slots[i].itemData.itemID == itemID)
+                {
+                    itemToRemove = slots[i];
+                    slotIdx = i;
+                    break;
+                }
+            }
+        }
+
+        if (itemToRemove != null)
+        {
+            // 네트워크 객체 파괴 전, 모든 클라이언트의 배열을 먼저 비우도록 지시
+            NotifySyncItemRemovedClientRpc(slotIdx, isTwoHand);
+
+            if (itemToRemove.NetworkObject != null && itemToRemove.NetworkObject.IsSpawned)
+            {
+                itemToRemove.NetworkObject.Despawn();
+            }
+            return true;
+        }
+
+        return false;
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     public void RequestRemoveItemServerRpc(int itemID)
     {
-        // 클라이언트의 요청을 받아 서버가 대신 마스터 함수를 실행해줍니다.
-        RemoveItemByServer(itemID);
+        RemoveItemByServer(itemID);
     }
 
     [Rpc(SendTo.Everyone)]
@@ -619,18 +641,16 @@ public class PlayerInventory : NetworkBehaviour
         }
         else if (slotIdx != -1)
         {
-            slots[slotIdx] = null; // 정확히 그 슬롯만 비움
-        }
+            slots[slotIdx] = null;
+        }
 
-        // UI 즉시 갱신 (4번 아이템 썼을 때 뒤늦게 사라지는 현상 해결)
-        if (IsOwner)
+        if (IsOwner)
         {
             OnInventoryUpdated?.Invoke();
             OnSlotChanged?.Invoke(currentSlotIndex);
             RefreshQuestDebuffTiming();
         }
     }
-
     public void DropAllItemsOnDeathServer()
     {
         if (!IsServer) return;
