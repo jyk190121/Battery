@@ -41,6 +41,7 @@ public class Door : NetworkBehaviour
         if (!isOpen)
         {
             isOpen = true;
+            gameObject.layer = 0;
             StartCoroutine(OpenDoorRoutine());
         }
     }
