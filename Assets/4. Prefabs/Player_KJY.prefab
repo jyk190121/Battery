@@ -3179,6 +3179,9 @@ MonoBehaviour:
   Interactable:
     serializedVersion: 2
     m_Bits: 65536
+  KeypadLayer:
+    serializedVersion: 2
+    m_Bits: 524288
   interactUI: {fileID: 0}
   progressImage: {fileID: 0}
   requiredHoldTime: 2
