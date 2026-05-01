@@ -21,6 +21,11 @@ public class NumberPadInteraction : MonoBehaviour
     }
     private void Update()
     {
+        if (keypadUI == null)
+        {
+            return;
+        }
+
         // UI가 열려있을 때 닫는 기능 추가
         if (keypadUI.activeSelf)
         {

@@ -440,7 +440,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d372ebb71d7017499acd439fe4d8740, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NumberPadInteraction
-  interactDistance: 10
+  interactDistance: 3
   NumberpadLayer:
     serializedVersion: 2
     m_Bits: 524288
@@ -6419,6 +6419,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1473193704}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &1463900345 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 9126157181260625687, guid: fbb9963ae13188a4597ace87217fad68, type: 3}
+  m_PrefabInstance: {fileID: 2110963264}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1473193701
 GameObject:
   m_ObjectHideFlags: 0
@@ -8061,11 +8066,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 601a4e2636a5dbc429899cfc28788574, type: 2}
   - {fileID: 11400000, guid: 2de26f69c84422e43b6fc65ea431d23d, type: 2}
   - {fileID: 11400000, guid: 6a2f1a819139d1a4b9909df58a5a3519, type: 2}
+  - {fileID: 11400000, guid: 8c64642793244dc418c6ee102b4c4fed, type: 2}
   baseSpawnCount: 10
   extraSpawnPerDifficulty: 2
   keySpawnChance: 15
-  areaManagers:
-  - {fileID: 1929271111}
+  safeDropPoint: {fileID: 1463900345}
+  areaManagers: []
 --- !u!114 &1929271113
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9007,6 +9013,42 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 135996676}
+    - target: {fileID: 7603736455330307460, guid: fbb9963ae13188a4597ace87217fad68, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7603736455330307460, guid: fbb9963ae13188a4597ace87217fad68, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7603736455330307460, guid: fbb9963ae13188a4597ace87217fad68, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8444398794841341706, guid: fbb9963ae13188a4597ace87217fad68, type: 3}
+      propertyPath: m_Size.x
+      value: 0.02
+      objectReference: {fileID: 0}
+    - target: {fileID: 8444398794841341706, guid: fbb9963ae13188a4597ace87217fad68, type: 3}
+      propertyPath: m_Size.y
+      value: 0.7534831
+      objectReference: {fileID: 0}
+    - target: {fileID: 8444398794841341706, guid: fbb9963ae13188a4597ace87217fad68, type: 3}
+      propertyPath: m_Size.z
+      value: 0.79314137
+      objectReference: {fileID: 0}
+    - target: {fileID: 8444398794841341706, guid: fbb9963ae13188a4597ace87217fad68, type: 3}
+      propertyPath: m_Center.x
+      value: 0.00000051851765
+      objectReference: {fileID: 0}
+    - target: {fileID: 8444398794841341706, guid: fbb9963ae13188a4597ace87217fad68, type: 3}
+      propertyPath: m_Center.y
+      value: -0.017201988
+      objectReference: {fileID: 0}
+    - target: {fileID: 8444398794841341706, guid: fbb9963ae13188a4597ace87217fad68, type: 3}
+      propertyPath: m_Center.z
+      value: -0.35742483
+      objectReference: {fileID: 0}
     - target: {fileID: 8718512805967221594, guid: fbb9963ae13188a4597ace87217fad68, type: 3}
       propertyPath: m_Name
       value: Safe

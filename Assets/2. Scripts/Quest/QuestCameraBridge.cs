@@ -25,7 +25,7 @@ public class QuestCameraBridge : NetworkBehaviour
     }
 
     //유저가 스마트폰에서 사진을 직접 삭제했을 때 (체크 해제)
-  public void DeletePhotoFromAlbum(int questID)
+    public void DeletePhotoFromAlbum(int questID)
     {
         if (myLocalDeferredQuests.Contains(questID))
         {
@@ -55,12 +55,13 @@ public class QuestCameraBridge : NetworkBehaviour
 
     //서버 매니저에게 실제 데이터 제출 (기록 확정)
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-    private void SubmitDeferredDataServerRpc(int[] questIDs)
+    private void SubmitDeferredDataServerRpc(int[] questIDs, RpcParams rpcParams = default)
     {
+        ulong actualSenderId = rpcParams.Receive.SenderClientId;
+
         foreach (int id in questIDs)
         {
-            //서버 매니저의 마스터 장부에 도장.
-            QuestManager.Instance.NotifyFinalClear(id, NetworkManager.ServerClientId);
+            QuestManager.Instance.NotifyFinalClear(id, actualSenderId);
         }
     }
 

@@ -24,7 +24,7 @@ MonoBehaviour:
   bonusMultiplier: 1
   isHazardQuest: 0
   performancePoint: 20
-  targetItemID: 0
+  targetItemID: 1000
   passwordCount: 0
   materialCount: 0
   hasSpeedDebuff: 0
