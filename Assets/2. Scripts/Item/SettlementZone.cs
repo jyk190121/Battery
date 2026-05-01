@@ -100,6 +100,9 @@ public class SettlementZone : NetworkBehaviour
         List<PlayerInventory> playersInTruck = new List<PlayerInventory>();
         List<ulong> survivorIds = new List<ulong>();
 
+        // 💡 [중복 방지] 하나의 아이템이 여러 번 스캔되는 것을 막는 리스트
+        List<ItemBase> processedFloorItems = new List<ItemBase>();
+
         // 버튼을 누른 사람은 박스 영역에서 살짝 벗어나 있어도 무조건 생존자로 취급
         if (caller != null && !survivorIds.Contains(caller.OwnerClientId))
         {
@@ -107,22 +110,43 @@ public class SettlementZone : NetworkBehaviour
             survivorIds.Add(caller.OwnerClientId);
         }
 
+        // ==========================================================
         // [Step A] 트럭 바닥 스캔
+        // ==========================================================
         foreach (var t in targets)
         {
             ItemBase item = t.GetComponentInParent<ItemBase>();
-            if (item != null && !item.isEquipped)
+
+            // 💡 아직 정산 처리되지 않은 아이템만 진행
+            if (item != null && !item.isEquipped && !processedFloorItems.Contains(item))
             {
+                processedFloorItems.Add(item); // 처리 목록에 등록
+
                 if (doSettlement)
                 {
-                    if (item.itemData.category == ItemCategory.Scrap)
-                        totalScrapValue += (item is Item_Scrap scrap) ? scrap.currentScrapValue : item.itemData.basePrice;
-                    if (item.itemData.category == ItemCategory.Phone)
-                        recoveredPhonesCount++;
+                    // 1. 소각 및 정산 대상 (폐지, 폰, 퀘스트템)
+                    if (item.itemData.category == ItemCategory.Scrap ||
+                        item.itemData.category == ItemCategory.Phone ||
+                        item.itemData.category == ItemCategory.Quest)
+                    {
+                        if (item.itemData.category == ItemCategory.Scrap)
+                            totalScrapValue += (item is Item_Scrap scrap) ? scrap.currentScrapValue : item.itemData.basePrice;
 
-                    QuestManager.Instance.NotifyFinalClear(item.itemData.itemID, NetworkManager.ServerClientId);
+                        if (item.itemData.category == ItemCategory.Phone)
+                            recoveredPhonesCount++;
+
+                        QuestManager.Instance.NotifyFinalClear(item.itemData.itemID, NetworkManager.ServerClientId);
+                    }
+                    // 2. 💡 [문제 해결 부분] 보존 대상 (무기, 손전등 등)
+                    else
+                    {
+                        SaveToTruck(item);
+                    }
                 }
-                else SaveToTruck(item);
+                else
+                {
+                    SaveToTruck(item); // 정산 안 할 때는 전부 저장
+                }
             }
 
             PlayerInventory p = t.GetComponentInParent<PlayerInventory>();
@@ -133,7 +157,9 @@ public class SettlementZone : NetworkBehaviour
             }
         }
 
+        // ==========================================================
         // [Step B] 플레이어 인벤토리 스캔 및 동기화 소각
+        // ==========================================================
         foreach (var p in playersInTruck)
         {
             // 1. 단축키 슬롯
