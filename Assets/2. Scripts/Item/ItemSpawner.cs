@@ -16,7 +16,13 @@ public class ItemSpawner : NetworkBehaviour
     [Range(0f, 100f)]
     public float keySpawnChance = 15f;
 
+    [Header("퀘스트 기믹 설정")]
+    public Transform safeDropPoint;
+
     [SerializeField] private List<ItemSpawnPoint> areaManagers = new List<ItemSpawnPoint>();
+
+    // [추가] 생성된 아이템 추적 리스트 (디스폰용)
+    private List<NetworkObject> spawnedItems = new List<NetworkObject>();
 
     public override void OnNetworkSpawn()
     {
@@ -25,7 +31,7 @@ public class ItemSpawner : NetworkBehaviour
             if (GameMaster.Instance != null)
             {
                 GameMaster.Instance.OnDayStarted += HandleDayStarted;
-                GameMaster.Instance.StartDay();
+                GameMaster.Instance.StartDay(); // 🔥 이거 없으면 작동안함 (유지)
             }
         }
     }
@@ -40,6 +46,9 @@ public class ItemSpawner : NetworkBehaviour
 
     private void HandleDayStarted(int difficulty)
     {
+        // [추가] 아침 시작 시 이전 아이템 청소
+        ClearPreviousItems();
+
         RefreshSpawnPoints();
 
         if (areaManagers.Count == 0)
@@ -49,9 +58,22 @@ public class ItemSpawner : NetworkBehaviour
         }
 
         int dynamicSpawnCount = baseSpawnCount + (difficulty * extraSpawnPerDifficulty);
-        Debug.Log($"[Spawner] 아침이 밝았습니다! (난이도: {difficulty}) -> 총 {dynamicSpawnCount}개의 폐지를 스폰합니다.");
+        Debug.Log($"[Spawner] 아침이 밝았습니다! (난이도: {difficulty}) -> 총 {dynamicSpawnCount}개의 아이템을 스폰합니다.");
 
         SpawnRandomItems(dynamicSpawnCount);
+    }
+
+    // [추가] 이전 아이템 청소 로직
+    private void ClearPreviousItems()
+    {
+        foreach (var netObj in spawnedItems)
+        {
+            if (netObj != null && netObj.IsSpawned)
+            {
+                netObj.Despawn(true);
+            }
+        }
+        spawnedItems.Clear();
     }
 
     void SpawnRandomItems(int targetSpawnCount)
@@ -70,27 +92,28 @@ public class ItemSpawner : NetworkBehaviour
         int successCount = 0;
 
         // ==========================================================
-        // 1. 수집 퀘스트 아이템 무조건 생성 (확정 스폰)
+        // 1. 수집 퀘스트 아이템 생성
         // ==========================================================
         if (QuestManager.Instance != null)
         {
-            // 현재 활성화된 퀘스트 ID들을 순회
             foreach (int activeQuestID in QuestManager.Instance.activeQuests)
             {
                 QuestDataSO questData = QuestManager.Instance.GetQuestData(activeQuestID);
 
-                // 해당 퀘스트가 '수집(Collect)'이나 '환원(Return)' 타입이고, 목표 아이템이 있다면
                 if (questData != null && questData.targetItemID != 0)
                 {
-                    // DB에서 해당 아이템 프리팹을 찾음
                     ItemDataSO targetItemData = itemDatabase.FirstOrDefault(i => i.itemID == questData.targetItemID);
 
                     if (targetItemData != null)
                     {
-                        //  수집1 금고 퀘스트는 여기서 스폰하지 않고 패스합니다!
+                        // [추가] 금고 퀘스트 기믹
                         if (activeQuestID == 1000 || activeQuestID == 2000 || activeQuestID == 3000)
                         {
-                            continue; // 아래 스폰 로직을 건너뜀
+                            if (safeDropPoint != null)
+                            {
+                                SpawnObject(targetItemData, safeDropPoint.position, safeDropPoint.rotation);
+                            }
+                            continue;
                         }
 
                         if (TrySpawnSpecificItem(targetItemData, spawnDict)) successCount++;
@@ -98,8 +121,9 @@ public class ItemSpawner : NetworkBehaviour
                 }
             }
         }
+
         // ==========================================================
-        // 2. 열쇠 아이템 확률적 생성 (단일 변수 확률, 중복 불가)
+        // 2. 열쇠 아이템
         // ==========================================================
         var keyItems = itemDatabase.Where(i => !string.IsNullOrEmpty(i.keyID)).OrderBy(x => Random.value).ToList();
         foreach (var keyItem in keyItems)
@@ -111,7 +135,7 @@ public class ItemSpawner : NetworkBehaviour
         }
 
         // ==========================================================
-        // 3. 나머지 일반 아이템 완전 무작위 생성 (가중치 없음, 1/N 확률)
+        // 3. 일반 폐지
         // ==========================================================
         var normalItems = itemDatabase.Where(i =>
             string.IsNullOrEmpty(i.keyID) &&
@@ -126,8 +150,6 @@ public class ItemSpawner : NetworkBehaviour
             while (successCount < targetSpawnCount && attempts < maxAttempts)
             {
                 attempts++;
-
-                // 피드백 반영: 가중치 없이 무조건 리스트에서 1/N로 랜덤 뽑기
                 ItemDataSO randomData = normalItems[Random.Range(0, normalItems.Count)];
 
                 if (TrySpawnSpecificItem(randomData, spawnDict))
@@ -135,7 +157,7 @@ public class ItemSpawner : NetworkBehaviour
                     successCount++;
                 }
             }
-            Debug.Log($"[Spawner] {successCount}/{targetSpawnCount}개 스폰 완료. (시도: {attempts})");
+            Debug.Log($"[Spawner] {successCount}/{targetSpawnCount}개 스폰 완료.");
         }
     }
 
@@ -146,16 +168,31 @@ public class ItemSpawner : NetworkBehaviour
             int idx = Random.Range(0, points.Count);
             Transform target = points[idx];
 
-            GameObject obj = Instantiate(data.itemPrefab, target.position, target.rotation);
-            ItemBase item = obj.GetComponent<ItemBase>();
-            if (item != null) item.itemData = data;
-
-            HandleNetworkSpawn(obj);
+            // [변경] Null 방어 및 추적 리스트가 적용된 별도 함수 호출
+            SpawnObject(data, target.position, target.rotation);
 
             points.RemoveAt(idx);
             return true;
         }
         return false;
+    }
+
+    // [추가] Null 방어 및 아이템 추적이 포함된 안전한 생성 로직
+    void SpawnObject(ItemDataSO data, Vector3 pos, Quaternion rot)
+    {
+        if (data == null || data.itemPrefab == null) return;
+
+        GameObject obj = Instantiate(data.itemPrefab, pos, rot);
+
+        NetworkObject netObj = obj.GetComponent<NetworkObject>();
+        if (netObj != null)
+        {
+            netObj.Spawn();
+            spawnedItems.Add(netObj); // 청소 리스트 등록
+        }
+
+        ItemBase item = obj.GetComponent<ItemBase>();
+        if (item != null) item.itemData = data;
     }
 
     [ContextMenu("Bake: 모든 지역 관리자 동기화")]
@@ -173,10 +210,5 @@ public class ItemSpawner : NetworkBehaviour
         UnityEditor.EditorUtility.SetDirty(this);
 #endif
         Debug.Log("[Spawner] 지역 관리자 동기화 완료.");
-    }
-
-    private void HandleNetworkSpawn(GameObject obj)
-    {
-        if (IsServer) obj.GetComponent<NetworkObject>()?.Spawn();
     }
 }
