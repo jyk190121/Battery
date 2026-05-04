@@ -84,40 +84,49 @@ public class MonsterController : NetworkBehaviour
     {
         _stateMachine = new MonsterStateMachine();
 
-        // 1. 모든 몬스터 공통 상태 등록
+        // 1. 모든 몬스터 공통 상태 등록 (순찰, 대기, 사망)
         _states = new Dictionary<MonsterStateType, IState>
         {
-        { MonsterStateType.Patrol, new PatrolState(this) },
-        { MonsterStateType.InteractDoor, new InteractDoorState(this) },
-        { MonsterStateType.Idle, new PatrolState(this) }, // Idle은 Patrol 로직을 공유
-        { MonsterStateType.Dead, new DeadState(this) }
-    };
+            { MonsterStateType.Patrol, new PatrolState(this) },
+            { MonsterStateType.Idle, new PatrolState(this) },   // Idle은 Patrol 로직을 공유
+            { MonsterStateType.Dead, new DeadState(this) }
+        };
 
-        // 2. 몬스터 타입(데이터)별 전용 기믹 상태 등록
+        // 2. 몬스터 타입(데이터)별 전용 기믹 및 추가 상태 등록
         if (monsterData != null)
         {
-            // 인형 전용 상태 등록
+            // [인형 전용]
             if (monsterData.type == MonsterType.Special)
             {
                 _states.Add(MonsterStateType.Stalk, new StalkState(this));
                 _states.Add(MonsterStateType.Scream, new ScreamState(this));
             }
-            // 올무벼룩 전용 상태 등록s
+            // [올무벼룩 전용]
             else if (monsterData.type == MonsterType.Ambush)
             {
                 _states.Add(MonsterStateType.CeilingWait, new CeilingWaitState(this));
                 _states.Add(MonsterStateType.Attached, new AttachedState(this));
                 _states.Add(MonsterStateType.Flee, new FleeState(this));
             }
-            // 일반 몬스터 (추격, 공격 등 범용 상태)
+            // [고스트 전용]
+            else if (monsterData.type == MonsterType.Ghost)
+            {
+                _states.Add(MonsterStateType.Attack, new AttackState(this));
+                _states.Add(MonsterStateType.Detect, new DetectState(this));
+                _states.Add(MonsterStateType.Chase, new ChaseState(this));
+                _states.Add(MonsterStateType.Search, new SearchState(this));
+                _states.Add(MonsterStateType.Investigate, new InvestigateState(this));
+            }
+            // [일반 몬스터] 
             else
             {
                 _states.Add(MonsterStateType.Attack, new AttackState(this));
                 _states.Add(MonsterStateType.Detect, new DetectState(this));
                 _states.Add(MonsterStateType.Chase, new ChaseState(this));
                 _states.Add(MonsterStateType.Search, new SearchState(this));
-                _states.Add(MonsterStateType.Stunned, new StunnedState(this));
                 _states.Add(MonsterStateType.Investigate, new InvestigateState(this));
+                _states.Add(MonsterStateType.Stunned, new StunnedState(this));
+                _states.Add(MonsterStateType.InteractDoor, new InteractDoorState(this)); 
             }
         }
     }
@@ -308,6 +317,8 @@ public class MonsterController : NetworkBehaviour
     public bool CheckAndHandleDoor(float openChance = 1.0f)
     {
         if (!IsServer) return false;
+
+        if (!_states.ContainsKey(MonsterStateType.InteractDoor)) return false;
 
         Vector3 checkPos = transform.position + (Vector3.up * 1.0f);
         int doorLayerMask = 1 << LayerMask.NameToLayer("Door");

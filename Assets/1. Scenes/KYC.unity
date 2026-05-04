@@ -724,8 +724,8 @@ MonoBehaviour:
   - {fileID: 5428546005479229631}
   - {fileID: 1960267011232587053}
   - {fileID: 7379790510107980072}
-  ghostData: {fileID: 0}
-  ghostVent: {fileID: 0}
+  ghostData: {fileID: 11400000, guid: 4f4500f8e085da8479466308b1b6b752, type: 2}
+  ghostVent: {fileID: 3367320410374314516}
   baseMaxBudget: 10
   budgetPerDifficulty: 2
   minSpawnDelay: 1
@@ -810,6 +810,7 @@ MonoBehaviour:
   baseSpawnCount: 10
   extraSpawnPerDifficulty: 2
   keySpawnChance: 15
+  safeDropPoint: {fileID: 0}
   areaManagers:
   - {fileID: 529022502}
 --- !u!114 &529022504
@@ -3622,6 +3623,18 @@ PrefabInstance:
       propertyPath: GlobalObjectIdHash
       value: 1070986786
       objectReference: {fileID: 0}
+    - target: {fileID: 7526617927407794304, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_AgentTypeID
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7526617927407794304, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_NavMeshData
+      value: 
+      objectReference: {fileID: 23800000, guid: 836eb1324ac9b5f4bbd69977f6311eba, type: 2}
+    - target: {fileID: 7526617927407794304, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_LayerMask.m_Bits
+      value: 392
+      objectReference: {fileID: 0}
     - target: {fileID: 7568813667392249235, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: GlobalObjectIdHash
       value: 2726843792
@@ -5409,6 +5422,17 @@ MonoBehaviour:
     m_InternalValue: 0
   NetHorizontalRotation:
     m_InternalValue: 0
+--- !u!114 &3367320410374314516 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1429134621945837543, guid: d59b1bfd326771541ac4e3b87d617ed4, type: 3}
+  m_PrefabInstance: {fileID: 4426596771145428467}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 808204c0cb00d034f8d909365605b1a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VentController
 --- !u!4 &3423699798179484145
 Transform:
   m_ObjectHideFlags: 0
@@ -6059,6 +6083,18 @@ PrefabInstance:
       propertyPath: GlobalObjectIdHash
       value: 451700577
       objectReference: {fileID: 0}
+    - target: {fileID: 4465611530041428514, guid: d59b1bfd326771541ac4e3b87d617ed4, type: 3}
+      propertyPath: m_AgentTypeID
+      value: -334000983
+      objectReference: {fileID: 0}
+    - target: {fileID: 4465611530041428514, guid: d59b1bfd326771541ac4e3b87d617ed4, type: 3}
+      propertyPath: m_NavMeshData
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 4465611530041428514, guid: d59b1bfd326771541ac4e3b87d617ed4, type: 3}
+      propertyPath: m_LayerMask.m_Bits
+      value: 392
+      objectReference: {fileID: 0}
     - target: {fileID: 4594719118233581562, guid: d59b1bfd326771541ac4e3b87d617ed4, type: 3}
       propertyPath: GlobalObjectIdHash
       value: 2758176963
@@ -6149,15 +6185,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6040892328704007213, guid: d59b1bfd326771541ac4e3b87d617ed4, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 305.05222
+      value: 300
       objectReference: {fileID: 0}
     - target: {fileID: 6040892328704007213, guid: d59b1bfd326771541ac4e3b87d617ed4, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 22.406202
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6040892328704007213, guid: d59b1bfd326771541ac4e3b87d617ed4, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 91.03043
+      value: 120
       objectReference: {fileID: 0}
     - target: {fileID: 6040892328704007213, guid: d59b1bfd326771541ac4e3b87d617ed4, type: 3}
       propertyPath: m_LocalRotation.w
@@ -9581,6 +9617,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 2048
   Interactable:
+    serializedVersion: 2
+    m_Bits: 0
+  NumberpadLayer:
     serializedVersion: 2
     m_Bits: 0
   interactUI: {fileID: 2083281002}
