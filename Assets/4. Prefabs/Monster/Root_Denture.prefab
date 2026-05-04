@@ -40,7 +40,7 @@ SkinnedMeshRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6628998952451676}
   m_Enabled: 1
-  m_CastShadows: 1
+  m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
@@ -1110,6 +1110,10 @@ MonoBehaviour:
       NameHash: 1080829965
       Synchronize: 1
       ParameterType: 9
+    - name: Scream
+      NameHash: 629534904
+      Synchronize: 1
+      ParameterType: 9
   AnimatorParametersExpanded: 0
 --- !u!114 &1804527276294227049
 MonoBehaviour:
@@ -1675,9 +1679,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnvironmentScanner
   owner: {fileID: 6989157162148910897}
   data: {fileID: 11400000, guid: 81314b9114b578548987c8f97d679cad, type: 2}
-  obstacleMask:
+  isIndoorMonster: 1
+  _obstacleMask:
     serializedVersion: 2
-    m_Bits: 1800
+    m_Bits: 0
 --- !u!114 &6989157162148910897
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1988,7 +1993,7 @@ SkinnedMeshRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7449388307605676703}
   m_Enabled: 1
-  m_CastShadows: 1
+  m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
