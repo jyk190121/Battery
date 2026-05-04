@@ -107,22 +107,40 @@ public class QuestManager : NetworkBehaviour
         Debug.Log($"<color=cyan><b>[MY QUEST]</b></color> 개인 폰 업데이트: ID {questID} -> {isCleared}");
     }
 
-    //최종 정산시점에서 클리어 퀘스트 확정.
-    public void NotifyFinalClear(int questID, ulong solverId)
+    // 최종 정산 시점에서 클리어 퀘스트 확정 (퀘스트 ID, 아이템 ID 자동 판별)
+    public void NotifyFinalClear(int id, ulong solverId)
     {
-        if (!IsServer || !activeQuests.Contains(questID)) return;
+        if (!IsServer) return;
 
-        var data = GetQuestData(questID);
-        string questName = data != null ? data.questName : "Unknown";
+        // 1. 직접 퀘스트 ID가 일치하는 경우 (사진 퀘스트 등)
+        if (activeQuests.Contains(id))
+        {
+            MarkQuestAsComplete(id, solverId);
+        }
 
+        // 2. 아이템 ID를 매개로 역추적하는 경우 (수집 퀘스트)
+        foreach (int qId in activeQuests)
+        {
+            var data = GetQuestData(qId);
+            if (data != null && data.type == QuestType.Collect && data.targetItemID == id)
+            {
+                MarkQuestAsComplete(qId, solverId);
+            }
+        }
+    }
+
+    private void MarkQuestAsComplete(int questID, ulong solverId)
+    {
         if (!serverCompletedQuests.Contains(questID))
         {
             serverCompletedQuests.Add(questID);
 
-            // 서버 진행도 트래킹 로그
+            var finalData = GetQuestData(questID);
+            string questName = finalData != null ? finalData.questName : "Unknown";
+
             int total = activeQuests.Count;
             int cleared = serverCompletedQuests.Count;
-            Debug.Log($"<color=lime><b>[SERVER MASTER]</b></color> 최종 클리어 확정: <color=white>[ID:{questID}] {questName}</color> (해결사: Client {solverId})");
+            Debug.Log($"<color=lime><b>[SERVER MASTER]</b></color> 최종 클리어 확정: <color=white>[ID:{questID}] {questName}</color> (By: Client {solverId})");
             Debug.Log($"<color=lime><b>[SERVER MASTER]</b></color> 전체 진행도: {cleared}/{total}");
         }
     }
@@ -256,7 +274,71 @@ public class QuestManager : NetworkBehaviour
     }
     #endregion
 
+    // ==========================================================
+    // [팀원 협업용 API] 특정 기믹 퀘스트 연동 함수들
+    // ==========================================================
 
+    /// <summary>
+    /// 금고 내부 스폰 포인트를 전달받아, 수집1(금고) 퀘스트가 활성화 상태면 
+    /// 해당 퀘스트 아이템을 스폰하고 true를 반환합니다.
+    /// </summary>
+    public bool TrySetupSafeGimmick(Transform safeInsidePoint)
+    {
+        if (!IsServer) return false;
+
+        Debug.Log("<color=yellow>[Safe Debug] 1. 금고 스폰 로직 시작 (서버)</color>");
+
+        int[] safeQuests = { 1000, 2000, 3000 };
+        int activeId = 0;
+
+        foreach (int id in safeQuests)
+        {
+            if (activeQuests.Contains(id))
+            {
+                activeId = id;
+                break;
+            }
+        }
+
+        if (activeId == 0)
+        {
+            Debug.Log("<color=red>[Safe Debug] 2. 실패: 현재 수락된 퀘스트 목록에 1000, 2000, 3000번 퀘스트가 없습니다. (랜덤으로 안 뽑혔거나 수락 안함)</color>");
+            return false;
+        }
+
+        Debug.Log($"<color=yellow>[Safe Debug] 2. 성공: 금고 퀘스트 ID {activeId} 활성화 확인됨!</color>");
+
+        QuestDataSO questData = GetQuestData(activeId);
+        if (questData == null)
+        {
+            Debug.LogError($"<color=red>[Safe Debug] 3. 실패: ID {activeId}에 해당하는 QuestDataSO를 찾을 수 없습니다.</color>");
+            return false;
+        }
+
+        if (questData.targetItemID == 0)
+        {
+            Debug.LogError($"<color=red>[Safe Debug] 3. 실패: QuestDataSO({questData.questName})의 targetItemID가 0으로 비어있습니다!</color>");
+            return false;
+        }
+
+        Debug.Log($"<color=yellow>[Safe Debug] 3. 성공: 타겟 아이템 ID {questData.targetItemID} 확인 완료.</color>");
+
+        ItemBase prefab = GameSessionManager.Instance.GetPrefab(questData.targetItemID);
+        if (prefab == null)
+        {
+            Debug.LogError($"<color=red>[Safe Debug] 4. 실패: GameSessionManager의 DB에서 ID {questData.targetItemID} 프리팹을 찾을 수 없습니다.</color>");
+            return false;
+        }
+
+        Debug.Log("<color=yellow>[Safe Debug] 4. 프리팹 확보 성공. 스폰을 시도합니다.</color>");
+
+        ItemBase spawned = Instantiate(prefab, safeInsidePoint.position, safeInsidePoint.rotation);
+        spawned.GetComponent<NetworkObject>().Spawn();
+
+        Debug.Log($"<color=lime>[Safe Debug] 5. 완벽 성공! 내부에 '{prefab.itemData.itemName}' 스폰 완료.</color>");
+        return true;
+    }
+   
     //구형 로직 --------------------------------------------------------------------------------------------------------------------
 
     //private void Generate3Plus1(NetworkList<int> targetList, int minMain, int maxMain, int minSub, int maxSub)

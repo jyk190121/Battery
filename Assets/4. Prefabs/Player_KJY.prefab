@@ -3179,6 +3179,9 @@ MonoBehaviour:
   Interactable:
     serializedVersion: 2
     m_Bits: 65536
+  NumberpadLayer:
+    serializedVersion: 2
+    m_Bits: 0
   interactUI: {fileID: 0}
   progressImage: {fileID: 0}
   requiredHoldTime: 2
@@ -3224,7 +3227,7 @@ MonoBehaviour:
     m_Bits: 131072
   obstacleLayer:
     serializedVersion: 2
-    m_Bits: 38856
+    m_Bits: 563144
   leftHandName: OneHandle
   bothHandsName: BothHandle
   leftHandTransform: {fileID: 0}

@@ -57,6 +57,8 @@ public class PlayerMove : NetworkBehaviour
 
     bool isTabletLocked = false;
 
+    bool isNumpadLocked = false;
+
     PlayerAnim playerAnim;
     PlayerStateManager stateManager;
 
@@ -79,6 +81,8 @@ public class PlayerMove : NetworkBehaviour
 
         TabletUIManager.OnTabletStateChanged += HandleTabletStateChanged;
 
+        NumberPadInteraction.OnKeypadUIOpened += HandleNumpadStateChanged;
+
         if (IsOwner)
         {
             Cursor.lockState = CursorLockMode.Locked;
@@ -92,11 +96,17 @@ public class PlayerMove : NetworkBehaviour
         }
     }
 
+    private void NumberPadInteraction_OnKeypadUIOpened()
+    {
+        throw new System.NotImplementedException();
+    }
+
     public override void OnNetworkDespawn()
     {
         if (IsOwner)
         {
             TabletUIManager.OnTabletStateChanged -= HandleTabletStateChanged;
+            NumberPadInteraction.OnKeypadUIOpened -= HandleNumpadStateChanged;
         }
     }
 
@@ -126,7 +136,7 @@ public class PlayerMove : NetworkBehaviour
     {
         if (!IsOwner) return;
 
-        if (isControlLocked || isTabletLocked)
+        if (isControlLocked || isTabletLocked || isNumpadLocked)
         {
             inputMagnitude = 0;
             if (rb != null && isGrounded)
@@ -164,7 +174,7 @@ public class PlayerMove : NetworkBehaviour
         if (!IsOwner) return;
 
         // [수정] 이동 물리 연산도 동일하게 차단
-        if (isControlLocked || isTabletLocked)
+        if (isControlLocked || isTabletLocked || isNumpadLocked)
         {
             // 완벽하게 멈추기 위해 물리 속도 제어
             rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
@@ -492,6 +502,20 @@ public class PlayerMove : NetworkBehaviour
             isCrouching = false;
             UpdateCollider(); // 콜라이더 즉시 복구
             playerAnim.UpdateCrouchStatus(false);
+        }
+    }
+
+    // 넘버패드 UI 상태에 따라 잠금 설정
+    private void HandleNumpadStateChanged(bool isOpen)
+    {
+        isNumpadLocked = isOpen;
+
+        // 넘버패드를 열었을 때 캐릭터를 멈춤
+        if (isOpen)
+        {
+            currentSpeed = 0;
+            inputMagnitude = 0;
+            if (rb != null) rb.linearVelocity = Vector3.zero;
         }
     }
 }
