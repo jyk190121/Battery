@@ -14,7 +14,7 @@ OcclusionCullingSettings:
 RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 10
-  m_Fog: 1
+  m_Fog: 0
   m_FogColor: {r: 0, g: 0, b: 0, a: 1}
   m_FogMode: 2
   m_FogDensity: 0.045
@@ -3622,18 +3622,6 @@ PrefabInstance:
     - target: {fileID: 7367093214702813941, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: GlobalObjectIdHash
       value: 1070986786
-      objectReference: {fileID: 0}
-    - target: {fileID: 7526617927407794304, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
-      propertyPath: m_AgentTypeID
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7526617927407794304, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
-      propertyPath: m_NavMeshData
-      value: 
-      objectReference: {fileID: 23800000, guid: 836eb1324ac9b5f4bbd69977f6311eba, type: 2}
-    - target: {fileID: 7526617927407794304, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
-      propertyPath: m_LayerMask.m_Bits
-      value: 392
       objectReference: {fileID: 0}
     - target: {fileID: 7568813667392249235, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: GlobalObjectIdHash
