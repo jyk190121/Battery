@@ -527,7 +527,12 @@ public class PlayerController : NetworkBehaviour
         gameObject.layer = LayerMask.NameToLayer("Player");
 
         // 4. 모든 조작 스크립트 재활성화
-        if (TryGetComponent(out PlayerMove move)) move.enabled = true;
+        if (TryGetComponent(out PlayerMove move)) 
+        {
+            move.enabled = true;
+            // [플레이어 앉기(확장가능) 가능 초기화]
+            move.SetFaceMonsterAttached(false);
+        }
         if (TryGetComponent(out PlayerRotation rot))
         {
             //rot.enabled = true;
@@ -554,15 +559,6 @@ public class PlayerController : NetworkBehaviour
         }
         if (TryGetComponent(out PlayerInteraction interact)) interact.enabled = true;
         if (TryGetComponent(out PlayerEquipment equip)) equip.enabled = true;
-
-      
-        //// 5. 본인인 경우 UI 및 커서 복구
-        //if (IsOwner)
-        //{
-        //    Cursor.lockState = CursorLockMode.Locked;
-        //    Cursor.visible = false;
-        //    // "사망" UI가 있었다면 여기서 끄기
-        //}
     }
 
     [ClientRpc]
