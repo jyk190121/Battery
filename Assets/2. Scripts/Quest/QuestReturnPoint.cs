@@ -1,5 +1,7 @@
-using UnityEngine;
+using Photon.Voice;
 using Unity.Netcode;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 public class QuestReturnPoint : NetworkBehaviour
 {
@@ -98,11 +100,29 @@ public class QuestReturnPoint : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void NotifyTeleportLogClientRpc(ulong clientId)
     {
-        Debug.Log($"<color=purple><b>[Gimmick]</b></color> Client {clientId} 영혼 세계 이동 완료! (퀘스트 ID: {targetQuestID})");
 
-        if (NetworkManager.Singleton.LocalClientId == clientId)
+        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var networkClient))
         {
-            // 실제 이동 코드는 이후 팀원 작업 시 여기에 추가
+            //이동시킬 플레이어 찾기
+            var playerObj = networkClient.PlayerObject;
+
+            // 내 로컬 화면에서 내가 이동해야 하는 경우인지 확인 (Owner 권한 기반 이동)
+            if (playerObj.IsOwner)
+            {
+                // 플레이어 오브젝트에 붙은 NetworkTransform을 가져옵니다.
+                if (playerObj.TryGetComponent(out Unity.Netcode.Components.NetworkTransform nt))
+                {
+                    Vector3 targetPos = new Vector3(1100f, 1f, 135f);
+                    // 중요: NetworkTransform의 Teleport 메서드를 사용하여 동기화 호출
+                    nt.Teleport(targetPos, Quaternion.identity, playerObj.transform.localScale);
+                    Debug.Log($"<color=purple><b>[Gimmick]</b></color> Client {clientId} 영혼 세계 이동 완료! (퀘스트 ID: {targetQuestID})");
+                }
+                else
+                {
+                    // NT가 없을 경우 수동 이동 (권한 체크 필수)
+                    playerObj.transform.position = new Vector3(1000, 5, 120);
+                }
+            }
         }
     }
 
