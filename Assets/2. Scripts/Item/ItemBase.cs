@@ -15,6 +15,10 @@ public abstract class ItemBase : NetworkBehaviour
 
     protected Transform currentTargetHand;
 
+    [Header("Grip Settings (장착 위치 보정)")]
+    public Vector3 gripPositionOffset = Vector3.zero;
+    public Vector3 gripRotationOffset = Vector3.zero;
+
     protected virtual void Awake()
     {
         itemPhysicsRigidbody = GetComponent<Rigidbody>();
@@ -42,35 +46,30 @@ public abstract class ItemBase : NetworkBehaviour
                 itemPhysicsRigidbody.angularVelocity = Vector3.zero;
                 itemPhysicsRigidbody.isKinematic = true;
             }
-            //if (itemPhysicalCollider != null) itemPhysicalCollider.enabled = false;
+
+            // 네트워크 변환 동기화 일시 중지 (손 위치 강제 추적을 위함)
             if (netTransform != null) netTransform.enabled = false;
 
-            if (IsServer)
-            {
-                NetworkObject.TrySetParent(targetHand, false);
-            }
+            // NGO 에러 원인(TrySetParent) 삭제됨
 
             if (itemData != null) Debug.Log($"<color=green>[Execute]</color> {itemData.itemName} 장착 완료.");
         }
         else
         {
-            if (IsServer)
-            {
-                NetworkObject.TryRemoveParent();
-            }
+            // NGO 에러 원인(TryRemoveParent) 삭제됨
 
             if (netTransform != null) netTransform.enabled = true;
             if (itemPhysicsRigidbody != null) itemPhysicsRigidbody.isKinematic = false;
-            //if (itemPhysicalCollider != null) itemPhysicalCollider.enabled = true;
         }
     }
 
-    protected virtual void Update()
+    // 애니메이션 덜덜거림 방지를 위해 Update 대신 LateUpdate 사용
+    protected virtual void LateUpdate()
     {
         if (isEquipped && currentTargetHand != null)
         {
-            transform.position = currentTargetHand.position;
-            transform.rotation = currentTargetHand.rotation;
+            transform.position = currentTargetHand.TransformPoint(gripPositionOffset);
+            transform.rotation = currentTargetHand.rotation * Quaternion.Euler(gripRotationOffset);
         }
     }
 
@@ -122,6 +121,5 @@ public abstract class ItemBase : NetworkBehaviour
         ExecuteUseItem(direction);
     }
 
-    // 매개변수로 direction을 받도록 수정
     public virtual void ExecuteUseItem(Vector3 direction) { }
 }
