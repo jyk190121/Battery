@@ -7,6 +7,9 @@ public class QuestManager : NetworkBehaviour
 {
     public static QuestManager Instance;
 
+    // 몹 소환 이벤트용 
+    public static event System.Action OnSpiritualWorldEntered;
+
     [Header("Quest Database")]
     public List<QuestDataSO> questDatabase;
 
