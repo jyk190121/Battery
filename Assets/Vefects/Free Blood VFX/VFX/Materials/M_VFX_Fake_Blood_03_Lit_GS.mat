@@ -8,12 +8,11 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: M_VFX_Fake_Blood_03_Lit_GS
-  m_Shader: {fileID: 4800000, guid: 5e44e924aaacac345b693ae181b1b05c, type: 3}
+  m_Shader: {fileID: 4800000, guid: a8cdd4a1effaca7469894c508c106b9b, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
-  m_InvalidKeywords:
-  - _ENVIRONMENTREFLECTIONS_OFF
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
@@ -81,8 +80,6 @@ Material:
     - _EnvironmentReflections: 1
     - _ErosionIntensity: 0
     - _ErosionSmoothness: 1
-    - _FlatColor: 0
-    - _GlossyReflections: 1
     - _HueShift: 0
     - _IsAdd: 1
     - _LUTAmplitude: 1

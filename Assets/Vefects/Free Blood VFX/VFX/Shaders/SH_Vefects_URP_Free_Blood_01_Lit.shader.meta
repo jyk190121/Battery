@@ -14,8 +14,8 @@ ShaderImporter:
   assetBundleVariant: 
 AssetOrigin:
   serializedVersion: 1
-  productId: 375128
-  packageName: Free Blood VFX
-  packageVersion: 1.0
+  productId: 375130
+  packageName: Free Blood VFX - URP
+  packageVersion: 1.0.1
   assetPath: Assets/Vefects/Free Blood VFX/VFX/Shaders/SH_Vefects_URP_Free_Blood_01_Lit.shader
-  uploadId: 906402
+  uploadId: 906040

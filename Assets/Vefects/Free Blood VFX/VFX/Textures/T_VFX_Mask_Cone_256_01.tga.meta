@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 9a84ea83f522a584a832eeb20b548703
+guid: 8f4715af4337cb148bd1b5ac38e6cf61
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -124,8 +124,8 @@ TextureImporter:
   assetBundleVariant: 
 AssetOrigin:
   serializedVersion: 1
-  productId: 375128
-  packageName: Free Blood VFX
-  packageVersion: 1.0
+  productId: 375130
+  packageName: Free Blood VFX - URP
+  packageVersion: 1.0.1
   assetPath: Assets/Vefects/Free Blood VFX/VFX/Textures/T_VFX_Mask_Cone_256_01.tga
-  uploadId: 906402
+  uploadId: 906040

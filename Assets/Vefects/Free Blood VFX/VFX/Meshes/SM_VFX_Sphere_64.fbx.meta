@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 22ab8eda8c6fc16489c760a541662066
+guid: 461160e4c7824ba4b963058f4d5921e4
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -107,8 +107,8 @@ ModelImporter:
   assetBundleVariant: 
 AssetOrigin:
   serializedVersion: 1
-  productId: 375128
-  packageName: Free Blood VFX
-  packageVersion: 1.0
+  productId: 375130
+  packageName: Free Blood VFX - URP
+  packageVersion: 1.0.1
   assetPath: Assets/Vefects/Free Blood VFX/VFX/Meshes/SM_VFX_Sphere_64.fbx
-  uploadId: 906402
+  uploadId: 906040
