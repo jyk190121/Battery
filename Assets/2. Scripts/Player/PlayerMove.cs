@@ -96,10 +96,10 @@ public class PlayerMove : NetworkBehaviour
         }
     }
 
-    private void NumberPadInteraction_OnKeypadUIOpened()
-    {
-        throw new System.NotImplementedException();
-    }
+    //private void NumberPadInteraction_OnKeypadUIOpened()
+    //{
+    //    throw new System.NotImplementedException();
+    //}
 
     public override void OnNetworkDespawn()
     {
@@ -349,40 +349,6 @@ public class PlayerMove : NetworkBehaviour
 
     void Move(float h, float v)
     {
-        //Vector3 moveDir = new Vector3(h, 0, v);
-
-        //if (moveDir.sqrMagnitude > 1f)
-        //{
-        //    moveDir.Normalize();
-        //}
-
-        ////transform.Translate(moveDir * moveSpeed * Time.deltaTime, Space.World);
-        ////transform.Translate(moveDir * moveSpeed * Time.deltaTime, Space.Self);
-
-        ////print(currentSpeed);
-
-        //Vector3 worldMoveDir = transform.TransformDirection(moveDir);
-        //Vector3 targetVelocity = worldMoveDir * currentSpeed;
-
-        //// [개선]
-        //if (isOnStair && inputMagnitude > 0.1f)
-        //{
-        //    RaycastHit hitStep;
-        //    // 레이 높이를 조금 더 세밀하게 조정 (stepHeight의 절반 정도)
-        //    Vector3 rayOrigin = transform.position + Vector3.up * 0.1f;
-
-        //    if (Physics.Raycast(rayOrigin, worldMoveDir, out hitStep, 0.5f, stairLayer))
-        //    {
-        //        // 직접 position을 더하기보다 Y축 속도를 부드럽게 제어
-        //        float smoothY = Mathf.Lerp(rb.linearVelocity.y, stepHeight * currentSpeed, stepSmoothing);
-        //        rb.linearVelocity = new Vector3(rb.linearVelocity.x, smoothY, rb.linearVelocity.z);
-        //    }
-        //}
-
-        ////transform.position += worldMoveDir * currentSpeed * Time.deltaTime;
-        //Vector3 nextPos = rb.position + worldMoveDir * currentSpeed * Time.fixedDeltaTime;
-        //rb.MovePosition(nextPos);
-
         Vector3 moveDir = new Vector3(h, 0, v);
         if (moveDir.sqrMagnitude > 1f) moveDir.Normalize();
 
