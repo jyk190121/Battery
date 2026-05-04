@@ -318,6 +318,8 @@ public class MonsterController : NetworkBehaviour
     {
         if (!IsServer) return false;
 
+        if (!_states.ContainsKey(MonsterStateType.InteractDoor)) return false;
+
         Vector3 checkPos = transform.position + (Vector3.up * 1.0f);
         int doorLayerMask = 1 << LayerMask.NameToLayer("Door");
 
