@@ -2956,7 +2956,7 @@ MonoBehaviour:
   jumpForce: 5
   groundLayer:
     serializedVersion: 2
-    m_Bits: 1032
+    m_Bits: 2098184
   groundCheckDistance: 0.3
   stairLayer:
     serializedVersion: 2

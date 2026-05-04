@@ -120,7 +120,7 @@ public class QuestReturnPoint : NetworkBehaviour
                 else
                 {
                     // NT가 없을 경우 수동 이동 (권한 체크 필수)
-                    playerObj.transform.position = new Vector3(1000, 5, 120);
+                    playerObj.transform.position = new Vector3(1100f, 1f, 135f);
                 }
             }
         }
