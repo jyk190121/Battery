@@ -1543,6 +1543,7 @@ MonoBehaviour:
   navAgent: {fileID: 4186773354342019165}
   animHandler: {fileID: 1827414708699773800}
   waypointManager: {fileID: 0}
+  currentZone: 0
   CurrentHealth:
     m_InternalValue: 0
   CurrentStateNet:
@@ -1569,7 +1570,7 @@ MonoBehaviour:
   isIndoorMonster: 1
   _obstacleMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1288
 --- !u!65 &2463115333531814365
 BoxCollider:
   m_ObjectHideFlags: 0

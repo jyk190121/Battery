@@ -1682,7 +1682,7 @@ MonoBehaviour:
   isIndoorMonster: 1
   _obstacleMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1288
 --- !u!114 &6989157162148910897
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1701,6 +1701,7 @@ MonoBehaviour:
   navAgent: {fileID: 1983274844971976530}
   animHandler: {fileID: 1804527276294227049}
   waypointManager: {fileID: 0}
+  currentZone: 0
   CurrentHealth:
     m_InternalValue: 0
   CurrentStateNet:

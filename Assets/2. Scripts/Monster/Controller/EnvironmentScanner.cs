@@ -4,6 +4,7 @@ using UnityEngine.AI;
 
 /// <summary>
 /// 몬스터의 감각(시각, 청각) 및 타겟 추적을 담당하는 핵심 AI 스캐너 클래스입니다.
+/// 수직 지형(계단)에서의 시야 소실 버그를 막기 위해 XZ 평면 투영 및 다중 레이캐스트가 적용되었습니다.
 /// </summary>
 public class EnvironmentScanner : MonoBehaviour
 {
@@ -57,43 +58,37 @@ public class EnvironmentScanner : MonoBehaviour
 
     private void OnEnable()
     {
-        // 활성화될 때 매니저에 등록
         if (EnemyManager.Instance != null)
             EnemyManager.Instance.RegisterScanner(this);
     }
 
     private void OnDisable()
     {
-        // 비활성화(사망 등)될 때 매니저에서 제거
         if (EnemyManager.Instance != null)
             EnemyManager.Instance.UnregisterScanner(this);
     }
 
 
     // =========================================================
-    // 3. 유니티 루프 및 콜백 (OnDrawGizmos 등)
+    // 3. 유니티 루프 및 콜백 (시각적 디버깅)
     // =========================================================
 
     private void OnDrawGizmos()
     {
         if (data == null) return;
 
-        // 청각 범위 시각화 (노란색 원)
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, data.hearingRange);
 
-        // 시야 범위 및 각도(FOV) 시각화 (빨간색 부채꼴)
         Gizmos.color = Color.red;
+        // 씬 뷰에서 2D 원기둥 시야를 직관적으로 확인할 수 있도록 Y축을 평평하게 그립니다.
+        Vector3 flatForward = new Vector3(transform.forward.x, 0, transform.forward.z).normalized;
+        Vector3 rightViewDir = Quaternion.Euler(0, data.viewAngle * 0.5f, 0) * flatForward;
+        Vector3 leftViewDir = Quaternion.Euler(0, -data.viewAngle * 0.5f, 0) * flatForward;
 
-        // 정면 기준 좌우 시야각 끝자락을 구함
-        Vector3 rightViewDir = Quaternion.Euler(0, data.viewAngle * 0.5f, 0) * transform.forward;
-        Vector3 leftViewDir = Quaternion.Euler(0, -data.viewAngle * 0.5f, 0) * transform.forward;
-
-        // 씬 뷰에 시야각 라인을 그림 (이 선 밖으로 나가면 몬스터가 못 봅니다!)
         Gizmos.DrawRay(transform.position, rightViewDir * data.viewRange);
         Gizmos.DrawRay(transform.position, leftViewDir * data.viewRange);
 
-        // 마지막 목격 위치 시각화
         if (LastSeenPosition != Vector3.zero)
         {
             Gizmos.color = (Time.time - _timeLastSeen <= data.visionMemoryTime) ? new Color(1f, 0.5f, 0f) : Color.yellow;
@@ -107,16 +102,13 @@ public class EnvironmentScanner : MonoBehaviour
     // 4. 퍼블릭 함수
     // =========================================================
 
-    /// <summary>
-    /// 컨트롤러의 OnTick에서 호출되어 시야 감지 연산을 수행합니다.
-    /// </summary>
     public void Tick()
     {
         if (!owner.IsServer) return;
 
         Transform bestTarget = null;
         float minSqrDistance = float.MaxValue;
-        float targetStickiness = 2.0f; // 현재 타겟은 2m 더 멀리 있어도 유지함
+        float targetStickiness = 2.0f;
 
         foreach (PlayerController player in PlayerController.AllPlayers)
         {
@@ -126,45 +118,45 @@ public class EnvironmentScanner : MonoBehaviour
             Vector3 diff = player.transform.position - transform.position;
             float currentSqrDist = diff.sqrMagnitude;
 
-            // 현재 타겟이라면 거리 판정을 더 후하게 줌
             if (CurrentTarget != null && player.transform == CurrentTarget)
             {
                 currentSqrDist -= (targetStickiness * targetStickiness);
             }
 
-            // 1. 최대 시야 반경(viewRange)을 벗어나면 무시
+            // 1. 3D 거리 검사: 상하좌우 무관하게 너무 멀면 아예 안 보임
             if (currentSqrDist > _viewRangeSqr) continue;
 
-            // 2. 시야각(FOV) 및 기척(Proximity) 감지 시스템
-            Vector3 dirToPlayer = diff.normalized;
-            // 몬스터의 정면과 플레이어 사이의 각도를 구합니다. (0도면 정면, 180도면 완전 뒤)
-            float angleToPlayer = Vector3.Angle(transform.forward, dirToPlayer);
+            // =================================================================
+            // [Portfolio 최적화: 계단 버그 해결을 위한 XZ 평면 2D 시야각 판정]
+            // 플레이어가 계단 아래/위에 있어서 상하 각도가 극심하게 꺾이더라도, 
+            // 좌우 방향만 몬스터의 시야각 안에 있다면 포착되도록 Y축을 배제합니다.
+            // =================================================================
+            Vector3 forward2D = new Vector3(transform.forward.x, 0, transform.forward.z).normalized;
+            Vector3 dirToPlayer2D = new Vector3(diff.x, 0, diff.z).normalized;
 
-            // [기척 감지] 몬스터 등 뒤에 있더라도 2m(제곱값 4) 이내로 바짝 붙으면 각도 무시하고 눈치챔
+            float angleToPlayer = Vector3.Angle(forward2D, dirToPlayer2D);
+
             bool isCloseEnoughToFeel = currentSqrDist <= (2.0f * 2.0f);
 
-            // 시야각의 절반(좌우)을 벗어났고, 바짝 붙어있는 것도 아니라면? -> 못 본 것으로 간주하고 패스!
+            // 좌우 각도를 벗어났고, 바짝 붙은 것도 아니라면 패스!
             if (angleToPlayer > data.viewAngle * 0.5f && !isCloseEnoughToFeel)
             {
                 continue;
             }
-            // =================================================================
 
-            // 3. 시야 가림(벽 등 장애물) 레이캐스트 검사
+            // 3. 시야 가림(벽 등 장애물) 다중 레이캐스트 검사
             bool hasLOS = HasLineOfSight(player.transform);
 
-            // 시야에서 잠깐 사라져도 기억 시간 내라면 보인 것으로 간주
             if (!hasLOS && CurrentTarget != null && player.transform == CurrentTarget)
             {
                 if (Time.time - _timeLastSeen <= data.visionMemoryTime)
                 {
-                    hasLOS = true;
+                    hasLOS = true; // 기억력 유지
                 }
             }
 
             if (hasLOS)
             {
-                // 0.5초 캐싱된 길찾기 가능 여부 확인
                 if (IsPathReasonable(player.transform))
                 {
                     if (currentSqrDist < minSqrDistance)
@@ -176,7 +168,6 @@ public class EnvironmentScanner : MonoBehaviour
             }
         }
 
-        // 새로운 타겟이거나 타겟을 유지 중일 때 목격 시간 갱신
         if (bestTarget != null && bestTarget != CurrentTarget)
         {
             _timeLastSeen = Time.time;
@@ -185,45 +176,27 @@ public class EnvironmentScanner : MonoBehaviour
         UpdateTargetData(bestTarget);
     }
 
-    /// <summary>
-    /// 외부 SoundManager 등에서 소리가 발생했을 때 호출하는 훅(Hook) 함수
-    /// 실내외 차단, 층간 소음, 벽간 소음을 모두 계산합니다.
-    /// </summary>
     public void OnHeardSound(Vector3 soundOrigin, float noiseLevel, bool soundIsInside)
     {
-        // 1. [공간 분리] 실외/실내 완전 격리 (서로 다른 공간이면 아예 듣지 못함)
-        if (this.isIndoorMonster != soundIsInside)
-        {
-            return;
-        }
+        if (this.isIndoorMonster != soundIsInside) return;
 
-        // 2. [층간 소음 차단] 높이(Y축) 차이를 계산
         float verticalDifference = Mathf.Abs(transform.position.y - soundOrigin.y);
 
-        // 층 미터 계산
         if (verticalDifference >= 6.5f)
         {
-            // 층이 다르면 소리 크기(전달 반경)를 70% 깎아버립니다. (0.3배)
-            // 즉, 반경 20m짜리 큰 비명도 위층에서는 6m로 작게 들리게 됩니다.
             noiseLevel *= 0.3f;
-
-            // 2개 층 이상 차이 (7m 이상) 나면 아예 소리가 도달하지 못하게 막음
             if (verticalDifference >= 13f) return;
         }
 
-        // 3. [벽간 소음 차단] 같은 층이라도 닫힌 문이나 두꺼운 벽 너머라면 소리가 줄어듦
         Vector3 dirToSound = soundOrigin - transform.position;
         float distToSound = dirToSound.magnitude;
 
-        // 몬스터의 머리 위치에서 소리가 난 곳을 향해 레이저를 쏴서 막히는지 확인
         Vector3 checkStart = transform.position + (Vector3.up * 1.5f);
         if (Physics.Raycast(checkStart, dirToSound.normalized, distToSound, _obstacleMask))
         {
-            // 벽에 막혔다면 소리 반경을 추가로 50% 깎아버립니다. (0.5배)
             noiseLevel *= 0.5f;
         }
 
-        // 4. [최종 감지 판정] 차단율이 모두 적용된 최종 소리 반경이 거리에 닿는지 확인
         float finalHearingRadius = data.hearingRange * noiseLevel;
 
         if (distToSound <= finalHearingRadius)
@@ -231,7 +204,6 @@ public class EnvironmentScanner : MonoBehaviour
             LastHeardPosition = soundOrigin;
             Debug.Log($"<color=yellow>[소리 감지]</color> {owner.name}이(가) 소리를 들었습니다. (최종 반경: {finalHearingRadius:F1}m)");
 
-            // 순찰, 정지, 혹은 수색 중일 때 소리가 나면 그곳으로 '조사(Investigate)'를 하러 갑니다.
             if (owner.CurrentStateNet.Value == MonsterStateType.Patrol ||
                 owner.CurrentStateNet.Value == MonsterStateType.Idle ||
                 owner.CurrentStateNet.Value == MonsterStateType.Search)
@@ -278,7 +250,6 @@ public class EnvironmentScanner : MonoBehaviour
     {
         if (owner.IsInSafeZone(target)) return false;
 
-        // 플레이어인데 이미 죽었다면 유효하지 않은 타겟으로 무시
         if (target.TryGetComponent<PlayerController>(out var player) && player.isDead.Value)
         {
             return false;
@@ -314,14 +285,37 @@ public class EnvironmentScanner : MonoBehaviour
         return isValid;
     }
 
+    /// <summary>
+    /// [Portfolio 핵심 기술: 다중 타겟 부위 레이캐스트]
+    /// 기존의 단일 레이캐스트는 계단 모서리에 닿으면 플레이어를 못 본 것으로 오판했습니다.
+    /// 플레이어의 머리, 가슴, 다리 3곳으로 레이저를 발사하여 하나라도 통과하면 시야가 확보된 것으로 간주합니다.
+    /// </summary>
     private bool HasLineOfSight(Transform target)
     {
-        Vector3 startPos = transform.position + (Vector3.up * 1.5f);
-        Vector3 targetPos = target.position + (Vector3.up * 1.0f);
+        Vector3 startPos = transform.position + (Vector3.up * 1.5f); // 몬스터의 눈(카메라) 위치
 
-        Vector3 dir = (targetPos - startPos).normalized;
-        float actualDist = Vector3.Distance(startPos, targetPos);
+        // 검사할 타겟의 3가지 부위 (머리, 가슴, 발)
+        Vector3[] targetPoints = new Vector3[]
+        {
+            target.position + (Vector3.up * 1.6f), // 머리 (계단 아래로 내려갈 때 가장 끝까지 보임)
+            target.position + (Vector3.up * 1.0f), // 가슴 (기본)
+            target.position + (Vector3.up * 0.2f)  // 발 (장애물 밑 틈새로 보일 때)
+        };
 
-        return !Physics.Raycast(startPos, dir, actualDist, _obstacleMask);
+        // 3곳 중 하나라도 레이캐스트가 뚫리면(장애물에 안 맞으면) 즉시 true 반환 (Short-circuit 평가)
+        foreach (Vector3 targetPoint in targetPoints)
+        {
+            Vector3 dir = (targetPoint - startPos).normalized;
+            float actualDist = Vector3.Distance(startPos, targetPoint);
+
+            // 장애물에 부딪히지 '않았다면' (!Physics.Raycast)
+            if (!Physics.Raycast(startPos, dir, actualDist, _obstacleMask))
+            {
+                return true; // 하나라도 보였으니 연산 즉시 종료 (최적화)
+            }
+        }
+
+        // 3곳 모두 벽이나 계단 모서리에 가려졌다면 안 보임
+        return false;
     }
 }
