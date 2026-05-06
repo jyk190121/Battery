@@ -172,39 +172,32 @@ public class SearchState : MonsterBaseState
     private void FindNearbySearchNodes()
     {
         _nearbyWaypoints.Clear();
+        if (owner.waypointManager == null) return;
 
-        if (owner.waypointManager == null || owner.waypointManager.waypoints == null) return;
+        // 현재 몬스터가 속한 구역의 거점만 가져옵니다
+        var zoneWaypoints = owner.waypointManager.GetWaypointsInZone(owner.currentZone);
+        if (zoneWaypoints.Count == 0) return;
 
         float radiusSqr = data.searchNodeRadius * data.searchNodeRadius;
-        var allWaypoints = owner.waypointManager.waypoints;
 
-        // 모든 거점을 순회하며 반경 내에 있는지 확인
-        for (int i = 0; i < allWaypoints.Count; i++)
+        for (int i = 0; i < zoneWaypoints.Count; i++)
         {
-            Transform wp = allWaypoints[i];
+            Transform wp = zoneWaypoints[i];
             float distSqr = (wp.position - _predictedPosition).sqrMagnitude;
 
-            // 반경 내에 있다면, 거리가 가까운 순서대로 삽입 정렬(Insertion Sort)
             if (distSqr <= radiusSqr)
             {
                 int insertIndex = 0;
                 for (; insertIndex < _nearbyWaypoints.Count; insertIndex++)
                 {
                     float existingDistSqr = (_nearbyWaypoints[insertIndex].position - _predictedPosition).sqrMagnitude;
-                    if (distSqr < existingDistSqr)
-                    {
-                        break; // 기존 거점보다 내가 더 가깝다면 이 자리에 새치기 삽입
-                    }
+                    if (distSqr < existingDistSqr) break;
                 }
 
-                // 상위 3개까지만 리스트에 담아둠
                 if (insertIndex < 3)
                 {
                     _nearbyWaypoints.Insert(insertIndex, wp);
-                    if (_nearbyWaypoints.Count > 3)
-                    {
-                        _nearbyWaypoints.RemoveAt(3); // 4개가 되면 가장 먼 녀석을 버림
-                    }
+                    if (_nearbyWaypoints.Count > 3) _nearbyWaypoints.RemoveAt(3);
                 }
             }
         }
