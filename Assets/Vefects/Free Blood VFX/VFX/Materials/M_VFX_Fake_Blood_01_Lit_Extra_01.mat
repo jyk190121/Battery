@@ -80,6 +80,7 @@ Material:
     - _EnvironmentReflections: 1
     - _ErosionIntensity: 0
     - _ErosionSmoothness: 1
+    - _FlatColor: 0
     - _HueShift: 0
     - _IsAdd: 1
     - _LUTAmplitude: 1
@@ -121,3 +122,4 @@ Material:
     - _NoiseDistortionUVPan: {r: 0.02, g: -0.03, b: 0, a: 0}
     - _NoiseDistortionUVS: {r: 3, g: 3, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1

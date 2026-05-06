@@ -26,7 +26,9 @@ public class PlayerEquipment : NetworkBehaviour
     GameObject spawnedPhone;
 
     PlayerAnim playerAnim;
+    PlayerAttack _playerAttack;
     GameObject _phoneUIParent;
+
 
     // 네트워크 동기화 변수: 모든 클라이언트가 상태를 공유함
     private NetworkVariable<bool> isUsingPhone = new NetworkVariable<bool>(
@@ -38,6 +40,7 @@ public class PlayerEquipment : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         playerAnim = GetComponent<PlayerAnim>();
+        _playerAttack = GetComponent<PlayerAttack>();
         _inventory = GetComponent<PlayerInventory>();
 
         // 상태 동기화 이벤트 등록
@@ -72,15 +75,45 @@ public class PlayerEquipment : NetworkBehaviour
             isUsingPhone.Value = !isUsingPhone.Value;
         }
 
+        // 마우스 좌클릭 통합 관리
+        if (Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            // 스마트폰을 보고 있거나 제어가 잠긴 경우 제외
+            if (PhoneUIController.Instance != null && PhoneUIController.Instance.isPhoneActive) return;
+
+            ExecutePrimaryAction();
+        }
+
         UpdateAnimationByUIState();
     }
+    // 인벤토리 슬롯이 바뀔 때 호출됨
+    public void OnSlotItemChanged(ItemBase newItem)
+    {
+        //currentEquippedItem = newItem;
+        //UpdateWeaponStatus();
+
+        if (_playerAttack == null) _playerAttack = GetComponent<PlayerAttack>();
+
+        // 1. 새로 든 아이템이 무기(Item_Weapon)인지 확인
+        if (newItem is Item_Weapon weapon)
+        {
+            // SO나 무기 스크립트에 설정된 attackPower를 PlayerAttack에 전달
+            _playerAttack.SetAttackDamage(weapon.attackPower);
+            Debug.Log($"무기 장착: {newItem.itemData.itemName}, 데미지: {weapon.attackPower}");
+        }
+        else
+        {
+            // 2. 무기가 아니거나 빈 손이면 데미지 초기화
+            _playerAttack.ResetAttackDamage();
+        }
+    }
+
 
     void UpdateAnimationByUIState()
     {
         if (PhoneUIController.Instance != null)
         {
-            if (_phoneUIParent == null)
-                _phoneUIParent = PhoneUIController.Instance.phoneUIParent;
+            if (_phoneUIParent == null) _phoneUIParent = PhoneUIController.Instance.phoneUIParent;
 
             if (_phoneUIParent != null)
             {
@@ -173,6 +206,33 @@ public class PlayerEquipment : NetworkBehaviour
         else
         {
             HasWeapon = false;
+        }
+    }
+
+    // 마우스 좌클릭 시 동작 결정
+    public void ExecutePrimaryAction()
+    {
+        // 인벤토리에서 현재 들고 있는 아이템 확인
+        ItemBase item = (_inventory != null) ? _inventory.HeldItem : null;
+
+        if (item == null) return;
+
+        // 무기 여부 업데이트
+        UpdateWeaponStatus();
+
+        if (HasWeapon)
+        {
+            // 무기라면 PlayerAttack 스크립트로 전달
+            if (_playerAttack != null) _playerAttack.AttemptAttack();
+        }
+        else if (item.itemData.category == ItemCategory.Consumable || item.itemData.category == ItemCategory.Durability)
+        {
+            // 소모품/도구라면 아이템 자체의 사용 로직 호출
+            Vector3 lookDir = Camera.main.transform.forward;
+            item.RequestUseItem(lookDir);
+
+            // (필요 시) 섬광탄 같은 일회성 아이템은 인벤토리에서 제거 로직 추가
+            if (item is Item_Flashbang) _inventory.ClearItemReference(item);
         }
     }
 }
