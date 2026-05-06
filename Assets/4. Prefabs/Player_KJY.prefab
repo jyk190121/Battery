@@ -2956,11 +2956,11 @@ MonoBehaviour:
   jumpForce: 5
   groundLayer:
     serializedVersion: 2
-    m_Bits: 2098184
+    m_Bits: 2130952
   groundCheckDistance: 0.3
   stairLayer:
     serializedVersion: 2
-    m_Bits: 640
+    m_Bits: 4194944
   stairStepUpForce: 8
   stairDownForce: 0.1
   stepHeight: 0.35
@@ -3156,6 +3156,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
   ShowTopMostFoldoutHeaderGroup: 1
   isAttacking: 0
+  attackDamage: 0
 --- !u!114 &8808567715922933914
 MonoBehaviour:
   m_ObjectHideFlags: 0

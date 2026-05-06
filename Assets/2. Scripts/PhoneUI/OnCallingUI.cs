@@ -117,6 +117,12 @@ public class OnCallingUI : MonoBehaviour
     #region 네트워크 신호 수신 로직
     private void HandleIncomingCall(string callerName)
     {
+        if (PhoneUIController.Instance != null && !PhoneUIController.Instance.hasPower)
+        {
+            if (chatManager != null) chatManager.SendCallHangUp(callerName); // 혹은 SendPrivateMessage로 CALL_BUSY 전송
+            return;
+        }
+
         currentTargetName = callerName;
         SetReceiverMode();
         targetName.text = callerName.Split('#')[0];
