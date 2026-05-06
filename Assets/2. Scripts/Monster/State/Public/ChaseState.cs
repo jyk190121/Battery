@@ -3,6 +3,7 @@ using UnityEngine.AI;
 
 /// <summary>
 /// 몬스터가 플레이어를 발견하고 맹렬하게 쫓아가는 추격 상태입니다.
+/// BaseState의 하이브리드 회전 시스템을 상속받아 코드가 대폭 다이어트(최적화) 되었습니다.
 /// </summary>
 public class ChaseState : MonsterBaseState
 {
@@ -20,7 +21,7 @@ public class ChaseState : MonsterBaseState
 
     public ChaseState(MonsterController owner) : base(owner)
     {
-        // 추격 상태는 비교적 빠른 상황 판단이 필요하므로 AI 틱 주기를 기본값(0.2초)으로 사용합니다.
+        // 추격 상태는 비교적 빠른 상황 판단이 필요하므로 AI 틱 주기를 기본값으로 유지합니다.
     }
 
     public override void Enter()
@@ -31,7 +32,7 @@ public class ChaseState : MonsterBaseState
         owner.navAgent.isStopped = false;
         owner.navAgent.speed = data.chaseSpeed;
 
-        // 플레이어를 항상 정면으로 바라보게 만들기 위해 네비게이션 자동 회전을 끕니다.
+        // 하이브리드 수동 회전을 사용하기 위해 네비게이션 자동 회전을 끕니다.
         owner.navAgent.updateRotation = false;
 
         // 2. 내부 변수 초기화
@@ -49,7 +50,6 @@ public class ChaseState : MonsterBaseState
         owner.navAgent.updateRotation = true;
     }
 
-
     // =========================================================
     // 3. 유니티 루프 및 AI 틱 
     // =========================================================
@@ -65,10 +65,11 @@ public class ChaseState : MonsterBaseState
 
         Transform target = owner.scanner.CurrentTarget;
 
-        // 타겟이 시야에 확실히 보일 때만 매 프레임 부드럽게 유도 회전을 수행합니다.
+        // 타겟이 유효하다면 매 프레임 부드럽게 유도 회전을 수행합니다.
         if (target != null && !owner.IsInSafeZone(target.gameObject))
         {
-            HandleRotation(target);
+            // [리팩토링 완료] 부모 클래스(MonsterBaseState)의 공통 지형 인지 회전 함수 호출 (단 한 줄!)
+            HandleHybridRotation(target);
         }
     }
 
@@ -101,14 +102,8 @@ public class ChaseState : MonsterBaseState
         UpdatePath(target);
     }
 
-
     // =========================================================
-    // 4. 퍼블릭 함수 
-    // =========================================================
-
-
-    // =========================================================
-    // 5. 프라이빗 헬퍼 함수 
+    // 4. 프라이빗 헬퍼 함수 
     // =========================================================
 
     /// <summary>
@@ -157,25 +152,6 @@ public class ChaseState : MonsterBaseState
     }
 
     /// <summary>
-    /// 타겟을 향해 부드럽게 몸을 돌립니다 (매 프레임 Update에서 호출됨)
-    /// </summary>
-    private void HandleRotation(Transform target)
-    {
-        Vector3 dir = (target.position - owner.transform.position).normalized;
-        dir.y = 0; // 수직(위아래) 회전 방지
-
-        if (dir != Vector3.zero)
-        {
-            Quaternion targetRotation = Quaternion.LookRotation(dir);
-            owner.transform.rotation = Quaternion.RotateTowards(
-                owner.transform.rotation,
-                targetRotation,
-                Time.deltaTime * 500f
-            );
-        }
-    }
-
-    /// <summary>
     /// 공격 사거리 내에 타겟이 들어왔는지 판정합니다.
     /// </summary>
     private void CheckAttackDistance(Transform target)
@@ -191,7 +167,7 @@ public class ChaseState : MonsterBaseState
     }
 
     /// <summary>
-    /// 타겟이 일정 거리 이상 움직였을 때만 길을 새로 찾습니다 
+    /// 타겟이 일정 거리 이상 움직였을 때만 길을 새로 찾습니다.
     /// </summary>
     private void UpdatePath(Transform target)
     {
