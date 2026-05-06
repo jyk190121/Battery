@@ -905,6 +905,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5286075173522275865}
   - component: {fileID: 9193120537206263905}
+  - component: {fileID: 368125732550107620}
   m_Layer: 0
   m_Name: UIController
   m_TagString: Untagged
@@ -954,6 +955,25 @@ MonoBehaviour:
   isCallActive: 0
   isCallRefusing: 0
   isPhoneActive: 0
+  hasPower: 1
+--- !u!114 &368125732550107620
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6243257485087717440}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38f2f2878023d074f86f960125736539, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PhoneBatteryController
+  currentMode: 1
+  maxBattery: 1000
+  currentBattery: 0
+  drainRatePerSecond: 1
+  batteryFillImage: {fileID: 4020867973727041915}
+  batteryText: {fileID: 6468712407017277005}
 --- !u!1 &6371117345885145589
 GameObject:
   m_ObjectHideFlags: 0
@@ -1865,6 +1885,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!114 &4020867973727041915 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6679016974687852043, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
+  m_PrefabInstance: {fileID: 7745167247473930096}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
 --- !u!1 &4927526762122445348 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3395234632279944532, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
@@ -1885,6 +1916,17 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 3696020283463225045, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
   m_PrefabInstance: {fileID: 7745167247473930096}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6468712407017277005 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3654995703618414909, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
+  m_PrefabInstance: {fileID: 7745167247473930096}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1 &6595889201137185684 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3527746616065891556, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
