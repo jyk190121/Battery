@@ -360,16 +360,40 @@ public class QuestManager : NetworkBehaviour
         QuestDataSO questData = GetQuestData(activeId);
         if (questData == null) return;
 
-        QuestGeneratorAdapter[] generators = FindObjectsByType<QuestGeneratorAdapter>(FindObjectsSortMode.None);
+        QuestGeneratorAdapter[] allGenerators = FindObjectsByType<QuestGeneratorAdapter>(FindObjectsSortMode.None);
 
-        if (generators.Length == 0)
+        //  맵에 있는 발전기 중, "스폰 포인트가 있는 문"이 1개라도 연결된 발전기만 추려낸다.
+        List<QuestGeneratorAdapter> validGenerators = new List<QuestGeneratorAdapter>();
+
+        foreach (var gen in allGenerators)
         {
-            Debug.LogWarning("[Generator Debug] 씬 내에 QuestGeneratorAdapter를 찾을 수 없음.");
+            if (gen.baseGenerator == null || gen.baseGenerator.linkableDoors == null) continue;
+
+            bool hasValidDoor = false;
+            foreach (var door in gen.baseGenerator.linkableDoors)
+            {
+                if (door != null && door.questItemSpawnPoint != null)
+                {
+                    hasValidDoor = true;
+                    break;
+                }
+            }
+
+            // 스폰 가능한 문이 있는 발전기만 후보 리스트에 추가 (영혼세계 등 껍데기 발전기 배제)
+            if (hasValidDoor)
+            {
+                validGenerators.Add(gen);
+            }
+        }
+
+        if (validGenerators.Count == 0)
+        {
+            Debug.LogError("[Generator Debug] 씬 내에 아이템을 스폰할 수 있는(스폰 포인트가 세팅된) 발전기가 단 하나도 없습니다.");
             return;
         }
 
-        // 맵에 존재하는 발전기 중 랜덤 하나를 퀘스트 타겟으로 지정 (어댑터 내부에서 조기 소환 진행됨)
-        QuestGeneratorAdapter targetGen = generators[Random.Range(0, generators.Length)];
+        // 검증된 발전기 중에서만 랜덤 선택
+        QuestGeneratorAdapter targetGen = validGenerators[Random.Range(0, validGenerators.Count)];
         targetGen.SetupQuestTarget(questData);
 
         Debug.Log($"<color=lime>[Generator Debug]</color> 발전기 타겟 선정 완료. 어댑터에서 조기 소환 및 문 조작 진행됨.");
