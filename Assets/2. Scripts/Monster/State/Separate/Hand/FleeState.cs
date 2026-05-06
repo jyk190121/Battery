@@ -117,7 +117,11 @@ public class FleeState : MonsterBaseState
     /// </summary>
     private void SetFleeDestination()
     {
-        if (owner.waypointManager == null || owner.waypointManager.waypoints.Count == 0) return;
+        if (owner.waypointManager == null) return;
+
+        // [구역 연동] 도망갈 때도 당연히 자신이 소속된 구역 안에서만 찾아야 합니다.
+        var zoneWaypoints = owner.waypointManager.GetWaypointsInZone(owner.currentZone);
+        if (zoneWaypoints.Count == 0) return;
 
         _farWaypoints.Clear();
 
@@ -125,25 +129,18 @@ public class FleeState : MonsterBaseState
         float maxDistSqr = -1f;
 
         Vector3 currentPos = owner.transform.position;
-        float safeDistance = 15f;
-        float safeDistanceSqr = safeDistance * safeDistance; // 연산 최적화를 위한 제곱값 사용
+        float safeDistanceSqr = 15f * 15f;
 
-        var waypoints = owner.waypointManager.waypoints;
-        int count = waypoints.Count;
-
-        // 1. 모든 웨이포인트를 순회하며 안전거리(15m) 이상 떨어진 곳들을 수집
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < zoneWaypoints.Count; i++)
         {
-            Transform wp = waypoints[i];
+            Transform wp = zoneWaypoints[i];
             float distSqr = (wp.position - currentPos).sqrMagnitude;
 
-            // 15m 이상 떨어진 곳은 '도망 후보지'에 모두 등록
             if (distSqr >= safeDistanceSqr)
             {
                 _farWaypoints.Add(wp);
             }
 
-            // 만약 15m 이상 떨어진 곳이 단 하나도 없을 경우를 대비해, 무조건 가장 먼 곳을 기록해 둠
             if (distSqr > maxDistSqr)
             {
                 maxDistSqr = distSqr;
@@ -151,17 +148,13 @@ public class FleeState : MonsterBaseState
             }
         }
 
-        // 2. 후보지가 있다면 그중에서 랜덤으로 하나 선택, 없다면 아까 기록해둔 가장 먼 곳을 선택
         Transform targetPoint = _farWaypoints.Count > 0
             ? _farWaypoints[Random.Range(0, _farWaypoints.Count)]
             : bestFallbackPoint;
 
-        // 3. 네비게이션 에이전트에게 최종 목적지 하달
-        if (targetPoint != null)
+        if (targetPoint != null && owner.navAgent.isOnNavMesh)
         {
             owner.navAgent.SetDestination(targetPoint.position);
-
-            // 로그 출력을 위해 제곱근(Sqrt)으로 실제 거리를 다시 계산하여 보여줌
             float actualDist = Mathf.Sqrt((targetPoint.position - currentPos).sqrMagnitude);
             Debug.Log($"<color=blue>[Snare Flea]</color> 예측 불허 {targetPoint.name} 지점을 향해 도주 중 (거리: {actualDist:F1}m)");
         }

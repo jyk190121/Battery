@@ -23465,13 +23465,14 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c10f92dda7d748a448a6dc4e6e034916, type: 2}
   - {fileID: 11400000, guid: ef23b6a01dee8fa409bfd8fb86d79548, type: 2}
   - {fileID: 11400000, guid: 81314b9114b578548987c8f97d679cad, type: 2}
+  - {fileID: 11400000, guid: 4f4500f8e085da8479466308b1b6b752, type: 2}
   ventPoints:
   - {fileID: 1421510846}
   - {fileID: 2062315788}
   - {fileID: 1578259129}
   - {fileID: 159714012}
   ghostData: {fileID: 11400000, guid: 4f4500f8e085da8479466308b1b6b752, type: 2}
-  ghostVent: {fileID: 0}
+  ghostVent: {fileID: 1180188101653905252}
   baseMaxBudget: 14
   budgetPerDifficulty: 2
   minSpawnDelay: 5

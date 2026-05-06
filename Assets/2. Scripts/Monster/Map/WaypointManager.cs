@@ -2,41 +2,74 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
+// 구역(Zone) 명확한 분리를 위한 열거형.
+public enum MapZone
+{
+    School,
+    SpiritualWorld,
+    None
+}
+
+[System.Serializable]
+public struct ZoneWaypointData
+{
+    public MapZone zone;
+    [Tooltip("해당 구역의 웨이포인트들이 자식으로 들어있는 부모 Transform 객체")]
+    public Transform parentObject;
+}
+
 public class WaypointManager : MonoBehaviour
 {
-    public List<Transform> waypoints = new List<Transform>();
+    [Header("Zone Configuration")]
+    [Tooltip("각 구역별 부모 객체를 등록해주세요.")]
+    public List<ZoneWaypointData> zoneSettings = new List<ZoneWaypointData>();
+
+    // O(1) 탐색을 위한 딕셔너리 캐싱
+    private Dictionary<MapZone, List<Transform>> _zoneWaypoints = new Dictionary<MapZone, List<Transform>>();
 
     private void Awake()
     {
-        // 자식으로 등록된 모든 Transform을 웨이포인트로 등록
-        foreach (Transform child in transform)
+        foreach (var setting in zoneSettings)
         {
-            waypoints.Add(child);
+            if (setting.parentObject == null) continue;
+
+            List<Transform> points = new List<Transform>();
+            foreach (Transform child in setting.parentObject)
+            {
+                points.Add(child);
+            }
+
+            _zoneWaypoints.Add(setting.zone, points);
+            Debug.Log($"<color=lime>[WaypointManager]</color> {setting.zone} 구역에 {points.Count}개의 거점을 캐싱 완료했습니다.");
         }
     }
 
-    public Transform GetRandomWaypoint()
+    /// <summary>
+    /// [새로운 API] 특정 구역의 웨이포인트 리스트 전체를 반환합니다. (Search/Flee State 전용)
+    /// </summary>
+    public List<Transform> GetWaypointsInZone(MapZone zone)
     {
-        if (waypoints.Count == 0) return null;
-        return waypoints[Random.Range(0, waypoints.Count)];
+        if (_zoneWaypoints.TryGetValue(zone, out List<Transform> points))
+        {
+            return points;
+        }
+        return new List<Transform>(); // 에러 방지용 빈 리스트 반환
     }
 
-    public Transform GetFarWaypoint(Vector3 currentPos, float minDistance = 20f)
+    public Transform GetRandomWaypoint(MapZone zone)
     {
-        if (waypoints.Count == 0) return null;
+        if (!_zoneWaypoints.TryGetValue(zone, out List<Transform> points) || points.Count == 0) return null;
+        return points[Random.Range(0, points.Count)];
+    }
 
-        // 1. 현재 몬스터의 위치에서 'minDistance'보다 멀리 있는 거점들만 리스트로 추려냅니다.
-        var farPoints = waypoints.Where(wp => Vector3.Distance(currentPos, wp.position) > minDistance).ToList();
+    public Transform GetFarWaypoint(Vector3 currentPos, MapZone zone, float minDistance = 20f)
+    {
+        if (!_zoneWaypoints.TryGetValue(zone, out List<Transform> points) || points.Count == 0) return null;
 
-        // 2. 만약 맵이 좁거나, 몬스터가 너무 구석에 있어서 20m 밖에 거점이 아예 없다면?
-        if (farPoints.Count == 0)
-        {
-            // 게임이 멈추는 것을 방지하기 위해 쿨하게 전체 거점 중 랜덤으로 반환 (안전장치)
-            Debug.LogWarning("<color=orange>[Waypoint]</color> 먼 거점이 없어 무작위 거점을 선택합니다.");
-            return GetRandomWaypoint();
-        }
+        var farPoints = points.Where(wp => Vector3.Distance(currentPos, wp.position) > minDistance).ToList();
 
-        // 3. 멀리 있는 거점들 중에서 랜덤으로 하나를 선택하여 반환합니다.
-        return farPoints[UnityEngine.Random.Range(0, farPoints.Count)];
+        if (farPoints.Count == 0) return GetRandomWaypoint(zone);
+
+        return farPoints[Random.Range(0, farPoints.Count)];
     }
 }

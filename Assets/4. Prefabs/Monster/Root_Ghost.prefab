@@ -1146,9 +1146,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7270210137695517476}
-  - component: {fileID: 4492882177550145712}
-  - component: {fileID: 100285670092280730}
-  - component: {fileID: 7828673467231213302}
   m_Layer: 20
   m_Name: Bip001
   m_TagString: Untagged
@@ -1172,78 +1169,6 @@ Transform:
   - {fileID: 7122226799775277312}
   m_Father: {fileID: 6140132613236467084}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4492882177550145712
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5275289857418154363}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ebbd9c66977102c4eaad2a6b6956e9ab, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MonsterAnimation
-  controller: {fileID: 6384232730694675756}
-  animationBlendSpeed: 5
---- !u!114 &100285670092280730
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5275289857418154363}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e8d0727d5ae3244e3b569694d3912374, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.Components.NetworkAnimator
-  ShowTopMostFoldoutHeaderGroup: 1
-  NetworkAnimatorExpanded: 0
-  AuthorityMode: 0
-  m_Animator: {fileID: 7828673467231213302}
-  TransitionStateInfoList: []
-  AnimatorParameterEntries:
-    ParameterEntries:
-    - name: Speed
-      NameHash: -823668238
-      Synchronize: 1
-      ParameterType: 1
-    - name: IsSearching
-      NameHash: 749535462
-      Synchronize: 1
-      ParameterType: 4
-    - name: Attack
-      NameHash: 1080829965
-      Synchronize: 1
-      ParameterType: 9
-    - name: Scream
-      NameHash: 629534904
-      Synchronize: 1
-      ParameterType: 9
-  AnimatorParametersExpanded: 0
---- !u!95 &7828673467231213302
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5275289857418154363}
-  m_Enabled: 1
-  m_Avatar: {fileID: 9000000, guid: 0df67292ef96ebc46b8246ac8816cb95, type: 2}
-  m_Controller: {fileID: 22100000, guid: 12fa0abce3e57c64482e6d3795ac2e5d, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &5336590197487832590
 GameObject:
   m_ObjectHideFlags: 0
@@ -1570,11 +1495,14 @@ GameObject:
   m_Component:
   - component: {fileID: 6140132613236467084}
   - component: {fileID: 6718392731944811802}
+  - component: {fileID: 8785026652500249273}
   - component: {fileID: 9034320530273533133}
   - component: {fileID: 3515537986740376066}
+  - component: {fileID: 1246927803786007494}
   - component: {fileID: 4740032498469664784}
   - component: {fileID: 8231148613329431306}
   - component: {fileID: 6384232730694675756}
+  - component: {fileID: 2629109943983543680}
   m_Layer: 20
   m_Name: Root_Ghost
   m_TagString: Untagged
@@ -1620,6 +1548,28 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.26669312, y: 1.6379946, z: 0.41866302}
   m_Center: {x: 0.0067443848, y: 0.7436572, z: -0.03280258}
+--- !u!95 &8785026652500249273
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6547760336824320671}
+  m_Enabled: 1
+  m_Avatar: {fileID: 9000000, guid: 97f5d06a130764642b7d2a4b38ef39a6, type: 3}
+  m_Controller: {fileID: 22100000, guid: 12fa0abce3e57c64482e6d3795ac2e5d, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!195 &9034320530273533133
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -1654,7 +1604,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2969140767
+  GlobalObjectIdHash: 315363056
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -1667,6 +1617,42 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
+--- !u!114 &1246927803786007494
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6547760336824320671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8d0727d5ae3244e3b569694d3912374, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.Components.NetworkAnimator
+  ShowTopMostFoldoutHeaderGroup: 1
+  NetworkAnimatorExpanded: 0
+  AuthorityMode: 0
+  m_Animator: {fileID: 8785026652500249273}
+  TransitionStateInfoList: []
+  AnimatorParameterEntries:
+    ParameterEntries:
+    - name: Speed
+      NameHash: -823668238
+      Synchronize: 1
+      ParameterType: 1
+    - name: IsSearching
+      NameHash: 749535462
+      Synchronize: 1
+      ParameterType: 4
+    - name: Attack
+      NameHash: 1080829965
+      Synchronize: 1
+      ParameterType: 9
+    - name: Scream
+      NameHash: 629534904
+      Synchronize: 1
+      ParameterType: 9
+  AnimatorParametersExpanded: 0
 --- !u!114 &4740032498469664784
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1747,7 +1733,7 @@ MonoBehaviour:
   monsterData: {fileID: 11400000, guid: 4f4500f8e085da8479466308b1b6b752, type: 2}
   scanner: {fileID: 8231148613329431306}
   navAgent: {fileID: 9034320530273533133}
-  animHandler: {fileID: 4492882177550145712}
+  animHandler: {fileID: 2629109943983543680}
   waypointManager: {fileID: 0}
   CurrentHealth:
     m_InternalValue: 0
@@ -1758,6 +1744,20 @@ MonoBehaviour:
   IsFrozenNet:
     m_InternalValue: 0
   PreviousState: 0
+--- !u!114 &2629109943983543680
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6547760336824320671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ebbd9c66977102c4eaad2a6b6956e9ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MonsterAnimation
+  controller: {fileID: 6384232730694675756}
+  animationBlendSpeed: 5
 --- !u!1 &6732649954973863555
 GameObject:
   m_ObjectHideFlags: 0

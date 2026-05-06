@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
@@ -28,6 +29,10 @@ public class MonsterController : NetworkBehaviour
     public MonsterAnimation animHandler;
     [Tooltip("순찰 경로 매니저 (맵에 배치된 Waypoint 리스트)")]
     public WaypointManager waypointManager;
+
+    [Header("--- Map Zone ---")]
+    [Tooltip("이 몬스터가 활동할 구역 (일반몹: School, 고스트: SpiritualWorld)")]
+    public MapZone currentZone = MapZone.School;
 
     [Header("--- Network Variables (Synced) ---")]
     [Tooltip("서버에서 관리하며 모든 클라이언트에게 실시간으로 공유되는 체력")]
@@ -126,7 +131,7 @@ public class MonsterController : NetworkBehaviour
                 _states.Add(MonsterStateType.Search, new SearchState(this));
                 _states.Add(MonsterStateType.Investigate, new InvestigateState(this));
                 _states.Add(MonsterStateType.Stunned, new StunnedState(this));
-                _states.Add(MonsterStateType.InteractDoor, new InteractDoorState(this)); 
+                _states.Add(MonsterStateType.InteractDoor, new InteractDoorState(this));
             }
         }
     }
@@ -158,7 +163,8 @@ public class MonsterController : NetworkBehaviour
             RegisterAmbushCamera();
         }
 
-        ResetMonsterState();
+        // [버그 픽스] 그냥 함수 호출이 아니라 안전한 딜레이 스폰 코루틴을 돌립니다.
+        StartCoroutine(ResetMonsterStateRoutine());
     }
 
     public override void OnNetworkDespawn()
@@ -279,15 +285,11 @@ public class MonsterController : NetworkBehaviour
         }
     }
 
-    // [추가]
     [ClientRpc]
     private void PlayHitEffectClientRpc()
     {
         // 1. 애니메이션 재생 (예: Hit 트리거)
         if (_animator != null) _animator.SetTrigger("Hit");
-
-        // 2. 이펙트 및 사운드 (필요 시)
-        // AudioSource.PlayClipAtPoint(hitSound, transform.position);
         Debug.Log($"<color=orange>[Client]</color> {gameObject.name} 피격 비주얼 재생");
     }
 
@@ -313,7 +315,6 @@ public class MonsterController : NetworkBehaviour
     /// <summary>
     /// 전방의 문을 탐색하고 발견 시 확률에 따라 상호작용(문 열기) 상태로 전환합니다.
     /// </summary>
-    /// <param name="openChance">문을 열 확률 (0.0 ~ 1.0). 기본값은 1.0(100%)</param>
     public bool CheckAndHandleDoor(float openChance = 1.0f)
     {
         if (!IsServer) return false;
@@ -337,33 +338,17 @@ public class MonsterController : NetworkBehaviour
                 // 문이 전방 180도 이내에 있다면
                 if (Vector3.Dot(transform.forward, dirToDoor) > -0.2f)
                 {
-                    // 확률 굴림 (openChance가 0.3이면 30% 확률로만 성공)
                     if (UnityEngine.Random.value <= openChance)
                     {
                         TargetDoor = door;
                         ChangeState(MonsterStateType.InteractDoor);
                     }
-
-                    // 확률에 실패해서 문을 안 열었더라도, "문이 앞을 막고 있다(true)"는 사실은 반환합니다.
-                    // 그래야 PatrolState에서 이 사실을 알고 다른 길로 돌아갑니다.
                     return true;
                 }
             }
         }
         return false;
     }
-
-    /// <summary>
-    /// 올무벼룩이 특정 플레이어에게 시야 차단 UI를 켜거나 끄도록 지시하는 서버 RPC입니다.
-    /// </summary>
-    //[Rpc(SendTo.SpecifiedInParams)]
-    //public void TriggerSnareBlindRpc(bool isSnared, RpcParams rpcParams = default)
-    //{
-    //    if (PlayerUIManager.LocalInstance != null)
-    //    {
-    //        PlayerUIManager.LocalInstance.SetBlindScreen(isSnared);
-    //    }
-    //}
 
     [ContextMenu("Test Damage (50)")]
     public void TestDamage()
@@ -376,15 +361,11 @@ public class MonsterController : NetworkBehaviour
     // 5. 프라이빗 헬퍼 함수 
     // =========================================================
 
-    /// <summary>
-    /// 상태(CurrentStateNet) 값이 변경될 때마다 모든 클라이언트에서 자동 실행되는 콜백
-    /// </summary>
     private void OnStateChangedCallback(MonsterStateType previousValue, MonsterStateType newValue)
     {
         PreviousState = previousValue;
         ApplyStateLocal(newValue);
 
-        // 공격 모션 도중 다른 상태로 강제 전환되면 공격 애니메이션 취소
         if (previousValue == MonsterStateType.Attack && newValue != MonsterStateType.Attack)
         {
             if (animHandler != null) animHandler.CancelAttack();
@@ -393,9 +374,6 @@ public class MonsterController : NetworkBehaviour
         Debug.Log($"[Sync] {gameObject.name} State: {previousValue} -> {newValue}");
     }
 
-    /// <summary>
-    /// 실제 딕셔너리에서 상태 클래스를 찾아 상태 머신에 밀어넣습니다.
-    /// </summary>
     private void ApplyStateLocal(MonsterStateType newState)
     {
         if (_states.TryGetValue(newState, out IState stateInstance))
@@ -404,9 +382,6 @@ public class MonsterController : NetworkBehaviour
         }
     }
 
-    /// <summary>
-    /// 얼어붙음 상태가 변경될 때 애니메이션 속도를 조절하여 완전히 굳어버리게 연출합니다.
-    /// </summary>
     private void OnFrozenNetworkChanged(bool previous, bool current)
     {
         if (_animator != null)
@@ -416,9 +391,10 @@ public class MonsterController : NetworkBehaviour
     }
 
     /// <summary>
-    /// 몬스터가 처음 스폰되거나 풀링 창고에서 다시 꺼내질 때 새것처럼 수치를 초기화합니다.
+    /// 딜레이 스폰 코루틴
+    /// 몬스터가 NavMesh 위에 완벽하게 올라간 것을 확인한 후에만 AI를 가동시켜 초기화 에러를 막습니다.
     /// </summary>
-    private void ResetMonsterState()
+    private IEnumerator ResetMonsterStateRoutine()
     {
         if (IsServer)
         {
@@ -429,8 +405,14 @@ public class MonsterController : NetworkBehaviour
             TargetDoor = null;
 
             if (TryGetComponent<Collider>(out var col)) col.enabled = true;
+
+            // 1. 강제 바인딩 시도
             EnableAgentSafely();
 
+            // 2. 엔진이 완전히 인식할 때까지 대기 (Race Condition 차단)
+            yield return new WaitUntil(() => navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh);
+
+            // 3. 발이 닿은 것을 확인했으므로 당당하게 AI(상태) 시작
             ChangeState(MonsterStateType.Patrol);
         }
         else
@@ -440,16 +422,17 @@ public class MonsterController : NetworkBehaviour
     }
 
     /// <summary>
-    /// 공중이나 허공에 스폰되었을 경우, 반경 3m 내의 바닥을 찾아 안전하게 에이전트를 켭니다.
+    /// 공중 스폰 방지 및 강제 바인딩
     /// </summary>
     public void EnableAgentSafely()
     {
         if (navAgent == null) return;
 
-        if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 3.0f, NavMesh.AllAreas))
+        if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 5.0f, NavMesh.AllAreas))
         {
-            transform.position = hit.position;
             navAgent.enabled = true;
+            // 일반 position 대입이 아니라 엔진에 바인딩하는 Warp 사용
+            navAgent.Warp(hit.position);
         }
         else
         {
@@ -457,14 +440,10 @@ public class MonsterController : NetworkBehaviour
         }
     }
 
-    /// <summary>
-    /// 리스트에 등록된 기믹 조건(예: 누군가 쳐다봄)들을 검사하여 빙결 여부를 세팅합니다.
-    /// </summary>
     private void HandleGimmickAndFrozenLogic()
     {
         bool shouldPause = false;
 
-        // 가비지 발생 없이 안전하게 리스트 순회
         for (int i = 0; i < gimmickPauseChecks.Count; i++)
         {
             if (gimmickPauseChecks[i].Invoke())
@@ -474,13 +453,13 @@ public class MonsterController : NetworkBehaviour
             }
         }
 
-        // 상태가 변했을 때만 네트워크 값 및 네비게이션 제어
         if (IsFrozenNet.Value != shouldPause)
         {
             IsFrozenNet.Value = shouldPause;
 
             if (shouldPause)
             {
+                // Freeze 방어벽
                 if (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
                 {
                     _wasStoppedBeforeFreeze = navAgent.isStopped;
@@ -490,12 +469,12 @@ public class MonsterController : NetworkBehaviour
             }
             else
             {
-                if (navAgent.isOnNavMesh)
+                // Freeze 해제 방어벽
+                if (navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh)
                 {
                     navAgent.isStopped = _wasStoppedBeforeFreeze;
                 }
 
-                // 빙결이 풀렸을 때 타겟이 이미 사거리를 벗어났는지 재평가
                 if (CurrentStateNet.Value == MonsterStateType.Attack)
                 {
                     Transform target = scanner.CurrentTarget;
@@ -518,9 +497,6 @@ public class MonsterController : NetworkBehaviour
         }
     }
 
-    /// <summary>
-    /// 네트워크 과부하를 막기 위해, 경계도(Alertness) 값이 임계치 이상 변하거나 일정 시간이 지났을 때만 동기화합니다.
-    /// </summary>
     private void SyncAlertnessOptimized()
     {
         _alertnessSyncTimer += Time.deltaTime;
@@ -534,15 +510,11 @@ public class MonsterController : NetworkBehaviour
             _alertnessSyncTimer = 0f;
         }
     }
-    /// <summary>
-    /// 카메라 찾는  몬스터 유형설정
-    /// </summary>
+
     void RegisterAmbushCamera()
     {
-        // 싱글톤 인스턴스 확인
         if (CinemachineController.Instance != null)
         {
-            // 자식 오브젝트 중에서 시네머신 카메라 검색 (비활성화 상태여도 찾음)
             var vcam = GetComponentInChildren<Unity.Cinemachine.CinemachineCamera>(true);
 
             if (vcam != null)

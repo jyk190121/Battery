@@ -176,7 +176,7 @@ public class PatrolState : MonsterBaseState
     /// </summary>
     private void MoveToNextPoint()
     {
-        Transform nextPoint = owner.waypointManager?.GetFarWaypoint(owner.transform.position, data.minPatrolDistance);
+        Transform nextPoint = owner.waypointManager?.GetFarWaypoint(owner.transform.position, owner.currentZone, data.minPatrolDistance);
 
         if (nextPoint != null)
         {
