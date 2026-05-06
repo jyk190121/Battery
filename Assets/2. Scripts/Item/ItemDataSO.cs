@@ -42,6 +42,7 @@ public class ItemDataSO : ScriptableObject
     public ItemCategory category;
     public int basePrice;
     public Sprite icon;
+    public float healAmount;
 
     [Header("Motion(기본 : None)")]
     [Tooltip("아이템 특성에 따른 포즈(예시 : HeavyItem == 양손 모션)")]

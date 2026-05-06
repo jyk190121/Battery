@@ -1,4 +1,5 @@
 using UnityEngine;
+using Unity.Netcode;
 
 public class Item_Consumable : ItemBase
 {
@@ -10,20 +11,45 @@ public class Item_Consumable : ItemBase
 
     public override void ExecuteUseItem(Vector3 direction)
     {
+        // 1. 공통 실행 (애니메이션, 로그 등)
         base.ExecuteUseItem(direction);
+        Debug.Log($"{itemData.itemName} 실행 (IsServer: {IsServer})");
 
-        Debug.Log($"{itemData.itemName}을(를) 사용했습니다!");
-
-        if (IsOwner)
+        // 2. 서버에서만 실행되어야 하는 로직 (데이터 수정, 객체 삭제)
+        if (IsServer)
         {
-            //  호스트(서버)면 직접 지우고, 클라이언트면 서버에게 삭제를 요청(RPC)합니다!
-            if (IsServer)
+            HandleServerSideLogic();
+        }
+    }
+
+    void HandleServerSideLogic()
+    {
+        // 아이템 소유자의 클라이언트 객체 탐색
+        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(OwnerClientId, out var client))
+        {
+            var pc = client.PlayerObject.GetComponent<PlayerController>();
+            var targetInventory = client.PlayerObject.GetComponent<PlayerInventory>();
+
+            if (pc != null)
             {
-                PlayerInventory.LocalInstance.RemoveItemByServer(itemData.itemID);
-            }
-            else
-            {
-                PlayerInventory.LocalInstance.RequestRemoveItemServerRpc(itemData.itemID);
+                // 체력 회복
+                if (itemData.itemName.Equals("Hambuger"))
+                {
+                    pc.RestoreHealth(itemData.healAmount);
+                    Debug.Log($"[서버] {pc.name} 체력 회복 완료");
+                }
+
+                // 소유자의 인벤토리에서 아이템 제거
+                if (targetInventory != null)
+                {
+                    targetInventory.RemoveItemByServer(itemData.itemID);
+
+                    // 서버에서만 객체 디스폰 (에러 방지)
+                    if (NetworkObject != null && NetworkObject.IsSpawned)
+                    {
+                        NetworkObject.Despawn();
+                    }
+                }
             }
         }
     }
