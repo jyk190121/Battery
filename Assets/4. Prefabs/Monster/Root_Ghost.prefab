@@ -1735,6 +1735,7 @@ MonoBehaviour:
   navAgent: {fileID: 9034320530273533133}
   animHandler: {fileID: 2629109943983543680}
   waypointManager: {fileID: 0}
+  currentZone: 1
   CurrentHealth:
     m_InternalValue: 0
   CurrentStateNet:
