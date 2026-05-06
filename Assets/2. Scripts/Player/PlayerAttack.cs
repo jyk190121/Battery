@@ -12,6 +12,9 @@ public class PlayerAttack : NetworkBehaviour
     [Header("상태")]
     public bool isAttacking = false;
 
+    [Header("데미지")]
+    public float attackDamage = 0f;
+
     public override void OnNetworkSpawn()
     {
         _playerAnim = GetComponent<PlayerAnim>();
@@ -95,7 +98,7 @@ public class PlayerAttack : NetworkBehaviour
     {
         // 공격 범위 설정 (무기 아이템 데이터에서 가져오는 것이 좋음)
         float attackRange = 2.0f;
-        float attackDamage = 20f; // 예시 데미지
+        //float attackDamage = 20f; // 예시 데미지
 
         // 레이캐스트 또는 OverlapSphere로 몬스터 탐색
         RaycastHit hit;
@@ -108,5 +111,25 @@ public class PlayerAttack : NetworkBehaviour
                 Debug.Log($"[Server] 몬스터 {monster.name} 타격 성공!");
             }
         }
+    }
+
+    public void AttemptAttack()
+    {
+        // CanAttack() 내부에서 이미 IsGrounded와 HasWeapon을 체크함
+        if (CanAttack())
+        {
+            RequestAttackServerRpc();
+        }
+    }
+
+    // 무기 장착 시 호출될 메서드
+    public void SetAttackDamage(float damage)
+    {
+        attackDamage = damage;
+    }
+
+    public void ResetAttackDamage()
+    {
+        attackDamage = 0f;
     }
 }
