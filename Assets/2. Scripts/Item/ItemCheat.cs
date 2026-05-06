@@ -56,8 +56,8 @@ public class ItemCheat : NetworkBehaviour
     {
         if (GameMaster.Instance != null && GameMaster.Instance.economyManager != null)
         {
-            GameMaster.Instance.economyManager.availableLoanLimit.Value += amount;
-            Debug.Log($"<color=green>[CHEAT]</color> 자금 {amount} 추가! 현재 한도: {GameMaster.Instance.economyManager.availableLoanLimit.Value}");
+            GameMaster.Instance.economyManager.currentTotalGold.Value += amount;
+            Debug.Log($"<color=green>[CHEAT]</color> 자금 {amount} 추가! 현재 한도: {GameMaster.Instance.economyManager.currentTotalGold.Value}");
         }
     }
 }

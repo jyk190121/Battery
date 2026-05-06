@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 4910089827299432794}
   - component: {fileID: 3365382104772115760}
   - component: {fileID: 9007687191325955829}
+  - component: {fileID: 2300546614943846944}
   m_Layer: 0
   m_Name: GameManager_Server
   m_TagString: Untagged
@@ -47,7 +48,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2545001068
+  GlobalObjectIdHash: 3947417416
   InScenePlacedSourceGlobalObjectIdHash: 3947417416
   DeferredDespawnTick: 0
   Ownership: 1
@@ -75,6 +76,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   economyManager: {fileID: 9007687191325955829}
   dayCycleManager: {fileID: 3365382104772115760}
+  performanceManager: {fileID: 2300546614943846944}
   completedCycleCount:
     m_InternalValue: 0
 --- !u!114 &3365382104772115760
@@ -107,13 +109,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EconomyManager
   ShowTopMostFoldoutHeaderGroup: 1
-  baseWeeklyQuota: 1000
-  quotaGrowthAmount: 500
-  loanLimitRate: 0.5
-  penaltyInterestRate: 1.1
-  dynamicWeeklyQuota:
-    m_InternalValue: 1000
-  accumulatedRepayment:
+  currentTotalGold:
     m_InternalValue: 0
-  availableLoanLimit:
+--- !u!114 &2300546614943846944
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6890585928531599505}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 12afabb39f041de45b3a6c0710d7c22c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PerformanceManager
+  ShowTopMostFoldoutHeaderGroup: 1
+  baseTargetScore: 20
+  baseGrowthAmount: 20
+  curveMultiplier: 1.5
+  maxTargetScore: 920
+  dynamicTargetScore:
+    m_InternalValue: 20
+  accumulatedScore:
     m_InternalValue: 0
