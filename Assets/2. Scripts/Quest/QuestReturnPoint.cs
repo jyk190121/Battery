@@ -5,6 +5,8 @@ using UnityEngine.UIElements;
 
 public class QuestReturnPoint : NetworkBehaviour
 {
+    public static event System.Action OnSpiritualWorldEntered;
+
     [Header("Quest Settings")]
     public int targetQuestID;
     public int requiredItemID;
@@ -89,6 +91,8 @@ public class QuestReturnPoint : NetworkBehaviour
         if (isCompleted.Value || !hasItem.Value) return;
 
         isCompleted.Value = true; // 최종 완료
+
+        OnSpiritualWorldEntered?.Invoke();
 
         // 퀘스트 매니저 클리어 보고
         QuestManager.Instance.NotifyCustomQuestMet(targetQuestID, clientId);

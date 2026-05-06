@@ -79,7 +79,8 @@ public class EnemyManager : NetworkBehaviour
                 StartSpawnCycle(difficulty);
             }
         }
-        //QuestManager.OnSpiritualWorldEntered += HandleGhostSpawn;
+
+        QuestReturnPoint.OnSpiritualWorldEntered += HandleGhostSpawn;
     }
 
     public override void OnNetworkDespawn()
@@ -92,22 +93,19 @@ public class EnemyManager : NetworkBehaviour
             GameMaster.Instance.OnDayEnded -= StopSpawnCycle;
         }
 
-        //QuestManager.OnSpiritualWorldEntered -= HandleGhostSpawn;
-
         if (_spawnRoutine != null)
         {
             StopCoroutine(_spawnRoutine);
             _spawnRoutine = null;
         }
+
+        QuestReturnPoint.OnSpiritualWorldEntered -= HandleGhostSpawn;
     }
 
 
     // =========================================================
     // 3. 유니티 루프 
     // =========================================================
-
-    // 본 스크립트에서는 미사용 (스폰은 코루틴으로 대체하여 성능 최적화)
-
 
     // =========================================================
     // 4. 퍼블릭 함수 
