@@ -22,8 +22,8 @@ MonoBehaviour:
   chaseSpeed: 4
   attackDamage: 9999
   attackRange: 2
-  attackCooldown: 0
-  attackAnimDuration: 0
+  attackCooldown: 2.01
+  attackAnimDuration: 2
   attackTrackingTime: 0.5
   viewRange: 100
   viewAngle: 360
