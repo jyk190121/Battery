@@ -25,7 +25,9 @@ public class QuestGeneratorAdapter : NetworkBehaviour
         if (baseGenerator != null) baseGenerator.enabled = true;
     }
 
-    public void SetupQuestTarget(QuestDataSO questData)
+    // 퀘스트용 발전기 셋업 (assignedDoor에 기본값 null 추가)
+    // 매개변수 2개를 명시적으로 선언하고 assignedDoor에 null 허용
+    public void SetupQuestTarget(QuestDataSO questData, DoorController assignedDoor = null)
     {
         if (!IsServer) return;
 
@@ -34,10 +36,44 @@ public class QuestGeneratorAdapter : NetworkBehaviour
         currentParts.Value = 0;
         isQuestTarget.Value = true;
 
-        if (questData.difficulty != QuestDifficulty.Easy)
+        // 중앙 매칭에서 문을 정해준 경우 리스트 고정
+        if (assignedDoor != null)
         {
-            SpawnItemInLinkedRoom();
+            baseGenerator.linkableDoors.Clear();
+            baseGenerator.linkableDoors.Add(assignedDoor);
         }
+
+        // 아이템 소환 대상 결정
+        DoorController targetSpawnDoor = assignedDoor;
+        if (targetSpawnDoor == null && baseGenerator.linkableDoors.Count > 0)
+        {
+            targetSpawnDoor = baseGenerator.linkableDoors.Find(d => d.questItemSpawnPoint != null);
+        }
+
+        // 아이템 소환 (Easy 제외 및 유효한 문 확인)
+        if (questData.difficulty != QuestDifficulty.Easy && targetSpawnDoor != null && targetSpawnDoor.questItemSpawnPoint != null)
+        {
+            ItemBase prefab = GameSessionManager.Instance.GetPrefab(questData.targetItemID);
+            if (prefab != null)
+            {
+                ItemBase spawned = Instantiate(prefab, targetSpawnDoor.questItemSpawnPoint.position, targetSpawnDoor.questItemSpawnPoint.rotation);
+                spawned.GetComponent<NetworkObject>().Spawn();
+            }
+        }
+    }
+    // 일반 발전기용 셋업 (추가)
+    public void SetupNormalGenerator(DoorController assignedDoor)
+    {
+        if (!IsServer) return;
+
+        isQuestTarget.Value = false; // 일반 발전기임 명시
+
+        // 리스트를 비우고 전달받은 문 하나만 삽입
+        baseGenerator.linkableDoors.Clear();
+        baseGenerator.linkableDoors.Add(assignedDoor);
+
+        // 일반 발전기는 부속 필요 없으므로 즉시 가동 가능하게 설정
+        baseGenerator.enabled = true;
     }
 
     // 누락되었던 핵심 소환 로직 복구

@@ -338,7 +338,62 @@ public class QuestManager : NetworkBehaviour
         Debug.Log($"<color=lime>[Safe Debug] 5. 완벽 성공! 내부에 '{prefab.itemData.itemName}' 스폰 완료.</color>");
         return true;
     }
+    public void AssignDailyGeneratorTargets()
+    {
+        if (!IsServer) return;
 
+        var allAdapters = Object.FindObjectsByType<QuestGeneratorAdapter>(FindObjectsSortMode.None).ToList();
+        var allDoors = Object.FindObjectsByType<DoorController>(FindObjectsSortMode.None).ToList();
+
+        int[] genQuestIDs = { 1010, 2010, 3010 };
+        int activeId = 0;
+
+        // [수술적 변화] foreach로 안전하게 ID 추출
+        foreach (int id in activeQuests)
+        {
+            if (genQuestIDs.Contains(id))
+            {
+                activeId = id;
+                break;
+            }
+        }
+
+        QuestDataSO qData = (activeId != 0) ? GetQuestData(activeId) : null;
+        QuestGeneratorAdapter questAdapter = null;
+
+        if (qData != null)
+        {
+            questAdapter = allAdapters.FirstOrDefault(a => a.baseGenerator.linkableDoors.Any(d => d != null && d.questItemSpawnPoint != null));
+
+            if (questAdapter != null)
+            {
+                DoorController qDoor = questAdapter.baseGenerator.linkableDoors.FirstOrDefault(d => d != null && d.questItemSpawnPoint != null);
+
+                if (qDoor != null)
+                {
+                    allDoors.Remove(qDoor);
+                    questAdapter.SetupQuestTarget(qData, qDoor);
+                }
+            }
+        }
+
+        var normalAdapters = allAdapters.Where(a => a != questAdapter).ToList();
+        foreach (var adapter in normalAdapters)
+        {
+            GeneratorController gen = adapter.baseGenerator;
+            DoorController targetDoor = allDoors.FirstOrDefault(d => gen.linkableDoors.Contains(d));
+
+            if (targetDoor != null)
+            {
+                allDoors.Remove(targetDoor);
+                adapter.SetupNormalGenerator(targetDoor);
+            }
+            else
+            {
+                gen.linkableDoors.Clear();
+            }
+        }
+    }
     public void ActivateGeneratorGimmick()
     {
         if (!IsServer) return;
@@ -346,6 +401,7 @@ public class QuestManager : NetworkBehaviour
         int[] genQuests = { 1010, 2010, 3010 };
         int activeId = 0;
 
+        // [수술적 변화] NetworkList의 LINQ 오류를 피하기 위해 foreach 사용
         foreach (int id in activeQuests)
         {
             if (genQuests.Contains(id))
@@ -361,44 +417,23 @@ public class QuestManager : NetworkBehaviour
         if (questData == null) return;
 
         QuestGeneratorAdapter[] allGenerators = FindObjectsByType<QuestGeneratorAdapter>(FindObjectsSortMode.None);
-
-        //  맵에 있는 발전기 중, "스폰 포인트가 있는 문"이 1개라도 연결된 발전기만 추려낸다.
         List<QuestGeneratorAdapter> validGenerators = new List<QuestGeneratorAdapter>();
 
         foreach (var gen in allGenerators)
         {
             if (gen.baseGenerator == null || gen.baseGenerator.linkableDoors == null) continue;
-
-            bool hasValidDoor = false;
-            foreach (var door in gen.baseGenerator.linkableDoors)
-            {
-                if (door != null && door.questItemSpawnPoint != null)
-                {
-                    hasValidDoor = true;
-                    break;
-                }
-            }
-
-            // 스폰 가능한 문이 있는 발전기만 후보 리스트에 추가 (영혼세계 등 껍데기 발전기 배제)
-            if (hasValidDoor)
+            if (gen.baseGenerator.linkableDoors.Any(d => d != null && d.questItemSpawnPoint != null))
             {
                 validGenerators.Add(gen);
             }
         }
 
-        if (validGenerators.Count == 0)
-        {
-            Debug.LogError("[Generator Debug] 씬 내에 아이템을 스폰할 수 있는(스폰 포인트가 세팅된) 발전기가 단 하나도 없습니다.");
-            return;
-        }
+        if (validGenerators.Count == 0) return;
 
-        // 검증된 발전기 중에서만 랜덤 선택
         QuestGeneratorAdapter targetGen = validGenerators[Random.Range(0, validGenerators.Count)];
-        targetGen.SetupQuestTarget(questData);
-
-        Debug.Log($"<color=lime>[Generator Debug]</color> 발전기 타겟 선정 완료. 어댑터에서 조기 소환 및 문 조작 진행됨.");
+        // 어댑터의 수정된 SetupQuestTarget 호출
+        targetGen.SetupQuestTarget(questData, null);
     }
-
 
     //구형 로직 --------------------------------------------------------------------------------------------------------------------
 
