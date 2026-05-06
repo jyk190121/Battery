@@ -26,7 +26,13 @@ public abstract class ItemBase : NetworkBehaviour
     }
 
     protected virtual void Start() { }
-
+    private void OnEnable()
+    {
+        if (isEquipped && currentTargetHand != null)
+        {
+            ForceSnapPosition();
+        }
+    }
     public virtual void ExecuteChangeOwnership(bool isPickingUp, Transform targetHand)
     {
         isEquipped = isPickingUp;
@@ -50,7 +56,7 @@ public abstract class ItemBase : NetworkBehaviour
             // 네트워크 변환 동기화 일시 중지 (손 위치 강제 추적을 위함)
             if (netTransform != null) netTransform.enabled = false;
 
-            // NGO 에러 원인(TrySetParent) 삭제됨
+            ForceSnapPosition();
 
             if (itemData != null) Debug.Log($"<color=green>[Execute]</color> {itemData.itemName} 장착 완료.");
         }
@@ -58,10 +64,23 @@ public abstract class ItemBase : NetworkBehaviour
         {
             // NGO 에러 원인(TryRemoveParent) 삭제됨
 
-            if (netTransform != null) netTransform.enabled = true;
+            if (netTransform != null)
+            {
+                netTransform.Teleport(transform.position, transform.rotation, transform.localScale);
+                netTransform.enabled = true;
+            }
             if (itemPhysicsRigidbody != null) itemPhysicsRigidbody.isKinematic = false;
         }
     }
+    private void ForceSnapPosition()
+    {
+        if (currentTargetHand != null)
+        {
+            transform.position = currentTargetHand.TransformPoint(gripPositionOffset);
+            transform.rotation = currentTargetHand.rotation * Quaternion.Euler(gripRotationOffset);
+        }
+    }
+
 
     // 애니메이션 덜덜거림 방지를 위해 Update 대신 LateUpdate 사용
     protected virtual void LateUpdate()
