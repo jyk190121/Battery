@@ -338,44 +338,7 @@ public class QuestManager : NetworkBehaviour
         Debug.Log($"<color=lime>[Safe Debug] 5. 완벽 성공! 내부에 '{prefab.itemData.itemName}' 스폰 완료.</color>");
         return true;
     }
-
-    public void ActivateGeneratorGimmick()
-    {
-        if (!IsServer) return;
-
-        int[] genQuests = { 1010, 2010, 3010 };
-        int activeId = 0;
-
-        foreach (int id in activeQuests)
-        {
-            if (genQuests.Contains(id))
-            {
-                activeId = id;
-                break;
-            }
-        }
-
-        if (activeId == 0) return;
-
-        QuestDataSO questData = GetQuestData(activeId);
-        if (questData == null) return;
-
-        QuestGeneratorAdapter[] generators = FindObjectsByType<QuestGeneratorAdapter>(FindObjectsSortMode.None);
-
-        if (generators.Length == 0)
-        {
-            Debug.LogWarning("[Generator Debug] 씬 내에 QuestGeneratorAdapter를 찾을 수 없음.");
-            return;
-        }
-
-        // 맵에 존재하는 발전기 중 랜덤 하나를 퀘스트 타겟으로 지정 (어댑터 내부에서 조기 소환 진행됨)
-        QuestGeneratorAdapter targetGen = generators[Random.Range(0, generators.Length)];
-        targetGen.SetupQuestTarget(questData);
-
-        Debug.Log($"<color=lime>[Generator Debug]</color> 발전기 타겟 선정 완료. 어댑터에서 조기 소환 및 문 조작 진행됨.");
-    }
-
-
+   
     //구형 로직 --------------------------------------------------------------------------------------------------------------------
 
     //private void Generate3Plus1(NetworkList<int> targetList, int minMain, int maxMain, int minSub, int maxSub)

@@ -1893,11 +1893,7 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2774791811074842775, guid: c8bb6620aa64ad148a52d1e692d068ed, type: 3}
   m_PrefabInstance: {fileID: 468775874}
   m_PrefabAsset: {fileID: 0}
-<<<<<<< Updated upstream
 --- !u!1 &496210127
-=======
---- !u!1 &478032524
->>>>>>> Stashed changes
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1905,31 +1901,20 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-<<<<<<< Updated upstream
   - component: {fileID: 496210128}
   m_Layer: 0
   m_Name: WayPoint_School
-=======
-  - component: {fileID: 478032525}
-  m_Layer: 0
-  m_Name: GameObject
->>>>>>> Stashed changes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
-<<<<<<< Updated upstream
 --- !u!4 &496210128
-=======
---- !u!4 &478032525
->>>>>>> Stashed changes
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-<<<<<<< Updated upstream
   m_GameObject: {fileID: 496210127}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -1960,16 +1945,6 @@ Transform:
   - {fileID: 1802809412}
   - {fileID: 249215839}
   m_Father: {fileID: 942574801}
-=======
-  m_GameObject: {fileID: 478032524}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.737, y: 0, z: -1.966}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 942574803}
->>>>>>> Stashed changes
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &499361765
 GameObject:
@@ -2494,68 +2469,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 325441228}
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
---- !u!1 &780511791
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 780511792}
-  m_Layer: 0
-  m_Name: GameObject
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &780511792
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 780511791}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.18, y: 0, z: -3.78}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 942574802}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &797597150
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 797597151}
-  m_Layer: 0
-  m_Name: GameObject
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &797597151
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 797597150}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.87, y: 0, z: -3.78}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 942574801}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &903743314
 GameObject:
   m_ObjectHideFlags: 0
@@ -4778,14 +4691,6 @@ PrefabInstance:
       propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1015162414619960517, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
-      propertyPath: roomLocation
-      value: 7
-      objectReference: {fileID: 0}
-    - target: {fileID: 1015162414619960517, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
-      propertyPath: questItemSpawnPoint
-      value: 
-      objectReference: {fileID: 478032525}
     - target: {fileID: 1016181183135563172, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_CastShadows
       value: 0
@@ -6405,10 +6310,6 @@ PrefabInstance:
     - target: {fileID: 1751388397826314018, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_CastShadows
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1752293043857986739, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
-      propertyPath: roomLocation
-      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 1752656481329228929, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_CastShadows
@@ -11662,14 +11563,6 @@ PrefabInstance:
       propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4227494636413128494, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
-      propertyPath: roomLocation
-      value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 4227494636413128494, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
-      propertyPath: questItemSpawnPoint
-      value: 
-      objectReference: {fileID: 971854080}
     - target: {fileID: 4229240803602182563, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_CastShadows
       value: 0
@@ -12094,14 +11987,6 @@ PrefabInstance:
       propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4428745627891114488, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
-      propertyPath: roomLocation
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 4428745627891114488, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
-      propertyPath: questItemSpawnPoint
-      value: 
-      objectReference: {fileID: 797597151}
     - target: {fileID: 4428785080552217854, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_CastShadows
       value: 0
@@ -19274,14 +19159,6 @@ PrefabInstance:
       propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7793054657630595322, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
-      propertyPath: roomLocation
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 7793054657630595322, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
-      propertyPath: questItemSpawnPoint
-      value: 
-      objectReference: {fileID: 780511792}
     - target: {fileID: 7801569496589065792, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_CastShadows
       value: 0
@@ -22266,56 +22143,14 @@ PrefabInstance:
     m_RemovedGameObjects:
     - {fileID: 5136238797231360406, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
     m_AddedGameObjects:
-<<<<<<< Updated upstream
     - targetCorrespondingSourceObject: {fileID: 1136127506556336429, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       insertIndex: -1
       addedObject: {fileID: 496210128}
-=======
-    - targetCorrespondingSourceObject: {fileID: 6200736497546794910, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 780511792}
-    - targetCorrespondingSourceObject: {fileID: 8279638731433550172, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 797597151}
-    - targetCorrespondingSourceObject: {fileID: 3407236767285255474, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1996755404}
-    - targetCorrespondingSourceObject: {fileID: 5532474448028131307, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 971854080}
-    - targetCorrespondingSourceObject: {fileID: 3856508645818816350, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 478032525}
->>>>>>> Stashed changes
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
 --- !u!4 &942574801 stripped
 Transform:
-<<<<<<< Updated upstream
   m_CorrespondingSourceObject: {fileID: 1136127506556336429, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
-=======
-  m_CorrespondingSourceObject: {fileID: 8279638731433550172, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
-  m_PrefabInstance: {fileID: 942574800}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &942574802 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6200736497546794910, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
-  m_PrefabInstance: {fileID: 942574800}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &942574803 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 3856508645818816350, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
-  m_PrefabInstance: {fileID: 942574800}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &942574804 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 5532474448028131307, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
-  m_PrefabInstance: {fileID: 942574800}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &942574805 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 3407236767285255474, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
->>>>>>> Stashed changes
   m_PrefabInstance: {fileID: 942574800}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &968427442
@@ -22430,37 +22265,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &971854079
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 971854080}
-  m_Layer: 0
-  m_Name: GameObject
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &971854080
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 971854079}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.522, y: 0.591, z: -2.042}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 942574804}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &974803262
 GameObject:
@@ -26081,37 +25885,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 496210128}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1996755403
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1996755404}
-  m_Layer: 9
-  m_Name: GameObject
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1996755404
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1996755403}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.259, y: 0, z: -1.733}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 942574805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2004803103
 GameObject:
   m_ObjectHideFlags: 0
@@ -28437,8 +28210,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -29405,8 +29176,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -37430,8 +37199,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -52649,8 +52416,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -53350,8 +53115,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -54633,8 +54396,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 0
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -56309,8 +56070,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -63600,8 +63359,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -65793,8 +65550,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -67481,8 +67236,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -68802,8 +68555,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -74447,8 +74198,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 0
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -77900,8 +77649,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -78055,8 +77802,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -89337,8 +89082,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -98707,8 +98450,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -108786,8 +108527,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -121954,8 +121693,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -126857,8 +126594,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -138894,8 +138629,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 0
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -146364,8 +146097,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -147204,8 +146935,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -148960,8 +148689,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -149543,8 +149270,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 0
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -150005,8 +149730,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -151765,8 +151488,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -153407,8 +153128,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 0
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -159281,8 +159000,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -177487,8 +177204,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -179721,8 +179436,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -179766,8 +179479,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -182612,8 +182323,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -182804,8 +182513,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -183913,8 +183620,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -195364,8 +195069,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -199078,8 +198781,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -199869,8 +199570,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -205024,8 +204723,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -207605,8 +207302,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -216537,8 +216232,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -230047,8 +229740,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -232770,8 +232461,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -238978,8 +238667,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 0
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -253959,8 +253646,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -260420,8 +260105,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -260493,8 +260176,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -262162,8 +261843,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -273713,8 +273392,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:

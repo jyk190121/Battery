@@ -7,10 +7,6 @@ public class DoorController : NetworkBehaviour
     public enum DoorType { Swing, Slide }
     public DoorType doorType;
 
-    [Header("Room Identity")]
-    public SpawnLocation roomLocation;       // 해당 룸 종류
-    public Transform questItemSpawnPoint;    // 수집 퀘스트 아이템 소환 위치
-
     [Header("Settings")]
     public NetworkVariable<bool> isOpen = new NetworkVariable<bool>(false);
     public NetworkVariable<bool> isLocked = new NetworkVariable<bool>(false);
