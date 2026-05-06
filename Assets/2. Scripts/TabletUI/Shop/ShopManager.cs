@@ -64,7 +64,7 @@ public class ShopManager : NetworkBehaviour
         // 경제 매니저의 잔액이 변경될 때마다 UI를 갱신하도록 이벤트 구독
         if (GameMaster.Instance != null && GameMaster.Instance.economyManager != null)
         {
-            GameMaster.Instance.economyManager.availableLoanLimit.OnValueChanged += OnBalanceChanged;
+            GameMaster.Instance.economyManager.currentTotalGold.OnValueChanged += OnBalanceChanged;
         }
 
         BuyBtn.onClick.AddListener(OnClickCheckoutCart);
@@ -77,7 +77,7 @@ public class ShopManager : NetworkBehaviour
         // 씬이 넘어가거나 파괴될 때 메모리 누수 방지를 위해 이벤트 구독 해제
         if (GameMaster.Instance != null && GameMaster.Instance.economyManager != null)
         {
-            GameMaster.Instance.economyManager.availableLoanLimit.OnValueChanged -= OnBalanceChanged;
+            GameMaster.Instance.economyManager.currentTotalGold.OnValueChanged -= OnBalanceChanged;
         }
     }
 
@@ -93,7 +93,7 @@ public class ShopManager : NetworkBehaviour
     {
         if (currentBalanceText != null && GameMaster.Instance != null && GameMaster.Instance.economyManager != null)
         {
-            int currentMoney = GameMaster.Instance.economyManager.availableLoanLimit.Value;
+            int currentMoney = GameMaster.Instance.economyManager.currentTotalGold.Value;
             currentBalanceText.text = $"보유 자금: {currentMoney} G";
         }
     }
@@ -215,7 +215,7 @@ public class ShopManager : NetworkBehaviour
             }
         }
 
-        int currentMoney = GameMaster.Instance.economyManager.availableLoanLimit.Value;
+        int currentMoney = GameMaster.Instance.economyManager.currentTotalGold.Value;
 
         if(currentMoney >= totalPrice)
         {
