@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+   using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 using System.Linq;
@@ -6,9 +6,6 @@ using System.Linq;
 public class QuestManager : NetworkBehaviour
 {
     public static QuestManager Instance;
-
-    // 몹 소환 이벤트용 
-    public static event System.Action OnSpiritualWorldEntered;
 
     [Header("Quest Database")]
     public List<QuestDataSO> questDatabase;
