@@ -607,4 +607,33 @@ public class PlayerController : NetworkBehaviour
         // 서버 권한으로 값을 변경합니다.
         isInsideFacility.Value = value;
     }
+
+    /// <summary>
+    /// 서버 권한으로 플레이어의 체력을 회복시킵니다.
+    /// </summary>
+    public void RestoreHealth(float amount)
+    {
+        // 체력 회복은 중요한 데이터이므로 반드시 서버에서만 처리합니다.
+        if (!IsServer) return;
+
+        if (isDead.Value) return; // 이미 죽은 플레이어는 회복 불가
+
+        // StateManager에 있는 NetworkVariable<float> currentHealth 값을 수정
+        float prevHealth = StateManager.currentHealth.Value;
+        float newHealth = Mathf.Min(prevHealth + amount, Data.maxHealth);
+
+        StateManager.currentHealth.Value = newHealth;
+
+        Debug.Log($"[서버] {gameObject.name} 회복: {prevHealth} -> {newHealth}");
+
+        // (선택 사항) 회복 성공 시 모든 클라이언트에게 이펙트 재생 요청
+        //PlayHealEffectClientRpc();
+    }
+
+    //[ClientRpc]
+    //private void PlayHealEffectClientRpc()
+    //{
+    //    // 화면에 초록색 플래시를 띄우거나, 회복 파티클을 재생하는 로직
+    //    Debug.Log("회복 이펙트 재생");
+    //}
 }

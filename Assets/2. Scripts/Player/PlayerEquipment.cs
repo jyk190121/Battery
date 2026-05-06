@@ -92,7 +92,7 @@ public class PlayerEquipment : NetworkBehaviour
         //currentEquippedItem = newItem;
         //UpdateWeaponStatus();
 
-        if (_playerAttack == null) _playerAttack = GetComponent<PlayerAttack>();
+        //if (_playerAttack == null) _playerAttack = GetComponent<PlayerAttack>();
 
         // 1. 새로 든 아이템이 무기(Item_Weapon)인지 확인
         if (newItem is Item_Weapon weapon)
@@ -231,8 +231,10 @@ public class PlayerEquipment : NetworkBehaviour
             Vector3 lookDir = Camera.main.transform.forward;
             item.RequestUseItem(lookDir);
 
-            // (필요 시) 섬광탄 같은 일회성 아이템은 인벤토리에서 제거 로직 추가
-            if (item is Item_Flashbang) _inventory.ClearItemReference(item);
+            if (item is Item_Flashbang || item is Item_Consumable)
+            {
+                _inventory.ClearItemReference(item);
+            }
         }
     }
 }
