@@ -118,18 +118,18 @@ public class PlayerInventory : NetworkBehaviour
 
         // 상호작용 대상 탐색 및 마우스 휠 슬롯 변경은 항상 체크합니다.
         CheckInteraction();
-        HandleSlotChange();
+        //HandleSlotChange();
 
-        // [2차 & 3차 방어] 좌클릭 (아이템 사용 / 무기 공격)
-        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
-        {
-            // 현재 들고 있는 아이템이 '무기'가 아닐 때만 인벤토리의 소모품(섬광탄 등)을 사용합니다.
-            if (!IsHoldingWeapon())
-            {
-                // 내부 4차 방어(빈손 체크)는 HandleItemUse() 안에서 수행됨
-                HandleItemUse();
-            }
-        }
+        //// [2차 & 3차 방어] 좌클릭 (아이템 사용 / 무기 공격)
+        //if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        //{
+        //    // 현재 들고 있는 아이템이 '무기'가 아닐 때만 인벤토리의 소모품(섬광탄 등)을 사용합니다.
+        //    if (!IsHoldingWeapon())
+        //    {
+        //        // 내부 4차 방어(빈손 체크)는 HandleItemUse() 안에서 수행됨
+        //        HandleItemUse();
+        //    }
+        //}
 
         // 키보드 입력 (상호작용 / 버리기) - 무기를 들어도 정상 작동!
         if (Keyboard.current != null)
@@ -156,62 +156,39 @@ public class PlayerInventory : NetworkBehaviour
                 RequestDropCurrentItem();
             }
         }
+
+        HandleSlotChange(); // 슬롯 변경은 인벤토리의 역할
     }
-    //무기를 손에 들고 있는 경우.
-    private bool IsHoldingWeapon()
+    #region 변경점
+    // PlayerEquipment에서 호출할 수 있도록 슬롯 변경 시 이벤트를 발생시킴
+    void HandleSlotChange()
     {
-       
-        ItemBase heldItem = HeldItem;
+        if (twoHandedItem != null) return;
+        float scroll = Mouse.current.scroll.ReadValue().y;
+        if (scroll == 0f) return;
 
-        if (heldItem == null || heldItem.itemData == null) return false;
+        int newIndex = currentSlotIndex;
+        if (scroll < 0f && newIndex < slots.Length - 1) newIndex++;
+        else if (scroll > 0f && newIndex > 0) newIndex--;
 
-        // 섬광탄의 category는 'Consumable'이므로 아래 조건은 즉시 false를 반환합니다.
-        return heldItem.itemData.category == ItemCategory.Weapon;
+        if (newIndex != currentSlotIndex) RequestChangeSlotServerRpc(newIndex);
     }
 
-    private void HandleItemUse()
+    [Rpc(SendTo.Everyone)]
+    void SyncSlotChangeClientRpc(int newIndex)
     {
-        // 현재 손에 든 아이템 확인
-        ItemBase heldItem = twoHandedItem != null ? twoHandedItem : slots[currentSlotIndex];
+        if (slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(false);
+        currentSlotIndex = newIndex;
+        ItemBase newHeldItem = slots[currentSlotIndex];
+        if (newHeldItem != null) newHeldItem.gameObject.SetActive(true);
 
-        if (heldItem != null)
-        {
-            // 카메라가 바라보는 방향을 매개변수로 전달합니다.
-            Vector3 lookDir = Camera.main.transform.forward;
-            heldItem.RequestUseItem(lookDir);
+        // 장착 스크립트에 아이템 변경 알림
+        if (TryGetComponent(out PlayerEquipment equipment)) equipment.OnSlotItemChanged(newHeldItem);
 
-            if (heldItem is Item_Flashbang)
-            {
-                ClearItemReference(heldItem);
-            }
-
-        }
-
+        if (IsOwner) OnSlotChanged?.Invoke(currentSlotIndex);
     }
-
-    private void ConsumeItemFromInventory(ItemBase item)
-    {
-        // 소유자 클라이언트의 인벤토리 배열에서만 비워줌 
-        // (실제 오브젝트는 섬광탄 스크립트의 Despawn에 의해 파괴됨)
-        if (item == twoHandedItem)
-        {
-            twoHandedItem = null;
-            OnTwoHandedToggled?.Invoke(false);
-        }
-
-        for (int i = 0; i < slots.Length; i++)
-        {
-            if (slots[i] == item)
-            {
-                slots[i] = null;
-                break;
-            }
-        }
-
-        OnInventoryUpdated?.Invoke();
-        // UI 업데이트를 위해 슬롯 변경 이벤트 한 번 더 호출 가능
-        OnSlotChanged?.Invoke(currentSlotIndex);
-    }
+    #endregion
+   
     private void CheckInteraction()
     {
         if (Camera.main == null) return;
@@ -225,7 +202,7 @@ public class PlayerInventory : NetworkBehaviour
             {
                 ClearHighlight();
                 return; // 벽이나 닫힌 문에 가려졌음! 
-            }
+            }
 
 
             ItemBase targetItem = hit.collider.GetComponentInParent<ItemBase>();
@@ -249,8 +226,8 @@ public class PlayerInventory : NetworkBehaviour
 
             if (hit.collider.TryGetComponent(out QuestReturnPoint returnPoint))
             {
-                // 내 퀘스트 목록에 있는 포인트일 때만 반응 
-                if (returnPoint.IsInteractable())
+                // 내 퀘스트 목록에 있는 포인트일 때만 반응 
+                if (returnPoint.IsInteractable())
                 {
                     if (lastLookedReturnPoint != returnPoint)
                     {
@@ -261,8 +238,8 @@ public class PlayerInventory : NetworkBehaviour
                     }
                     return;
                 }
-                // 💡 내 퀘스트가 아니라면 아무것도 잡히지 않은 것처럼 처리
-                else
+                // 💡 내 퀘스트가 아니라면 아무것도 잡히지 않은 것처럼 처리
+                else
                 {
                     ClearHighlight();
                     return;
@@ -472,31 +449,8 @@ public class PlayerInventory : NetworkBehaviour
         }
     }
 
-    private void HandleSlotChange()
-    {
-        if (twoHandedItem != null) return;
-        float scroll = Mouse.current.scroll.ReadValue().y;
-        if (scroll == 0f) return;
-
-        int newIndex = currentSlotIndex;
-        if (scroll < 0f && newIndex < slots.Length - 1) newIndex++;
-        else if (scroll > 0f && newIndex > 0) newIndex--;
-
-        if (newIndex != currentSlotIndex) RequestChangeSlotServerRpc(newIndex);
-    }
-
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     private void RequestChangeSlotServerRpc(int newIndex) { SyncSlotChangeClientRpc(newIndex); }
-
-    [Rpc(SendTo.Everyone)]
-    private void SyncSlotChangeClientRpc(int newIndex)
-    {
-        // 💡 여기서 SetActive(false/true)를 수행하지만, 콜라이더를 명시적으로 끄는 코드는 삭제되었습니다.
-        if (slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(false);
-        currentSlotIndex = newIndex;
-        if (slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(true);
-        if (IsOwner) OnSlotChanged?.Invoke(currentSlotIndex);
-    }
 
     private void RestoreItemsFromServer()
     {
