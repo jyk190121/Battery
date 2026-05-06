@@ -74,7 +74,7 @@ public class QuestDebugManager : NetworkBehaviour
         {
             if (GameMaster.Instance != null && GameMaster.Instance.economyManager != null)
             {
-                GameMaster.Instance.economyManager.availableLoanLimit.Value += 1000;
+                GameMaster.Instance.economyManager.currentTotalGold.Value += 1000;
                 Debug.Log($"<color=green>[DEBUG]</color> 자금 1000 추가.");
             }
         }

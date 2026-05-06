@@ -19,23 +19,24 @@ public class DayCycleManager : NetworkBehaviour
     {
         if (!IsServer || !isSessionActive.Value) return;
 
-        if (currentDayIndex.Value >= 5)
+        // 4일차에 주간 정산 진행
+        if (currentDayIndex.Value >= 4)
         {
             if (isCleared)
             {
-                Debug.Log("<color=yellow>축하합니다! 주간 할당량을 달성했습니다!</color>");
-                GameMaster.Instance.ClearCycle(); // 클리어 처리 지시
+                Debug.Log("<color=yellow>축하합니다! 주간 실적 목표를 달성했습니다!</color>");
+                GameMaster.Instance.ClearCycle();
             }
             else
             {
-                Debug.Log("<color=red>할당량 미달성... 게임 오버입니다.</color>");
+                Debug.Log("<color=red>실적 점수 미달성... 게임 오버입니다.</color>");
                 isSessionActive.Value = false;
                 // TODO: 게임 오버 씬 전환
             }
         }
         else
         {
-            // 1~4일차면 다음 날로 이동
+            // 1~3일차면 다음 날로 이동 (Day 1 -> Day 2 정상 작동 구역)
             currentDayIndex.Value++;
             Debug.Log($"다음 날로 넘어갑니다. 현재 Day: {currentDayIndex.Value}");
         }
