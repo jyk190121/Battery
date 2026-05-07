@@ -12489,7 +12489,7 @@ PrefabInstance:
     - target: {fileID: 4574991728129237871, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: questItemSpawnPoint
       value: 
-      objectReference: {fileID: 15393768}
+      objectReference: {fileID: 0}
     - target: {fileID: 4580532117067239212, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_CastShadows
       value: 0

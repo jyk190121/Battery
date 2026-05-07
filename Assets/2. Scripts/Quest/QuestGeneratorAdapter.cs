@@ -76,39 +76,6 @@ public class QuestGeneratorAdapter : NetworkBehaviour
         baseGenerator.enabled = true;
     }
 
-    // 누락되었던 핵심 소환 로직 복구
-    private void SpawnItemInLinkedRoom()
-    {
-        if (baseGenerator == null || baseGenerator.linkableDoors == null) return;
-
-        List<DoorController> validQuestDoors = new List<DoorController>();
-        foreach (var door in baseGenerator.linkableDoors)
-        {
-            if (door != null && door.questItemSpawnPoint != null)
-                validQuestDoors.Add(door);
-        }
-
-        if (validQuestDoors.Count == 0)
-        {
-            Debug.LogError("[Generator Debug] 스폰 포인트가 할당된 문이 없어 소환 불가.");
-            return;
-        }
-
-        DoorController targetDoor = validQuestDoors[Random.Range(0, validQuestDoors.Count)];
-
-        ItemBase prefab = GameSessionManager.Instance.GetPrefab(currentQuestData.targetItemID);
-        if (prefab != null)
-        {
-            ItemBase spawned = Instantiate(prefab, targetDoor.questItemSpawnPoint.position, targetDoor.questItemSpawnPoint.rotation);
-            spawned.GetComponent<NetworkObject>().Spawn();
-            Debug.Log($"<color=lime>[Quest]</color> {targetDoor.roomLocation} 내부에 타겟 아이템 소환 완료.");
-        }
-
-        // 문 개방 대상을 해당 방으로 고정
-        baseGenerator.linkableDoors.Clear();
-        baseGenerator.linkableDoors.Add(targetDoor);
-    }
-
     // 플레이어가 바라볼 때 UI에 띄울 텍스트
     public string GetInteractText()
     {
