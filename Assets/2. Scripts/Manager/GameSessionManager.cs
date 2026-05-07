@@ -242,14 +242,13 @@ public class GameSessionManager : NetworkBehaviour
     /// [StartButton 호출] 누구나 서버에게 게임 씬으로의 이동을 요청할 수 있습니다.
     /// </summary>
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-    public void RequestStartGameServerRpc(string targetSceneName, RpcParams rpcParams = default)
+    public void  RequestStartGameServerRpc(string targetSceneName, RpcParams rpcParams = default)
     {
         // 1. 보안 및 연타 방어
         if (!IsServer || isStartSequenceActive) return;
 
         isStartSequenceActive = true;
         Debug.Log($"<color=yellow>[GameSessionManager]</color> 시작 시퀀스 가동. 목적지: {targetSceneName}");
-
 
         // 1. 장바구니 아이템 확정
         foreach (int itemID in shopCart)

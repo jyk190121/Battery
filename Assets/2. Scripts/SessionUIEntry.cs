@@ -1,9 +1,13 @@
 using System;
 using TMPro;
 using Unity.Services.Multiplayer;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+
+// 💡 논리적 차단 조건
+// 1. 이미 서비스에서 Locked로 판단한 경우
+// 2. 인원수가 최대치에 도달한 경우 (AvailableSlots == 0)
+// 3. (옵션) Properties에 GameState가 "1"인 경우
 
 public class SessionUIEntry : MonoBehaviour
 {
@@ -22,10 +26,23 @@ public class SessionUIEntry : MonoBehaviour
     {
         _session = session;
         _onSelected = onSelected;
-
         roomNameText.text = session.Name;
-        playerCountText.text = $"{session.MaxPlayers}";
-        //playerCountText.text = $"{session.Players.Count} / {session.MaxPlayers}";
+
+        // 💡 2.1.3 버전에서는 세션이 비공개(IsPrivate)가 되면 리스트에서 아예 사라지지만,
+        // 사라지기 전 찰나에 잡히는 경우를 위해 조건을 강화합니다.
+        bool isStarted = session.IsLocked;
+
+        if (isStarted || session.AvailableSlots == 0)
+        {
+            playerCountText.text = "<color=red>게임중</color>";
+            selectBtn.interactable = false;
+        }
+        else
+        {
+            int currentPlayers = session.MaxPlayers - session.AvailableSlots;
+            playerCountText.text = $"{currentPlayers} / {session.MaxPlayers}";
+            selectBtn.interactable = true;
+        }
 
         selectBtn.onClick.RemoveAllListeners();
         selectBtn.onClick.AddListener(() => _onSelected?.Invoke(_session));
