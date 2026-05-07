@@ -1,3 +1,4 @@
+using Unity.Netcode;
 using UnityEngine;
 
 /// <summary>
@@ -57,23 +58,29 @@ public class ScreamState : MonsterBaseState
         // 대상 플레이어에게만 ClientRpc를 보내어 귀청이 떨어질 듯한 UI 사운드를 재생시킵니다.
         if (_targetPlayer != null && _targetPlayer.TryGetComponent<PlayerController>(out var playerController))
         {
-            // owner.PlayScreamSoundClientRpc(playerController.OwnerClientId); 
-            SoundManager.Instance.GetSfxClip(SfxSound.MONS_SCREAM);
+            // 타겟의 ID만 집어서 사운드를 쏘는 NGO 파라미터 세팅
+            ClientRpcParams rpcParams = new ClientRpcParams
+            {
+                Send = new ClientRpcSendParams
+                {
+                    TargetClientIds = new ulong[] { playerController.OwnerClientId }
+                }
+            };
+
+            owner.soundHandler.PlayTargetScreamClientRpc(rpcParams);
+
             Debug.Log($"<color=red>[Doll]</color> {playerController.name}의 클라이언트 화면에 끔찍한 비명 소리 재생!");
         }
 
-        // 2. [서버 어그로 데이터] 
-        // 실제 오디오 볼륨은 0이지만, AI 시스템(EnvironmentScanner)이 들을 수 있는
-        // 엄청난 크기의 노이즈(반경 50m)를 발생시켜 맵 전체의 몬스터를 이쪽으로 끌어당깁니다.
+        // 2. [서버 어그로 데이터]
         if (EnemyManager.Instance != null)
         {
             Vector3 noiseOrigin = owner.transform.position;
 
             foreach (EnvironmentScanner scanner in EnemyManager.Instance.ActiveScanners)
             {
-                if (scanner.owner == this.owner) continue; // 나 자신은 무시
+                if (scanner.owner == this.owner) continue;
 
-                // 실내 판정(isIndoorMonster)을 true로 주어 같은 공간의 몹들이 듣게 함
                 scanner.OnHeardSound(noiseOrigin, 50f, true);
             }
 
