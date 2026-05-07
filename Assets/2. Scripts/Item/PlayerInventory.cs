@@ -682,6 +682,7 @@ public class PlayerInventory : NetworkBehaviour
         if (TryGetComponent(out PlayerMove move))
         {
             move.questSpeedMultiplier = applySpeedDebuff ? 0.75f : 1.0f;
+            Debug.Log("<color=blue>[Curse]</color> 이동속도 제한.");
         }
 
         // 2. 코루틴을 이용한 어그로/환청 제어
@@ -704,7 +705,7 @@ public class PlayerInventory : NetworkBehaviour
 
     private System.Collections.IEnumerator CurseEffectRoutine()
     {
-        WaitForSeconds wait = new WaitForSeconds(7.0f); // 기획에 맞춰 발생 주기 조절
+        WaitForSeconds wait = new WaitForSeconds(7.0f); // 기획에 맞춰 주기 조절
 
         while (true)
         {
@@ -712,32 +713,42 @@ public class PlayerInventory : NetworkBehaviour
 
             if (currentHasAggro)
             {
-                TriggerCurseAggroServerRpc();
+                // [핵심] SoundManager의 몬스터 호출 함수를 그대로 사용
+                // 내 컴퓨터에서 3D 사운드를 재생하고, 몬스터 매니저에게 소음을 신고함
+                SoundManager.Instance.PlaySfxAndReportNoise(SfxSound.VENT_CREAK, transform.position, 1.0f);
+
+                // 다른 팀원들도 이 공포스러운 소리를 들어야 하므로 사운드 동기화 지시
+                PlayCurseAggroSoundServerRpc();
+
+                Debug.Log("<color=red>[Curse]</color> 소지한 저주 아이템이 괴물을 부릅니다!");
             }
 
             if (currentHasHallucination)
             {
-                // 로컬 사운드 재생 (나에게만 들림)
-                // TODO: SoundManager.Instance.PlaySfx(SfxSound.FAKE_MONSTER_ROAR);
+                // [핵심] 오직 '나(Owner)'에게만 들리는 로컬 2D 사운드 재생
+                SoundManager.Instance.PlaySfx(SfxSound.ENV_RAIN);
                 Debug.Log("<color=purple>[Curse]</color> 등 뒤에서 발소리가 들린 것 같다...");
             }
         }
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
-    private void TriggerCurseAggroServerRpc()
+    private void PlayCurseAggroSoundServerRpc()
     {
-        // 몬스터 매니저에게 소음 위치 전달
-        // TODO: EnemyManager.Instance.ReportNoise(transform.position, 10f);
-
-        Debug.Log("<color=red>[Curse]</color> 소지한 저주 아이템이 괴물을 부릅니다!");
+        // 서버를 거쳐 '나를 제외한 나머지 팀원들'에게만 사운드 재생 명령을 내림
         PlayCurseAggroSoundClientRpc();
     }
 
-    [Rpc(SendTo.Everyone)]
+    // SendTo.NotMe: 나는 이미 PlaySfxAndReportNoise로 소리를 들었으므로 제외함
+    [Rpc(SendTo.NotMe)]
     private void PlayCurseAggroSoundClientRpc()
     {
-        // 모두에게 들리는 실제 소리 (인형 소리 등)
-        // TODO: SoundManager.Instance.PlaySfxPoint(SfxSound.DOLL_CRY, transform.position);
+        // 팀원들의 컴퓨터에서는 몬스터에게 소음을 이중 신고하지 않도록 순수 사운드만 재생함
+        AudioClip clip = SoundManager.Instance.GetSfxClip(SfxSound.VENT_CREAK);
+        if (clip != null)
+        {
+            AudioSource.PlayClipAtPoint(clip, transform.position);
+        }
     }
+
 }
