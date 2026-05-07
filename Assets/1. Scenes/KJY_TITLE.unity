@@ -1583,6 +1583,42 @@ PrefabInstance:
       propertyPath: m_Name
       value: UI
       objectReference: {fileID: 0}
+    - target: {fileID: 1460084441930185519, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+      propertyPath: indoorSnapshot
+      value: 
+      objectReference: {fileID: -8966915813563456804, guid: 6e59fb41f1735d744bcfc0b8e4bcebdc, type: 2}
+    - target: {fileID: 1460084441930185519, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+      propertyPath: outdoorSnapshot
+      value: 
+      objectReference: {fileID: -3059226201600694838, guid: 6e59fb41f1735d744bcfc0b8e4bcebdc, type: 2}
+    - target: {fileID: 1460084441930185519, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+      propertyPath: sfxList.Array.size
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 1460084441930185519, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+      propertyPath: sfxList.Array.data[22].clip
+      value: 
+      objectReference: {fileID: 8300000, guid: acab1073c6f234449b3de8f8879eb06e, type: 3}
+    - target: {fileID: 1460084441930185519, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+      propertyPath: sfxList.Array.data[23].clip
+      value: 
+      objectReference: {fileID: 8300000, guid: 31d065eb745218e4fa214e1eac1d4d08, type: 3}
+    - target: {fileID: 1460084441930185519, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+      propertyPath: sfxList.Array.data[24].clip
+      value: 
+      objectReference: {fileID: 8300000, guid: 42c66eff9d59c4c429ea2a80a5a02c5b, type: 3}
+    - target: {fileID: 1460084441930185519, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+      propertyPath: sfxList.Array.data[22].sound
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 1460084441930185519, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+      propertyPath: sfxList.Array.data[23].sound
+      value: 22
+      objectReference: {fileID: 0}
+    - target: {fileID: 1460084441930185519, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+      propertyPath: sfxList.Array.data[24].sound
+      value: 23
+      objectReference: {fileID: 0}
     - target: {fileID: 1949389732086349978, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
       propertyPath: backCamera
       value: 

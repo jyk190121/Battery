@@ -1,6 +1,7 @@
-using UnityEngine;
 using System.Collections.Generic;
 using Unity.Netcode;
+using UnityEngine;
+using UnityEngine.Audio;
 
 public enum SfxSound
 {
@@ -39,9 +40,17 @@ public enum SfxSound
     PHONE_GALLERYDELETE,  // 우클릭 홀드 중 게이지 차오르는 소리 (지속음)
     PHONE_GALLERYDELETED,  // 삭제 완료 소리
 
+    // 오브젝트 관련 사운드
+    // 1. 오브젝트
+    VENT_CREAK,            // 환풍구 열리는 소리
+
     // 몬스터 관련 사운드
-    // 1. 환경
-    VENT_CREAK            // 환풍구 열리는 소리
+    // 1. 인형
+    MONS_SCREAM,           // 비명소리
+
+    // 환경 관련 사운드
+    // 1. 배경
+    ENV_RAIN               // 빗소리
 }
 
 public enum BgmSound
@@ -76,6 +85,10 @@ public class SoundManager : MonoBehaviour
     [SerializeField] private AudioSource sfxSource;       // 단발성 효과음 재생용 (UI 클릭, 문자 입력 등)
     [SerializeField] private AudioSource loopSfxSource;   // 반복성/제어필요 사운드 (벨소리, 다이얼 등) 
     [SerializeField] private AudioSource bgmSource;       // 배경음악 재생용
+
+    [Header("--- Audio Mixer Snapshots ---")]
+    public AudioMixerSnapshot outdoorSnapshot;            // 필터 없는 상태
+    public AudioMixerSnapshot indoorSnapshot;             // Lowpass Filter가 걸린 먹먹한 상태
 
     private Dictionary<SfxSound, AudioClip> sfxDictionary = new Dictionary<SfxSound, AudioClip>();
     private Dictionary<BgmSound, AudioClip> bgmDictionary = new Dictionary<BgmSound, AudioClip>();
@@ -176,6 +189,21 @@ public class SoundManager : MonoBehaviour
         }
         Debug.LogWarning($"SFX Sound {sound} 없음");
         return null;
+    }
+
+    // 시설 내부/외부 진입에 따라 배경음을 부드럽게 전환
+    public void SetIndoorSnapshot(bool isInside, float duration = 1.0f)
+    {
+        if (isInside)
+        {
+            indoorSnapshot.TransitionTo(duration);
+            Debug.Log("<color=cyan>[Sound]</color> 시설 진입 - 먹먹한 사운드로 전환");
+        }
+        else
+        {
+            outdoorSnapshot.TransitionTo(duration);
+            Debug.Log("<color=cyan>[Sound]</color> 시설 퇴거 - 선명한 사운드로 전환");
+        }
     }
 
     #endregion
