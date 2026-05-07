@@ -23,11 +23,11 @@ public class SettlementZone : NetworkBehaviour
     private void Start()
     {
         SpawnItems();
-        // [수술적 변화] 서버에서만 0.5초 주기 스캐너 가동
+        //  서버에서만 0.5초 주기 스캐너 가동
         if (IsServer) StartCoroutine(TruckScanRoutine());
     }
 
-    // [수술적 변화] 물리 버그 원천 차단을 위한 강제 스캔 루틴 (기존 Trigger 방식 대체)
+    // 물리 버그 원천 차단을 위한 강제 스캔 루틴 (기존 Trigger 방식 대체)
     private IEnumerator TruckScanRoutine()
     {
         WaitForSeconds wait = new WaitForSeconds(0.5f);
@@ -42,13 +42,17 @@ public class SettlementZone : NetworkBehaviour
             Vector3 halfExtents = Vector3.Scale(zoneCol.size, transform.lossyScale) * 0.5f;
             Collider[] targets = Physics.OverlapBox(center, halfExtents, transform.rotation);
 
+            // [핵심] 객체 자체를 추적하여 복합 콜라이더로 인한 중복 처리를 막음
+            HashSet<ItemBase> uniqueItems = new HashSet<ItemBase>();
             List<int> currentDetectedIds = new List<int>();
 
             // 1. 현재 트럭 안에 내려놓아진 모든 아이템 ID 수집
             foreach (var t in targets)
             {
                 ItemBase item = t.GetComponentInParent<ItemBase>();
-                if (item != null && !item.isEquipped)
+
+                // NullReference 크래시 방어 및 HashSet 중복 필터링
+                if (item != null && item.itemData != null && !item.isEquipped && uniqueItems.Add(item))
                 {
                     currentDetectedIds.Add(item.itemData.itemID);
                 }

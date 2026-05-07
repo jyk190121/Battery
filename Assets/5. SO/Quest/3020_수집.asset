@@ -20,10 +20,10 @@ MonoBehaviour:
   difficulty: 2
   targetType: 
   baseReward: 1000
-  bonusMultiplier: 1
+  bonusMultiplier: 0
   isHazardQuest: 0
   performancePoint: 80
-  targetItemID: 0
+  targetItemID: 201
   passwordCount: 0
   materialCount: 0
   hasSpeedDebuff: 1

@@ -25999,7 +25999,6 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   itemDatabase:
   - {fileID: 11400000, guid: 1473f70f8e1093a46b7661e18db31796, type: 2}
-  - {fileID: 11400000, guid: a1311076796163449b980b6bd733e586, type: 2}
   - {fileID: 11400000, guid: 948deca58d407434cb3941bfb7d3448f, type: 2}
   - {fileID: 11400000, guid: 601a4e2636a5dbc429899cfc28788574, type: 2}
   - {fileID: 11400000, guid: 2de26f69c84422e43b6fc65ea431d23d, type: 2}
