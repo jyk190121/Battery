@@ -42,7 +42,7 @@ public class Item_Consumable : ItemBase
                 // 소유자의 인벤토리에서 아이템 제거
                 if (targetInventory != null)
                 {
-                    targetInventory.RemoveItemByServer(itemData.itemID);
+                    //targetInventory.RemoveItemByServer(itemData.itemID);
 
                     // 서버에서만 객체 디스폰 (에러 방지)
                     if (NetworkObject != null && NetworkObject.IsSpawned)
