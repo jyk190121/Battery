@@ -751,4 +751,22 @@ public class PlayerInventory : NetworkBehaviour
         }
     }
 
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    public void RequestClearSlotServerRpc(int slotIndex)
+    {
+        // 서버에서 해당 슬롯을 비웁니다.
+        if (slotIndex >= 0 && slotIndex < slots.Length)
+        {
+            slots[slotIndex] = null;
+            // 클라이언트들에게도 이 슬롯이 비었음을 알립니다 (필요 시)
+            ClearSlotClientRpc(slotIndex);
+        }
+    }
+
+    [ClientRpc]
+    private void ClearSlotClientRpc(int slotIndex)
+    {
+        if (!IsServer) slots[slotIndex] = null;
+    }
 }

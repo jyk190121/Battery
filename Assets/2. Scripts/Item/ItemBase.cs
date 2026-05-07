@@ -63,7 +63,14 @@ public abstract class ItemBase : NetworkBehaviour
         }
         else
         {
-            if (itemPhysicsRigidbody != null) itemPhysicsRigidbody.isKinematic = false;
+            transform.SetParent(null);
+
+            if (itemPhysicsRigidbody != null)
+            {
+                itemPhysicsRigidbody.isKinematic = false;
+                //물리현상 강제적용
+                itemPhysicsRigidbody.WakeUp();
+            }
             if (netTransform != null)
             {
                 // 중요: Teleport는 '서버' 권한이 있는 쪽에서만 호출합니다.

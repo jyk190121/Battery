@@ -22,11 +22,18 @@ public class Item_Flashbang : ItemBase
         // ExecuteChangeOwnership(false, null)이 내부적으로 TryRemoveParent와 isKinematic 해제, NetTransform 활성화를 처리함
         ExecuteChangeOwnership(false, null);
 
+        if (itemPhysicsRigidbody != null)
+        {
+            itemPhysicsRigidbody.isKinematic = false;
+            itemPhysicsRigidbody.linearVelocity = Vector3.zero; // 이전 속도 초기화
+            itemPhysicsRigidbody.angularVelocity = Vector3.zero;
+            itemPhysicsRigidbody.WakeUp();
+        }
+
         if (itemPhysicalCollider != null)
         {
             itemPhysicalCollider.isTrigger = false;
         }
-
 
         // 2. 물리 상태를 "던져진 상태"로 전환 (Ground 충돌 감지용)
         BeginThrownState();
@@ -34,14 +41,12 @@ public class Item_Flashbang : ItemBase
         // 3. 레이어 변경 (EquippedItem -> Item)
         gameObject.layer = LayerMask.NameToLayer("Item");
 
-        if (itemPhysicsRigidbody != null)
+        // 4. 힘 가하기 (서버에서만 물리적 충격 적용 권장)
+        if (IsServer)
         {
-            // 4. 힘 가하기 (서버에서만 물리적 충격 적용 권장)
-            if (IsServer)
-            {
-                itemPhysicsRigidbody.AddForce(direction * throwForce, ForceMode.Impulse);
-                StartCoroutine(ExplosionRoutine());
-            }
+            StopAllCoroutines();
+            itemPhysicsRigidbody.AddForce(direction * throwForce, ForceMode.Impulse);
+            StartCoroutine(ExplosionRoutine());
         }
     }
 
