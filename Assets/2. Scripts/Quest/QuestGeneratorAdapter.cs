@@ -1,134 +1,143 @@
-using UnityEngine;
-using Unity.Netcode;
-using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
+using UnityEngine;
 
 public class QuestGeneratorAdapter : NetworkBehaviour
 {
-    [Header("Teammate Code Reference")]
-    [Tooltip("같은 오브젝트에 있는 팀원분의 발전기 스크립트를 드래그해 넣으세요.")]
-    public GeneratorController teammateGenerator;
+    [Header("Core Reference")]
+    public GeneratorController baseGenerator;
 
     [Header("Quest Settings")]
-    public int floorLevel = 1;       // 이 발전기가 위치한 층 (1~2층 Easy, 3층 이상 Normal/Hard)
-    public int repairPartItemID;     // 수리 부속 아이템 ID
+    public int repairPartItemID = 401; // 수리 부속 아이템 ID
 
-    [System.Serializable]
-    public struct RoomSpawnPoint
-    {
-        public DoorController door;
-        public Transform spawnLocation; // 이 문이 열렸을 때 타겟 아이템이 스폰될 방 안쪽 좌표
-    }
-    [Header("Room Setup")]
-    [Tooltip("팀원 코드가 열 수 있는 문들과, 그 방 안쪽의 스폰 좌표를 매칭해주세요.")]
-    public List<RoomSpawnPoint> roomSpawnPoints;
-
-    // 동기화 변수들
     public NetworkVariable<bool> isQuestTarget = new NetworkVariable<bool>(false);
     public NetworkVariable<int> currentParts = new NetworkVariable<int>(0);
-    public NetworkVariable<int> requiredParts = new NetworkVariable<int>(99);
+    public NetworkVariable<int> requiredParts = new NetworkVariable<int>(0);
 
-    private QuestDataSO currentQuestData;
+    private QuestDataSO currentQuestData; 
 
     public override void OnNetworkSpawn()
     {
-        // 💡 [핵심] 팀원 코드의 수리 완료 이벤트를 감시합니다.
-        if (teammateGenerator != null)
-        {
-            teammateGenerator.isRepaired.OnValueChanged += OnTeammateGeneratorRepaired;
-        }
+        if (baseGenerator != null)
+            baseGenerator.isRepaired.OnValueChanged += OnBaseGeneratorRepaired;
+
+        // 발전기 컴포넌트는 항상 켜둔다 (상호작용 감지용)
+        if (baseGenerator != null) baseGenerator.enabled = true;
     }
 
-    // 아침이 되어 매니저가 이 발전기를 타겟으로 지목할 때 호출
-    public void SetupQuestTarget(QuestDataSO questData)
+    // 퀘스트용 발전기 셋업 (assignedDoor에 기본값 null 추가)
+    // 매개변수 2개를 명시적으로 선언하고 assignedDoor에 null 허용
+    public void SetupQuestTarget(QuestDataSO questData, DoorController assignedDoor = null)
     {
         if (!IsServer) return;
+
         currentQuestData = questData;
-        requiredParts.Value = questData.materialCount; // 기획된 2, 3, 4개
+        requiredParts.Value = questData.materialCount;
         currentParts.Value = 0;
         isQuestTarget.Value = true;
+
+        // 중앙 매칭에서 문을 정해준 경우 리스트 고정
+        if (assignedDoor != null)
+        {
+            baseGenerator.linkableDoors.Clear();
+            baseGenerator.linkableDoors.Add(assignedDoor);
+        }
+
+        // 아이템 소환 대상 결정
+        DoorController targetSpawnDoor = assignedDoor;
+        if (targetSpawnDoor == null && baseGenerator.linkableDoors.Count > 0)
+        {
+            targetSpawnDoor = baseGenerator.linkableDoors.Find(d => d.questItemSpawnPoint != null);
+        }
+
+        // 아이템 소환 (Easy 제외 및 유효한 문 확인)
+        if (questData.difficulty != QuestDifficulty.Easy && targetSpawnDoor != null && targetSpawnDoor.questItemSpawnPoint != null)
+        {
+            ItemBase prefab = GameSessionManager.Instance.GetPrefab(questData.targetItemID);
+            if (prefab != null)
+            {
+                ItemBase spawned = Instantiate(prefab, targetSpawnDoor.questItemSpawnPoint.position, targetSpawnDoor.questItemSpawnPoint.rotation);
+                spawned.GetComponent<NetworkObject>().Spawn();
+            }
+        }
+    }
+    // 일반 발전기용 셋업 (추가)
+    public void SetupNormalGenerator(DoorController assignedDoor)
+    {
+        if (!IsServer) return;
+
+        isQuestTarget.Value = false; // 일반 발전기임 명시
+
+        // 리스트를 비우고 전달받은 문 하나만 삽입
+        baseGenerator.linkableDoors.Clear();
+        baseGenerator.linkableDoors.Add(assignedDoor);
+
+        // 일반 발전기는 부속 필요 없으므로 즉시 가동 가능하게 설정
+        baseGenerator.enabled = true;
     }
 
-    // 플레이어가 수리 부속을 들고 상호작용(E) 할 때 호출
+    // 플레이어가 바라볼 때 UI에 띄울 텍스트
+    public string GetInteractText()
+    {
+        if (!isQuestTarget.Value) return null; // 퀘스트 대상 아니면 기본 텍스트 출력됨
+
+        if (baseGenerator.isRepaired.Value) return "발전기 수리 완료";
+
+        if (currentParts.Value < requiredParts.Value)
+        {
+            return $"수리 부속이 필요합니다 ({currentParts.Value}/{requiredParts.Value})";
+        }
+
+        return "발전기 가동 준비 완료 (Hold E)";
+    }
+
     public void Interact(PlayerInventory player)
     {
-        if (!isQuestTarget.Value || teammateGenerator.isRepaired.Value) return;
+        if (!isQuestTarget.Value || baseGenerator.isRepaired.Value) return;
 
         ItemBase held = player.HeldItem;
+
+        // 올바른 아이템을 들고 있는 경우
         if (held != null && held.itemData.itemID == repairPartItemID)
         {
             InsertPartServerRpc(player.OwnerClientId);
         }
+        // 아이템이 없거나 잘못된 아이템인 경우 피드백
         else
         {
-            Debug.Log($"<color=orange>[Quest]</color> 수리 부속({repairPartItemID})이 필요합니다! ({currentParts.Value}/{requiredParts.Value})");
+            Debug.Log($"<color=orange>[Quest]</color> 수리 부속({repairPartItemID})이 필요합니다. 현재 진행도: {currentParts.Value}/{requiredParts.Value}");
         }
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     private void InsertPartServerRpc(ulong clientId)
     {
-        if (teammateGenerator.isRepaired.Value) return;
+        if (currentParts.Value >= requiredParts.Value) return;
 
         if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client))
         {
             PlayerInventory inv = client.PlayerObject.GetComponent<PlayerInventory>();
-
-            // 인벤토리에서 부속품 1개 정상 차감 성공 시
             if (inv != null && inv.RemoveItemByServer(repairPartItemID))
             {
                 currentParts.Value++;
-                Debug.Log($"<color=cyan>[Quest]</color> 부속 장착됨! ({currentParts.Value}/{requiredParts.Value})");
-
-                // 목표 개수 도달 시
-                if (currentParts.Value >= requiredParts.Value)
-                {
-                    // 1. 팀원 코드 강제 작동! (레버 돌아가고 랜덤으로 문이 열림)
-                    teammateGenerator.CompleteRepairServerRpc();
-
-                    // 2. Easy 난이도면 그 즉시 퀘스트 클리어
-                    if (currentQuestData != null && currentQuestData.difficulty == QuestDifficulty.Easy)
-                    {
-                        QuestManager.Instance.NotifyCustomQuestMet(currentQuestData.questID, clientId);
-                        Debug.Log("<color=lime>[Quest]</color> 발전기 가동! (Easy) 퀘스트 즉시 완료.");
-                    }
-                }
             }
         }
     }
 
-    // 팀원 코드가 문을 열었을 때 자동으로 반응하는 콜백 함수
-    private void OnTeammateGeneratorRepaired(bool previousValue, bool newValue)
+    private void OnBaseGeneratorRepaired(bool previous, bool current)
     {
-        if (!IsServer || !newValue || !isQuestTarget.Value) return;
+        if (!IsServer || !current || !isQuestTarget.Value) return;
 
-        // Normal / Hard 난이도일 경우, 새로 열린 방 안에 타겟 수집 아이템 소환
-        if (currentQuestData != null && currentQuestData.difficulty != QuestDifficulty.Easy)
+        if (currentParts.Value < requiredParts.Value)
         {
-            StartCoroutine(SpawnItemBehindUnlockedDoorRoutine());
+            // 부품이 부족한데 수리 완료가 되면 강제로 되돌림 (핵 방지 및 로직 보호)
+            baseGenerator.isRepaired.Value = false;
+            return;
         }
-    }
 
-    private IEnumerator SpawnItemBehindUnlockedDoorRoutine()
-    {
-        // 팀원 코드가 랜덤하게 문을 열어주는 시간을 살짝 대기
-        yield return new WaitForSeconds(0.5f);
-
-        // 방금 열린 문을 추적
-        foreach (var room in roomSpawnPoints)
+        if (currentQuestData != null && currentQuestData.difficulty == QuestDifficulty.Easy)
         {
-            if (room.door != null && room.door.isOpen.Value)
-            {
-                // 해당 문 방 안쪽에 퀘스트 아이템(1손 or 양손 수집품) 소환
-                ItemBase prefab = GameSessionManager.Instance.GetPrefab(currentQuestData.targetItemID);
-                if (prefab != null && room.spawnLocation != null)
-                {
-                    ItemBase spawned = Instantiate(prefab, room.spawnLocation.position, room.spawnLocation.rotation);
-                    spawned.GetComponent<NetworkObject>().Spawn();
-                    Debug.Log($"<color=lime>[Quest]</color> {room.door.name} 내부에 타겟 아이템({prefab.itemData.itemName}) 스폰 완료. 가져오십시오!");
-                }
-                break;
-            }
+            QuestManager.Instance.NotifyCustomQuestMet(currentQuestData.questID, NetworkManager.ServerClientId);
         }
     }
 }

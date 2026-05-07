@@ -20,36 +20,60 @@ public class SettlementZone : NetworkBehaviour
         zoneCol.isTrigger = true;
     }
 
-    private void Start() => SpawnItems();
-
-    private void OnTriggerEnter(Collider other)
+    private void Start()
     {
-        if (!IsServer) return;
-
-        QuestCollectionItem questItem = other.GetComponentInParent<QuestCollectionItem>();
-        // 누군가 손에 들고 있는 아이템은 트럭 바닥 리스트에 넣지 않음 (인벤토리에서 별도 정산)
-        if (questItem != null && !questItem.isEquipped)
-        {
-            int qId = questItem.itemData.itemID;
-            if (!QuestManager.Instance.itemsInTruck.Contains(qId))
-                QuestManager.Instance.itemsInTruck.Add(qId);
-
-            QuestManager.Instance.NotifyLocalClientToggleClientRpc(qId, true, RpcTarget.Everyone);
-        }
+        SpawnItems();
+        // [수술적 변화] 서버에서만 0.5초 주기 스캐너 가동
+        if (IsServer) StartCoroutine(TruckScanRoutine());
     }
 
-    private void OnTriggerExit(Collider other)
+    // [수술적 변화] 물리 버그 원천 차단을 위한 강제 스캔 루틴 (기존 Trigger 방식 대체)
+    private IEnumerator TruckScanRoutine()
     {
-        if (!IsServer) return;
-        QuestCollectionItem questItem = other.GetComponentInParent<QuestCollectionItem>();
+        WaitForSeconds wait = new WaitForSeconds(0.5f);
 
-        if (questItem != null)
+        while (true)
         {
-            int qId = questItem.itemData.itemID;
-            if (QuestManager.Instance.itemsInTruck.Contains(qId))
-                QuestManager.Instance.itemsInTruck.Remove(qId);
+            yield return wait;
+            if (isTransitioning || QuestManager.Instance == null) continue;
 
-            QuestManager.Instance.NotifyLocalClientToggleClientRpc(qId, false, RpcTarget.Everyone);
+            // 정산 로직과 완전히 동일한 박스 스캔 영역 생성
+            Vector3 center = transform.position + transform.TransformDirection(zoneCol.center);
+            Vector3 halfExtents = Vector3.Scale(zoneCol.size, transform.lossyScale) * 0.5f;
+            Collider[] targets = Physics.OverlapBox(center, halfExtents, transform.rotation);
+
+            List<int> currentDetectedIds = new List<int>();
+
+            // 1. 현재 트럭 안에 내려놓아진 모든 아이템 ID 수집
+            foreach (var t in targets)
+            {
+                ItemBase item = t.GetComponentInParent<ItemBase>();
+                if (item != null && !item.isEquipped)
+                {
+                    currentDetectedIds.Add(item.itemData.itemID);
+                }
+            }
+
+            // 2. 새로 감지된 아이템 UI 체크 켜기
+            foreach (int id in currentDetectedIds)
+            {
+                if (!QuestManager.Instance.itemsInTruck.Contains(id))
+                {
+                    QuestManager.Instance.itemsInTruck.Add(id);
+                    QuestManager.Instance.NotifyLocalClientToggleClientRpc(id, true, RpcTarget.Everyone);
+                }
+            }
+
+            // 3. 트럭 밖으로 나간(혹은 누군가 다시 집어든) 아이템 UI 체크 끄기 (역순회로 에러 방지)
+            for (int i = QuestManager.Instance.itemsInTruck.Count - 1; i >= 0; i--)
+            {
+                int trackedId = QuestManager.Instance.itemsInTruck[i];
+                if (!currentDetectedIds.Contains(trackedId))
+                {
+                    QuestManager.Instance.itemsInTruck.RemoveAt(i);
+                    QuestManager.Instance.NotifyLocalClientToggleClientRpc(trackedId, false, RpcTarget.Everyone);
+                }
+            }
         }
     }
 

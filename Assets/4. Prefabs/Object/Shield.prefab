@@ -192,6 +192,7 @@ GameObject:
   - component: {fileID: 1457712859463617959}
   - component: {fileID: 1251523771095860025}
   - component: {fileID: 2992772449965859119}
+  - component: {fileID: 672251109128946861}
   m_Layer: 16
   m_Name: GameObject
   m_TagString: Untagged
@@ -226,7 +227,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 0
+  GlobalObjectIdHash: 181297328
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -279,6 +280,28 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.76683044, y: 0.38869, z: 1.237587}
   m_Center: {x: -0.01625824, y: -0.305655, z: 0.093997955}
+--- !u!114 &672251109128946861
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 368704060572612103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef7a997c3d5536d40ad8ae493a8115e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestGeneratorAdapter
+  ShowTopMostFoldoutHeaderGroup: 1
+  baseGenerator: {fileID: 1251523771095860025}
+  floorLevel: 1
+  repairPartItemID: 401
+  isQuestTarget:
+    m_InternalValue: 0
+  currentParts:
+    m_InternalValue: 0
+  requiredParts:
+    m_InternalValue: 99
 --- !u!1 &687293907341691800
 GameObject:
   m_ObjectHideFlags: 0
@@ -1312,6 +1335,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:

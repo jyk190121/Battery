@@ -40,8 +40,16 @@ public class GeneratorController : NetworkBehaviour
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void CompleteRepairServerRpc()
     {
-        if (isRepaired.Value) return; 
-
+        if (isRepaired.Value) return;
+        QuestGeneratorAdapter adapter = GetComponent<QuestGeneratorAdapter>();
+        if (adapter != null && adapter.isQuestTarget.Value)
+        {
+            if (adapter.currentParts.Value < adapter.requiredParts.Value)
+            {
+                Debug.LogWarning("부품이 부족하여 발전기를 가동할 수 없습니다.");
+                return; // 수리 중단
+            }
+        }
         isRepaired.Value = true;
         Debug.Log("<color=yellow>[Generator]</color> 수리 완료 랜덤 문 잠금 해제를 시도.");
 

@@ -133,7 +133,15 @@ public class GameSessionManager : NetworkBehaviour
         if (QuestManager.Instance != null)
         {
             QuestManager.Instance.ActivateCurrentSceneReturnPoints();
+
+            if (sceneName != "KJY_Lobby")
+            {
+                QuestManager.Instance.ActivateGeneratorGimmick();
+            }
+
         }
+
+
 
         Debug.Log($"<color=lime>[GameSessionManager]</color> {sceneName} 씬 로드 완료. 출발 자물쇠 해제.");
     }
