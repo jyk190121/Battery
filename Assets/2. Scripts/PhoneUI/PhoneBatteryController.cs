@@ -45,11 +45,13 @@ public class PhoneBatteryController : MonoBehaviour
     private void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
+        PortableBattery.OnBatteryUsed += RechargeBattery; // 휴대용 배터리 사용 시 충전
     }
 
     private void OnDisable()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
+        PortableBattery.OnBatteryUsed -= RechargeBattery;
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -110,5 +112,17 @@ public class PhoneBatteryController : MonoBehaviour
         // 텍스트 퍼센트 처리 (올림을 사용하여 0.1%라도 남아있으면 1%로 표시)
         int percent = Mathf.CeilToInt(ratio * 100f);
         batteryText.text = $"{percent}%";
+    }
+
+    public void RechargeBattery()
+    {
+        currentBattery = maxBattery;
+
+        if (PhoneUIController.Instance != null)
+        {
+            PhoneUIController.Instance.hasPower = true;
+        }
+
+        UpdateBatteryUI();
     }
 }
