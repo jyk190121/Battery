@@ -40,9 +40,16 @@ public enum SfxSound
     PHONE_GALLERYDELETE,  // 우클릭 홀드 중 게이지 차오르는 소리 (지속음)
     PHONE_GALLERYDELETED,  // 삭제 완료 소리
 
-    // 몬스터 관련 사운드
-    // 1. 환경
+    // 오브젝트 관련 사운드
+    // 1. 오브젝트
     VENT_CREAK,            // 환풍구 열리는 소리
+
+    // 몬스터 관련 사운드
+    // 1. 인형
+    MONS_SCREAM,           // 비명소리
+
+    // 환경 관련 사운드
+    // 1. 배경
     ENV_RAIN               // 빗소리
 }
 

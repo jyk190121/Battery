@@ -113,7 +113,7 @@ public class PlayerController : NetworkBehaviour
         if (SoundManager.Instance != null)
         {
             // newValue가 true면 실내(먹먹한 빗소리), false면 실외(선명한 빗소리)로 1초에 걸쳐 전환
-            SoundManager.Instance.SetIndoorSnapshot(newValue, 1.0f);
+            SoundManager.Instance.SetIndoorSnapshot(newValue, 0.1f);
         }
     }
 

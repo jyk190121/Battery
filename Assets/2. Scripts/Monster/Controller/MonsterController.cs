@@ -29,6 +29,8 @@ public class MonsterController : NetworkBehaviour
     public MonsterAnimation animHandler;
     [Tooltip("순찰 경로 매니저 (맵에 배치된 Waypoint 리스트)")]
     public WaypointManager waypointManager;
+    [Tooltip("몬스터 사운드 제어 시스템")]
+    public MonsterSound soundHandler;
 
     [Header("--- Map Zone ---")]
     [Tooltip("이 몬스터가 활동할 구역 (일반몹: School, 고스트: SpiritualWorld)")]
@@ -144,6 +146,7 @@ public class MonsterController : NetworkBehaviour
         animHandler = GetComponentInChildren<MonsterAnimation>();
         if (animHandler != null) _animator = animHandler.GetComponentInChildren<Animator>();
         waypointManager = FindAnyObjectByType<WaypointManager>();
+        soundHandler = GetComponent<MonsterSound>();
 
         scanner.Init(this, monsterData);
 
