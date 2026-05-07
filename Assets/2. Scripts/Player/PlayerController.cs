@@ -5,6 +5,9 @@ using UnityEngine;
 
 public class PlayerController : NetworkBehaviour
 {
+    // 서버와 사운드 매니저가 즉시 내 로컬 캐릭터를 찾을 수 있는 지정석
+    public static PlayerController LocalPlayer { get; private set; }
+
     [Header("사망 연계 설정")]
     public GameObject droppedPhonePrefab; // 바닥에 남겨질 콜라이더/ 폰 프리팹
     public GameObject playerModel;        // 플레이어 모델
@@ -52,6 +55,13 @@ public class PlayerController : NetworkBehaviour
             Debug.Log($"[서버 알림] 플레이어 접속: 현재 인원 {AllPlayers.Count}명");
         }
 
+        if (IsOwner)
+        {
+            LocalPlayer = this;
+            // 내가 시설 안팎을 오갈 때마다 사운드를 자동으로 변경하도록 콜백 등록
+            isInsideFacility.OnValueChanged += OnFacilityStatusChanged;
+        }
+
         StateManager.currentHealth.OnValueChanged += OnHealthChanged;
 
         // isDead 값이 바뀔 때마다 실행될 콜백 등록
@@ -87,10 +97,26 @@ public class PlayerController : NetworkBehaviour
             AllPlayers.Remove(this);
         }
 
+        if (IsOwner)
+        {
+            LocalPlayer = null;
+            isInsideFacility.OnValueChanged -= OnFacilityStatusChanged;
+        }
+
         StateManager.currentHealth.OnValueChanged -= OnHealthChanged;
         isDead.OnValueChanged -= OnDeadStatusChanged;
         base.OnNetworkDespawn();
     }
+
+    private void OnFacilityStatusChanged(bool previousValue, bool newValue)
+    {
+        if (SoundManager.Instance != null)
+        {
+            // newValue가 true면 실내(먹먹한 빗소리), false면 실외(선명한 빗소리)로 1초에 걸쳐 전환
+            SoundManager.Instance.SetIndoorSnapshot(newValue, 1.0f);
+        }
+    }
+
     void OnHealthChanged(float oldValue, float newValue)
     {
         // 서버에서만 사망 판정
