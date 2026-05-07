@@ -19,7 +19,7 @@ MonoBehaviour:
   difficulty: 0
   targetType: 
   baseReward: 150
-  bonusMultiplier: 1
+  bonusMultiplier: 0
   isHazardQuest: 1
   performancePoint: 15
   targetItemID: 0

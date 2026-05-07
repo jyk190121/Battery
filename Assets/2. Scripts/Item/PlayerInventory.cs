@@ -22,8 +22,7 @@ public class PlayerInventory : NetworkBehaviour
     public LayerMask itemLayer;
     public LayerMask obstacleLayer; //방해물 체크
 
-
-    [Header("Hand Transform Names")]
+    [Header("Hand Transform Names")]
     public string leftHandName = "OneHandle";
     public string bothHandsName = "BothHandle";
 
@@ -40,6 +39,11 @@ public class PlayerInventory : NetworkBehaviour
     private DepartureButton lastLookedButton;
     private DoorController lastLookedDoor;
     private QuestReturnPoint lastLookedReturnPoint;
+
+    // [저주 아이템 상태 관리용 변수]
+    private Coroutine curseRoutine = null;
+    private bool currentHasAggro = false;
+    private bool currentHasHallucination = false;
 
     public override void OnNetworkSpawn()
     {
@@ -86,55 +90,35 @@ public class PlayerInventory : NetworkBehaviour
         return null;
     }
 
-    // 콜라이더를 끄는 대신 Trigger와 레이어를 제어합니다.
-    private void SetItemPhysicsAndLayer(ItemBase item, bool equipped)
+    private void SetItemPhysicsAndLayer(ItemBase item, bool equipped)
     {
         if (item == null) return;
 
-        // 자식까지 포함하여 콜라이더를 찾아 Trigger 상태를 동기화합니다.
-        Collider col = item.GetComponentInChildren<Collider>();
+        Collider col = item.GetComponentInChildren<Collider>();
         if (col != null)
         {
             col.isTrigger = equipped;
         }
 
-        // 물리 연산 중단/재개
-        if (item.TryGetComponent(out Rigidbody rb))
+        if (item.TryGetComponent(out Rigidbody rb))
         {
             rb.isKinematic = equipped;
         }
 
-        // 레이어 변경 (EquippedItem <-> Item)
-        item.gameObject.layer = LayerMask.NameToLayer(equipped ? "EquippedItem" : "Item");
+        item.gameObject.layer = LayerMask.NameToLayer(equipped ? "EquippedItem" : "Item");
     }
 
     void Update()
     {
         if (!IsOwner) return;
 
-        // [1차 방어] 최상위 제어 잠금 (스마트폰 오픈, 기절 등 시스템 락)
         if (isControlLocked) return;
         if (PhoneUIController.Instance != null && PhoneUIController.Instance.isPhoneActive) return;
 
-        // 상호작용 대상 탐색 및 마우스 휠 슬롯 변경은 항상 체크합니다.
         CheckInteraction();
-        //HandleSlotChange();
 
-        //// [2차 & 3차 방어] 좌클릭 (아이템 사용 / 무기 공격)
-        //if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
-        //{
-        //    // 현재 들고 있는 아이템이 '무기'가 아닐 때만 인벤토리의 소모품(섬광탄 등)을 사용합니다.
-        //    if (!IsHoldingWeapon())
-        //    {
-        //        // 내부 4차 방어(빈손 체크)는 HandleItemUse() 안에서 수행됨
-        //        HandleItemUse();
-        //    }
-        //}
-
-        // 키보드 입력 (상호작용 / 버리기) - 무기를 들어도 정상 작동!
         if (Keyboard.current != null)
         {
-            // 상호작용 (E)
             if (Keyboard.current[Key.E].wasPressedThisFrame)
             {
                 if (lastLookedButton != null) lastLookedButton.Interact(this);
@@ -150,17 +134,16 @@ public class PlayerInventory : NetworkBehaviour
                 else if (lastLookedItem != null) TryPickUpAction();
             }
 
-            // 버리기 (G)
             if (Keyboard.current[Key.G].wasPressedThisFrame)
             {
                 RequestDropCurrentItem();
             }
         }
 
-        HandleSlotChange(); // 슬롯 변경은 인벤토리의 역할
+        HandleSlotChange();
     }
+
     #region 변경점
-    // PlayerEquipment에서 호출할 수 있도록 슬롯 변경 시 이벤트를 발생시킴
     void HandleSlotChange()
     {
         if (twoHandedItem != null) return;
@@ -182,13 +165,12 @@ public class PlayerInventory : NetworkBehaviour
         ItemBase newHeldItem = slots[currentSlotIndex];
         if (newHeldItem != null) newHeldItem.gameObject.SetActive(true);
 
-        // 장착 스크립트에 아이템 변경 알림
         if (TryGetComponent(out PlayerEquipment equipment)) equipment.OnSlotItemChanged(newHeldItem);
 
         if (IsOwner) OnSlotChanged?.Invoke(currentSlotIndex);
     }
     #endregion
-   
+
     private void CheckInteraction()
     {
         if (Camera.main == null) return;
@@ -201,9 +183,8 @@ public class PlayerInventory : NetworkBehaviour
             if (Physics.Linecast(camPos, checkEndPos, obstacleLayer))
             {
                 ClearHighlight();
-                return; // 벽이나 닫힌 문에 가려졌음! 
-            }
-
+                return;
+            }
 
             ItemBase targetItem = hit.collider.GetComponentInParent<ItemBase>();
             if (targetItem != null && !targetItem.isEquipped)
@@ -226,7 +207,6 @@ public class PlayerInventory : NetworkBehaviour
 
             if (hit.collider.TryGetComponent(out QuestReturnPoint returnPoint))
             {
-                // 내 퀘스트 목록에 있는 포인트일 때만 반응 
                 if (returnPoint.IsInteractable())
                 {
                     if (lastLookedReturnPoint != returnPoint)
@@ -238,7 +218,6 @@ public class PlayerInventory : NetworkBehaviour
                     }
                     return;
                 }
-                // 💡 내 퀘스트가 아니라면 아무것도 잡히지 않은 것처럼 처리
                 else
                 {
                     ClearHighlight();
@@ -309,7 +288,6 @@ public class PlayerInventory : NetworkBehaviour
 
         item.isEquipped = true;
 
-      
         item.NetworkObject.ChangeOwnership(rpcParams.Receive.SenderClientId);
         NotifyPickUpClientRpc(itemNetId);
     }
@@ -330,16 +308,14 @@ public class PlayerInventory : NetworkBehaviour
 
         if (emptySlotIndex == -1) return;
 
-        // 💡 콜라이더를 끄는 대신 Trigger 상태로 전환
-        SetItemPhysicsAndLayer(item, true);
+        SetItemPhysicsAndLayer(item, true);
 
         if (item.itemData.handType == HandType.TwoHand)
         {
             slots[emptySlotIndex] = item;
             twoHandedItem = item;
 
-            // 두 손 아이템 장착 시 기존 한 손 아이템만 시각적으로 비활성화 (물리는 Trigger 유지)
-            if (slots[currentSlotIndex] != null && slots[currentSlotIndex] != item)
+            if (slots[currentSlotIndex] != null && slots[currentSlotIndex] != item)
                 slots[currentSlotIndex].gameObject.SetActive(false);
 
             item.ExecuteChangeOwnership(true, bothHandsTransform);
@@ -350,8 +326,7 @@ public class PlayerInventory : NetworkBehaviour
             slots[emptySlotIndex] = item;
             item.ExecuteChangeOwnership(true, leftHandTransform);
 
-            // 현재 슬롯이 아니면 시각적으로만 비활성화
-            if (emptySlotIndex != currentSlotIndex) item.gameObject.SetActive(false);
+            if (emptySlotIndex != currentSlotIndex) item.gameObject.SetActive(false);
         }
 
         if (IsOwner) OnInventoryUpdated?.Invoke();
@@ -379,27 +354,22 @@ public class PlayerInventory : NetworkBehaviour
             RequestDropServerRpc(itemToDrop.NetworkObjectId, dropPos, throwDir);
         }
     }
-    /// <summary>
-    /// [서버 전용] 외부 요인(몬스터 피격 등)으로 인해 현재 손에 든 아이템을 강제로 떨어뜨립니다.
-    /// </summary>
-    public void ForceDropCurrentItemServer()
+
+    public void ForceDropCurrentItemServer()
     {
         if (!IsServer) return;
 
-        // HeldItem 프로퍼티를 사용하여 양손 무기든 단축키 아이템이든 현재 손에 든 것을 가져옴
-        ItemBase itemToDrop = HeldItem;
+        ItemBase itemToDrop = HeldItem;
 
         if (itemToDrop != null)
         {
-            // 플레이어 몸통 살짝 위에서 바닥으로 툭 떨어지도록 위치/방향 설정
-            Vector3 dropOrigin = transform.position + Vector3.up * 0.8f;
+            Vector3 dropOrigin = transform.position + Vector3.up * 0.8f;
             Vector3 dropDir = (transform.forward * 0.5f + Vector3.up * 0.5f).normalized;
 
             ForceDropItem(itemToDrop, dropOrigin, dropDir);
             Debug.Log($"<color=orange>[Inventory]</color> 충격으로 인해 {itemToDrop.itemData.itemName}을(를) 떨어뜨렸습니다!");
         }
     }
-
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     private void RequestDropServerRpc(ulong itemNetId, Vector3 dropPos, Vector3 throwDir)
@@ -426,8 +396,7 @@ public class PlayerInventory : NetworkBehaviour
         for (int i = 0; i < slots.Length; i++)
             if (slots[i] == item) slots[i] = null;
 
-        // 💡 버릴 때 다시 일반 콜라이더 및 레이어로 복구
-        SetItemPhysicsAndLayer(item, false);
+        SetItemPhysicsAndLayer(item, false);
 
         item.gameObject.SetActive(true);
         item.transform.position = dropPos;
@@ -480,8 +449,7 @@ public class PlayerInventory : NetworkBehaviour
             ItemBase item = netObj.GetComponent<ItemBase>();
             slots[slotIdx] = item;
 
-            // 복구 시에도 물리 상태 설정
-            SetItemPhysicsAndLayer(item, true);
+            SetItemPhysicsAndLayer(item, true);
 
             Transform targetHand = (item.itemData.handType == HandType.TwoHand) ? bothHandsTransform : leftHandTransform;
             item.ExecuteChangeOwnership(true, targetHand);
@@ -534,8 +502,6 @@ public class PlayerInventory : NetworkBehaviour
         return false;
     }
 
-    // (기존 PlayerInventory.cs 내부에 위치)
-
     public bool RemoveItemByServer(int itemID)
     {
         if (!IsServer) return false;
@@ -544,7 +510,6 @@ public class PlayerInventory : NetworkBehaviour
         int slotIdx = -1;
         bool isTwoHand = false;
 
-        // 양손 무기 검사
         if (twoHandedItem != null && twoHandedItem.itemData.itemID == itemID)
         {
             itemToRemove = twoHandedItem;
@@ -552,7 +517,6 @@ public class PlayerInventory : NetworkBehaviour
         }
         else
         {
-            // 단축키 슬롯 전수 검사
             for (int i = 0; i < slots.Length; i++)
             {
                 if (slots[i] != null && slots[i].itemData.itemID == itemID)
@@ -566,7 +530,6 @@ public class PlayerInventory : NetworkBehaviour
 
         if (itemToRemove != null)
         {
-            // 네트워크 객체 파괴 전, 모든 클라이언트의 배열을 먼저 비우도록 지시
             NotifySyncItemRemovedClientRpc(slotIdx, isTwoHand);
 
             if (itemToRemove.NetworkObject != null && itemToRemove.NetworkObject.IsSpawned)
@@ -605,22 +568,20 @@ public class PlayerInventory : NetworkBehaviour
             RefreshQuestDebuffTiming();
         }
     }
+
     public void DropAllItemsOnDeathServer()
     {
         if (!IsServer) return;
 
-        // 플레이어 몸통 살짝 위를 드롭 기준점으로 설정
-        Vector3 dropOrigin = transform.position + Vector3.up * 0.8f;
+        Vector3 dropOrigin = transform.position + Vector3.up * 0.8f;
 
-        // 1. 양손 아이템 떨어뜨리기
-        if (twoHandedItem != null)
+        if (twoHandedItem != null)
         {
             Vector3 randomDir = new Vector3(UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(0.5f, 1.5f), UnityEngine.Random.Range(-1f, 1f)).normalized;
             ForceDropItem(twoHandedItem, dropOrigin, randomDir);
         }
 
-        // 2. 인벤토리(단축키) 슬롯 아이템 모두 떨어뜨리기
-        for (int i = 0; i < slots.Length; i++)
+        for (int i = 0; i < slots.Length; i++)
         {
             if (slots[i] != null)
             {
@@ -634,8 +595,7 @@ public class PlayerInventory : NetworkBehaviour
     {
         if (item != null && item.NetworkObject != null && item.NetworkObject.IsSpawned)
         {
-            // 소유권 박탈 후, 기존에 만들어둔 '버리기 RPC'를 그대로 호출하여 모든 클라이언트 동기화
-            item.NetworkObject.RemoveOwnership();
+            item.NetworkObject.RemoveOwnership();
             NotifyItemDroppedClientRpc(item.NetworkObjectId, pos, dir);
         }
     }
@@ -654,13 +614,12 @@ public class PlayerInventory : NetworkBehaviour
         }
     }
 
-
-
     public void SetControlLock(bool locked)
     {
         isControlLocked = locked;
         if (locked) ClearHighlight();
     }
+
     public void ClearItemReference(ItemBase item)
     {
         if (item == twoHandedItem)
@@ -680,37 +639,116 @@ public class PlayerInventory : NetworkBehaviour
             }
         }
 
-        // 내 화면(UI) 즉시 새로고침
-        if (IsOwner)
+        if (IsOwner)
         {
             OnInventoryUpdated?.Invoke();
             OnSlotChanged?.Invoke(currentSlotIndex);
         }
     }
 
+    // ==========================================
+    // [저주 기믹 연동부]
+    // ==========================================
     private void RefreshQuestDebuffTiming()
     {
-        if (!IsOwner) return;
+        if (!IsOwner || QuestManager.Instance == null) return;
 
-        int tier = 0; // 0: 디버프 없음
+        bool applySpeedDebuff = false;
+        bool applyAggro = false;
+        bool applyHallucination = false;
 
-        // 인벤토리 슬롯과 양손 아이템을 합쳐서 검사
         List<ItemBase> checkList = new List<ItemBase>(slots);
         if (twoHandedItem != null) checkList.Add(twoHandedItem);
 
         foreach (var item in checkList)
         {
             if (item == null) continue;
-
             int id = item.itemData.itemID;
 
-            // 기획서의 특정 ID만 체크하여 단계(tier) 설정 (가장 높은 단계가 우선순위)
-            if (id == 3020) tier = 3;
-            else if (id == 2020 && tier < 2) tier = 2;
-            else if (id == 1020 && tier < 1) tier = 1;
+            // 중앙 퀘스트 매니저를 통해 기획서 데이터(QuestDataSO) 동적 참조
+            foreach (int qId in QuestManager.Instance.activeQuests)
+            {
+                QuestDataSO qData = QuestManager.Instance.GetQuestData(qId);
+                if (qData != null && qData.targetItemID == id)
+                {
+                    if (qData.hasSpeedDebuff) applySpeedDebuff = true;
+                    if (qData.hasMonsterAggro) applyAggro = true;
+                    if (qData.hasHallucination) applyHallucination = true;
+                }
+            }
         }
 
-        // 딱 숫자(1, 2, 3)만 던집니다.
-        QuestCollectionItem.ApplyDifficultyDebuffs(tier);
+        // 1. 이동속도 디버프 즉시 적용
+        if (TryGetComponent(out PlayerMove move))
+        {
+            move.questSpeedMultiplier = applySpeedDebuff ? 0.75f : 1.0f;
+            Debug.Log("<color=blue>[Curse]</color> 이동속도 제한.");
+        }
+
+        // 2. 코루틴을 이용한 어그로/환청 제어
+        currentHasAggro = applyAggro;
+        currentHasHallucination = applyHallucination;
+
+        if (applyAggro || applyHallucination)
+        {
+            if (curseRoutine == null) curseRoutine = StartCoroutine(CurseEffectRoutine());
+        }
+        else
+        {
+            if (curseRoutine != null)
+            {
+                StopCoroutine(curseRoutine);
+                curseRoutine = null;
+            }
+        }
     }
+
+    private System.Collections.IEnumerator CurseEffectRoutine()
+    {
+        WaitForSeconds wait = new WaitForSeconds(7.0f); // 기획에 맞춰 주기 조절
+
+        while (true)
+        {
+            yield return wait;
+
+            if (currentHasAggro)
+            {
+                // [핵심] SoundManager의 몬스터 호출 함수를 그대로 사용
+                // 내 컴퓨터에서 3D 사운드를 재생하고, 몬스터 매니저에게 소음을 신고함
+                SoundManager.Instance.PlaySfxAndReportNoise(SfxSound.VENT_CREAK, transform.position, 1.0f);
+
+                // 다른 팀원들도 이 공포스러운 소리를 들어야 하므로 사운드 동기화 지시
+                PlayCurseAggroSoundServerRpc();
+
+                Debug.Log("<color=red>[Curse]</color> 소지한 저주 아이템이 괴물을 부릅니다!");
+            }
+
+            if (currentHasHallucination)
+            {
+                // [핵심] 오직 '나(Owner)'에게만 들리는 로컬 2D 사운드 재생
+                SoundManager.Instance.PlaySfx(SfxSound.ENV_RAIN);
+                Debug.Log("<color=purple>[Curse]</color> 등 뒤에서 발소리가 들린 것 같다...");
+            }
+        }
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    private void PlayCurseAggroSoundServerRpc()
+    {
+        // 서버를 거쳐 '나를 제외한 나머지 팀원들'에게만 사운드 재생 명령을 내림
+        PlayCurseAggroSoundClientRpc();
+    }
+
+    // SendTo.NotMe: 나는 이미 PlaySfxAndReportNoise로 소리를 들었으므로 제외함
+    [Rpc(SendTo.NotMe)]
+    private void PlayCurseAggroSoundClientRpc()
+    {
+        // 팀원들의 컴퓨터에서는 몬스터에게 소음을 이중 신고하지 않도록 순수 사운드만 재생함
+        AudioClip clip = SoundManager.Instance.GetSfxClip(SfxSound.VENT_CREAK);
+        if (clip != null)
+        {
+            AudioSource.PlayClipAtPoint(clip, transform.position);
+        }
+    }
+
 }

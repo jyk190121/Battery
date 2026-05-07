@@ -12,6 +12,7 @@ public class PlayerMove : NetworkBehaviour
     public float crouchSpeed = 1.5f;                // 추가: 앉았을 때 속도
     public float currentSpeed;                      // 현재 적용될 속도
     float inputMagnitude;                           // 실시간 입력
+    [HideInInspector] public float questSpeedMultiplier = 1.0f; // 저주아이템을 들었을 때 속도 배율
 
     [Header("점프 설정")]
     public float jumpForce = 5.0f;                  // 점프 위력
@@ -303,7 +304,7 @@ public class PlayerMove : NetworkBehaviour
 
             //currentSpeed = (canRun ? runSpeed : walkSpeed) * moveSpeedMultiplier;
 
-            currentSpeed *= moveSpeedMultiplier;
+            currentSpeed *= (moveSpeedMultiplier * questSpeedMultiplier);
             bool isRunning = Keyboard.current.leftShiftKey.isPressed && !isCrouching && isGrounded && !stateManager.IsExhausted;
             playerAnim.UpdateMoveAnimation(isRunning ? 2.0f : 1.0f);
 
