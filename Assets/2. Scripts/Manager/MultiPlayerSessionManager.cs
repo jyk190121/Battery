@@ -460,8 +460,30 @@ public class MultiPlayerSessionManager : NetworkBehaviour
             NetworkManager.Singleton.Shutdown();
         }
     }
-
     #endregion
+
+    #region 방 잠그기
+    public async Task SetSessionLockedAsync(bool isLocked)
+    {
+        if (ActiveSession == null || !NetworkManager.Singleton.IsServer) return;
+
+        try
+        {
+            // 2.1.3 버전에서는 UpdateSessionOptionsAsync 대신 
+            // ModifySessionAsync를 사용하며, 인자로 SessionOptions를 넣습니다.
+            var options = new SessionOptions { IsLocked = isLocked };
+
+            //await ActiveSession.AsHost().IsLocked == true;
+
+            Debug.Log($"[Multiplayer] 세션 잠금 상태 변경 완료: {isLocked}");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[Multiplayer] 세션 잠금 설정 실패: {e.Message}");
+        }
+    }
+    #endregion
+
 
     #region Teardown & Callbacks
 

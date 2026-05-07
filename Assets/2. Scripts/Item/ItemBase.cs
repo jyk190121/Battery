@@ -1,6 +1,7 @@
 using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
+using UnityEngine.Splines;
 
 public abstract class ItemBase : NetworkBehaviour
 {
@@ -62,14 +63,26 @@ public abstract class ItemBase : NetworkBehaviour
         }
         else
         {
-            // NGO 에러 원인(TryRemoveParent) 삭제됨
-
+            if (itemPhysicsRigidbody != null) itemPhysicsRigidbody.isKinematic = false;
             if (netTransform != null)
             {
-                netTransform.Teleport(transform.position, transform.rotation, transform.localScale);
+                // 중요: Teleport는 '서버' 권한이 있는 쪽에서만 호출합니다.
+                if (IsServer)
+                {
+                    // 현재 transform 위치로 동기화 위치를 강제 설정합니다.
+                    netTransform.Teleport(transform.position, transform.rotation, transform.localScale);
+                }
+
+                // NetworkTransform을 다시 켜서 동기화를 재개합니다. (모든 클라이언트 공통)
                 netTransform.enabled = true;
             }
-            if (itemPhysicsRigidbody != null) itemPhysicsRigidbody.isKinematic = false;
+
+        //if (netTransform != null)
+        //    {
+        //        netTransform.Teleport(transform.position, transform.rotation, transform.localScale);
+        //        netTransform.enabled = true;
+        //    }
+        //    if (itemPhysicsRigidbody != null) itemPhysicsRigidbody.isKinematic = false;
         }
     }
     private void ForceSnapPosition()
