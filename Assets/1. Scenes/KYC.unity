@@ -2134,7 +2134,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee077a08b42119c4ea74bee056020873, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WaypointManager
-  waypoints: []
+  zoneSettings: []
 --- !u!4 &1751721011
 Transform:
   m_ObjectHideFlags: 0
@@ -3682,6 +3682,10 @@ PrefabInstance:
     - target: {fileID: 8410219561046351198, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: GlobalObjectIdHash
       value: 1468074303
+      objectReference: {fileID: 0}
+    - target: {fileID: 8411356793696649046, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8487420049944382545, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: GlobalObjectIdHash
