@@ -42320,6 +42320,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -48440,6 +48442,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -55732,6 +55736,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -102275,6 +102281,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -286425,6 +286433,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:

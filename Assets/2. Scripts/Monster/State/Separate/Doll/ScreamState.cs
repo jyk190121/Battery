@@ -58,7 +58,7 @@ public class ScreamState : MonsterBaseState
         if (_targetPlayer != null && _targetPlayer.TryGetComponent<PlayerController>(out var playerController))
         {
             // owner.PlayScreamSoundClientRpc(playerController.OwnerClientId); 
-            // (이 Rpc 함수는 MonsterController에 작성하시면 됩니다)
+            SoundManager.Instance.GetSfxClip(SfxSound.MONS_SCREAM);
             Debug.Log($"<color=red>[Doll]</color> {playerController.name}의 클라이언트 화면에 끔찍한 비명 소리 재생!");
         }
 
