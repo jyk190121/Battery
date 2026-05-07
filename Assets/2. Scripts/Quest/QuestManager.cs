@@ -338,7 +338,91 @@ public class QuestManager : NetworkBehaviour
         Debug.Log($"<color=lime>[Safe Debug] 5. 완벽 성공! 내부에 '{prefab.itemData.itemName}' 스폰 완료.</color>");
         return true;
     }
-   
+    public void AssignDailyGeneratorTargets()
+    {
+        if (!IsServer) return;
+
+        // 1. 모든 발전기와 문 목록 확보 (어댑터 유무 무관)
+        var allGenerators = Object.FindObjectsByType<GeneratorController>(FindObjectsSortMode.None).ToList();
+        var allDoors = Object.FindObjectsByType<DoorController>(FindObjectsSortMode.None).ToList();
+
+        int[] genQuestIDs = { 1010, 2010, 3010 };
+        int activeId = 0;
+
+        foreach (int id in activeQuests)
+        {
+            if (genQuestIDs.Contains(id))
+            {
+                activeId = id;
+                break;
+            }
+        }
+
+        QuestDataSO qData = (activeId != 0) ? GetQuestData(activeId) : null;
+        GeneratorController questGen = null;
+
+        // 2. 퀘스트 발전기 및 타겟 문 우선 매칭 (완전 랜덤)
+        if (qData != null)
+        {
+            // 스폰 가능한 문을 최소 1개 이상 가진 발전기들을 모두 수집
+            var validQuestGens = allGenerators.Where(g =>
+                g.TryGetComponent(out QuestGeneratorAdapter a) &&
+                g.linkableDoors.Any(d => d != null && d.questItemSpawnPoint != null)
+            ).ToList();
+
+            if (validQuestGens.Count > 0)
+            {
+                // 후보 중 무작위 발전기 1대 선택
+                questGen = validQuestGens[Random.Range(0, validQuestGens.Count)];
+
+                // 해당 발전기가 가진 '스폰 가능한 문'들만 추려냄
+                var validDoors = questGen.linkableDoors.Where(d => d != null && d.questItemSpawnPoint != null).ToList();
+
+                // 무작위 문 1개 선택
+                DoorController qDoor = validDoors[Random.Range(0, validDoors.Count)];
+
+                allDoors.Remove(qDoor); // 전체 풀에서 독점 제명
+                questGen.GetComponent<QuestGeneratorAdapter>().SetupQuestTarget(qData, qDoor);
+            }
+        }
+
+        // 3. 나머지 '모든' 일반 발전기 강제 1:1 매칭 (완전 랜덤)
+        foreach (var gen in allGenerators)
+        {
+            if (gen == questGen) continue; // 퀘스트 발전기는 패스
+
+            // 현재 남은 문 풀(allDoors)에서 이 발전기가 원래 열 수 있던 문들을 추려냄
+            var possibleDoors = allDoors.Where(d => gen.linkableDoors.Contains(d)).ToList();
+
+            gen.linkableDoors.Clear(); // 어댑터 유무 상관없이 무조건 기존 리스트 파괴
+
+            if (possibleDoors.Count > 0)
+            {
+                // 일반 발전기도 남은 후보들 중 '무작위'로 하나 선택
+                DoorController targetDoor = possibleDoors[Random.Range(0, possibleDoors.Count)];
+
+                allDoors.Remove(targetDoor);      // 다른 발전기가 못 가져가게 풀에서 제거
+                gen.linkableDoors.Add(targetDoor); // 1:1 확정
+
+                // 만약 이 일반 발전기에 어댑터가 달려있다면 변수만 false로 정리
+                if (gen.TryGetComponent(out QuestGeneratorAdapter adapter))
+                {
+                    adapter.isQuestTarget.Value = false;
+                }
+                gen.enabled = true; // 가동 가능 상태로 전환
+            }
+            // 매칭할 수 있는 문이 없다면 리스트가 Count 0인 상태로 비워져 안전하게 먹통 처리됨.
+        }
+    }
+    public void ActivateGeneratorGimmick()
+    {
+        if (!IsServer) return;
+
+        AssignDailyGeneratorTargets();
+
+        Debug.Log($"<color=lime>[Generator]</color> 일일 발전기 1:1 확정 매칭 완료.");
+    }
+
     //구형 로직 --------------------------------------------------------------------------------------------------------------------
 
     //private void Generate3Plus1(NetworkList<int> targetList, int minMain, int maxMain, int minSub, int maxSub)

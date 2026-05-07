@@ -25,7 +25,7 @@ MonoBehaviour:
   performancePoint: 20
   targetItemID: 0
   passwordCount: 0
-  materialCount: 0
+  materialCount: 2
   hasSpeedDebuff: 0
   hasMonsterAggro: 0
   hasHallucination: 0

@@ -37,6 +37,7 @@ public class PlayerInteraction : NetworkBehaviour
     private TabletUIManager targetTabletUI = null;
     private LockerController targetLocker = null;
     private GeneratorController targetGenerator = null;
+    private QuestGeneratorAdapter targetQuestGenerator = null;
     CarController carDoor = null;
 
     public override void OnNetworkSpawn()
@@ -173,15 +174,35 @@ public class PlayerInteraction : NetworkBehaviour
             }
             else if (targetGenerator != null && !targetGenerator.isRepaired.Value)
             {
-                if (Keyboard.current.eKey.isPressed)
+                // 1. 퀘스트 타겟이고 부품이 부족한 경우: 클릭으로 부품 삽입
+                if (targetQuestGenerator != null && targetQuestGenerator.isQuestTarget.Value && targetQuestGenerator.currentParts.Value < targetQuestGenerator.requiredParts.Value)
                 {
-                    currentHoldTime += Time.deltaTime;
-                    // 발전기마다 설정된 repairTime 사용
-                    if (progressImage != null) progressImage.fillAmount = currentHoldTime / targetGenerator.repairTime;
+                    ResetHold(); // 부품 삽입 중에는 홀드 게이지 초기화
 
-                    if (currentHoldTime >= targetGenerator.repairTime)
+                    if (Keyboard.current.eKey.wasPressedThisFrame)
                     {
-                        targetGenerator.CompleteRepairServerRpc();
+                        if (TryGetComponent(out PlayerInventory playerInv))
+                        {
+                            targetQuestGenerator.Interact(playerInv);
+                        }
+                    }
+                }
+                // 2. 일반 발전기이거나 부품이 다 찬 경우: 꾹 눌러서 3초 가동
+                else
+                {
+                    if (Keyboard.current.eKey.isPressed)
+                    {
+                        currentHoldTime += Time.deltaTime;
+                        if (progressImage != null) progressImage.fillAmount = currentHoldTime / targetGenerator.repairTime;
+
+                        if (currentHoldTime >= targetGenerator.repairTime)
+                        {
+                            targetGenerator.CompleteRepairServerRpc();
+                            ResetHold();
+                        }
+                    }
+                    else
+                    {
                         ResetHold();
                     }
                 }
@@ -251,7 +272,26 @@ public class PlayerInteraction : NetworkBehaviour
                 }
                 else if (targetGenerator != null)
                 {
-                    interactText.text = targetGenerator.GetInteractText();
+                    Debug.Log($"<color=cyan>[Interaction Debug]</color> 감지된 발전기: <b>{targetGenerator.gameObject.name}</b> | 어댑터 존재: {targetQuestGenerator != null}");
+                    // 어댑터를 찾는 경로를 콜라이더 본인부터 부모까지 샅샅이 뒤짐
+                    targetQuestGenerator = hit.collider.GetComponent<QuestGeneratorAdapter>();
+                    if (targetQuestGenerator == null)
+                        targetQuestGenerator = hit.collider.GetComponentInParent<QuestGeneratorAdapter>();
+
+                    // 어댑터를 찾았는지, 퀘스트 타겟으로 설정되었는지 콘솔에 출력
+                    // 이 로그가 False라면 컴포넌트가 안 붙어있거나 퀘스트가 시작되지 않은 것임
+                    // Debug.Log($"[Check] 발전기 감지! 어댑터: {targetQuestGenerator != null}, 퀘스트타겟: {(targetQuestGenerator != null ? targetQuestGenerator.isQuestTarget.Value.ToString() : "N/A")}");
+
+                    if (targetQuestGenerator != null && targetQuestGenerator.isQuestTarget.Value)
+                    {
+                        // QuestGeneratorAdapter의 GetInteractText()를 가져옴
+                        interactText.text = targetQuestGenerator.GetInteractText();
+                    }
+                    else
+                    {
+                        // 퀘스트가 아니면 원본 GeneratorController의 GetInteractText()를 가져옴
+                        interactText.text = targetGenerator.GetInteractText();
+                    }
                 }
                 return; // 찾았으므로 종료
             }
@@ -264,6 +304,7 @@ public class PlayerInteraction : NetworkBehaviour
         targetPortal = null;
         targetTabletUI = null;
         targetLocker = null;
+        targetQuestGenerator = null;
         carDoor = null;
     }
 
