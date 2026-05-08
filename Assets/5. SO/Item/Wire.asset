@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff10b20d6fe2cce4ab855ce5cb3e8034, type: 3}
-  m_Name: Scrap_Test
+  m_Name: Wire
   m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
-  itemID: 101
-  itemName: scrap1
+  itemID: 905
+  itemName: Wire
   handType: 0
-  category: 0
-  basePrice: 200
-  icon: {fileID: 21300000, guid: 11e23ef4c1c72ee4798dace5427c50ac, type: 3}
+  category: 5
+  basePrice: 0
+  icon: {fileID: 21300000, guid: f0fab051872be60498b91d22d759394d, type: 3}
   healAmount: 0
   animType: 0
   spawnLocation: 0
-  itemPrefab: {fileID: 7116581890818129184, guid: f6cdb16393c87e74496bcecc62cb368c, type: 3}
+  itemPrefab: {fileID: 9113708055048110818, guid: 3b79852300035f748b092aac08e198bf, type: 3}
   keyID: 

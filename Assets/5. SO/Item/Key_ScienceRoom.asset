@@ -18,7 +18,8 @@ MonoBehaviour:
   category: 7
   basePrice: 10
   icon: {fileID: 21300000, guid: b1524f1505ecdc34aa850a56f99572b8, type: 3}
+  healAmount: 0
   animType: 0
-  spawnLocation: 0
+  spawnLocation: 9
   itemPrefab: {fileID: 3019568617730713240, guid: 2c1bef62561d92341958dfccbadef112, type: 3}
   keyID: ScienceRoom
