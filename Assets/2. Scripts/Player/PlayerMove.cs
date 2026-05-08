@@ -65,11 +65,13 @@ public class PlayerMove : NetworkBehaviour
 
     PlayerAnim playerAnim;
     PlayerStateManager stateManager;
+    PlayerSound playerSound;
 
     public override void OnNetworkSpawn()
     {
         rb = GetComponent<Rigidbody>();
         col = GetComponent<CapsuleCollider>();
+        playerSound = GetComponent<PlayerSound>();
         initialHeight = col.height;
         initialCenter = col.center;
 
@@ -340,6 +342,8 @@ public class PlayerMove : NetworkBehaviour
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpForce, rb.linearVelocity.z);
             playerAnim.PlayJump();
             playerAnim.StopEmotions();
+
+            if (playerSound != null) playerSound.RequestJumpSound();
         }
 
         if (isGrounded && inputMagnitude < 0.1f)
