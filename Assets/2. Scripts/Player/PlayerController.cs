@@ -35,6 +35,7 @@ public class PlayerController : NetworkBehaviour
     public static List<PlayerController> AllPlayers = new List<PlayerController>();
     private int _currentSpectateIndex = -1;
     private PlayerAnim playerAnim;
+    private PlayerSound playerSound;
 
     private void Awake()
     {
@@ -42,6 +43,7 @@ public class PlayerController : NetworkBehaviour
         Interaction = GetComponent<PlayerInteraction>();
         playerRotation = GetComponent<PlayerRotation>();
         playerAnim = GetComponent<PlayerAnim>();
+        playerSound = GetComponent<PlayerSound>();
     }
 
     public override void OnNetworkSpawn()
@@ -210,6 +212,8 @@ public class PlayerController : NetworkBehaviour
         if (isDead.Value) return;
 
         StateManager.currentHealth.Value -= damage;
+
+        if (playerSound != null) playerSound.PlayHurtSoundClientRpc();
 
         //if (StateManager.currentHealth.Value <= 0)
         //{
