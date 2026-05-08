@@ -26573,7 +26573,10 @@ MonoBehaviour:
   baseSpawnCount: 10
   extraSpawnPerDifficulty: 2
   keySpawnChance: 15
-  safeDropPoint: {fileID: 1463900345}
+  safeDropPoints:
+  - {fileID: 1463900345}
+  - {fileID: 1463900345}
+  - {fileID: 1463900345}
   areaManagers: []
 --- !u!114 &1929271113
 MonoBehaviour:

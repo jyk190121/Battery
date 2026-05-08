@@ -17,7 +17,7 @@ public class ItemSpawner : NetworkBehaviour
     public float keySpawnChance = 15f;
 
     [Header("퀘스트 기믹 설정")]
-    public Transform safeDropPoint;
+    public Transform[] safeDropPoints = new Transform[3];
 
     [SerializeField] private List<ItemSpawnPoint> areaManagers = new List<ItemSpawnPoint>();
 
@@ -102,13 +102,29 @@ public class ItemSpawner : NetworkBehaviour
                 QuestDataSO questData = QuestManager.Instance.GetQuestData(activeQuestID);
                 if (questData == null) continue;
 
-                // [기믹 1] 금고 퀘스트 (1000, 2000, 3000)
+                // 금고 퀘스트 (1000: Easy, 2000: Normal, 3000: Hard)
                 if (activeQuestID == 1000 || activeQuestID == 2000 || activeQuestID == 3000)
                 {
                     ItemDataSO targetItemData = itemDatabase.FirstOrDefault(i => i.itemID == questData.targetItemID);
-                    if (targetItemData != null && safeDropPoint != null)
+                    if (targetItemData != null)
                     {
-                        SpawnObject(targetItemData, safeDropPoint.position, safeDropPoint.rotation);
+                        // 2~3층 금고 미구현 대응: 난이도 상관없이 무조건 1층 금고(인덱스 0) 사용
+                        Transform targetSafe = safeDropPoints[0];
+
+                        /* --- [향후 2~3층 금고 구현 시 아래 주석 해제 및 적용] ---
+                        if (activeQuestID == 1000 && safeDropPoints[0] != null) targetSafe = safeDropPoints[0];      // 1층
+                        else if (activeQuestID == 2000 && safeDropPoints[1] != null) targetSafe = safeDropPoints[1]; // 2층
+                        else if (activeQuestID == 3000 && safeDropPoints[2] != null) targetSafe = safeDropPoints[2]; // 3층
+                        ------------------------------------------------------------------------- */
+
+                        if (targetSafe != null)
+                        {
+                            SpawnObject(targetItemData, targetSafe.position, targetSafe.rotation);
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"<color=red>[Spawner]</color> 1층 금고(safeDropPoints[0]) Transform이 인스펙터에 할당되지 않았습니다!");
+                        }
                     }
                     continue; // 처리 완료 후 다음 퀘스트로
                 }
