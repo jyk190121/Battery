@@ -9,6 +9,11 @@ using Unity.Services.Core;
 using Unity.Services.Multiplayer;
 using UnityEngine;
 
+// 반드시 필요 (LobbyService.Instance.UpdateLobbyAsync 사용)
+using Unity.Services.Lobbies;
+using Unity.Services.Lobbies.Models;
+using System.Runtime.InteropServices;
+
 public class MultiPlayerSessionManager : NetworkBehaviour
 {
     public static MultiPlayerSessionManager Instance { get; private set; }
@@ -463,24 +468,63 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     #endregion
 
     #region 방 잠그기
-    public async Task SetSessionLockedAsync(bool isLocked)
+    // 💡 1. 세션 업데이트 불량 문제를 LobbyService 직접 호출로 해결
+    public async Task LockSessionAsync()
     {
         if (ActiveSession == null || !NetworkManager.Singleton.IsServer) return;
 
         try
         {
-            // 2.1.3 버전에서는 UpdateSessionOptionsAsync 대신 
-            // ModifySessionAsync를 사용하며, 인자로 SessionOptions를 넣습니다.
-            var options = new SessionOptions { IsLocked = isLocked };
+            // 래퍼인 Session 대신 근간이 되는 Lobby 자체를 잠가버립니다.
+            // ActiveSession.Id는 내부적으로 Lobby ID와 동일합니다.
+            var updateOptions = new UpdateLobbyOptions { IsLocked = true };
+            await LobbyService.Instance.UpdateLobbyAsync(ActiveSession.Id, updateOptions);
 
-            //await ActiveSession.AsHost().IsLocked == true;
-
-            Debug.Log($"[Multiplayer] 세션 잠금 상태 변경 완료: {isLocked}");
+            Debug.Log("<color=green>[Session]</color> 방 잠금 완료. 방 목록에 '게임중'으로 표시됩니다.");
         }
         catch (Exception e)
         {
-            Debug.LogError($"[Multiplayer] 세션 잠금 설정 실패: {e.Message}");
+            Debug.LogWarning($"[Session] 방 잠금 시각적 갱신 실패: {e.Message}");
         }
+    }
+
+    // 💡 2. 방장 이탈 감지 (방 폭파)
+    private void OnClientDisconnected(ulong clientId)
+    {
+        // 내가 클라이언트인데 (방장이 아님)
+        if (!NetworkManager.Singleton.IsServer)
+        {
+            // 방장(ServerClientId)의 연결이 끊어졌거나, 내 연결이 끊겼을 때
+            if (clientId == NetworkManager.ServerClientId || clientId == NetworkManager.Singleton.LocalClientId)
+            {
+                Debug.Log("<color=red>[Multiplayer] 서버(방장)와의 연결이 종료되어 타이틀로 귀환합니다.</color>");
+                ReturnToLobbyLocal();
+            }
+        }
+    }
+
+    // 💡 3. 클라이언트 강제 귀환 로직
+    public async void ReturnToLobbyLocal()
+    {
+        if (_isLeaving) return;
+        _isLeaving = true;
+
+        // 1. 네트워크 강제 셧다운 (가장 먼저 연결부터 끊음)
+        if (NetworkManager.Singleton != null)
+            NetworkManager.Singleton.Shutdown();
+
+        // 2. 세션 리스트에서 이탈
+        if (ActiveSession != null)
+        {
+            try { await ActiveSession.LeaveAsync(); }
+            catch { }
+            finally { ActiveSession = null; }
+        }
+
+        _isLeaving = false;
+
+        // 3. 네트워크가 끊어졌으므로 유니티 기본 씬 매니저를 사용하여 타이틀/로비로 강제 이동
+        UnityEngine.SceneManagement.SceneManager.LoadScene(START_SCENE_NAME);
     }
     #endregion
 
@@ -511,18 +555,18 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         GameSceneManager.Instance.LoadNetworkScene(START_SCENE_NAME);
     }
 
-    private void OnClientDisconnected(ulong clientId)
-    {
-        // 호스트가 나갔거나 내가 튕겼을 때
-        if (!NetworkManager.Singleton.IsServer)
-        {
-            if (clientId == NetworkManager.ServerClientId || clientId == NetworkManager.Singleton.LocalClientId)
-            {
-                Debug.Log("<color=red>서버와의 연결이 종료되었습니다.</color>");
-                LeaveSession();
-            }
-        }
-    }
+    //private void OnClientDisconnected(ulong clientId)
+    //{
+    //    // 호스트가 나갔거나 내가 튕겼을 때
+    //    if (!NetworkManager.Singleton.IsServer)
+    //    {
+    //        if (clientId == NetworkManager.ServerClientId || clientId == NetworkManager.Singleton.LocalClientId)
+    //        {
+    //            Debug.Log("<color=red>서버와의 연결이 종료되었습니다.</color>");
+    //            LeaveSession();
+    //        }
+    //    }
+    //}
 
     private void OnDestroy()
     {
