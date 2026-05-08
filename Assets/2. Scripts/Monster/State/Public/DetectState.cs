@@ -23,6 +23,9 @@ public class DetectState : MonsterBaseState
     {
         base.Enter();
 
+        if (owner.IsServer && owner.soundHandler != null)
+            owner.soundHandler.PlayScreamSoundClientRpc();
+
         // 1. 관성으로 미끄러지지 않도록 제자리에 완벽히 정지
         owner.navAgent.isStopped = true;
         owner.navAgent.velocity = Vector3.zero;

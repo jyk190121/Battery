@@ -159,6 +159,9 @@ public class AttachedState : MonsterBaseState
             // 서버 측 플레이어 컨트롤러로 데미지 처리 요청
             _snaredPlayer.TakeDamageServerRpc(data.snareTickDamage);
 
+            if (owner.IsServer && owner.soundHandler != null)
+                owner.soundHandler.PlayAttackSoundClientRpc();
+
             Debug.Log($"<color=red>[Snare Flea]</color> 목 조르기! (데미지: {data.snareTickDamage})");
         }
     }

@@ -29,6 +29,9 @@ public class DeadState : MonsterBaseState
     {
         base.Enter();
 
+        if (owner.IsServer && owner.soundHandler != null)
+            owner.soundHandler.PlayDeathSoundClientRpc();
+
         Debug.Log($"<color=gray>[DeadState]</color> {owner.gameObject.name} 사망 처리 시작");
 
         // 1. 이동(네비게이션) 완전 정지 및 비활성화
