@@ -1,20 +1,18 @@
 using UnityEngine;
-using Unity.Netcode; // Netcode 네임스페이스 추가
+using Unity.Netcode;
 
-// 1. NetworkBehaviour 상속으로 변경
 public class DoorController : NetworkBehaviour
 {
     public enum DoorType { Swing, Slide }
     public DoorType doorType;
 
     [Header("Room Identity")]
-    public SpawnLocation roomLocation;       // 해당 룸 종류
-    public Transform questItemSpawnPoint;    // 수집 퀘스트 아이템 소환 위치
+    public SpawnLocation roomLocation;
+    public Transform questItemSpawnPoint;
 
     [Header("Settings")]
     public NetworkVariable<bool> isOpen = new NetworkVariable<bool>(false);
     public NetworkVariable<bool> isLocked = new NetworkVariable<bool>(false);
-
     public string requiredKeyID;
     public float speed = 3f;
 
@@ -23,6 +21,15 @@ public class DoorController : NetworkBehaviour
 
     [Header("Slide Settings")]
     public Vector3 openOffset = new Vector3(1.2f, 0, 0);
+
+    // ==========================================
+    // [추가] 사운드 관련 변수
+    // ==========================================
+    [Header("사운드 설정")]
+    public AudioSource doorAudioSource; // 문에 달려있는 오디오 소스 (3D 설정 필수)
+    public AudioClip openSound;         // 열릴 때 소리
+    public AudioClip closeSound;        // 닫힐 때 소리
+    public AudioClip lockedSound;       // 잠긴 문 덜컹거리는 소리 
 
     private Vector3 closedPos;
     private Quaternion closedRot;
@@ -35,9 +42,36 @@ public class DoorController : NetworkBehaviour
         closedRot = transform.localRotation;
     }
 
+    public override void OnNetworkSpawn()
+    {
+        // [중요] isOpen 값이 변할 때마다 OnDoorStateChanged 함수를 실행하도록 구독!
+        isOpen.OnValueChanged += OnDoorStateChanged;
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        // 메모리 누수 방지를 위해 구독 해제
+        isOpen.OnValueChanged -= OnDoorStateChanged;
+    }
+
+    // 상태가 변할 때(열리거나 닫힐 때) 모든 클라이언트에서 자동 실행되는 콜백
+    private void OnDoorStateChanged(bool previousValue, bool newValue)
+    {
+        if (doorAudioSource == null) return;
+
+        if (newValue == true) // 문이 열렸다!
+        {
+            if (openSound != null) doorAudioSource.PlayOneShot(openSound);
+        }
+        else // 문이 닫혔다!
+        {
+            if (closeSound != null) doorAudioSource.PlayOneShot(closeSound);
+        }
+    }
+
     void Update()
     {
-        // 3. isOpen.Value 를 참조하여 애니메이션 처리 (Update는 모든 클라이언트에서 각자 돌아가며 부드럽게 움직임)
+        // 문 움직임 애니메이션 (기존과 동일)
         if (doorType == DoorType.Swing)
         {
             Quaternion targetRot = isOpen.Value ? closedRot * Quaternion.Euler(0, openAngle, 0) : closedRot;
@@ -50,34 +84,29 @@ public class DoorController : NetworkBehaviour
         }
     }
 
-    // 4. 클라이언트가 상호작용할 때 호출하는 함수
     public void TryOpen(string heldKeyID)
     {
-        // 문을 열고 닫는 '권한'은 서버에게 맡깁니다.
         if (IsServer)
         {
             ProcessDoorLogic(heldKeyID);
         }
         else
         {
-            // 클라이언트라면 서버에게 "문 열어줘" 라고 요청 
             RequestOpenDoorServerRpc(heldKeyID);
         }
     }
 
-    // 클라이언트의 요청을 받아 서버에서 실행되는 함수
-    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)] 
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     private void RequestOpenDoorServerRpc(string heldKeyID)
     {
         ProcessDoorLogic(heldKeyID);
     }
 
-    // 실제 문 열림/잠금 해제 로직 (서버에서만 실행됨)
     private void ProcessDoorLogic(string heldKeyID)
     {
         if (isOpen.Value)
         {
-            isOpen.Value = false;
+            isOpen.Value = false; // -> 여기서 false가 되면 OnDoorStateChanged가 불리고 닫힘 소리 재생
             return;
         }
 
@@ -86,17 +115,30 @@ public class DoorController : NetworkBehaviour
             if (heldKeyID == requiredKeyID)
             {
                 Debug.Log("<color=green>열쇠가 일치합니다! 잠금을 해제하고 문을 엽니다.</color>");
-                isLocked.Value = false; // NetworkVariable 값 변경 -> 모든 클라이언트에게 자동 동기화
-                isOpen.Value = true;
+                isLocked.Value = false;
+                isOpen.Value = true; // -> 여기서 true가 되면 OnDoorStateChanged가 불리고 열림 소리 재생
             }
             else
             {
                 Debug.Log("<color=red>문이 잠겨 있습니다. 맞는 열쇠가 필요합니다.</color>");
+
+                // [추가] 잠긴 문을 열려고 시도했을 때 덜컹거리는 소리를 내고 싶다면?
+                // 이건 상태가 변한 게 아니라 시도만 한 것이므로, 서버에서 ClientRpc를 쏴서 재생시킵니다.
+                PlayLockedSoundClientRpc();
             }
         }
         else
         {
             isOpen.Value = true;
+        }
+    }
+
+    [ClientRpc]
+    private void PlayLockedSoundClientRpc()
+    {
+        if (doorAudioSource != null && lockedSound != null)
+        {
+            doorAudioSource.PlayOneShot(lockedSound);
         }
     }
 

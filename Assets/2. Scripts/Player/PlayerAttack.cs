@@ -8,6 +8,7 @@ public class PlayerAttack : NetworkBehaviour
     private PlayerAnim _playerAnim;
     private PlayerMove _playerMove;
     private PlayerEquipment _playerEquipment;
+    private PlayerSound _playerSound;
 
     [Header("상태")]
     public bool isAttacking = false;
@@ -20,6 +21,7 @@ public class PlayerAttack : NetworkBehaviour
         _playerAnim = GetComponent<PlayerAnim>();
         _playerMove = GetComponent<PlayerMove>();
         _playerEquipment = GetComponent<PlayerEquipment>();
+        _playerSound = GetComponent<PlayerSound>();
     }
 
     void Update()
@@ -73,6 +75,8 @@ public class PlayerAttack : NetworkBehaviour
 
         // 이동 제한
         if (_playerMove != null) _playerMove.SetControlLock(true);
+
+        if (_playerSound != null) _playerSound.RequestAttackSound();
 
         StopCoroutine(nameof(AttackTimeoutRoutine));
         StartCoroutine(nameof(AttackTimeoutRoutine));

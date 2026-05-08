@@ -19135,7 +19135,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1500970877
+  GlobalObjectIdHash: 2226977069
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -19535,7 +19535,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1042672273
+  GlobalObjectIdHash: 4154007261
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -25858,6 +25858,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8279638731433550172}
   - component: {fileID: 4428745627891114488}
+  - component: {fileID: 4340120251582152349}
   m_Layer: 0
   m_Name: Door_Pivot
   m_TagString: Untagged
@@ -25895,6 +25896,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 0
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -25903,6 +25906,107 @@ MonoBehaviour:
   speed: 6
   openAngle: 90
   openOffset: {x: 0, y: 0, z: 0}
+  doorAudioSource: {fileID: 4340120251582152349}
+  openSound: {fileID: 8300000, guid: 66d1a14edde60ac4cb4dfe1a5a25fcba, type: 3}
+  closeSound: {fileID: 8300000, guid: 734c1a5fa779db2409c33d80bf1935fa, type: 3}
+  lockedSound: {fileID: 8300000, guid: aadf68eb549bcba4a8a45d397bfd8791, type: 3}
+--- !u!82 &4340120251582152349
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1064966466465374488}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1070107807190390164
 GameObject:
   m_ObjectHideFlags: 0
@@ -27082,7 +27186,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1996113073
+  GlobalObjectIdHash: 1850860411
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -27258,7 +27362,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1164086726
+  GlobalObjectIdHash: 3801994826
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -36779,6 +36883,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5645895127908679433}
+  - {fileID: 2380820265877302202}
   m_Father: {fileID: 1136127506556336429}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1533988529804654710
@@ -41793,6 +41898,7 @@ GameObject:
   - component: {fileID: 6200736497546794910}
   - component: {fileID: 7793054657630595322}
   - component: {fileID: 5364179093650187712}
+  - component: {fileID: 3861018177197034898}
   m_Layer: 0
   m_Name: Door_Pivot
   m_TagString: Untagged
@@ -41830,6 +41936,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 0
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -41838,6 +41946,10 @@ MonoBehaviour:
   speed: 6
   openAngle: 90
   openOffset: {x: 0, y: 0, z: 0}
+  doorAudioSource: {fileID: 4340120251582152349}
+  openSound: {fileID: 8300000, guid: 66d1a14edde60ac4cb4dfe1a5a25fcba, type: 3}
+  closeSound: {fileID: 8300000, guid: 734c1a5fa779db2409c33d80bf1935fa, type: 3}
+  lockedSound: {fileID: 8300000, guid: aadf68eb549bcba4a8a45d397bfd8791, type: 3}
 --- !u!114 &5364179093650187712
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -41850,7 +41962,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2382767727
+  GlobalObjectIdHash: 998819507
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -41863,6 +41975,103 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
+--- !u!82 &3861018177197034898
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1789576967555924966}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1790433952437805203
 GameObject:
   m_ObjectHideFlags: 0
@@ -43811,6 +44020,7 @@ GameObject:
   - component: {fileID: 2082009354080972100}
   - component: {fileID: 4574991728129237871}
   - component: {fileID: 9215425465643890007}
+  - component: {fileID: 1512546041752039882}
   m_Layer: 0
   m_Name: Door_Pivot
   m_TagString: Untagged
@@ -43848,6 +44058,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 0
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -43856,6 +44068,10 @@ MonoBehaviour:
   speed: 6
   openAngle: 90
   openOffset: {x: 0, y: 0, z: 0}
+  doorAudioSource: {fileID: 4340120251582152349}
+  openSound: {fileID: 8300000, guid: 66d1a14edde60ac4cb4dfe1a5a25fcba, type: 3}
+  closeSound: {fileID: 8300000, guid: 734c1a5fa779db2409c33d80bf1935fa, type: 3}
+  lockedSound: {fileID: 8300000, guid: aadf68eb549bcba4a8a45d397bfd8791, type: 3}
 --- !u!114 &9215425465643890007
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -43868,7 +44084,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3942143328
+  GlobalObjectIdHash: 647959090
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -43881,6 +44097,103 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
+--- !u!82 &1512546041752039882
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1865868880099227539}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1868575072688486603
 GameObject:
   m_ObjectHideFlags: 0
@@ -51258,7 +51571,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2171382792
+  GlobalObjectIdHash: 1510794864
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -52007,6 +52320,7 @@ GameObject:
   - component: {fileID: 3856508645818816350}
   - component: {fileID: 1015162414619960517}
   - component: {fileID: 8487420049944382545}
+  - component: {fileID: 1397511842468828948}
   m_Layer: 0
   m_Name: Door_Pivot
   m_TagString: Untagged
@@ -52044,6 +52358,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 0
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -52052,6 +52368,10 @@ MonoBehaviour:
   speed: 6
   openAngle: 90
   openOffset: {x: 0, y: 0, z: 0}
+  doorAudioSource: {fileID: 4340120251582152349}
+  openSound: {fileID: 8300000, guid: 66d1a14edde60ac4cb4dfe1a5a25fcba, type: 3}
+  closeSound: {fileID: 8300000, guid: 734c1a5fa779db2409c33d80bf1935fa, type: 3}
+  lockedSound: {fileID: 8300000, guid: aadf68eb549bcba4a8a45d397bfd8791, type: 3}
 --- !u!114 &8487420049944382545
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -52064,7 +52384,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2314090797
+  GlobalObjectIdHash: 3135790898
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -52077,6 +52397,103 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
+--- !u!82 &1397511842468828948
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2241191932509983040}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &2245477189763691296
 GameObject:
   m_ObjectHideFlags: 0
@@ -58147,12 +58564,12 @@ Transform:
   m_GameObject: {fileID: 2601125593352402298}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 37.137, y: 21.51, z: 66.308}
+  m_LocalPosition: {x: 187.137, y: 21.51, z: 166.308}
   m_LocalScale: {x: 1.01, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 9144293239739305245}
-  m_Father: {fileID: 5331953003048842285}
+  m_Father: {fileID: 8747635953138462083}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2602652879453965636
 GameObject:
@@ -59283,7 +59700,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 53588490
+  GlobalObjectIdHash: 980984246
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -63009,7 +63426,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 67824690
+  GlobalObjectIdHash: 134331185
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -65120,7 +65537,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 2380820265877302202}
   - {fileID: 4913606370941290639}
   - {fileID: 2075019594470696825}
   - {fileID: 4906318200078328679}
@@ -85000,7 +85416,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2099177390
+  GlobalObjectIdHash: 3604987185
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -96895,6 +97311,7 @@ GameObject:
   - component: {fileID: 5532474448028131307}
   - component: {fileID: 4227494636413128494}
   - component: {fileID: 5446666593882089462}
+  - component: {fileID: 3129581426369359583}
   m_Layer: 0
   m_Name: Door_Pivot
   m_TagString: Untagged
@@ -96932,6 +97349,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 0
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -96940,6 +97359,10 @@ MonoBehaviour:
   speed: 6
   openAngle: 90
   openOffset: {x: 0, y: 0, z: 0}
+  doorAudioSource: {fileID: 4340120251582152349}
+  openSound: {fileID: 8300000, guid: 66d1a14edde60ac4cb4dfe1a5a25fcba, type: 3}
+  closeSound: {fileID: 8300000, guid: 734c1a5fa779db2409c33d80bf1935fa, type: 3}
+  lockedSound: {fileID: 8300000, guid: aadf68eb549bcba4a8a45d397bfd8791, type: 3}
 --- !u!114 &5446666593882089462
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -96952,7 +97375,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3162658750
+  GlobalObjectIdHash: 4231957293
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -96965,6 +97388,103 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
+--- !u!82 &3129581426369359583
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4568845968814209507}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &4583261138567136478
 GameObject:
   m_ObjectHideFlags: 0
@@ -105895,7 +106415,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3359866693
+  GlobalObjectIdHash: 4131491150
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -111640,7 +112160,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2169382952
+  GlobalObjectIdHash: 1055766980
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -113921,7 +114441,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3379045230
+  GlobalObjectIdHash: 1252573394
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -125224,7 +125744,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 383232666
+  GlobalObjectIdHash: 648471617
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -125413,6 +125933,7 @@ GameObject:
   - component: {fileID: 3558828362500929792}
   - component: {fileID: 1752293043857986739}
   - component: {fileID: 8052063018048156585}
+  - component: {fileID: 3151620614843981304}
   m_Layer: 0
   m_Name: Door_Pivot
   m_TagString: Untagged
@@ -125450,6 +125971,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 0
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -125458,6 +125981,10 @@ MonoBehaviour:
   speed: 6
   openAngle: 90
   openOffset: {x: 0, y: 0, z: 0}
+  doorAudioSource: {fileID: 4340120251582152349}
+  openSound: {fileID: 8300000, guid: 66d1a14edde60ac4cb4dfe1a5a25fcba, type: 3}
+  closeSound: {fileID: 8300000, guid: 734c1a5fa779db2409c33d80bf1935fa, type: 3}
+  lockedSound: {fileID: 8300000, guid: aadf68eb549bcba4a8a45d397bfd8791, type: 3}
 --- !u!114 &8052063018048156585
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -125470,7 +125997,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1836418374
+  GlobalObjectIdHash: 2996829458
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -125483,6 +126010,103 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
+--- !u!82 &3151620614843981304
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6129641224290201057}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &6130347949041094491
 GameObject:
   m_ObjectHideFlags: 0
@@ -134055,7 +134679,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3744735114
+  GlobalObjectIdHash: 944743340
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -186709,7 +187333,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 1567073566
+      value: 3914800753
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -186922,7 +187546,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3709507801
+  GlobalObjectIdHash: 3882427681
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -186949,6 +187573,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -186957,6 +187583,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1 &7992206967580093873 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7964367980920663069, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
@@ -186974,7 +187604,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2268382424
+  GlobalObjectIdHash: 135023047
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -187001,6 +187631,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -187009,6 +187641,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1001 &48362290519103686
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -187532,7 +188168,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3701781648
+  GlobalObjectIdHash: 381326220
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -187559,6 +188195,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -187567,6 +188205,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1 &8054252012509874940 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7964367980920663069, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
@@ -187584,7 +188226,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 184107211
+  GlobalObjectIdHash: 251696104
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -187611,6 +188253,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -187619,6 +188263,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1001 &112678835781489828
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -187841,7 +188489,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 1493323638
+      value: 698368057
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -190007,7 +190655,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 4058973412
+  GlobalObjectIdHash: 2614454733
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -190034,6 +190682,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -190042,6 +190692,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1 &7556191950936598695 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7964367980920663069, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
@@ -190059,7 +190713,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3633674376
+  GlobalObjectIdHash: 1375234911
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -190086,6 +190740,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -190094,6 +190750,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1001 &460764811414049929
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -190104,7 +190764,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 3796905155
+      value: 541662734
       objectReference: {fileID: 0}
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -191019,7 +191679,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 4015790863
+  GlobalObjectIdHash: 2736076441
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -191046,6 +191706,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -191054,6 +191716,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1 &7873276724023404412 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7309771175897130471, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
@@ -191071,7 +191737,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3981072603
+  GlobalObjectIdHash: 1118624633
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -191098,6 +191764,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -191106,6 +191774,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1001 &640020647953062179
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -193012,7 +193684,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 1508205345
+      value: 334543442
       objectReference: {fileID: 0}
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -194736,7 +195408,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 3618345408
+      value: 240328410
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -195252,7 +195924,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1457712859463617959, guid: f48e6e54ad833c440bf0c14b8dff0d26, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 270733670
+      value: 235727408
       objectReference: {fileID: 0}
     - target: {fileID: 1457712859463617959, guid: f48e6e54ad833c440bf0c14b8dff0d26, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -195272,7 +195944,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2312729608507830451, guid: f48e6e54ad833c440bf0c14b8dff0d26, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 2775953311
+      value: 1821449074
       objectReference: {fileID: 0}
     - target: {fileID: 2312729608507830451, guid: f48e6e54ad833c440bf0c14b8dff0d26, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -195714,7 +196386,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 2027061461
+      value: 1511760768
       objectReference: {fileID: 0}
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -195856,7 +196528,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 110773243
+      value: 3446394331
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -196256,7 +196928,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 2476238793
+      value: 832884101
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -196924,7 +197596,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 985410046
+      value: 438344794
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -198444,7 +199116,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 2474165647
+      value: 778827357
       objectReference: {fileID: 0}
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -200216,7 +200888,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1006581707
+  GlobalObjectIdHash: 1293181384
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -200243,6 +200915,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -200251,6 +200925,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1 &5727122837487173691 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7964367980920663069, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
@@ -200268,7 +200946,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 4031812559
+  GlobalObjectIdHash: 1565119168
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -200295,6 +200973,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -200303,6 +200983,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!4 &8944804516264799956 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6764294263085974258, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
@@ -201259,35 +201943,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 3013448561
-      objectReference: {fileID: 0}
-    - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
-      propertyPath: SceneMigrationSynchronization
-      value: 0
+      value: 2394478917
       objectReference: {fileID: 0}
     - target: {fileID: 3639137804755642478, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: m_Name
       value: Slide_Door_Right
-      objectReference: {fileID: 0}
-    - target: {fileID: 3639137804755642478, guid: c25d8f1782b110743ab009accf648141, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 125
-      objectReference: {fileID: 0}
-    - target: {fileID: 5377689474007679479, guid: c25d8f1782b110743ab009accf648141, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 125
-      objectReference: {fileID: 0}
-    - target: {fileID: 6350125821750604089, guid: c25d8f1782b110743ab009accf648141, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 125
-      objectReference: {fileID: 0}
-    - target: {fileID: 7897999482096306162, guid: c25d8f1782b110743ab009accf648141, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7897999482096306162, guid: c25d8f1782b110743ab009accf648141, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7897999482096306162, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: m_LocalPosition.x
@@ -201453,7 +202113,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3648235914
+  GlobalObjectIdHash: 3328108357
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -201480,6 +202140,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -201488,6 +202150,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1 &5356054848510434547 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7964367980920663069, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
@@ -201505,7 +202171,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1616447379
+  GlobalObjectIdHash: 3101309736
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -201532,6 +202198,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -201540,6 +202208,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!4 &8722346791897379356 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6764294263085974258, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
@@ -201939,7 +202611,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 2589187866
+      value: 1477319121
       objectReference: {fileID: 0}
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -202599,7 +203271,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 129288887
+      value: 742192867
       objectReference: {fileID: 0}
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -203639,7 +204311,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 1468074303
+      value: 2234730892
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -204975,7 +205647,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 1840540585
+      value: 3981517198
       objectReference: {fileID: 0}
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -206027,18 +206699,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 9140191492623778352}
     m_Modifications:
-    - target: {fileID: 2138532996564228223, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 125
-      objectReference: {fileID: 0}
-    - target: {fileID: 5606967276029837321, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5606967276029837321, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 5606967276029837321, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -206081,23 +206741,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 1742338451
-      objectReference: {fileID: 0}
-    - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
-      propertyPath: SceneMigrationSynchronization
-      value: 0
+      value: 186630289
       objectReference: {fileID: 0}
     - target: {fileID: 7936511493113670206, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: m_Name
       value: Slide_Door_Left
-      objectReference: {fileID: 0}
-    - target: {fileID: 7936511493113670206, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 125
-      objectReference: {fileID: 0}
-    - target: {fileID: 8528662582120836444, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 125
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -206171,7 +206819,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 2726843792
+      value: 157353554
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -206327,35 +206975,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 2640017577
-      objectReference: {fileID: 0}
-    - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
-      propertyPath: SceneMigrationSynchronization
-      value: 0
+      value: 3073647521
       objectReference: {fileID: 0}
     - target: {fileID: 3639137804755642478, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: m_Name
       value: Slide_Door_Right
-      objectReference: {fileID: 0}
-    - target: {fileID: 3639137804755642478, guid: c25d8f1782b110743ab009accf648141, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 125
-      objectReference: {fileID: 0}
-    - target: {fileID: 5377689474007679479, guid: c25d8f1782b110743ab009accf648141, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 125
-      objectReference: {fileID: 0}
-    - target: {fileID: 6350125821750604089, guid: c25d8f1782b110743ab009accf648141, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 125
-      objectReference: {fileID: 0}
-    - target: {fileID: 7897999482096306162, guid: c25d8f1782b110743ab009accf648141, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7897999482096306162, guid: c25d8f1782b110743ab009accf648141, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7897999482096306162, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: m_LocalPosition.x
@@ -206535,7 +207159,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 3024163799
+      value: 2514370065
       objectReference: {fileID: 0}
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -207639,18 +208263,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6874368710118095144}
     m_Modifications:
-    - target: {fileID: 2138532996564228223, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 125
-      objectReference: {fileID: 0}
-    - target: {fileID: 5606967276029837321, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5606967276029837321, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 5606967276029837321, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -207693,53 +208305,17 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 2068481291
-      objectReference: {fileID: 0}
-    - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
-      propertyPath: SceneMigrationSynchronization
-      value: 0
+      value: 870527318
       objectReference: {fileID: 0}
     - target: {fileID: 7936511493113670206, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: m_Name
       value: Slide_Door_Left
       objectReference: {fileID: 0}
-    - target: {fileID: 7936511493113670206, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 125
-      objectReference: {fileID: 0}
-    - target: {fileID: 8528662582120836444, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 125
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 8528662582120836444, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7756462910900594988}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
---- !u!1 &4636648395796054987 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8528662582120836444, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
-  m_PrefabInstance: {fileID: 3892036179896659607}
-  m_PrefabAsset: {fileID: 0}
---- !u!208 &7756462910900594988
-NavMeshObstacle:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4636648395796054987}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 0.606, y: 1.0430001, z: 0.083000004}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: -0.606, y: 0, z: 0}
-  m_TimeToStationary: 0.5
 --- !u!4 &8920708711694659230 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5606967276029837321, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
@@ -208761,7 +209337,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 2390325456
+      value: 102027379
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -209691,7 +210267,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 42317887
+      value: 3100334508
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -210387,7 +210963,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 334741079
+  GlobalObjectIdHash: 1774029509
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -210414,6 +210990,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -210422,6 +211000,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1 &6778861531939947206 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7309771175897130471, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
@@ -210439,7 +211021,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3386752919
+  GlobalObjectIdHash: 364979025
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -210466,6 +211048,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -210474,6 +211058,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!4 &7403149543427565011 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6764294263085974258, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
@@ -211343,7 +211931,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 3545279729
+      value: 2833072522
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -211735,7 +212323,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 1070986786
+      value: 2536657453
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -212392,7 +212980,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 623333354
+      value: 2625587793
       objectReference: {fileID: 0}
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -212945,7 +213533,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3856478388
+  GlobalObjectIdHash: 870135203
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -212972,6 +213560,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -212980,6 +213570,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1 &3419048394324696903 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7964367980920663069, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
@@ -212997,7 +213591,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2378895561
+  GlobalObjectIdHash: 3739721090
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -213024,6 +213618,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -213032,6 +213628,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1001 &4758329897802162000
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -213477,7 +214077,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 3387494359
+      value: 3010677461
       objectReference: {fileID: 0}
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -214577,7 +215177,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 3637221993
+      value: 3780543510
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -215357,7 +215957,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 2649003188
+      value: 2603429917
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -215512,7 +216112,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1199191332
+  GlobalObjectIdHash: 2924690118
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -215539,6 +216139,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -215547,6 +216149,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: -1, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1 &2998233160892115266 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7964367980920663069, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
@@ -215564,7 +216170,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1619320691
+  GlobalObjectIdHash: 4177978507
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -215591,6 +216197,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -215599,6 +216207,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1001 &5164181072368841678
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -215853,7 +216465,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 3600467533
+      value: 3362412419
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -216118,7 +216730,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3893740669
+  GlobalObjectIdHash: 1003794995
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -216145,6 +216757,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -216153,6 +216767,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1 &3252647519124472947 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7309771175897130471, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
@@ -216170,7 +216788,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1928161438
+  GlobalObjectIdHash: 3626071549
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -216197,6 +216815,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -216205,6 +216825,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1001 &5224413857779030760
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -217397,7 +218021,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 1380492698
+      value: 3749380435
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -218305,7 +218929,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1457712859463617959, guid: f48e6e54ad833c440bf0c14b8dff0d26, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 71251901
+      value: 3144949452
       objectReference: {fileID: 0}
     - target: {fileID: 1457712859463617959, guid: f48e6e54ad833c440bf0c14b8dff0d26, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -218325,7 +218949,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2312729608507830451, guid: f48e6e54ad833c440bf0c14b8dff0d26, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 1368098500
+      value: 718274462
       objectReference: {fileID: 0}
     - target: {fileID: 2312729608507830451, guid: f48e6e54ad833c440bf0c14b8dff0d26, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -218640,7 +219264,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2701382260
+  GlobalObjectIdHash: 3335064192
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -218667,6 +219291,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -218675,6 +219301,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1 &3058187267650678943 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7309771175897130471, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
@@ -218692,7 +219322,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 704085663
+  GlobalObjectIdHash: 3657403589
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -218719,6 +219349,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -218727,6 +219359,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1001 &5775365481595181955
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -219103,7 +219739,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 3533379723
+      value: 3296636436
       objectReference: {fileID: 0}
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -220106,7 +220742,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 4199637756
+  GlobalObjectIdHash: 3499274307
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -220133,6 +220769,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -220141,6 +220779,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1 &4363931317773905312 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7964367980920663069, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
@@ -220158,7 +220800,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 4050940558
+  GlobalObjectIdHash: 1391587214
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -220185,6 +220827,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -220193,6 +220837,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1001 &5936773488011091513
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -220548,7 +221196,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1952919046
+  GlobalObjectIdHash: 299818101
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -220575,6 +221223,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -220583,6 +221233,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1 &4327225747596761556 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7964367980920663069, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
@@ -220600,7 +221254,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 213568404
+  GlobalObjectIdHash: 3942787186
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -220627,6 +221281,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -220635,6 +221291,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1001 &5953183669642257713
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -220763,7 +221423,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 3617759757
+      value: 2843203977
       objectReference: {fileID: 0}
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -221230,7 +221890,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 154070380
+  GlobalObjectIdHash: 4266430459
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -221257,6 +221917,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -221265,6 +221927,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1 &4216998796669995458 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7964367980920663069, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
@@ -221282,7 +221948,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1979600227
+  GlobalObjectIdHash: 824078990
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -221309,6 +221975,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -221317,6 +221985,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1001 &6100634536495296227
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -221805,7 +222477,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 3584418549
+      value: 574205052
       objectReference: {fileID: 0}
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -222099,7 +222771,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 312975819
+      value: 3076084181
       objectReference: {fileID: 0}
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -222896,7 +223568,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 471453650
+  GlobalObjectIdHash: 2124441819
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -222923,6 +223595,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -222931,6 +223605,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1 &4388651129326198325 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7309771175897130471, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
@@ -222948,7 +223626,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1032917649
+  GlobalObjectIdHash: 3099022996
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -222975,6 +223653,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -222983,6 +223663,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1001 &6457478113317833211
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -223554,7 +224238,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2038269818
+  GlobalObjectIdHash: 537869923
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -223581,6 +224265,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -223589,6 +224275,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!65 &3394803259217554834
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -223627,7 +224317,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2333670121
+  GlobalObjectIdHash: 39581795
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -223654,6 +224344,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -223662,6 +224354,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!65 &6675096520004019371
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -224240,7 +224936,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3989433335
+  GlobalObjectIdHash: 2466016039
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -224267,6 +224963,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -224275,6 +224973,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1 &4521162222362963714 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7309771175897130471, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
@@ -224292,7 +224994,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1749847224
+  GlobalObjectIdHash: 1805662305
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -224319,6 +225021,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -224327,6 +225031,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1001 &6617903038444820907
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -224337,7 +225045,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 129696611
+      value: 677547291
       objectReference: {fileID: 0}
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -224757,7 +225465,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 2837722731
+      value: 2084498286
       objectReference: {fileID: 0}
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -225132,7 +225840,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2203871278
+  GlobalObjectIdHash: 1293261713
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -225159,6 +225867,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -225167,6 +225877,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1 &4258523168054057464 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7309771175897130471, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
@@ -225184,7 +225898,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3109030479
+  GlobalObjectIdHash: 4209828334
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -225211,6 +225925,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -225219,6 +225935,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1001 &6832656622202271627
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -225399,7 +226119,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 3297218647
+      value: 3347031125
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -225843,7 +226563,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1457712859463617959, guid: f48e6e54ad833c440bf0c14b8dff0d26, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 2636337113
+      value: 3969747413
       objectReference: {fileID: 0}
     - target: {fileID: 1457712859463617959, guid: f48e6e54ad833c440bf0c14b8dff0d26, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -225863,7 +226583,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2312729608507830451, guid: f48e6e54ad833c440bf0c14b8dff0d26, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 3945118845
+      value: 3605381643
       objectReference: {fileID: 0}
     - target: {fileID: 2312729608507830451, guid: f48e6e54ad833c440bf0c14b8dff0d26, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -228001,7 +228721,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1457712859463617959, guid: f48e6e54ad833c440bf0c14b8dff0d26, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 76048573
+      value: 2323603574
       objectReference: {fileID: 0}
     - target: {fileID: 1457712859463617959, guid: f48e6e54ad833c440bf0c14b8dff0d26, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -228021,7 +228741,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2312729608507830451, guid: f48e6e54ad833c440bf0c14b8dff0d26, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 1139862170
+      value: 3854020854
       objectReference: {fileID: 0}
     - target: {fileID: 2312729608507830451, guid: f48e6e54ad833c440bf0c14b8dff0d26, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -228676,7 +229396,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 4181237380
+  GlobalObjectIdHash: 4005939496
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -228703,6 +229423,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -228711,6 +229433,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1 &818152162576596688 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7964367980920663069, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
@@ -228728,7 +229454,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1892592671
+  GlobalObjectIdHash: 2906160690
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -228755,6 +229481,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -228763,6 +229491,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!4 &4035839613794701375 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6764294263085974258, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
@@ -231192,7 +231924,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1457712859463617959, guid: f48e6e54ad833c440bf0c14b8dff0d26, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 1658717641
+      value: 610163995
       objectReference: {fileID: 0}
     - target: {fileID: 1457712859463617959, guid: f48e6e54ad833c440bf0c14b8dff0d26, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -231212,7 +231944,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2312729608507830451, guid: f48e6e54ad833c440bf0c14b8dff0d26, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 1773131761
+      value: 2781433063
       objectReference: {fileID: 0}
     - target: {fileID: 2312729608507830451, guid: f48e6e54ad833c440bf0c14b8dff0d26, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -232123,7 +232855,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 3986014721
+      value: 4029194947
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -233093,7 +233825,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 626328019
+  GlobalObjectIdHash: 472566492
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -233120,6 +233852,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -233128,6 +233862,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!65 &4282945769601170411
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -233166,7 +233904,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3890066677
+  GlobalObjectIdHash: 1120514018
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -233193,6 +233931,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -233201,6 +233941,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!65 &4994553099656206008
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -233783,7 +234527,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 3042975493
+      value: 1565665344
       objectReference: {fileID: 0}
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -235415,7 +236159,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 484070398
+      value: 351457258
       objectReference: {fileID: 0}
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -236361,7 +237105,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 452675201
+      value: 2901887271
       objectReference: {fileID: 0}
     - target: {fileID: 222395138190695892, guid: c25d8f1782b110743ab009accf648141, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -237723,7 +238467,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 4060745424
+      value: 2936527534
       objectReference: {fileID: 0}
     - target: {fileID: 6412749418768045701, guid: 9e9ad11fd717ddc42b6d8959703e6cee, type: 3}
       propertyPath: SceneMigrationSynchronization
@@ -238035,7 +238779,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1922905232
+  GlobalObjectIdHash: 1406929930
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -238062,6 +238806,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -238070,6 +238816,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!1 &1750347348120448253 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7309771175897130471, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
@@ -238087,7 +238837,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3987399836
+  GlobalObjectIdHash: 548103906
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -238114,6 +238864,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DoorController
   ShowTopMostFoldoutHeaderGroup: 1
   doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
   isOpen:
     m_InternalValue: 0
   isLocked:
@@ -238122,6 +238874,10 @@ MonoBehaviour:
   speed: 3
   openAngle: 90
   openOffset: {x: 1.2, y: 0, z: 0}
+  doorAudioSource: {fileID: 0}
+  openSound: {fileID: 0}
+  closeSound: {fileID: 0}
+  lockedSound: {fileID: 0}
 --- !u!4 &2370129595804093416 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6764294263085974258, guid: 44ab327cd127dec4d8cb081515aa5935, type: 3}
