@@ -38,6 +38,13 @@ public class MonsterData : ScriptableObject
     [Tooltip("스폰 확률 가중치 (값이 높을수록 자주 등장함)")]
     [Range(0f, 100f)] public float spawnWeight = 50f;
 
+    [Header("사운드 데이터")]
+    public AudioClip[] footstepClips; // 발소리들
+    public AudioClip screamClip;      // 비명 소리
+    public AudioClip attackClip;      // 공격 소리
+    public AudioClip breathClip;      // 평소 숨소리
+    public AudioClip hitClip;         // 피격 소리
+
 
     // =========================================================
     // 2. 이동 및 전투 (Movement & Combat)
