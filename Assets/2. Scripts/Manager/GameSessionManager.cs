@@ -35,7 +35,6 @@ public class GameSessionManager : NetworkBehaviour
     // 출발 버튼을 누르기 전까지 아이템들이 임시로 담기는 장바구니
     public List<int> shopCart = new List<int>();
 
-
     [Header("Session State (세션 상태)")]
     [Tooltip("현재 방에 접속한 플레이어 중 사망한 사람의 수")]
     public int deadPlayersCount = 0;
@@ -258,7 +257,7 @@ public class GameSessionManager : NetworkBehaviour
     public void  RequestStartGameServerRpc(string targetSceneName, RpcParams rpcParams = default)
     {
         // 1. 보안 및 연타 방어
-        if (IsRoomLocked.Value || isStartSequenceActive) return;
+        if (isStartSequenceActive) return;
 
         if (!IsServer) return;
 
