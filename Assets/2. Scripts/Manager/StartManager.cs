@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TMPro;
 using Unity.Services.Multiplayer;
 using UnityEngine;
@@ -43,6 +44,11 @@ public class StartManager : MonoBehaviour
     
     bool isCancelling = false;
 
+    private string lastLeftSessionId = "";
+
+    // 방에서 나올 때 ID 저장 (MultiPlayerSessionManager 등을 통해 전달받음)
+    public void SetLastLeftSession(string id) => lastLeftSessionId = id;
+
     void OnEnable()
     {
         TrySubscribeEvents();
@@ -52,9 +58,13 @@ public class StartManager : MonoBehaviour
     {
         if (MultiPlayerSessionManager.Instance != null) MultiPlayerSessionManager.Instance.OnSessionListUpdated -= UpdateSessionListUI;
     }
-
     void Start()
     {
+        ClearSessionListUI();
+
+        // 마우스 커서 상태 복구 (잠금 해제 및 가시화)
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
 
         TrySubscribeEvents();
 
@@ -68,7 +78,25 @@ public class StartManager : MonoBehaviour
         // 초기 버튼 상태 설정 (비어있으므로 비활성화)
         nicknameConfirmBtn.interactable = false;
 
-        ShowPanel(nicknamePanel);
+        // 이미 닉네임이 설정되어 있다면 바로 메인 패널로, 아니면 닉네임 패널로
+        if (MultiPlayerSessionManager.Instance != null &&
+            !string.IsNullOrEmpty(MultiPlayerSessionManager.Instance.PlayerNickname))
+        {
+            // 이미 닉네임이 있으므로 메인 패널을 바로 보여줌
+            ShowPanel(mainPanel);
+
+            // 만약 입력 필드에도 기존 닉네임을 채워주고 싶다면 (선택 사항)
+            // 닉네임 뒤의 #태그를 떼고 넣어주는 로직
+            string rawName = MultiPlayerSessionManager.Instance.PlayerNickname.Split('#')[0];
+            nicknameInput.text = rawName;
+
+            MultiPlayerSessionManager.Instance.QuerySessionsAsync();
+        }
+        else
+        {
+            ShowPanel(nicknamePanel);
+        }
+
 
         // 버튼 리스너 연결
         createBtn.onClick.AddListener(() => ShowPanel(createPanel));
@@ -214,8 +242,10 @@ public class StartManager : MonoBehaviour
     }
 
     // 공통 새로고침 로직
-    private void RefreshSessionList()
+    async void RefreshSessionList()
     {
+        refreshBtn.interactable = false; // 버튼 잠금
+
         // 시각적으로 목록이 비워지는 피드백을 주려면 여기서 미리 삭제할 수 있습니다.
         ClearSessionListUI();
 
@@ -224,19 +254,14 @@ public class StartManager : MonoBehaviour
         {
             MultiPlayerSessionManager.Instance.QuerySessionsAsync();
         }
+
+        await Task.Delay(3000);          // 3초 대기
+        refreshBtn.interactable = true;  // 버튼 해제
     }
 
     // UI 리스트만 비우는 헬퍼 함수
     private void ClearSessionListUI()
     {
-        //foreach (Transform child in sessionListContent)
-        //{
-        //    //Destroy 대신 (즉각적인 UI 갱신을 위해)
-        //    DestroyImmediate(child.gameObject);
-        //}
-
-        //print("파괴 처리하고 있나");
-
         if (sessionListContent == null) return;
 
         // 자식들을 임시 리스트에 담아 안전하게 파괴
@@ -244,6 +269,7 @@ public class StartManager : MonoBehaviour
         foreach (Transform child in sessionListContent)
         {
             toDestroy.Add(child.gameObject);
+            child.gameObject.SetActive(false);
         }
 
         foreach (GameObject go in toDestroy)
@@ -252,6 +278,14 @@ public class StartManager : MonoBehaviour
             go.transform.SetParent(null);
             DestroyImmediate(go);
         }
+
+        //if (sessionListContent == null) return;
+
+        //// 생성된 프리팹들을 모두 파괴
+        //foreach (Transform child in sessionListContent)
+        //{
+        //    Destroy(child.gameObject);
+        //}
 
         Debug.Log("[UI] 모든 세션 프리팹 파괴 완료");
     }
@@ -279,6 +313,20 @@ public class StartManager : MonoBehaviour
         // 2. 새로운 방 목록 생성
         foreach (var session in sessions)
         {
+            // 1. 인원수가 0명이거나 0보다 작으면 유령 방임
+            int currentPlayers = session.MaxPlayers - session.AvailableSlots;
+            if (currentPlayers <= 0) continue;
+
+            // 2. 내가 방금 직접 나간 방 (기존 로직)
+            if (session.Id == lastLeftSessionId) continue;
+
+            // 3. [핵심 추가] 호스트가 나가서 방금 튕겨져 나온 그 유령 방 (로컬 블랙리스트 필터링)
+            if (session.Id == MultiPlayerSessionManager.Instance.ExplodedSessionId)
+            {
+                print($"[UI] 방금 폭파된 방({session.Name})이 캐시에 남아있어 시각적으로 차단합니다.");
+                continue;
+            }
+
             GameObject entryGo = Instantiate(sessionEntryPrefab, sessionListContent);
             //print("프리팹 생성하는가");
             //entryGo.transform.localScale = Vector3.one;                                 // 스케일 강제 고정
