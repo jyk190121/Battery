@@ -3182,7 +3182,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 6777840
+  GlobalObjectIdHash: 405663255
   InScenePlacedSourceGlobalObjectIdHash: 6777840
   DeferredDespawnTick: 0
   Ownership: 1
@@ -3730,11 +3730,11 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 55a7516f081e312409915cfb35a9920a, type: 3}
   metalSteps:
   - {fileID: 8300000, guid: b7bba78b66946fa4c8b780ec0944654e, type: 3}
-  jumpClip: {fileID: 8300000, guid: 2cc7ffff4458a054c9294604b91ebc04, type: 3}
-  attackClip: {fileID: 0}
-  hurtClip: {fileID: 0}
-  normalBreathClip: {fileID: 0}
-  heavyBreathClip: {fileID: 0}
+  jumpClip: {fileID: 8300000, guid: 48ce4e3a1cf697d40a79c912de7f846c, type: 3}
+  attackClip: {fileID: 8300000, guid: 08cee78a0c9c5d04797a71a300fe0b38, type: 3}
+  hurtClip: {fileID: 8300000, guid: 97170f2c16c676147965396c82abc9cb, type: 3}
+  normalBreathClip: {fileID: 8300000, guid: 6a02a5d6b25b8824e9e8d83453662697, type: 3}
+  heavyBreathClip: {fileID: 8300000, guid: f5ed8065f2239424cb41e4661be753f8, type: 3}
   walkStepInterval: 0.45
   runStepInterval: 0.3
 --- !u!1 &5047510916941267613
