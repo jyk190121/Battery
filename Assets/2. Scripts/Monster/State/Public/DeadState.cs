@@ -115,16 +115,12 @@ public class DeadState : MonsterBaseState
     {
         if (owner.animHandler != null)
         {
-            owner.animHandler.TriggerDeath();
-        }
-        else
-        {
-            // 애니메이터가 없는 임시 모델일 경우 물리적으로 눕힘
-            // (NetworkTransform이 붙어있다고 가정하여 서버에서만 회전시킵니다)
             if (owner.IsServer)
             {
                 owner.transform.rotation *= Quaternion.Euler(0, 0, 90f);
             }
+
+            //owner.animHandler.TriggerDeath();
         }
     }
 }
