@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff10b20d6fe2cce4ab855ce5cb3e8034, type: 3}
+  m_Name: Wire
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
+  itemID: 905
+  itemName: Wire
+  handType: 0
+  category: 5
+  basePrice: 0
+  icon: {fileID: 21300000, guid: f0fab051872be60498b91d22d759394d, type: 3}
+  healAmount: 0
+  animType: 0
+  spawnLocation: 0
+  itemPrefab: {fileID: 9113708055048110818, guid: 3b79852300035f748b092aac08e198bf, type: 3}
+  keyID: 
