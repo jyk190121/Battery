@@ -1439,7 +1439,7 @@ GameObject:
   - component: {fileID: 8292547123806256494}
   - component: {fileID: 2554109883805035811}
   m_Layer: 12
-  m_Name: LoopSource
+  m_Name: AmbientSource
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1517,7 +1517,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -1774,7 +1774,9 @@ MonoBehaviour:
   owner: {fileID: 8990760709538554811}
   voiceSource: {fileID: 5523190562946116593}
   footstepSource: {fileID: 3004874916711064347}
-  loopSource: {fileID: 2554109883805035811}
+  ambientSource: {fileID: 2554109883805035811}
+  walkStepInterval: 0.45
+  runStepInterval: 0.3
 --- !u!1 &4110589423958196326
 GameObject:
   m_ObjectHideFlags: 0
@@ -2185,7 +2187,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -4017,7 +4019,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0

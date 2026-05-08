@@ -7,76 +7,134 @@ using UnityEngine;
 public class MonsterSound : NetworkBehaviour
 {
     [Header("참조")]
-    public MonsterController owner; // MonsterData를 들고 있는 주인
+    public MonsterController owner;
 
     [Header("Audio Sources")]
-    public AudioSource voiceSource;    // 비명, 공격, 피격 (입소리)
+    public AudioSource voiceSource;    // 비명, 공격, 피격, 사망 (단발성)
     public AudioSource footstepSource; // 발자국
-    public AudioSource loopSource;  // 숨소리 (Loop 설정 권장)
+    public AudioSource ambientSource;  // 숨소리, 추격음 (루프성)
+
+    // ==========================================
+    // [추가됨] 마스터의 아이디어 반영: 인스펙터에서 몹마다 다르게 설정 가능!
+    // ==========================================
+    [Header("발소리 간격 설정")]
+    public float walkStepInterval = 0.45f; // 평소 순찰할 때 발소리 간격
+    public float runStepInterval = 0.3f;   // 추격할 때(빠를 때) 발소리 간격
+
+    private float _stepTimer;
 
     public override void OnNetworkSpawn()
     {
         if (owner == null) owner = GetComponent<MonsterController>();
-
-        // 시작과 동시에 데이터에 있는 숨소리를 무한 재생 (루프)
-        if (loopSource != null && owner.monsterData.breathClip != null)
-        {
-            loopSource.clip = owner.monsterData.breathClip;
-            loopSource.loop = true;
-            loopSource.Play();
-        }
     }
 
-    // ==========================================
-    // 1. 발자국 (애니메이션 이벤트 또는 타이머에서 호출)
-    // ==========================================
-    public void PlayFootstep()
+    void Update()
     {
-        AudioClip[] clips = owner.monsterData.footstepClips;
-        if (clips != null && clips.Length > 0)
+        if (owner == null || owner.monsterData == null || ambientSource == null) return;
+
+        MonsterStateType currentState = owner.CurrentStateNet.Value;
+
+        // 1. 사망 상태면 모든 루프 사운드를 끔
+        if (currentState == MonsterStateType.Dead)
         {
-            // 여러 발소리 중 하나를 랜덤으로 재생 (자연스러움)
-            footstepSource.PlayOneShot(clips[Random.Range(0, clips.Length)]);
+            if (ambientSource.isPlaying) ambientSource.Stop();
+            return;
+        }
+
+        // 2. 상태에 따라 재생할 루프 클립 결정 (기본은 평소 숨소리)
+        AudioClip targetLoopClip = owner.monsterData.breathClip;
+
+        // 추격, 수색, 스토킹 중일 때는 거친 추격음(chaseClip)으로 변경
+        if (currentState == MonsterStateType.Chase ||
+            currentState == MonsterStateType.Investigate ||
+            currentState == MonsterStateType.Stalk)
+        {
+            if (owner.monsterData.chaseClip != null)
+            {
+                targetLoopClip = owner.monsterData.chaseClip;
+            }
+        }
+
+        // 3. 클립이 바뀌었으면 오디오 소스 교체 후 재생 (각 클라이언트가 알아서 처리)
+        if (ambientSource.clip != targetLoopClip && targetLoopClip != null)
+        {
+            ambientSource.clip = targetLoopClip;
+            ambientSource.loop = true;
+            if (!ambientSource.isPlaying) ambientSource.Play();
+        }
+
+        // ==========================================
+        // 4. 발소리 타이머 로직 (애니메이션 이벤트 대체)
+        // ==========================================
+        if (owner.IsServer)
+        {
+            if (owner.navAgent.enabled && owner.navAgent.velocity.sqrMagnitude > 0.1f)
+            {
+                float currentInterval = (currentState == MonsterStateType.Chase) ? runStepInterval : walkStepInterval;
+
+                _stepTimer += Time.deltaTime;
+
+                if (_stepTimer >= currentInterval)
+                {
+                    // ServerRpc를 거치지 않고, 서버가 직접 ClientRpc를 호출하여 모두에게 방송!
+                    PlayFootstepClientRpc();
+                    _stepTimer = 0f;
+                }
+            }
+            else
+            {
+                _stepTimer = 0f;
+            }
         }
     }
 
     // ==========================================
-    // 2. 특수 이벤트 (타겟팅 비명 - 인형 전용 등)
+    // 단발성 사운드 (서버 -> 모든 클라이언트 방송)
     // ==========================================
+
+    [ClientRpc]
+    public void PlayAttackSoundClientRpc()
+    {
+        if (owner.monsterData.attackClip != null) voiceSource.PlayOneShot(owner.monsterData.attackClip);
+    }
+
+    [ClientRpc]
+    public void PlayHitSoundClientRpc()
+    {
+        if (owner.monsterData.hitClip != null) voiceSource.PlayOneShot(owner.monsterData.hitClip);
+    }
+
+    [ClientRpc]
+    public void PlayDeathSoundClientRpc()
+    {
+        if (owner.monsterData.deathClip != null) voiceSource.PlayOneShot(owner.monsterData.deathClip);
+    }
+
+    [ClientRpc]
+    public void PlayScreamSoundClientRpc()
+    {
+        if (owner.monsterData.screamClip != null) voiceSource.PlayOneShot(owner.monsterData.screamClip);
+    }
+
     [ClientRpc]
     public void PlayTargetScreamClientRpc(ClientRpcParams clientRpcParams = default)
     {
-        // SoundManager의 UI 재생 기능을 빌리되, 소리 파일은 내 데이터에서 꺼냅니다.
-        // 만약 SoundManager.Instance.PlaySfx(AudioClip clip) 함수가 있다면 그것을 사용하세요.
-        // 여기서는 직접 2D 사운드(점프스케어)로 재생한다고 가정합니다.
         if (owner.monsterData.screamClip != null)
         {
-            // 타겟 플레이어의 화면 전체에 2D로 울려 퍼지게 함
             AudioSource.PlayClipAtPoint(owner.monsterData.screamClip, Camera.main.transform.position, 1f);
         }
     }
 
     // ==========================================
-    // 3. 광역 사운드 (공격, 피격, 포효)
+    // 타이머 이벤트 전용 (서버가 계산하고 ClientRpc로 모두에게 3D 사운드 방송)
     // ==========================================
-
-    // 공격 시 호출 (모든 유저에게 3D로 들림)
     [ClientRpc]
-    public void PlayAttackSoundClientRpc()
+    public void PlayFootstepClientRpc()
     {
-        if (owner.monsterData.attackClip != null)
+        AudioClip[] clips = owner.monsterData.footstepClips;
+        if (clips != null && clips.Length > 0)
         {
-            voiceSource.PlayOneShot(owner.monsterData.attackClip);
-        }
-    }
-
-    // 피격 시 호출 (모든 유저에게 3D로 들림)
-    [ClientRpc]
-    public void PlayHitSoundClientRpc()
-    {
-        if (owner.monsterData.hitClip != null)
-        {
-            voiceSource.PlayOneShot(owner.monsterData.hitClip);
+            footstepSource.PlayOneShot(clips[Random.Range(0, clips.Length)]);
         }
     }
 }

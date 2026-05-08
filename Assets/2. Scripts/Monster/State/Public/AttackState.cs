@@ -170,6 +170,9 @@ public class AttackState : MonsterBaseState
         _attackTimer = 0f; // 리셋 후 OnTick 및 Update 연산 재개
 
         owner.animHandler.PlayAttack();
+
+        if (owner.IsServer && owner.soundHandler != null)
+            owner.soundHandler.PlayAttackSoundClientRpc();
     }
 
     /// <summary>

@@ -41,9 +41,11 @@ public class MonsterData : ScriptableObject
     [Header("사운드 데이터")]
     public AudioClip[] footstepClips; // 발소리들
     public AudioClip screamClip;      // 비명 소리
+    public AudioClip chaseClip;       // 추격 소리
     public AudioClip attackClip;      // 공격 소리
     public AudioClip breathClip;      // 평소 숨소리
     public AudioClip hitClip;         // 피격 소리
+    public AudioClip deathClip;       // 사망 소리
 
 
     // =========================================================
