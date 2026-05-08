@@ -3,6 +3,7 @@ using TMPro;
 using Unity.Services.Multiplayer;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 // 💡 논리적 차단 조건
 // 1. 이미 서비스에서 Locked로 판단한 경우
@@ -30,11 +31,27 @@ public class SessionUIEntry : MonoBehaviour
 
         // 💡 2.1.3 버전에서는 세션이 비공개(IsPrivate)가 되면 리스트에서 아예 사라지지만,
         // 사라지기 전 찰나에 잡히는 경우를 위해 조건을 강화합니다.
-        bool isStarted = session.IsLocked;
+        bool isLocked = session.IsLocked;
+        bool isFull = session.AvailableSlots == 0;
 
-        if (isStarted || session.AvailableSlots == 0)
+        bool isClosing = false;
+        // Properties에서 "IsClosing" 키가 있는지 확인
+        if (session.Properties != null && session.Properties.TryGetValue("IsClosing", out var closingProp))
         {
-            playerCountText.text = "<color=red>게임중</color>";
+            // SessionProperty의 .Value를 통해 문자열 값을 비교
+            if (closingProp.Value == "true")
+            {
+                isClosing = true;
+            }
+        }
+        // 3. UI 처리 로직
+        if (isClosing)
+        {
+            gameObject.SetActive(false);
+        }
+        else if (isLocked || isFull)
+        {
+            playerCountText.text = isLocked ? "<color=red>게임중</color>" : "<color=yellow>가득 참</color>";
             selectBtn.interactable = false;
         }
         else
@@ -43,6 +60,18 @@ public class SessionUIEntry : MonoBehaviour
             playerCountText.text = $"{currentPlayers} / {session.MaxPlayers}";
             selectBtn.interactable = true;
         }
+
+        //if (isStarted || session.AvailableSlots == 0)
+        //{
+        //    playerCountText.text = "<color=red>게임중</color>";
+        //    selectBtn.interactable = false;
+        //}
+        //else
+        //{
+        //    int currentPlayers = session.MaxPlayers - session.AvailableSlots;
+        //    playerCountText.text = $"{currentPlayers} / {session.MaxPlayers}";
+        //    selectBtn.interactable = true;
+        //}
 
         selectBtn.onClick.RemoveAllListeners();
         selectBtn.onClick.AddListener(() => _onSelected?.Invoke(_session));
