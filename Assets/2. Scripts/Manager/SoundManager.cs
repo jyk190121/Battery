@@ -44,10 +44,6 @@ public enum SfxSound
     // 1. 오브젝트
     VENT_CREAK,            // 환풍구 열리는 소리
 
-    // 몬스터 관련 사운드
-    // 1. 인형
-    MONS_SCREAM,           // 비명소리
-
     // 환경 관련 사운드
     // 1. 배경
     ENV_RAIN               // 빗소리

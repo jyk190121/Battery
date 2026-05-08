@@ -2196,8 +2196,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterSound
   ShowTopMostFoldoutHeaderGroup: 1
+  owner: {fileID: 6384232730694675756}
   voiceSource: {fileID: 2925184528824537222}
   footstepSource: {fileID: 1221000225233753787}
+  loopSource: {fileID: 3072100085692819869}
 --- !u!1 &6732649954973863555
 GameObject:
   m_ObjectHideFlags: 0

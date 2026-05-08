@@ -33,6 +33,9 @@ public class PlayerMove : NetworkBehaviour
     public float stepHeight = 0.35f;                 // 올라갈 수 있는 최대 계단 높이
     public float stepSmoothing = 0.1f;               // 올라가는 부드러움 정도
 
+    [Header("바닥 상태 정보 (외부 참조용)")]
+    public string currentGroundTag = "Untagged";
+
     [Header("콜라이더 설정")]
     private CapsuleCollider col;
     bool lastCrouchState = false;
@@ -212,6 +215,8 @@ public class PlayerMove : NetworkBehaviour
 
         if (isGrounded)
         {
+            currentGroundTag = hit.collider.tag;
+
             bool layerIsStair = ((1 << hit.collider.gameObject.layer) & stairLayer) != 0;
 
             float angle = Vector3.Angle(Vector3.up, hit.normal);
