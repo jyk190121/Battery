@@ -87,6 +87,13 @@ public class GameMaster : NetworkBehaviour
     public void StartNewGame()
     {
         if (!IsServer) return;
+
+        if (dayCycleManager.isSessionActive.Value)
+        {
+            Debug.Log("<color=orange>[GameMaster] 이미 진행 중인 세션이므로 초기화를 건너뜁니다.</color>");
+            return;
+        }
+
         dayCycleManager.StartNewSession();
         economyManager.ResetEconomyData();
         performanceManager.ResetPerformanceData();
