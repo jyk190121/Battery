@@ -9,9 +9,16 @@ using Unity.Services.Core;
 using Unity.Services.Multiplayer;
 using UnityEngine;
 
+// 반드시 필요 (LobbyService.Instance.UpdateLobbyAsync 사용)
+using Unity.Services.Lobbies;
+using Unity.Services.Lobbies.Models;
+using System.Runtime.InteropServices;
+
 public class MultiPlayerSessionManager : NetworkBehaviour
 {
     public static MultiPlayerSessionManager Instance { get; private set; }
+
+    public string ExplodedSessionId { get; private set; } = "";
 
     [Header("설정")]
     private const string LOBBY_SCENE_NAME = "KJY_Lobby";
@@ -26,8 +33,11 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     // 포톤에서 가져다 쓸 순수 문자열 ID
     public string CurrentChannelId { get; private set; } = "LobbyChannel";
 
+    // 과도하게 요청 방지용
+    bool _isQuerying = false;
+
     // 로컬 플레이어 닉네임 (UI에서 입력받아 설정)
-    private string _playerNickname = "Guest"; // 기본값 설정
+    private string _playerNickname = null; // 기본값 설정
 
     public string PlayerNickname
     {
@@ -266,6 +276,9 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     // 2. 방 목록 불러오기 (Query) - Join 버튼 클릭 시 호출용
     public async void QuerySessionsAsync()
     {
+        if (_isQuerying) return; // 이미 실행 중이면 무시
+        _isQuerying = true;
+
         try
         {
             await EnsureSignedInAsync();
@@ -296,6 +309,7 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         {
             Debug.LogError($"[Multiplayer] 방 목록 불러오기 실패: {e.Message}");
         }
+        finally { _isQuerying = false; }
     }
     // 3. 특정 방에 참가하기 (Join)
     public async void JoinSessionAsync(ISessionInfo session)
@@ -463,29 +477,113 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     #endregion
 
     #region 방 잠그기
-    public async Task SetSessionLockedAsync(bool isLocked)
+    // 💡 1. 세션 업데이트 불량 문제를 LobbyService 직접 호출로 해결
+    public async Task LockSessionAsync()
     {
         if (ActiveSession == null || !NetworkManager.Singleton.IsServer) return;
 
         try
         {
-            // 2.1.3 버전에서는 UpdateSessionOptionsAsync 대신 
-            // ModifySessionAsync를 사용하며, 인자로 SessionOptions를 넣습니다.
-            var options = new SessionOptions { IsLocked = isLocked };
+            // 래퍼인 Session 대신 근간이 되는 Lobby 자체를 잠가버립니다.
+            // ActiveSession.Id는 내부적으로 Lobby ID와 동일합니다.
+            var updateOptions = new UpdateLobbyOptions { IsLocked = true };
+            await LobbyService.Instance.UpdateLobbyAsync(ActiveSession.Id, updateOptions);
 
-            //await ActiveSession.AsHost().IsLocked == true;
-
-            Debug.Log($"[Multiplayer] 세션 잠금 상태 변경 완료: {isLocked}");
+            Debug.Log("<color=green>[Session]</color> 방 잠금 완료. 방 목록에 '게임중'으로 표시됩니다.");
         }
         catch (Exception e)
         {
-            Debug.LogError($"[Multiplayer] 세션 잠금 설정 실패: {e.Message}");
+            Debug.LogWarning($"[Session] 방 잠금 시각적 갱신 실패: {e.Message}");
         }
+    }
+
+    //// 💡 2. 방장 이탈 감지 (방 폭파)
+    //private void OnClientDisconnected(ulong clientId)
+    //{
+    //    // 내가 클라이언트인데 (방장이 아님)
+    //    if (!NetworkManager.Singleton.IsServer)
+    //    {
+    //        // 방장(ServerClientId)의 연결이 끊어졌거나, 내 연결이 끊겼을 때
+    //        if (clientId == NetworkManager.ServerClientId || clientId == NetworkManager.Singleton.LocalClientId)
+    //        {
+    //            Debug.Log("<color=red>[Multiplayer] 서버(방장)와의 연결이 종료되어 타이틀로 귀환합니다.</color>");
+    //            ReturnToLobbyLocal();
+    //        }
+    //    }
+    //}
+
+    // 💡 3. 클라이언트 강제 귀환 로직
+    public async void ReturnToLobbyLocal()
+    {
+        if (_isLeaving) return;
+        _isLeaving = true;
+
+        if (NetworkManager.Singleton != null) NetworkManager.Singleton.Shutdown();
+
+        // 2. 세션 리스트에서 이탈
+        if (ActiveSession != null)
+        {
+            try { await ActiveSession.LeaveAsync(); }
+            catch { }
+            finally { ActiveSession = null; }
+        }
+
+        // 클라이언트가 들고 있던 채널ID 초기화
+        CurrentChannelId = "LobbyChannel";
+
+        _isLeaving = false;
+
+        // 중요: 타이틀로 돌아가기 전, 세션 리스트를 비우도록 이벤트 발행
+        OnSessionListUpdated?.Invoke(new List<ISessionInfo>());
+
+        UnityEngine.SceneManagement.SceneManager.LoadScene(START_SCENE_NAME);
     }
     #endregion
 
-
     #region Teardown & Callbacks
+    public async Task RequestDeleteSession()
+    {
+        if (ActiveSession == null) return;
+
+        string sessionIdToKill = ActiveSession.Id;
+
+        // 1. 호스트인 경우, 방을 업데이트하는 대신 즉시 삭제(Delete)해버립니다.
+        if (NetworkManager.Singleton.IsServer)
+        {
+            try
+            {
+                await LobbyService.Instance.DeleteLobbyAsync(sessionIdToKill);
+                Debug.Log("<color=yellow>[Session]</color> 로비 서비스에서 방 삭제 완료");
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"방 삭제 실패 (이미 지워졌을 수 있음): {e.Message}");
+            }
+        }
+
+        // 2. 실제 세션 이탈 및 서버 종료
+        LeaveSession();
+    }
+
+    private void OnClientDisconnected(ulong clientId)
+    {
+        // 내가 클라이언트인데 (방장이 아님)
+        if (!NetworkManager.Singleton.IsServer)
+        {
+            // 방장(ServerClientId)의 연결이 끊어졌거나, 내 연결이 끊겼을 때
+            if (clientId == NetworkManager.ServerClientId || clientId == NetworkManager.Singleton.LocalClientId)
+            {
+                // 타이틀로 돌아가기 전, 내가 접속해있던 방이 폭파된 것이므로 ID를 기록해둡니다.
+                if (ActiveSession != null)
+                {
+                    ExplodedSessionId = ActiveSession.Id;
+                }
+
+                Debug.Log("<color=red>[Multiplayer] 서버(방장)와의 연결이 종료되어 타이틀로 귀환합니다.</color>");
+                ReturnToLobbyLocal();
+            }
+        }
+    }
 
     public async void LeaveSession()
     {
@@ -509,19 +607,6 @@ public class MultiPlayerSessionManager : NetworkBehaviour
 
         _isLeaving = false;
         GameSceneManager.Instance.LoadNetworkScene(START_SCENE_NAME);
-    }
-
-    private void OnClientDisconnected(ulong clientId)
-    {
-        // 호스트가 나갔거나 내가 튕겼을 때
-        if (!NetworkManager.Singleton.IsServer)
-        {
-            if (clientId == NetworkManager.ServerClientId || clientId == NetworkManager.Singleton.LocalClientId)
-            {
-                Debug.Log("<color=red>서버와의 연결이 종료되었습니다.</color>");
-                LeaveSession();
-            }
-        }
     }
 
     private void OnDestroy()

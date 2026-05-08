@@ -29,6 +29,8 @@ public class GameSessionManager : NetworkBehaviour
 {
     public static GameSessionManager Instance;
 
+    public NetworkVariable<bool> IsRoomLocked = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
     [Header("Lobby Cart (임시 저장소)")]
     // 출발 버튼을 누르기 전까지 아이템들이 임시로 담기는 장바구니
     public List<int> shopCart = new List<int>();
@@ -104,10 +106,21 @@ public class GameSessionManager : NetworkBehaviour
     // ==========================================================
     public override void OnNetworkSpawn()
     {
-        // 서버(방장)만 씬 로딩 완료 이벤트를 구독합니다.
-        if (IsServer && NetworkManager.Singleton.SceneManager != null)
+        //// 서버(방장)만 씬 로딩 완료 이벤트를 구독합니다.
+        //if (IsServer && NetworkManager.Singleton.SceneManager != null)
+        //{
+        //    NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnSceneLoadComplete;
+        //}
+
+        if (IsServer)
         {
-            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnSceneLoadComplete;
+            // 💡 접속 요청이 올 때마다 ApprovalCheck 함수를 거치도록 설정
+            NetworkManager.Singleton.ConnectionApprovalCallback = ApprovalCheck;
+
+            if (NetworkManager.Singleton.SceneManager != null)
+            {
+                NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnSceneLoadComplete;
+            }
         }
     }
 
@@ -245,10 +258,15 @@ public class GameSessionManager : NetworkBehaviour
     public void  RequestStartGameServerRpc(string targetSceneName, RpcParams rpcParams = default)
     {
         // 1. 보안 및 연타 방어
-        if (!IsServer || isStartSequenceActive) return;
+        if (IsRoomLocked.Value || isStartSequenceActive) return;
 
+        if (!IsServer) return;
+
+        IsRoomLocked.Value = true;
         isStartSequenceActive = true;
         Debug.Log($"<color=yellow>[GameSessionManager]</color> 시작 시퀀스 가동. 목적지: {targetSceneName}");
+
+        _ = MultiPlayerSessionManager.Instance.LockSessionAsync();
 
         // 1. 장바구니 아이템 확정
         foreach (int itemID in shopCart)
@@ -266,6 +284,23 @@ public class GameSessionManager : NetworkBehaviour
             NetworkManager.Singleton.SceneManager.LoadScene(targetSceneName, UnityEngine.SceneManagement.LoadSceneMode.Single);
         }
     }
+
+    void ApprovalCheck(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
+    {
+        // 자물쇠가 잠겼거나(IsRoomLocked), 씬 전환 시작 버튼을 누른 상태면
+        if (IsRoomLocked.Value || isStartSequenceActive)
+        {
+            response.Approved = false;
+            response.Reason = "게임이 이미 진행 중입니다.";
+            return;
+        }
+
+        // 통과
+        response.Approved = true;
+        response.CreatePlayerObject = true;
+    }
+
+
 
     /// <summary>
     /// 현재 활성화된 환원 퀘스트(Return)를 확인하여 필요한 아이템을 스폰 대기열에 넣습니다.
