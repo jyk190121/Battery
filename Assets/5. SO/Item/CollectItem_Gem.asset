@@ -18,7 +18,8 @@ MonoBehaviour:
   category: 5
   basePrice: 0
   icon: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  healAmount: 0
   animType: 0
-  spawnLocation: 3
+  spawnLocation: 4
   itemPrefab: {fileID: 699074146387092235, guid: fbfed4f8e46e1094dad3f3a721694984, type: 3}
   keyID: 

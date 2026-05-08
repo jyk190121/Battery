@@ -294,8 +294,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::QuestGeneratorAdapter
   ShowTopMostFoldoutHeaderGroup: 1
   baseGenerator: {fileID: 1251523771095860025}
-  floorLevel: 1
-  repairPartItemID: 401
+  repairPartItemID: 905
   isQuestTarget:
     m_InternalValue: 0
   currentParts:

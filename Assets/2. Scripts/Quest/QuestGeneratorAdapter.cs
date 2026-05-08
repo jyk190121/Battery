@@ -8,7 +8,7 @@ public class QuestGeneratorAdapter : NetworkBehaviour
     public GeneratorController baseGenerator;
 
     [Header("Quest Settings")]
-    public int repairPartItemID = 401; // 수리 부속 아이템 ID
+    public int repairPartItemID = 905; // 수리 부속 아이템 ID
 
     public NetworkVariable<bool> isQuestTarget = new NetworkVariable<bool>(false);
     public NetworkVariable<int> currentParts = new NetworkVariable<int>(0);
