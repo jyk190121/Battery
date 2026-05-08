@@ -18,6 +18,15 @@ MonoBehaviour:
   spawnCost: 2
   maxSpawnCount: 2
   spawnWeight: 50
+  footstepClips:
+  - {fileID: 8300000, guid: c32705fe734f1074a9ab13355bde2f68, type: 3}
+  - {fileID: 8300000, guid: f0a052ef6ea97ec48901fef05c90ba2c, type: 3}
+  screamClip: {fileID: 0}
+  chaseClip: {fileID: 0}
+  attackClip: {fileID: 8300000, guid: 9a2d033f7760b4ef09400945a538ccd9, type: 3}
+  breathClip: {fileID: 8300000, guid: 6811bbd09dedb497ea07997567b158c2, type: 3}
+  hitClip: {fileID: 0}
+  deathClip: {fileID: 8300000, guid: 6beb606fbac8f4d0e9ea410969417e51, type: 3}
   patrolSpeed: 2.5
   chaseSpeed: 4.5
   attackDamage: 30

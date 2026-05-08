@@ -120,7 +120,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -376,7 +376,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -971,7 +971,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -2199,7 +2199,9 @@ MonoBehaviour:
   owner: {fileID: 6384232730694675756}
   voiceSource: {fileID: 2925184528824537222}
   footstepSource: {fileID: 1221000225233753787}
-  loopSource: {fileID: 3072100085692819869}
+  ambientSource: {fileID: 3072100085692819869}
+  walkStepInterval: 0.45
+  runStepInterval: 0.3
 --- !u!1 &6732649954973863555
 GameObject:
   m_ObjectHideFlags: 0

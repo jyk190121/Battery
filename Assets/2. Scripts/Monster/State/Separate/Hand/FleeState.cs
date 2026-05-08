@@ -29,6 +29,9 @@ public class FleeState : MonsterBaseState
         base.Enter();
         _fleeTimer = 0f;
 
+        if (owner.IsServer && owner.soundHandler != null)
+            owner.soundHandler.PlayHitSoundClientRpc();
+
         // 1. 천장에서 떨어졌거나 물리적으로 튕겨 나갔을 경우를 대비해, 
         // 현재 위치에서 가장 가까운 NavMesh(바닥) 위로 위치를 보정합니다.
         if (NavMesh.SamplePosition(owner.transform.position, out NavMeshHit hit, 2.0f, NavMesh.AllAreas))
