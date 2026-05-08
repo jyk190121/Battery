@@ -17,6 +17,7 @@ public enum ItemCategory
 }
 public enum SpawnLocation
 {
+    AllFloor,
     Floor1,
     Floor2,
     Floor3,

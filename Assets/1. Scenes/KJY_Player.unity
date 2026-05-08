@@ -26540,7 +26540,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b377b6fb980d8e4f9326ecac339c8c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemSpawnPoint
-  location: 0
+  location: 1
   points:
   - {fileID: 595840293}
   - {fileID: 1011909620}
@@ -26562,12 +26562,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemSpawner
   ShowTopMostFoldoutHeaderGroup: 1
   itemDatabase:
-  - {fileID: 11400000, guid: 1473f70f8e1093a46b7661e18db31796, type: 2}
   - {fileID: 11400000, guid: 948deca58d407434cb3941bfb7d3448f, type: 2}
+  - {fileID: 11400000, guid: 1473f70f8e1093a46b7661e18db31796, type: 2}
   - {fileID: 11400000, guid: 601a4e2636a5dbc429899cfc28788574, type: 2}
   - {fileID: 11400000, guid: 2de26f69c84422e43b6fc65ea431d23d, type: 2}
   - {fileID: 11400000, guid: 6a2f1a819139d1a4b9909df58a5a3519, type: 2}
   - {fileID: 11400000, guid: 8c64642793244dc418c6ee102b4c4fed, type: 2}
+  - {fileID: 11400000, guid: 12f794b185d931f43b399cab09a33ea8, type: 2}
+  - {fileID: 11400000, guid: 1432299a1ea34d24bbb672e79a48302e, type: 2}
   baseSpawnCount: 10
   extraSpawnPerDifficulty: 2
   keySpawnChance: 15

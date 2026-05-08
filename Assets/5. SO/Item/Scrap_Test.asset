@@ -20,6 +20,6 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 11e23ef4c1c72ee4798dace5427c50ac, type: 3}
   healAmount: 0
   animType: 0
-  spawnLocation: 3
+  spawnLocation: 0
   itemPrefab: {fileID: 7116581890818129184, guid: f6cdb16393c87e74496bcecc62cb368c, type: 3}
   keyID: 
