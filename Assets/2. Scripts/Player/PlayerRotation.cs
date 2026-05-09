@@ -55,11 +55,17 @@ public class PlayerRotation : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        playerMove = GetComponent<PlayerMove>();
-        playerController = GetComponent<PlayerController>();
+        //playerMove = GetComponent<PlayerMove>();
+        //playerController = GetComponent<PlayerController>();
 
+        bool player = true;
+
+        player &= TryGetComponent(out playerMove);
+        player &= TryGetComponent(out playerController);
+
+        if (!player) { print("플레이어 컴포넌트가 존재하지 않음"); return;}
+        
         cameraController = FindAnyObjectByType<CinemachineController>();
-
 
         // [중요] 잡힌 상태(isSnared)가 변할 때 카메라 전환
         playerController.isSnared.OnValueChanged += (oldVal, isSnared) => {
@@ -166,35 +172,26 @@ public class PlayerRotation : NetworkBehaviour
 
     void TryFindCamera()
     {
-
-        //if (vcam != null) return;
-
-        //vcam = FindAnyObjectByType<CinemachineCamera>();
-        //if (vcam != null)
-        //{
-        //    _panTilt = vcam.GetComponent<CinemachinePanTilt>();
-        //    if (IsOwner)
-        //    {
-        //        vcam.Follow = cameraTarget;
-        //        vcam.LookAt = null;
-        //        if (_panTilt != null) _panTilt.PanAxis.Value = transform.eulerAngles.y;
-        //    }
-        //}
-
-
-        //if (vcam != null) return;
         if (vcam != null && _panTilt != null) return;
 
-        // 씬 전체를 뒤지는 대신, 컨트롤러에 등록된 메인 카메라를 바로 가져옴
-        if (CinemachineController.Instance != null)
+        if (CinemachineController.Instance?.mainVcam != null)
         {
             vcam = CinemachineController.Instance.mainVcam;
-
+            // out 파라미터를 사용하여 할당과 동시에 성공 여부 확인
             if (vcam != null)
             {
+                vcam.TryGetComponent(out _panTilt);
+
                 _panTilt = vcam.GetComponent<CinemachinePanTilt>();
 
-                if (_panTilt == null) _panTilt = cameraController.GetComponent<CinemachinePanTilt>();
+                //if (_panTilt == null) _panTilt = cameraController.GetComponent<CinemachinePanTilt>();
+                if (_panTilt == null)
+                {
+                    if(cameraController.TryGetComponent(out cameraController.mainVcam))
+                    {
+                        _panTilt = cameraController.mainVcam.GetComponent<CinemachinePanTilt>();
+                    }
+                }
 
                 if (IsOwner)
                 {
@@ -203,6 +200,25 @@ public class PlayerRotation : NetworkBehaviour
                 }
             }
         }
+
+        //// 씬 전체를 뒤지는 대신, 컨트롤러에 등록된 메인 카메라를 바로 가져옴
+        //if (CinemachineController.Instance != null)
+        //{
+        //    vcam = CinemachineController.Instance.mainVcam;
+
+        //    if (vcam != null)
+        //    {
+        //        _panTilt = vcam.GetComponent<CinemachinePanTilt>();
+
+        //        if (_panTilt == null) _panTilt = cameraController.GetComponent<CinemachinePanTilt>();
+
+        //        if (IsOwner)
+        //        {
+        //            vcam.Follow = cameraTarget;
+        //            if (_panTilt != null) _panTilt.PanAxis.Value = transform.eulerAngles.y;
+        //        }
+        //    }
+        //}
     }
 
     void Update()

@@ -31,7 +31,8 @@ public class CarController : NetworkBehaviour
         ToggleDoorServerRpc();
     }
 
-    [ServerRpc(RequireOwnership = false)]
+    //[ServerRpc(RequireOwnership = false)]
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     private void ToggleDoorServerRpc()
     {
         isOpen.Value = !isOpen.Value;
