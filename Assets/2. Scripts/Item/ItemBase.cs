@@ -20,10 +20,13 @@ public abstract class ItemBase : NetworkBehaviour
     public Vector3 gripPositionOffset = Vector3.zero;
     public Vector3 gripRotationOffset = Vector3.zero;
 
+    NetworkTransform _netTransform;
     protected virtual void Awake()
     {
         itemPhysicsRigidbody = GetComponent<Rigidbody>();
         itemPhysicalCollider = GetComponent<Collider>();
+
+        TryGetComponent(out _netTransform);
     }
 
     protected virtual void Start() { }
@@ -43,7 +46,7 @@ public abstract class ItemBase : NetworkBehaviour
         Outline outline = GetComponentInChildren<Outline>();
         if (outline != null) outline.enabled = false;
 
-        var netTransform = GetComponent<NetworkTransform>();
+        //var netTransform = GetComponent<NetworkTransform>();
 
         if (isPickingUp)
         {
@@ -55,7 +58,7 @@ public abstract class ItemBase : NetworkBehaviour
             }
 
             // 네트워크 변환 동기화 일시 중지 (손 위치 강제 추적을 위함)
-            if (netTransform != null) netTransform.enabled = false;
+            if (_netTransform != null) _netTransform.enabled = false;
 
             ForceSnapPosition();
 
@@ -71,17 +74,17 @@ public abstract class ItemBase : NetworkBehaviour
                 //물리현상 강제적용
                 itemPhysicsRigidbody.WakeUp();
             }
-            if (netTransform != null)
+            if (_netTransform != null)
             {
                 // 중요: Teleport는 '서버' 권한이 있는 쪽에서만 호출합니다.
                 if (IsServer)
                 {
                     // 현재 transform 위치로 동기화 위치를 강제 설정합니다.
-                    netTransform.Teleport(transform.position, transform.rotation, transform.localScale);
+                    _netTransform.Teleport(transform.position, transform.rotation, transform.localScale);
                 }
 
                 // NetworkTransform을 다시 켜서 동기화를 재개합니다. (모든 클라이언트 공통)
-                netTransform.enabled = true;
+                _netTransform.enabled = true;
             }
 
         //if (netTransform != null)
