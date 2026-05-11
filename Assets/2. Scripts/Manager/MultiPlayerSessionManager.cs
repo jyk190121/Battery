@@ -1,18 +1,18 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
-using Unity.Services.Multiplayer;
-using UnityEngine;
-
 // 반드시 필요 (LobbyService.Instance.UpdateLobbyAsync 사용)
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
-using System.Runtime.InteropServices;
+using Unity.Services.Multiplayer;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MultiPlayerSessionManager : NetworkBehaviour
 {
@@ -606,7 +606,8 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         }
 
         _isLeaving = false;
-        GameSceneManager.Instance.LoadNetworkScene(START_SCENE_NAME);
+        //GameSceneManager.Instance.LoadNetworkScene(START_SCENE_NAME);
+        SceneManager.LoadScene(START_SCENE_NAME);
     }
 
     private void OnDestroy()

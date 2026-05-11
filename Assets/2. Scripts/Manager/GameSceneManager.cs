@@ -33,6 +33,44 @@ public class GameSceneManager : NetworkBehaviour
             Destroy(gameObject);                                // 중복 생성된 객체는 제거
         }
     }
+    void OnEnable()
+    {
+        // 유니티 기본 씬 로드 완료 이벤트 구독 
+        // (네트워크가 연결되지 않은 타이틀 씬에서도 BGM이 정상 재생되도록 유니티 자체 이벤트를 사용합니다)
+        SceneManager.sceneLoaded += OnSceneLoadedForBGM;
+    }
+
+    void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoadedForBGM;
+    }
+
+    /// <summary>
+    /// 씬이 로드될 때마다 호출되어 BGM을 씬에 맞게 변경해줍니다.
+    /// </summary>
+    void OnSceneLoadedForBGM(Scene scene, LoadSceneMode mode)
+    {
+        if (SoundManager.Instance == null) return;
+
+        switch (scene.name)
+        {
+            case "KJY_TITLE":
+                Debug.Log("<color=cyan>[BGM]</color> 타이틀 씬 진입: 타이틀 BGM 재생");
+                SoundManager.Instance.PlayBgm(BgmSound.TITLE);
+                break;
+
+            case "KJY_Lobby":
+                Debug.Log("<color=cyan>[BGM]</color> 로비 씬 진입: BGM 정지");
+                SoundManager.Instance.StopBgm(); // 로비는 BGM 없음
+                break;
+
+            case "KJY_Player":
+                Debug.Log("<color=cyan>[BGM]</color> 게임 씬 진입: 게임 BGM 재생");
+                SoundManager.Instance.PlayBgm(BgmSound.GAME);
+                break;
+        }
+    }
+
     public override void OnNetworkSpawn()
     {
         if (IsServer)
@@ -133,20 +171,6 @@ public class GameSceneManager : NetworkBehaviour
             RequestStartGameServerRpc();
         }
     }
-
-    //private void SpawnPlayerForClient(ulong clientId)
-    //{
-    //    // 이미 플레이어 객체가 있다면 생성하지 않음
-    //    if (NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject != null) return;
-
-    //    // 플레이어 프리팹은 NetworkManager에 등록된 Default Player Prefab이 사용됩니다.
-    //    // 특정 좌표에 소환하고 싶다면 아래 주석을 활용하세요.
-    //     Vector3 spawnPos = new Vector3(40.14f, 0.66f, 67.41f);
-    //    NetworkManager.Singleton.GetNetworkPrefabOverride(NetworkManager.Singleton.NetworkConfig.PlayerPrefab);
-
-    //    // 주의: NetworkManager 설정에서 'Auto Object Parent Sync'와 'Spawn Player' 옵션에 따라 
-    //    // 자동으로 생성될 수도 있습니다. 수동 제어를 원하면 NetworkManager 설정을 확인하세요.
-    //}
 
     void SpawnPlayerAtPosition(ulong clientId)
     {

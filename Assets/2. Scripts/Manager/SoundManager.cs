@@ -52,6 +52,7 @@ public enum SfxSound
 public enum BgmSound
 {
     TITLE,
+    GAME
 }
 
 public class SoundManager : MonoBehaviour
@@ -83,6 +84,7 @@ public class SoundManager : MonoBehaviour
     [SerializeField] private AudioSource bgmSource;       // 배경음악 재생용
 
     [Header("--- Audio Mixer Snapshots ---")]
+    public AudioMixer audioMixer;                         // 믹서 참조 추가
     public AudioMixerSnapshot outdoorSnapshot;            // 필터 없는 상태
     public AudioMixerSnapshot indoorSnapshot;             // Lowpass Filter가 걸린 먹먹한 상태
 
@@ -96,6 +98,7 @@ public class SoundManager : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject);
             InitializeDictionaries();
+            LoadVolumeSettings(); // 시작할 때 저장된 볼륨 불러오기
         }
         else
         {
@@ -237,6 +240,45 @@ public class SoundManager : MonoBehaviour
             {
                 localPlayer.ReportNoiseServerRpc(position, noiseLevel, localPlayer.isInsideFacility.Value);
             }
+        }
+    }
+
+    #endregion
+
+    #region 볼륨 조절 메서드
+
+    // 처음 시작할 때 PlayerPrefs에 저장된 볼륨을 믹서에 적용
+    void LoadVolumeSettings()
+    {
+        SetMasterVolume(PlayerPrefs.GetFloat("MasterVol", 1f));
+        SetBgmVolume(PlayerPrefs.GetFloat("BgmVol", 1f));
+        SetSfxVolume(PlayerPrefs.GetFloat("SfxVol", 1f));
+    }
+
+    // 슬라이더 값(0.0001 ~ 1)을 받아 dB(-80 ~ 0)로 변환하여 믹서에 적용
+    public void SetMasterVolume(float volume)
+    {
+        AudioListener.volume = Mathf.Clamp01(volume);
+    }
+
+    public void SetBgmVolume(float volume)
+    {
+        if (bgmSource != null)
+        {
+            bgmSource.volume = Mathf.Clamp01(volume);
+        }
+    }
+
+    public void SetSfxVolume(float volume)
+    {
+        if (sfxSource != null)
+        {
+            sfxSource.volume = Mathf.Clamp01(volume);
+        }
+
+        if (loopSfxSource != null)
+        {
+            loopSfxSource.volume = Mathf.Clamp01(volume);
         }
     }
 

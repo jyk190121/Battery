@@ -142,7 +142,8 @@ public class PlayerMove : NetworkBehaviour
     {
         if (!IsOwner) return;
 
-        if (isControlLocked || isTabletLocked || isNumpadLocked)
+        if (isControlLocked || isTabletLocked || isNumpadLocked ||
+        (SettingsUIController.Instance != null && SettingsUIController.Instance.IsSettingsOpen))
         {
             inputMagnitude = 0;
             if (rb != null && isGrounded)
@@ -152,10 +153,7 @@ public class PlayerMove : NetworkBehaviour
             return;
         }
 
-        else
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-        }
+        Cursor.lockState = CursorLockMode.Locked;
 
         //if (isControlLocked)
         //{
@@ -180,16 +178,13 @@ public class PlayerMove : NetworkBehaviour
         if (!IsOwner) return;
 
         // [수정] 이동 물리 연산도 동일하게 차단
-        if (isControlLocked || isTabletLocked || isNumpadLocked)
+        if (isControlLocked || isTabletLocked || isNumpadLocked || (SettingsUIController.Instance != null && SettingsUIController.Instance.IsSettingsOpen))
         {
             // 완벽하게 멈추기 위해 물리 속도 제어
             rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
             return;
         }
-        else
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-        }
+        Cursor.lockState = CursorLockMode.Locked;
 
         //Move();
 

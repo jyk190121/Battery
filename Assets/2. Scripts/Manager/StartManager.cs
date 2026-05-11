@@ -52,6 +52,8 @@ public class StartManager : MonoBehaviour
     void OnEnable()
     {
         TrySubscribeEvents();
+
+        //SoundManager.Instance.PlayBgm(BgmSound.TITLE);
     }
 
     void OnDisable()
