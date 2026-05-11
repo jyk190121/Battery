@@ -19,6 +19,17 @@ public class PerformanceManager : NetworkBehaviour
         if (IsServer) ResetPerformanceData();
     }
 
+    private void Update()
+    {
+        if(!IsServer) return;
+
+        if (UnityEngine.InputSystem.Keyboard.current.f10Key.wasPressedThisFrame)
+        {
+            accumulatedScore.Value += 5;
+            Debug.Log($"실적 5점 추가 디버그용 (현재: {accumulatedScore} 점");
+        }
+    }
+
     // 하루 일과가 끝나고 퀘스트 점수를 정산받을 때
     public void ProcessDailyScore(int questScore)
     {

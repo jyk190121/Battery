@@ -283,7 +283,9 @@ public class SettlementZone : NetworkBehaviour
                 int finalNetIncome = Mathf.RoundToInt(finalDailyIncome * penaltyMultiplier);
 
                 bool isWipedOut = deadCount >= GameSessionManager.Instance.GetTotalPlayers();
-                GameMaster.Instance.EndDay(isWipedOut, finalNetIncome, questScore);
+                //GameMaster.Instance.EndDay(isWipedOut, finalNetIncome, questScore);
+
+                GameMaster.Instance.SetPendingResults(isWipedOut, finalNetIncome, questScore);
                 QuestManager.Instance.ResetDailyQuests();
             }
             catch (System.Exception e) { Debug.LogWarning($"[Settlement] Error: {e.Message}"); }
