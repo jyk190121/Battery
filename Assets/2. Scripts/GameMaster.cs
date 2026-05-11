@@ -18,6 +18,12 @@ public class GameMaster : NetworkBehaviour
     public event Action<bool, int> OnDayEnded;
     public event Action OnCycleCleared;
 
+    [Header("Pending Results (Transition)")]
+    public NetworkVariable<bool> hasPendingResult = new NetworkVariable<bool>(false);
+    public NetworkVariable<int> pendingIncome = new NetworkVariable<int>(0);
+    public NetworkVariable<int> pendingScore = new NetworkVariable<int>(0);
+    public NetworkVariable<bool> pendingWipedOut = new NetworkVariable<bool>(false);
+
     private void Awake()
     {
         if (Instance == null)
@@ -159,5 +165,31 @@ public class GameMaster : NetworkBehaviour
     {
         ShopManager manager = FindAnyObjectByType<ShopManager>();
         manager.ClearCartUI();
+    }
+
+    // 정산존(SettlementZone)에서 씬 넘어가기 직전에 호출할 함수
+    public void SetPendingResults(bool isWipedOut, int dailyIncome, int questScore)
+    {
+        if (!IsServer) return;
+        pendingWipedOut.Value = isWipedOut;
+        pendingIncome.Value = dailyIncome;
+        pendingScore.Value = questScore;
+
+        hasPendingResult.Value = true; // 이 값이 true가 되면 로비에서 결과창이 뜹니다.
+    }
+
+    // 결과창 UI에서 수락 버튼을 눌렀을 때 실제로 재화와 점수를 적용하는 함수
+    public void ApplyPendingResults()
+    {
+        if (!IsServer) return;
+
+        economyManager.ProcessDailyIncome(pendingWipedOut.Value ? 0 : pendingIncome.Value, dayCycleManager.currentDayIndex.Value);
+        performanceManager.ProcessDailyScore(pendingWipedOut.Value ? 0 : pendingScore.Value);
+    }
+
+    public void ClearPendingResults()
+    {
+        if (!IsServer) return;
+        hasPendingResult.Value = false;
     }
 }
