@@ -223,7 +223,7 @@ public class PlayerRotation : NetworkBehaviour
 
     void Update()
     {
-        if (_isSpectating || !IsOwner) return;
+        if (_isSpectating || !IsOwner || (SettingsUIController.Instance != null && SettingsUIController.Instance.IsSettingsOpen)) return;
 
 
         if (PhoneUIController.Instance != null)
@@ -258,7 +258,7 @@ public class PlayerRotation : NetworkBehaviour
 
     void LateUpdate()
     {
-        if (!IsOwner) return;
+        if (!IsOwner || (SettingsUIController.Instance != null && SettingsUIController.Instance.IsSettingsOpen)) return;
 
         // 1. 카메라 및 컴포넌트 체크
         if (vcam == null || _panTilt == null)
