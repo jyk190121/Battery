@@ -1,8 +1,8 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 using System; // Action 이벤트 사용을 위해 필요
 using Unity.Netcode;
-using Unity.VisualScripting;
+using Key = UnityEngine.InputSystem.Key;
+
 
 public enum TVScreenState
 {
@@ -84,7 +84,7 @@ public class TabletUIManager : NetworkBehaviour
 
     private void Update()
     {
-        if(isLocalTabletOpen && Keyboard.current.escapeKey.wasPressedThisFrame)
+        if(isLocalTabletOpen && Input.GetKeyDown(Key.Escape))
         {
             CloseTabletUI();
         }
