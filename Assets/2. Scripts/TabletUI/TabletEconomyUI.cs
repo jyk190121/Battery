@@ -62,7 +62,7 @@ public class TabletEconomyUI : MonoBehaviour
         // 2. 현재 날짜 표시 (게임 로직상 5일차가 정산일이므로 / 5 로 수정)
         if (currentDayText != null && dayCycle != null)
         {
-            currentDayText.text = $"Day {dayCycle.currentDayIndex.Value} / 5";
+            currentDayText.text = $"Day {dayCycle.currentDayIndex.Value} / 4";
         }
 
         // 3. 현재 보유 중인 돈 표시
