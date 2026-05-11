@@ -327,16 +327,17 @@ public class PlayerController : NetworkBehaviour
         if (!IsServer) yield break;
 
         // 1. 정리 로직 (몬스터, 아이템 등)
-        MonsterController[] remainingMonsters = FindObjectsByType<MonsterController>(FindObjectsSortMode.None);
-        foreach (var monster in remainingMonsters)
-        {
-            if (monster.NetworkObject != null && monster.NetworkObject.IsSpawned)
-                monster.NetworkObject.Despawn();
-        }
+        //MonsterController[] remainingMonsters = FindObjectsByType<MonsterController>(FindObjectsSortMode.None);
+        //foreach (var monster in remainingMonsters)
+        //{
+        //    if (monster.NetworkObject != null && monster.NetworkObject.IsSpawned)
+        //        monster.NetworkObject.Despawn();
+        //}
         GameSessionManager.Instance.CleanupAllItemsInScene();
+        GameSessionManager.Instance.CleanupMonstersInScene();
 
         // 2. 잠시 대기 (사망 연출을 보여줌)
-        yield return new WaitForSeconds(3.0f);
+        yield return new WaitForSeconds(1.5f);
 
         // 3. 로비 이동 전 데이터 초기화 (이때 부활시키면 씬 전환 중에 깔끔하게 세팅됨)
         foreach (var player in AllPlayers)

@@ -56,20 +56,40 @@ public class WaypointManager : MonoBehaviour
         return new List<Transform>(); // 에러 방지용 빈 리스트 반환
     }
 
-    public Transform GetRandomWaypoint(MapZone zone)
-    {
-        if (!_zoneWaypoints.TryGetValue(zone, out List<Transform> points) || points.Count == 0) return null;
-        return points[Random.Range(0, points.Count)];
-    }
+    //public Transform GetRandomWaypoint(MapZone zone)
+    //{
+    //    if (!_zoneWaypoints.TryGetValue(zone, out List<Transform> points) || points.Count == 0) return null;
+    //    return points[Random.Range(0, points.Count)];
+    //}
 
     public Transform GetFarWaypoint(Vector3 currentPos, MapZone zone, float minDistance = 20f)
     {
         if (!_zoneWaypoints.TryGetValue(zone, out List<Transform> points) || points.Count == 0) return null;
 
-        var farPoints = points.Where(wp => Vector3.Distance(currentPos, wp.position) > minDistance).ToList();
+        //var farPoints = points.Where(wp => Vector3.Distance(currentPos, wp.position) > minDistance).ToList();
+
+        //if (farPoints.Count == 0) return GetRandomWaypoint(zone);
+
+        //return farPoints[Random.Range(0, farPoints.Count)];
+
+        var farPoints = points
+        .Where(wp => wp != null && wp.gameObject != null) // 살아있는 객체만 골라냄
+        .Where(wp => Vector3.Distance(currentPos, wp.position) > minDistance)
+        .ToList();
 
         if (farPoints.Count == 0) return GetRandomWaypoint(zone);
 
         return farPoints[Random.Range(0, farPoints.Count)];
+    }
+
+    public Transform GetRandomWaypoint(MapZone zone)
+    {
+        if (!_zoneWaypoints.TryGetValue(zone, out List<Transform> points)) return null;
+
+        // 살아있는 포인트만 필터링
+        var validPoints = points.Where(p => p != null).ToList();
+        if (validPoints.Count == 0) return null;
+
+        return validPoints[Random.Range(0, validPoints.Count)];
     }
 }

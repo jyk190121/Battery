@@ -107,11 +107,6 @@ public class GameSceneManager : NetworkBehaviour
             NetworkManager.Singleton.SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
         }
     }
-    ///// <summary>
-    ///// 플레이어 리스폰 포지션 초기화
-    ///// </summary>
-    ///// <param name="clientId"></param>
-    ///// <returns></returns>
 
     //public (Vector3 position, Quaternion rotation) GetSpawnPoint(ulong clientId)
     //{
