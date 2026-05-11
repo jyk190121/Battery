@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using Key = UnityEngine.InputSystem.Key;
 
@@ -6,8 +7,9 @@ public class SettingsUIController : MonoBehaviour
     [Header("UI Reference")]
     [SerializeField] private GameObject settingsUIPanel; // SettingsUI 프리팹이나 오브젝트
 
-    [Header("홈버튼 노출여부")]
+    [Header("홈버튼 / 나가기 버튼")]
     public GameObject closeBtn;
+    public GameObject exitBtn;
 
     bool isSettingsOpen = false;
 
@@ -85,14 +87,15 @@ public class SettingsUIController : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        bool isGameOrLobby = GameSceneManager.Instance.SceneName() == "KJY_Player" ||
-                               GameSceneManager.Instance.SceneName() == "KJY_Lobby";
+        string currentScene = GameSceneManager.Instance.SceneName();
+        bool isInGameOrLobby = currentScene == "KJY_Lobby" || currentScene == "KJY_Player";
 
-        closeBtn.SetActive(!isGameOrLobby);
-        SetPlayerInputState(false); // 입력 제한
+        if (closeBtn != null) closeBtn.SetActive(!isInGameOrLobby);
+        if (exitBtn != null) exitBtn.SetActive(isInGameOrLobby);
+        SetPlayerInputState(false);
     }
 
-    private void CloseActions()
+    void CloseActions()
     {
         // 1. 마우스 커서 다시 가두기 (게임 씬인 경우)
         // 로비와 게임 씬의 커서 상태가 다르다면 조건을 추가하세요.
@@ -109,7 +112,7 @@ public class SettingsUIController : MonoBehaviour
             Cursor.visible = true;
         }
 
-        SetPlayerInputState(true); // 입력 복구
+        SetPlayerInputState(true);
     }
 
     void SetPlayerInputState(bool canInput)
