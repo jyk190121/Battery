@@ -339,4 +339,22 @@ public class GameSessionManager : NetworkBehaviour
         }
     }
 
+    public void CleanupMonstersInScene()
+    {
+        if (!IsServer) return;
+
+        MonsterController[] monsters = FindObjectsByType<MonsterController>(FindObjectsSortMode.None);
+
+        foreach (var monster in monsters)
+        {
+            if (monster != null && monster.NetworkObject != null && monster.NetworkObject.IsSpawned)
+            {
+                // 💡 [추가] Despawn 전 AI 로직을 먼저 끕니다. (Update 에러 방지)
+                monster.enabled = false;
+
+                // 모든 클라이언트에게 파괴 명령 전송
+                monster.NetworkObject.Despawn();
+            }
+        }
+    }
 }
