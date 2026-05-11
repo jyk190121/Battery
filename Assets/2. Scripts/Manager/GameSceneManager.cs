@@ -108,12 +108,6 @@ public class GameSceneManager : NetworkBehaviour
         }
     }
 
-    ///// <summary>
-    ///// 플레이어 리스폰 포지션 초기화
-    ///// </summary>
-    ///// <param name="clientId"></param>
-    ///// <returns></returns>
-
     //public (Vector3 position, Quaternion rotation) GetSpawnPoint(ulong clientId)
     //{
     //    // 1. 최신 스폰 포인트 정보 갱신
