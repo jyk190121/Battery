@@ -3182,7 +3182,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 6777840
+  GlobalObjectIdHash: 405663255
   InScenePlacedSourceGlobalObjectIdHash: 6777840
   DeferredDespawnTick: 0
   Ownership: 1
@@ -3222,7 +3222,7 @@ MonoBehaviour:
   sensitivity: 0.02
   collisionLayers:
     serializedVersion: 2
-    m_Bits: 768
+    m_Bits: 769
   minDistance: 0.1
   collisionRadius: 0.2
   isHoldingSmartphone: 0
@@ -3251,7 +3251,7 @@ MonoBehaviour:
   jumpForce: 5
   groundLayer:
     serializedVersion: 2
-    m_Bits: 2130952
+    m_Bits: 2131464
   groundCheckDistance: 0.3
   stairLayer:
     serializedVersion: 2
