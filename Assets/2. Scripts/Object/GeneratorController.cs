@@ -51,6 +51,9 @@ public class GeneratorController : NetworkBehaviour
             }
         }
         isRepaired.Value = true;
+
+        //SoundManager.Instance.PlaySfxAndReportNoise();
+
         Debug.Log("<color=yellow>[Generator]</color> 수리 완료 랜덤 문 잠금 해제를 시도.");
 
         UnlockRandomLockedDoor();
