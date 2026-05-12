@@ -18,7 +18,7 @@ GameObject:
   - component: {fileID: 6590986486069514496}
   - component: {fileID: -5659029874016260677}
   - component: {fileID: -4958264254751531027}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: Cursed_statue
   m_TagString: Untagged
   m_Icon: {fileID: 0}
