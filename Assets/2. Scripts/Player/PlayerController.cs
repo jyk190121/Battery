@@ -131,6 +131,15 @@ public class PlayerController : NetworkBehaviour
             // 사망 시(true) UI 켜기, 부활/스폰 시(false) UI 끄기
             SpectatorUIController.Instance.ToggleUI(newValue);
         }
+
+        // 스마트폰 사용불가 로직추가
+        if (newValue == true)
+        {
+            if (PhoneUIController.Instance != null && PhoneUIController.Instance.isPhoneActive)
+            {
+                PhoneUIController.Instance.TogglePhone(); // 또는 전용 닫기 함수 호출
+            }
+        }
     }
 
     private void OnFacilityStatusChanged(bool previousValue, bool newValue)
