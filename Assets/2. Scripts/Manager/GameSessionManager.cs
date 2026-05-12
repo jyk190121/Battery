@@ -67,8 +67,15 @@ public class GameSessionManager : NetworkBehaviour
         }
         else if (Instance != this)
         {
+            // 싱글톤 누수 문제
+            Instance.shopCart.Clear();
+            Instance.pendingSpawnItemIDs.Clear();
+            Instance.truckItems.Clear();
+
+            Destroy(gameObject);
+
             // Destroy 대신 조용히 비활성화해야 클라이언트가 튕기지 않습니다!
-            gameObject.SetActive(false);
+            //gameObject.SetActive(false);
             return;
         }
         // (GameMaster의 경우 하단에 있는 economyManager 등 GetComponent 코드는 그대로 유지)
@@ -347,7 +354,10 @@ public class GameSessionManager : NetworkBehaviour
 
         foreach (var monster in monsters)
         {
-            if (monster != null && monster.NetworkObject != null && monster.NetworkObject.IsSpawned)
+            if (monster == null) continue;
+            MonsterController[] remainingMonsters = FindObjectsByType<MonsterController>(FindObjectsSortMode.None);
+
+        if (monster.NetworkObject != null && monster.NetworkObject.IsSpawned)
             {
                 // 💡 [추가] Despawn 전 AI 로직을 먼저 끕니다. (Update 에러 방지)
                 monster.enabled = false;
@@ -357,6 +367,8 @@ public class GameSessionManager : NetworkBehaviour
 
                 print("몬스터 디스폰 처리 완");
             }
+
+            Destroy(monster.gameObject);
         }
     }
 }

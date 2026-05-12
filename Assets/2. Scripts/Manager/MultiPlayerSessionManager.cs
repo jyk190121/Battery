@@ -595,32 +595,48 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         if (_isLeaving) return;
         _isLeaving = true;
 
-        if(NetworkManager.Singleton !=null && NetworkManager.Singleton.IsServer)
+        Debug.Log("<color=orange>[Multiplayer]</color> 세션 종료 및 클린업 시작...");
+
+        // 1. [최우선] 서버라면 네트워크가 살아있을 때 모든 몬스터/아이템을 먼저 디스폰
+        if (NetworkManager.Singleton.IsServer && NetworkManager.Singleton.IsListening)
         {
-            if(GameSessionManager.Instance !=null)
+            if (GameSessionManager.Instance != null)
             {
+                // 이 안에서 monster.NetworkObject.Despawn()이 실행됨
                 GameSessionManager.Instance.CleanupMonstersInScene();
                 GameSessionManager.Instance.CleanupAllItemsInScene();
             }
+
+            // 💡 중요: 디스폰 패킷이 클라이언트들에게 도달할 아주 짧은 시간을 벌어줌
+            await Task.Delay(500);
         }
 
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
-        {
-            NetworkManager.Singleton.Shutdown();
-        }
-
+        // 2. 세션 서비스 이탈 (비동기 대기)
         if (ActiveSession != null)
         {
             try
             {
                 await ActiveSession.LeaveAsync();
+                Debug.Log("[Multiplayer] 세션 이탈 완료");
             }
-            catch (Exception e) { Debug.LogWarning(e.Message); }
+            catch (Exception e) { Debug.LogWarning($"세션 이탈 중 오류: {e.Message}"); }
             finally { ActiveSession = null; }
         }
 
+        // 3. 마지막으로 네트워크 매니저 종료
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+        {
+            NetworkManager.Singleton.Shutdown();
+            Debug.Log("[Multiplayer] NetworkManager 셧다운 완료");
+        }
+
+        // 4. 리스트 및 상태 초기화
+        PlayerController.AllPlayers.Clear();
+        CurrentChannelId = "LobbyChannel";
+
         _isLeaving = false;
-        //GameSceneManager.Instance.LoadNetworkScene(START_SCENE_NAME);
+
+        // 5. 씬 이동
         SceneManager.LoadScene(START_SCENE_NAME);
     }
 
