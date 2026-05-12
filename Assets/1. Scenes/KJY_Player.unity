@@ -2293,6 +2293,18 @@ PrefabInstance:
       propertyPath: GlobalObjectIdHash
       value: 2293376705
       objectReference: {fileID: 0}
+    - target: {fileID: 1621667115184080304, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_Size.x
+      value: 1.0065198
+      objectReference: {fileID: 0}
+    - target: {fileID: 1621667115184080304, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_Center.x
+      value: 0.0032598337
+      objectReference: {fileID: 0}
+    - target: {fileID: 1621667115184080304, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_Center.z
+      value: -2.1221026e-16
+      objectReference: {fileID: 0}
     - target: {fileID: 1642960763038256921, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_Name
       value: Building_V1
