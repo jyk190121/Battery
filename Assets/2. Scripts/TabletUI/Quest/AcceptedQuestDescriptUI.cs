@@ -28,7 +28,7 @@ public class AcceptedQuestDescriptUI : MonoBehaviour
         {
             QuestName.text = data.questName;
             QuestDescription.text = data.description;
-            QuestReward.text = data.baseReward.ToString();
+            QuestReward.text = data.performancePoint.ToString() + "P"+ "    " + data.baseReward.ToString() + "G";
 
             // 모든 난이도 비활성화 후 선택된 난이도만 켜기
             foreach (var icon in difficulty) if (icon != null) icon.SetActive(false);
