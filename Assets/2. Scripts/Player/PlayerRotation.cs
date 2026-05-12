@@ -551,6 +551,28 @@ public class PlayerRotation : NetworkBehaviour
             // [핵심] 시네머신의 타겟을 관전 대상의 cameraTarget으로 변경
             vcam.Follow = target.cameraTarget;
 
+            // --- UI 닉네임 업데이트 추가 ---
+            if (SpectatorUIController.Instance != null)
+            {
+                var nameSync = target.GetComponent<PlayerNameSync>();
+                if (nameSync != null)
+                {
+                    // 1. 전체 원본 문자열 가져오기 및 널 문자 제거
+                    string fullNickname = nameSync.NetworkNickname.Value.ToString().Replace("\0", "").Trim();
+
+                    // 2. '#'를 기준으로 쪼개서 첫 번째 배열 요소(닉네임)만 선택
+                    // 예: "알파카#1234" -> ["알파카", "1234"] 중 "알파카"만 가져옴
+                    string displayName = fullNickname.Split('#')[0];
+
+                    // 만약 데이터가 비어있다면 처리
+                    if (string.IsNullOrEmpty(displayName)) displayName = "Connecting...";
+
+                    // 3. UI에는 깔끔한 이름만 전달
+                    SpectatorUIController.Instance.UpdateNickname(displayName);
+                }
+            }
+            // ------------------------------
+
             // 내 로컬 마우스 조작이 카메라를 움직이지 못하게 인풋 컨트롤러 차단
             if (_inputController != null) _inputController.enabled = false;
 
@@ -579,6 +601,9 @@ public class PlayerRotation : NetworkBehaviour
 
             //vcam.Follow = cameraTarget;
             //if (_panTilt != null) _panTilt.enabled = true;
+
+            // 관전 종료 시 닉네임 초기화 (선택 사항)
+            if (SpectatorUIController.Instance != null) SpectatorUIController.Instance.UpdateNickname("");
         }
     }
 
