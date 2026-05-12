@@ -1,11 +1,13 @@
-using Photon.Voice;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.UIElements;
-
+using System.Collections;
 public class QuestReturnPoint : NetworkBehaviour
 {
     public static event System.Action OnSpiritualWorldEntered;
+
+    [Header("Teleport Settings")]
+    public float returnDelay = 60f; // 1분 뒤 복귀
+    public Vector3 spiritWorldPos = new Vector3(1100f, 1f, 135f);
 
     [Header("Quest Settings")]
     public int targetQuestID;
@@ -116,10 +118,7 @@ public class QuestReturnPoint : NetworkBehaviour
                 // 플레이어 오브젝트에 붙은 NetworkTransform을 가져옵니다.
                 if (playerObj.TryGetComponent(out Unity.Netcode.Components.NetworkTransform nt))
                 {
-                    Vector3 targetPos = new Vector3(1100f, 1f, 135f);
-                    // 중요: NetworkTransform의 Teleport 메서드를 사용하여 동기화 호출
-                    nt.Teleport(targetPos, Quaternion.identity, playerObj.transform.localScale);
-                    Debug.Log($"<color=purple><b>[Gimmick]</b></color> Client {clientId} 영혼 세계 이동 완료! (퀘스트 ID: {targetQuestID})");
+                    StartCoroutine(TeleportAndReturnRoutine(playerObj));
                 }
                 else
                 {
@@ -127,6 +126,25 @@ public class QuestReturnPoint : NetworkBehaviour
                     playerObj.transform.position = new Vector3(1100f, 1f, 135f);
                 }
             }
+        }
+    }
+
+    IEnumerator TeleportAndReturnRoutine(NetworkObject playerObj)
+    {
+        if (playerObj.TryGetComponent(out Unity.Netcode.Components.NetworkTransform nt))
+        {
+            Vector3 originalPos = playerObj.transform.position;
+            Quaternion originalRot = playerObj.transform.rotation;
+
+            // 2. 두 번째 빌딩으로 이동 (X축 +1000f 지점)
+            //nt.Teleport(originalPos + new Vector3(1000f, 0, 0), Quaternion.identity, playerObj.transform.localScale);
+            nt.Teleport(spiritWorldPos, Quaternion.identity, playerObj.transform.localScale);
+            Debug.Log($"<color=purple>[Gimmick]</color> 영혼 세계 진입. {returnDelay}초 후 복귀합니다.");
+
+            yield return new WaitForSeconds(returnDelay);
+
+            nt.Teleport(originalPos, originalRot, playerObj.transform.localScale);
+            Debug.Log("<color=purple>[Gimmick]</color> 시간이 다 되어 원래 세계로 돌아왔습니다.");
         }
     }
 
