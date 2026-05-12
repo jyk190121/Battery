@@ -543,7 +543,7 @@ Transform:
   m_GameObject: {fileID: 135996674}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 88.98931, y: 2.3639174, z: 139.35434}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3244,6 +3244,7 @@ GameObject:
   - component: {fileID: 689442704}
   - component: {fileID: 689442707}
   - component: {fileID: 689442706}
+  - component: {fileID: 689442709}
   - component: {fileID: 689442705}
   m_Layer: 0
   m_Name: CinemachineCamera
@@ -3405,12 +3406,51 @@ Transform:
   m_GameObject: {fileID: 689442703}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 88.98931, y: 2.3639174, z: 139.35434}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &689442709
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 689442703}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbe43d662878a7c43bcd44d43c9e2094, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineDeoccluder
+  CollideAgainst:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  IgnoreTag: 
+  TransparentLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  MinimumDistanceFromTarget: 0.3
+  AvoidObstacles:
+    Enabled: 1
+    DistanceLimit: 0.1
+    MinimumOcclusionTime: 0
+    CameraRadius: 0.001
+    UseFollowTarget:
+      Enabled: 0
+      YOffset: 0
+    Strategy: 2
+    MaximumEffort: 4
+    SmoothingTime: 0
+    Damping: 0
+    DampingWhenOccluded: 0
+  ShotQualityEvaluation:
+    Enabled: 0
+    OptimalDistance: 10
+    NearLimit: 5
+    FarLimit: 30
+    MaxQualityBoost: 0.2
 --- !u!1 &741313738
 GameObject:
   m_ObjectHideFlags: 0
@@ -11923,14 +11963,6 @@ PrefabInstance:
     - target: {fileID: -8080549060511841995, guid: 96c95e11a38a63a45ab38aeed0a4830c, type: 3}
       propertyPath: GlobalObjectIdHash
       value: 313004421
-      objectReference: {fileID: 0}
-    - target: {fileID: -8080549060511841995, guid: 96c95e11a38a63a45ab38aeed0a4830c, type: 3}
-      propertyPath: SceneMigrationSynchronization
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8080549060511841995, guid: 96c95e11a38a63a45ab38aeed0a4830c, type: 3}
-      propertyPath: InScenePlacedSourceGlobalObjectIdHash
-      value: 3043761374
       objectReference: {fileID: 0}
     - target: {fileID: 1951498117679542240, guid: 96c95e11a38a63a45ab38aeed0a4830c, type: 3}
       propertyPath: m_Name
