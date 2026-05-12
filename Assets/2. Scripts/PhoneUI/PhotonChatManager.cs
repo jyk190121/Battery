@@ -154,8 +154,10 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
 
                 if (!isMine)
                 {
-                    // 전력이 없으면 알림 UI 및 사운드 로직을 아예 스킵합니다.
-                    if (PhoneUIController.Instance != null && !PhoneUIController.Instance.hasPower) return;
+                    if(PhoneUIController.Instance != null)
+                    {
+                        if (!PhoneUIController.Instance.hasPower || PhoneUIController.Instance.isDeadStatus) return;
+                    }
 
                     bool isPhoneDownOrChatClosed = !PhoneUIController.Instance.phoneUIParent.activeSelf || !teamChatRoom.gameObject.activeInHierarchy;
 
@@ -199,6 +201,16 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
         if (sender == userName) return;
 
         string msgText = message.ToString();
+
+        if(PhoneUIController.Instance !=null && PhoneUIController.Instance.isDeadStatus)
+        {
+            if (msgText == "CALL_REQUEST")
+            {
+                chatClient.SendPrivateMessage(sender, "CALL_BUSY");
+            }
+            // 사망 시 어떤 개인 메세지 신호도 처리하지 않음
+            return;
+        }
 
         if (msgText == "CALL_REQUEST")
         {

@@ -137,13 +137,19 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
 
     public void SetCallMode(string targetNickname, bool isCalling)
     {
+        // 닉네임 공백, 널문자 제거
+        string clearNick = targetNickname.Replace("\0", "").Trim();
+
         VoiceController[] controllers = FindObjectsByType<VoiceController>(FindObjectsSortMode.None);
         foreach (var vc in controllers)
         {
-            if (vc.gameObject.name == $"VoiceSpeaker_{targetNickname}")
+            bool isProximityVoice = vc.gameObject.name == $"VoiceSpeaker_{clearNick}";
+
+            if(isProximityVoice)
             {
                 vc.SetCallMode(isCalling);
-                break;
+
+                if (globalRecorder != null) globalRecorder.TransmitEnabled = isCalling;
             }
         }
     }

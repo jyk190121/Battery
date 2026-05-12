@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.AI.Navigation;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
@@ -172,6 +173,9 @@ public class MonsterController : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
+        this.enabled = false;
+        if(navAgent != null) navAgent.enabled = false;
+
         if (IsServer && EnemyManager.Instance != null)
         {
             EnemyManager.Instance.UnregisterEnemy(this.monsterData);
@@ -412,11 +416,24 @@ public class MonsterController : NetworkBehaviour
             // 1. 강제 바인딩 시도
             EnableAgentSafely();
 
-            // 2. 엔진이 완전히 인식할 때까지 대기 (Race Condition 차단)
-            yield return new WaitUntil(() => navAgent != null && navAgent.isActiveAndEnabled && navAgent.isOnNavMesh);
+            yield return null;
 
-            // 3. 발이 닿은 것을 확인했으므로 당당하게 AI(상태) 시작
-            ChangeState(MonsterStateType.Patrol);
+            float timeout = 2.0f;
+            while(timeout > 0 && (navAgent == null) || !navAgent.isOnNavMesh)
+            {
+                timeout -= Time.deltaTime;
+                yield return null;
+            }
+
+            if(navAgent.isOnNavMesh)
+            {
+                print("NavMesh 바인딩 성공");
+                ChangeState(MonsterStateType.Patrol);
+            }
+            else
+            {
+                print("NavMesh 못찾는다..");
+            }
         }
         else
         {

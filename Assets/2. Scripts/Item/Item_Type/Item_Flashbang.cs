@@ -80,15 +80,12 @@ public class Item_Flashbang : ItemBase
     private void ApplyEffect(GameObject targetObj)
     {
         int objLayerMask = 1 << targetObj.layer;
-        if ((objLayerMask & playerLayer) != 0)
+
+        if(targetObj.TryGetComponent(out NetworkObject netObj))
         {
-            if (targetObj.GetComponent<NetworkObject>().IsOwner)
+            if(netObj.IsOwner && targetObj.TryGetComponent(out FlashEffect effect))
             {
-                // 캐릭터에 붙은 연출 스크립트를 찾아 실행
-                if (targetObj.TryGetComponent(out FlashEffect effect))
-                {
-                    effect.TriggerFlash(3.0f); // 3초간 시야 방해
-                }
+                effect.TriggerFlash(3.0f);
             }
         }
         else if ((objLayerMask & monsterLayer) != 0)
@@ -107,4 +104,5 @@ public class Item_Flashbang : ItemBase
             }
         }
     }
+
 }

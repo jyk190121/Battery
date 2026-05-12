@@ -42,6 +42,9 @@ public class VoiceRoomManager : MonoBehaviour, IConnectionCallbacks, IMatchmakin
     {
         string roomName = string.Compare(userA, userB) < 0 ? $"Call_{userA}_{userB}" : $"Call_{userB}_{userA}";
         voiceClient.Client.OpJoinOrCreateRoom(new EnterRoomParams { RoomName = roomName });
+
+        // 마이크 활성화
+        if (callRecorder != null) callRecorder.TransmitEnabled = true;
     }
 
     public void LeaveCallRoom()
@@ -50,6 +53,8 @@ public class VoiceRoomManager : MonoBehaviour, IConnectionCallbacks, IMatchmakin
         {
             voiceClient.Client.OpLeaveRoom(false);
         }
+
+        if(callRecorder != null) callRecorder.TransmitEnabled = false;
     }
 
     private void OnSpeakerLinked(Speaker speaker)

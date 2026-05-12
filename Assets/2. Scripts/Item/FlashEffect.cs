@@ -10,18 +10,20 @@ public class FlashEffect : MonoBehaviour
     public void TriggerFlash(float duration = 3.0f)
     {
         // 1. 참조가 없다면 씬에서 이름으로 찾기
-        if (flashCanvasGroup == null)
+        if (flashCanvasGroup == null || flashCanvasGroup.gameObject == null)
         {
-            GameObject go = SceneUIReference.Instance.blindImage.gameObject;
-            if (go != null)
+            if(SceneUIReference.Instance != null && SceneUIReference.Instance.blindImage != null)
             {
-                flashCanvasGroup = go.GetComponent<CanvasGroup>();
+                flashCanvasGroup = SceneUIReference.Instance.blindImage.GetComponent<CanvasGroup>();
             }
             else
             {
-                Debug.LogError("<color=red>[Flashbang]</color> 씬에 'FlashbangOverlay' 오브젝트가 없습니다.");
-                return;
+                // 최악의 경우 직접 찾기
+                GameObject go = GameObject.Find("FlashbangOverlay");
+                if(go != null) flashCanvasGroup = go.GetComponent<CanvasGroup>();
             }
+
+            if(flashCanvasGroup == null) { print("이미지를 못찾는다.."); return; }
         }
 
         // 2. 기존 연출 중단 후 새로 시작
@@ -49,4 +51,18 @@ public class FlashEffect : MonoBehaviour
 
         flashCanvasGroup.alpha = 0f;
     }
+
+    #region 섬광탄 플레쉬 이미지 처리 로직 (씬 이동 시 코루틴 멈춤현상 발생)
+    void OnDisable()
+    {
+        StopAllCoroutines();
+
+        if (flashCanvasGroup != null)
+        {
+            flashCanvasGroup.alpha = 0f;
+        }
+
+        flashCanvasGroup = null;
+    }
+    #endregion
 }
