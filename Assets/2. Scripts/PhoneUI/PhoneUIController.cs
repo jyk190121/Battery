@@ -37,7 +37,7 @@ public class PhoneUIController : MonoBehaviour
     // 외부 UI(휴대폰 상태에 따라 켜지고 꺼지는 오브젝트) 제어용 이벤트
     public event Action<bool> OnPhoneStateChanged;
 
-    bool isDeadStatus = false;
+    public bool isDeadStatus = false;
 
     private void Awake()
     {
