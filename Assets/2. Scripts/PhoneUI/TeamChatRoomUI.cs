@@ -22,6 +22,9 @@ public class TeamChatRoomUI : MonoBehaviour
     public int maxCharacterLimit = 100;
     public float scrollSpeed = 0.1f;
 
+    // 입력 상태에서 채팅방을 나갔다가 다시 들어왔을 때, 이전에 입력하던 텍스트가 남아있는 문제 방지용 해시값
+    private int lastOpenedTimeHash = -1;
+
     private void Awake()
     {
         if (chatInputField != null) chatInputField.characterLimit = maxCharacterLimit;
@@ -32,21 +35,35 @@ public class TeamChatRoomUI : MonoBehaviour
 
     private void OnEnable()
     {
-        // 방에 들어오면 스크롤을 맨 아래로 맞추고, 입력창은 숨김(비활성화) 상태로 시작
+        // 폰 화면이 켜질 때마다 날짜를 체크하여 청소합니다.
+        if (GameMaster.Instance != null && GameMaster.Instance.dayCycleManager != null)
+        {
+            int currentDay = GameMaster.Instance.dayCycleManager.currentDayIndex.Value;
+            int currentWeek = GameMaster.Instance.completedCycleCount.Value;
+
+            // 주차와 일차를 합쳐 고유한 시간값을 만듭니다 (예: 1주차 3일 = 103)
+            int currentTimeHash = (currentWeek * 100) + currentDay;
+
+            // 마지막으로 열었던 시간과 다르면 (즉, 날이 바뀌었으면)
+            if (lastOpenedTimeHash != -1 && lastOpenedTimeHash != currentTimeHash)
+            {
+                ClearChatHistory(); // 폰 켜자마자 즉시 화면 청소
+            }
+
+            lastOpenedTimeHash = currentTimeHash; // 방금 연 시간으로 갱신
+        }
+
+        // UI 초기화 로직
         chatInputField.text = "";
         chatInputField.gameObject.SetActive(false);
         StartCoroutine(ScrollToBottom());
 
         if (PhoneUIController.Instance != null && PhoneUIController.Instance.messageNotificationObj != null)
         {
-            // 채팅방 화면이 켜질 때 알림이 켜져 있다면 끄기
             PhoneUIController.Instance.messageNotificationObj.SetActive(false);
 
-            // 모바일 알림도 끄기 
             if (PhoneUIController.Instance.messageNotificationMobile != null)
-            {
                 PhoneUIController.Instance.messageNotificationMobile.SetActive(false);
-            }
         }
     }
 
@@ -173,6 +190,19 @@ public class TeamChatRoomUI : MonoBehaviour
         if (!string.IsNullOrEmpty(text))
         {
             SoundManager.Instance.PlaySfx(SfxSound.PHONE_TYPING);
+        }
+    }
+
+    // 폰이 켜질 때(OnEnable) 호출되어 말풍선을 지웁니다.
+    private void ClearChatHistory()
+    {
+        if (contentTransform != null)
+        {
+            foreach (Transform child in contentTransform)
+            {
+                Destroy(child.gameObject);
+            }
+            Debug.Log("<color=cyan>[TeamChatRoomUI]</color> 날짜가 변경되어 이전 채팅 내역을 초기화했습니다.");
         }
     }
 }
