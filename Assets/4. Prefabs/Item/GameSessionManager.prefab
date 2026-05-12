@@ -75,6 +75,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameSessionManager
   ShowTopMostFoldoutHeaderGroup: 1
+  IsRoomLocked:
+    m_InternalValue: 0
   shopCart: 
   deadPlayersCount: 0
   truckItems: []
@@ -88,6 +90,7 @@ MonoBehaviour:
   - {fileID: 1242890628306810797, guid: 2c1bef62561d92341958dfccbadef112, type: 3}
   - {fileID: 3563389552052258758, guid: fbfed4f8e46e1094dad3f3a721694984, type: 3}
   - {fileID: -960912499361480823, guid: 3b79852300035f748b092aac08e198bf, type: 3}
+  - {fileID: -5659029874016260677, guid: 37a71cd1cce49ac4586a459abc62bb89, type: 3}
 --- !u!114 &3852236523237432094
 MonoBehaviour:
   m_ObjectHideFlags: 0
