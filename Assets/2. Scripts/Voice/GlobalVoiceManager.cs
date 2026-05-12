@@ -140,10 +140,15 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
         VoiceController[] controllers = FindObjectsByType<VoiceController>(FindObjectsSortMode.None);
         foreach (var vc in controllers)
         {
-            if (vc.gameObject.name == $"VoiceSpeaker_{targetNickname}")
+            bool isProximityVoice = vc.gameObject.name == $"VoiceSpeaker_{targetNickname}";
+
+            bool isCallVoice = vc.gameObject.name.Contains(targetNickname);
+
+            if(isProximityVoice || isCallVoice)
             {
                 vc.SetCallMode(isCalling);
-                break;
+
+                if (globalRecorder != null) globalRecorder.TransmitEnabled = isCalling;
             }
         }
     }

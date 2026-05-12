@@ -49,4 +49,16 @@ public class FlashEffect : MonoBehaviour
 
         flashCanvasGroup.alpha = 0f;
     }
+
+    #region 섬광탄 플레쉬 이미지 처리 로직 (씬 이동 시 코루틴 멈춤현상 발생)
+    void OnDisable()
+    {
+        StopAllCoroutines();
+
+        if (flashCanvasGroup != null)
+        {
+            flashCanvasGroup.alpha = 0f;
+        }
+    }
+    #endregion
 }

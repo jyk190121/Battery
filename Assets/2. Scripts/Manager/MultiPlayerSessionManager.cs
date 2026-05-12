@@ -590,6 +590,15 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         if (_isLeaving) return;
         _isLeaving = true;
 
+        if(NetworkManager.Singleton !=null && NetworkManager.Singleton.IsServer)
+        {
+            if(GameSessionManager.Instance !=null)
+            {
+                GameSessionManager.Instance.CleanupMonstersInScene();
+                GameSessionManager.Instance.CleanupAllItemsInScene();
+            }
+        }
+
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
         {
             NetworkManager.Singleton.Shutdown();

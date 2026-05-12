@@ -471,6 +471,10 @@ public class PlayerController : NetworkBehaviour
 
     void OnDeadStatusChanged(bool previousValue, bool newValue)
     {
+        if (!IsOwner) return;
+
+        if (PhoneUIController.Instance != null) PhoneUIController.Instance.SetDeadStatus(newValue);
+
         if (playerAnim == null) playerAnim = GetComponent<PlayerAnim>();
         if (playerRotation == null) playerRotation = GetComponent<PlayerRotation>();
 

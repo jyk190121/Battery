@@ -37,6 +37,8 @@ public class PhoneUIController : MonoBehaviour
     // 외부 UI(휴대폰 상태에 따라 켜지고 꺼지는 오브젝트) 제어용 이벤트
     public event Action<bool> OnPhoneStateChanged;
 
+    bool isDeadStatus = false;
+
     private void Awake()
     {
         if (Instance == null) Instance = this; 
@@ -126,11 +128,7 @@ public class PhoneUIController : MonoBehaviour
 
     public void TogglePhone()
     {
-        if (PlayerController.LocalPlayer != null && PlayerController.LocalPlayer.isDead.Value)
-        {
-            Debug.Log("<color=red>[Phone]</color> 사망 상태에서는 스마트폰을 사용할 수 없습니다.");
-            return;
-        }
+        if (PlayerController.LocalPlayer != null && PlayerController.LocalPlayer.isDead.Value) return;
 
         if (!hasPower || isInputBlocked) return;
 
@@ -200,4 +198,26 @@ public class PhoneUIController : MonoBehaviour
     {
         TogglePhone(); 
     }
+
+    #region 알림 수신부
+
+    public void RecevieNotification(bool isMassage)
+    {
+        if (isDeadStatus) return;
+
+        if (isMassage) messageNotificationObj.SetActive(true);
+        else callNotificationObj.SetActive(true);
+    }
+
+    public void SetDeadStatus(bool dead)
+    {
+        isDeadStatus = dead;
+        if(isDeadStatus && isPhoneActive)
+        {
+            ForceTurnOff();
+        }
+    }
+
+    #endregion
+
 }

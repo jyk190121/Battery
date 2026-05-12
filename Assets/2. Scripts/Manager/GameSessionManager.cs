@@ -354,6 +354,8 @@ public class GameSessionManager : NetworkBehaviour
 
                 // 모든 클라이언트에게 파괴 명령 전송
                 monster.NetworkObject.Despawn();
+
+                print("몬스터 디스폰 처리 완");
             }
         }
     }
