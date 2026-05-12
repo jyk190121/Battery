@@ -124,8 +124,16 @@ public class PhoneUIController : MonoBehaviour
         }
     }
 
-    void TogglePhone()
+    public void TogglePhone()
     {
+        if (PlayerController.LocalPlayer != null && PlayerController.LocalPlayer.isDead.Value)
+        {
+            Debug.Log("<color=red>[Phone]</color> 사망 상태에서는 스마트폰을 사용할 수 없습니다.");
+            return;
+        }
+
+        if (!hasPower || isInputBlocked) return;
+
         if (phoneUIParent == null) return; 
 
         bool isActive = phoneUIParent.activeSelf; 
