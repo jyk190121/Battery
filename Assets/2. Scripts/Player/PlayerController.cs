@@ -48,6 +48,15 @@ public class PlayerController : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        base.OnNetworkSpawn();
+
+        isDead.OnValueChanged += OnDeathStateChanged;
+
+        if (IsOwner)
+        {
+            OnDeathStateChanged(false, isDead.Value);
+        }
+
         // 이전 씬의 쓰레기 데이터 정리
         AllPlayers.RemoveAll(p => p == null);
 
@@ -94,6 +103,8 @@ public class PlayerController : NetworkBehaviour
     // 플레이어가 튕기거나 방을 나갈 때 출석부에서 제거합니다.
     public override void OnNetworkDespawn()
     {
+        isDead.OnValueChanged -= OnDeathStateChanged;
+
         if (AllPlayers.Contains(this))
         {
             AllPlayers.Remove(this);
@@ -108,6 +119,18 @@ public class PlayerController : NetworkBehaviour
         StateManager.currentHealth.OnValueChanged -= OnHealthChanged;
         isDead.OnValueChanged -= OnDeadStatusChanged;
         base.OnNetworkDespawn();
+    }
+
+    void OnDeathStateChanged(bool previousValue, bool newValue)
+    {
+        // 내 로컬 화면에서만 UI를 제어해야 함
+        if (!IsOwner) return;
+
+        if (SpectatorUIController.Instance != null)
+        {
+            // 사망 시(true) UI 켜기, 부활/스폰 시(false) UI 끄기
+            SpectatorUIController.Instance.ToggleUI(newValue);
+        }
     }
 
     private void OnFacilityStatusChanged(bool previousValue, bool newValue)
