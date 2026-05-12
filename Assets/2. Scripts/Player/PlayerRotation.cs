@@ -53,6 +53,8 @@ public class PlayerRotation : NetworkBehaviour
 
     CinemachineController cameraController;
 
+    CinemachineInputAxisController _inputController;
+
     public override void OnNetworkSpawn()
     {
         //playerMove = GetComponent<PlayerMove>();
@@ -184,6 +186,8 @@ public class PlayerRotation : NetworkBehaviour
 
                 _panTilt = vcam.GetComponent<CinemachinePanTilt>();
 
+                _inputController = vcam.GetComponent<CinemachineInputAxisController>();
+
                 //if (_panTilt == null) _panTilt = cameraController.GetComponent<CinemachinePanTilt>();
                 if (_panTilt == null)
                 {
@@ -308,7 +312,11 @@ public class PlayerRotation : NetworkBehaviour
 
         // --- 1. 기본 목표값 설정 ---
         bool isRunning = playerMove.currentSpeed > playerMove.walkSpeed + 0.1f;
-        float targetZ = playerMove.IsCrouching ? 0.6f : (isRunning ? runYPos : walkZPos);
+        //float targetZ = playerMove.IsCrouching ? 0.6f : (isRunning ? runYPos : walkZPos);
+
+        // [수정 포인트] 변수명은 YPos지만 Z로 쓰이고 있음. 값이 너무 크면 콜라이더 밖으로 나갑니다.
+        // 앉았을 때 0.6f는 캡슐 반경을 넘어가기 쉬우므로, 0.3f 정도로 수치 최적화 추천
+        float targetZ = playerMove.IsCrouching ? 0.3f : (isRunning ? runYPos : walkZPos);
         float targetY = originYoffset;
 
         // --- 2. 몬스터에게 잡혔을 때 (Snared) 특수 처리 ---
@@ -334,21 +342,52 @@ public class PlayerRotation : NetworkBehaviour
         // 아래를 볼 때 몬스터가 잘 보이도록 거리 보정
         float dynamicZ = targetZ + (tiltOffsetFactor * 0.1f);
 
+        // --- 벽 뚫기 방지 (Raycast + SphereCast) 로직 개선 ---
+        // 목표로 하는 로컬 위치
+        Vector3 targetLocalPos = new Vector3(0, dynamicY, dynamicZ);
 
-        // --- 벽 뚫기 방지 (Raycast) 로직 ---
-        Vector3 headOffset = Vector3.up * (originYoffset + (playerMove.IsCrouching ? 0.5f : 1.5f));
-        Vector3 origin = transform.position + headOffset;
-        Vector3 direction = cameraTarget.forward;
+        // 목표 위치의 월드 좌표 계산
+        Vector3 desiredWorldPos = transform.TransformPoint(targetLocalPos);
 
-        // SphereCast를 사용하여 카메라가 물리적으로 들어갈 공간이 있는지 확인
-        if (Physics.SphereCast(origin, collisionRadius, direction, out RaycastHit hit, dynamicZ, collisionLayers))
+        // 내 몸통의 중심축 선상에서의 현재 눈 높이 계산 (여기서부터 눈으로 뻗어나감)
+        Vector3 centerEyePos = transform.TransformPoint(new Vector3(0, dynamicY, 0));
+
+        // 중심에서 눈(목표 카메라 위치)을 향하는 벡터와 거리
+        Vector3 directionToEye = desiredWorldPos - centerEyePos;
+        float maxDistance = directionToEye.magnitude;
+
+        if (maxDistance > 0.001f) // 거리가 있을 때만 검사
         {
-            // 충돌이 발생하면 충돌 지점보다 약간 앞(minDistance)에 카메라 배치
-            dynamicZ = Mathf.Max(0, hit.distance - minDistance);
+            directionToEye.Normalize();
+
+            // SphereCast로 내 몸 중심에서 카메라 목표 지점까지 쏴서 벽이 중간에 있는지 체크
+            if (Physics.SphereCast(centerEyePos, collisionRadius, directionToEye, out RaycastHit hit, maxDistance, collisionLayers))
+            {
+                // 벽에 닿았다면, 카메라를 벽에 박히기 전(minDistance)으로 강제로 당겨옴
+                float safeDistance = Mathf.Max(0, hit.distance - minDistance);
+
+                // 당겨진 거리를 로컬 Z값에 덮어씌움
+                dynamicZ = safeDistance;
+            }
         }
 
-        Vector3 targetLocalPos = new Vector3(0, dynamicY, dynamicZ);
-        cameraTarget.localPosition = Vector3.Lerp(cameraTarget.localPosition, targetLocalPos, Time.deltaTime * transitionSpeed);
+        // 최종 적용
+        Vector3 finalLocalPos = new Vector3(0, dynamicY, dynamicZ);
+        cameraTarget.localPosition = Vector3.Lerp(cameraTarget.localPosition, finalLocalPos, Time.deltaTime * transitionSpeed);
+
+        //Vector3 headOffset = Vector3.up * (originYoffset + (playerMove.IsCrouching ? 0.5f : 1.5f));
+        //Vector3 origin = transform.position + headOffset;
+        //Vector3 direction = cameraTarget.forward;
+
+        //// SphereCast를 사용하여 카메라가 물리적으로 들어갈 공간이 있는지 확인
+        //if (Physics.SphereCast(origin, collisionRadius, direction, out RaycastHit hit, dynamicZ, collisionLayers))
+        //{
+        //    // 충돌이 발생하면 충돌 지점보다 약간 앞(minDistance)에 카메라 배치
+        //    dynamicZ = Mathf.Max(0, hit.distance - minDistance);
+        //}
+
+        //Vector3 targetLocalPos = new Vector3(0, dynamicY, dynamicZ);
+        //cameraTarget.localPosition = Vector3.Lerp(cameraTarget.localPosition, targetLocalPos, Time.deltaTime * transitionSpeed);
     }
     void ProcessMouseInput()
     {
@@ -402,32 +441,52 @@ public class PlayerRotation : NetworkBehaviour
     {
         if (_spectatingTarget == null || vcam == null) return;
 
-        // 타겟의 눈 위치로 카메라 이동
-        if (_spectatingTarget.cameraTarget != null)
-        {
-            vcam.transform.position = _spectatingTarget.cameraTarget.position;
-        }
-
-        // 타겟의 데이터 로드
+        // 관전 대상의 최신 네트워크 회전값 로드
         float targetPan = _spectatingTarget.NetHorizontalRotation.Value;
         float targetTilt = _spectatingTarget.NetVerticalRotation.Value;
 
-        // 내 PanTilt 컴포넌트도 동기화하여 관전 해제 시 튀지 않게 함
+        // 1. 시네머신 PanTilt 컴포넌트에 값을 동기화
+        // vcam.Follow가 타겟을 따라가고 있으므로 위치는 자동 갱신됨. 회전만 맞춰주면 됩니다.
         if (_panTilt != null)
         {
             _panTilt.PanAxis.Value = targetPan;
             _panTilt.TiltAxis.Value = targetTilt;
         }
 
-        // 월드 회전 적용 (Euler의 세 번째 인자인 Z를 0으로 고정하는 것이 핵심)
-        Quaternion targetRot = Quaternion.Euler(targetTilt, targetPan, 0f);
+        // 2. 만약 카메라 그룹도 같이 회전해야 한다면 적용
+        if (CameraGroup != null)
+        {
+            CameraGroup.transform.rotation = Quaternion.Euler(targetTilt, targetPan, 0f);
+        }
 
-        vcam.ForceCameraPosition(vcam.transform.position, targetRot);
-        vcam.transform.rotation = targetRot;
+        // (기존에 있던 vcam.ForceCameraPosition 이나 Transform 강제 덮어쓰기 로직은 삭제합니다)
 
-        if (CameraGroup != null) CameraGroup.transform.rotation = targetRot;
+        //// 타겟의 눈 위치로 카메라 이동
+        //if (_spectatingTarget.cameraTarget != null)
+        //{
+        //    vcam.transform.position = _spectatingTarget.cameraTarget.position;
+        //}
 
-        //vcam.Lens.Dutch = 0; // 화면 기울기 완전 초기화
+        //// 타겟의 데이터 로드
+        //float targetPan = _spectatingTarget.NetHorizontalRotation.Value;
+        //float targetTilt = _spectatingTarget.NetVerticalRotation.Value;
+
+        //// 내 PanTilt 컴포넌트도 동기화하여 관전 해제 시 튀지 않게 함
+        //if (_panTilt != null)
+        //{
+        //    _panTilt.PanAxis.Value = targetPan;
+        //    _panTilt.TiltAxis.Value = targetTilt;
+        //}
+
+        //// 월드 회전 적용 (Euler의 세 번째 인자인 Z를 0으로 고정하는 것이 핵심)
+        //Quaternion targetRot = Quaternion.Euler(targetTilt, targetPan, 0f);
+
+        //vcam.ForceCameraPosition(vcam.transform.position, targetRot);
+        //vcam.transform.rotation = targetRot;
+
+        //if (CameraGroup != null) CameraGroup.transform.rotation = targetRot;
+
+        ////vcam.Lens.Dutch = 0; // 화면 기울기 완전 초기화
     }
 
     void HandleRotation()
@@ -489,23 +548,37 @@ public class PlayerRotation : NetworkBehaviour
 
         if (_isSpectating)
         {
-            vcam.Follow = null;
-            vcam.LookAt = null;
+            // [핵심] 시네머신의 타겟을 관전 대상의 cameraTarget으로 변경
+            vcam.Follow = target.cameraTarget;
 
-            // [추가] 내 PanTilt 컴포넌트가 활성화되어 있다면 값을 타겟과 일치시킴
-            // 이렇게 해야 HandleSpectatingLogic()이 실행될 때 튀지 않습니다.
-            if (_panTilt != null) _panTilt.enabled = false;
+            // 내 로컬 마우스 조작이 카메라를 움직이지 못하게 인풋 컨트롤러 차단
+            if (_inputController != null) _inputController.enabled = false;
 
-            // 타겟 설정 직후 즉시 1회 강제 동기화
-            ForceSyncRotation(target.NetHorizontalRotation.Value, target.NetVerticalRotation.Value);
+            // PanTilt는 켜두어, HandleSpectatingLogic에서 주입하는 네트워크 값을 반영하게 함
+            if (_panTilt != null) _panTilt.enabled = true;
 
-            // 즉시 로직 1회 강제 실행하여 위치/회전 고정
-            //HandleSpectatingLogic();
+            //vcam.Follow = null;
+            //vcam.LookAt = null;
+
+            //// [추가] 내 PanTilt 컴포넌트가 활성화되어 있다면 값을 타겟과 일치시킴
+            //// 이렇게 해야 HandleSpectatingLogic()이 실행될 때 튀지 않습니다.
+            //if (_panTilt != null) _panTilt.enabled = false;
+
+            //// 타겟 설정 직후 즉시 1회 강제 동기화
+            //ForceSyncRotation(target.NetHorizontalRotation.Value, target.NetVerticalRotation.Value);
+
+            //// 즉시 로직 1회 강제 실행하여 위치/회전 고정
+            ////HandleSpectatingLogic();
         }
         else
         {
+            // 관전 종료 시 내 원래 타겟으로 복귀
             vcam.Follow = cameraTarget;
+            if (_inputController != null) _inputController.enabled = true;
             if (_panTilt != null) _panTilt.enabled = true;
+
+            //vcam.Follow = cameraTarget;
+            //if (_panTilt != null) _panTilt.enabled = true;
         }
     }
 
