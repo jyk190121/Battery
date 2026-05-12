@@ -152,8 +152,27 @@ public class ItemSpawner : NetworkBehaviour
                     }
                     continue; // 처리 완료 후 다음 퀘스트로
                 }
+                // [기믹 3] 저주받은 동상 퀘스트 (1020, 2020, 3020)
+                if (activeQuestID == 1020 || activeQuestID == 2020 || activeQuestID == 3020)
+                {
+                    // 906번 동상 데이터베이스에서 탐색
+                    ItemDataSO statueData = itemDatabase.FirstOrDefault(i => i.itemID == 906);
 
-                // [기믹 3] 일반 수집 퀘스트 (나머지)
+                    if (statueData != null)
+                    {
+                        if (TrySpawnSpecificItem(statueData, spawnDict))
+                        {
+                            successCount++;
+                            Debug.Log("<color=purple>[Spawner]</color> 저주받은 동상(906) 우선 스폰 완료.");
+                        }
+                        else
+                        {
+                            Debug.LogWarning("<color=red>[Spawner]</color> 저주받은 동상 스폰 실패! (공간 부족)");
+                        }
+                    }
+                    continue; // 처리 완료 후 다음 퀘스트로
+                }
+                // [기믹 4] 일반 수집 퀘스트 (나머지)
                 if (questData.targetItemID != 0)
                 {
                     ItemDataSO targetItemData = itemDatabase.FirstOrDefault(i => i.itemID == questData.targetItemID);
