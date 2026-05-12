@@ -6117,6 +6117,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 12f794b185d931f43b399cab09a33ea8, type: 2}
   - {fileID: 11400000, guid: 1432299a1ea34d24bbb672e79a48302e, type: 2}
   - {fileID: 11400000, guid: e3f0b48fcf02d9b439138f2aa8d9dd43, type: 2}
+  - {fileID: 11400000, guid: 2a8bfdfb6cdd62b49ab2a8be7307de5c, type: 2}
+  - {fileID: 11400000, guid: 678be9bef6d80804f85ad18d54ec72b7, type: 2}
   baseSpawnCount: 10
   extraSpawnPerDifficulty: 2
   keySpawnChance: 15
