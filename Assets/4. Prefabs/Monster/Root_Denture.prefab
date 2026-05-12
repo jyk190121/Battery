@@ -610,7 +610,7 @@ AudioSource:
   m_GameObject: {fileID: 1377265075536336946}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 24300002, guid: 6e59fb41f1735d744bcfc0b8e4bcebdc, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
@@ -623,7 +623,7 @@ AudioSource:
   Priority: 128
   DopplerLevel: 1
   MinDistance: 1
-  MaxDistance: 500
+  MaxDistance: 50
   Pan2D: 0
   rolloffMode: 0
   BypassEffects: 0
@@ -994,7 +994,7 @@ AudioSource:
   m_GameObject: {fileID: 2278000661904188874}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 24300002, guid: 6e59fb41f1735d744bcfc0b8e4bcebdc, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
@@ -1007,7 +1007,7 @@ AudioSource:
   Priority: 128
   DopplerLevel: 1
   MinDistance: 1
-  MaxDistance: 500
+  MaxDistance: 50
   Pan2D: 0
   rolloffMode: 0
   BypassEffects: 0
@@ -2042,6 +2042,9 @@ MonoBehaviour:
   ambientSource: {fileID: 8790073454152150780}
   walkStepInterval: 0.45
   runStepInterval: 0.3
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 1800
 --- !u!1 &6861388131376512302
 GameObject:
   m_ObjectHideFlags: 0
@@ -2935,7 +2938,7 @@ AudioSource:
   m_GameObject: {fileID: 9104796167506132810}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 24300002, guid: 6e59fb41f1735d744bcfc0b8e4bcebdc, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
@@ -2948,7 +2951,7 @@ AudioSource:
   Priority: 128
   DopplerLevel: 1
   MinDistance: 1
-  MaxDistance: 500
+  MaxDistance: 50
   Pan2D: 0
   rolloffMode: 0
   BypassEffects: 0
