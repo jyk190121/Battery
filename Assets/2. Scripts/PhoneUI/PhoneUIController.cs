@@ -199,15 +199,7 @@ public class PhoneUIController : MonoBehaviour
         TogglePhone(); 
     }
 
-    #region 알림 수신부
-
-    public void RecevieNotification(bool isMassage)
-    {
-        if (isDeadStatus) return;
-
-        if (isMassage) messageNotificationObj.SetActive(true);
-        else callNotificationObj.SetActive(true);
-    }
+    #region 알림 수신부 (플레이어 사망 시 자동 끄기)
 
     public void SetDeadStatus(bool dead)
     {

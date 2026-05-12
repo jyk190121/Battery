@@ -109,6 +109,11 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     private bool _isVoiceConnecting = false;
     public override void OnNetworkSpawn()
     {
+        if(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "KJY_TITLE")
+        {
+            PlayerController.AllPlayers.Clear();
+        }
+
         _isVoiceConnecting = false;
         HandleNetcodeConnected(NetworkManager.Singleton.LocalClientId);
     }

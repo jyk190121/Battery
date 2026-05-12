@@ -40,10 +40,10 @@ public class VoiceController : MonoBehaviour
             else return;
         }
 
-        if(isCalling)
+        if (isCalling)
         {
             audioSource.spatialBlend = 0.0f; // 무조건 2D 사운드
-            if(audioSource.outputAudioMixerGroup != phoneMixer)
+            if (audioSource.outputAudioMixerGroup != phoneMixer)
             {
                 audioSource.outputAudioMixerGroup = phoneMixer;
             }
@@ -55,7 +55,9 @@ public class VoiceController : MonoBehaviour
         {
             audioSource.spatialBlend = 1.0f;
             if (audioSource.outputAudioMixerGroup != defaultMixer)
+            {
                 audioSource.outputAudioMixerGroup = defaultMixer;
+            }
             return;
         }
 
