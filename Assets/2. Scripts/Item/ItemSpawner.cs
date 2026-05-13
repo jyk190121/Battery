@@ -8,7 +8,8 @@ public class ItemSpawner : NetworkBehaviour
     public ItemDataSO[] itemDatabase;
 
     [Header("스폰 설정")]
-    public int baseSpawnCount = 10;
+    public int minSpawnCount = 21;  // 일반 폐지 최소 개수 유지
+    public int maxSpawnCount = 27;  // 일반 폐지 최대 개수 유지
     public int extraSpawnPerDifficulty = 2;
 
     [Header("확률 설정")]
@@ -20,7 +21,6 @@ public class ItemSpawner : NetworkBehaviour
     public Transform[] safeDropPoints = new Transform[3];
 
     [SerializeField] private List<ItemSpawnPoint> areaManagers = new List<ItemSpawnPoint>();
-
     private List<NetworkObject> spawnedItems = new List<NetworkObject>();
 
     public override void OnNetworkSpawn()
@@ -30,8 +30,6 @@ public class ItemSpawner : NetworkBehaviour
             if (GameMaster.Instance != null)
             {
                 GameMaster.Instance.OnDayStarted += HandleDayStarted;
-
-                //다른 매니저들이 데이터를 셋업할 시간을 벌어준 뒤 스폰을 시작함
                 StartCoroutine(DelayedStartDay());
             }
         }
@@ -42,6 +40,7 @@ public class ItemSpawner : NetworkBehaviour
         yield return new WaitForSeconds(0.5f);
         GameMaster.Instance.StartDay();
     }
+
     public override void OnNetworkDespawn()
     {
         if (IsServer && GameMaster.Instance != null)
@@ -61,10 +60,13 @@ public class ItemSpawner : NetworkBehaviour
             return;
         }
 
-        int dynamicSpawnCount = baseSpawnCount + (difficulty * extraSpawnPerDifficulty);
-        Debug.Log($"[Spawner] 아침이 밝았습니다! (난이도: {difficulty}) -> 총 {dynamicSpawnCount}개의 아이템을 스폰합니다.");
+        // 목표 일반 폐지 개수만 산정 (21~27 + 난이도)
+        int randomBaseCount = Random.Range(minSpawnCount, maxSpawnCount + 1);
+        int targetNormalSpawnCount = randomBaseCount + (difficulty * extraSpawnPerDifficulty);
 
-        SpawnRandomItems(dynamicSpawnCount);
+        Debug.Log($"[Spawner] 아침이 밝았습니다! (난이도: {difficulty}) -> 목표 일반 폐지: {targetNormalSpawnCount}개");
+
+        SpawnRandomItems(targetNormalSpawnCount);
     }
 
     private void ClearPreviousItems()
@@ -79,7 +81,7 @@ public class ItemSpawner : NetworkBehaviour
         spawnedItems.Clear();
     }
 
-    void SpawnRandomItems(int targetSpawnCount)
+    void SpawnRandomItems(int targetNormalSpawnCount)
     {
         if (itemDatabase == null || areaManagers.Count == 0) return;
 
@@ -92,9 +94,9 @@ public class ItemSpawner : NetworkBehaviour
             spawnDict[manager.location].AddRange(manager.GetPoints());
         }
 
-        int successCount = 0;
+        int questItemCount = 0;
 
-        // 1. 수집 퀘스트 아이템 생성
+        // 1. 수집 퀘스트 아이템 생성 (일반 폐지와 카운트 분리: +α 스폰)
         if (QuestManager.Instance != null)
         {
             foreach (int activeQuestID in QuestManager.Instance.activeQuests)
@@ -102,77 +104,45 @@ public class ItemSpawner : NetworkBehaviour
                 QuestDataSO questData = QuestManager.Instance.GetQuestData(activeQuestID);
                 if (questData == null) continue;
 
-                // 금고 퀘스트 (1000: Easy, 2000: Normal, 3000: Hard)
+                // [기믹 1] 금고
                 if (activeQuestID == 1000 || activeQuestID == 2000 || activeQuestID == 3000)
                 {
                     ItemDataSO targetItemData = itemDatabase.FirstOrDefault(i => i.itemID == questData.targetItemID);
-                    if (targetItemData != null)
+                    if (targetItemData != null && safeDropPoints[0] != null)
                     {
-                        // 2~3층 금고 미구현 대응: 난이도 상관없이 무조건 1층 금고(인덱스 0) 사용
-                        Transform targetSafe = safeDropPoints[0];
-
-                        /* --- [향후 2~3층 금고 구현 시 아래 주석 해제 및 적용] ---
-                        if (activeQuestID == 1000 && safeDropPoints[0] != null) targetSafe = safeDropPoints[0];      // 1층
-                        else if (activeQuestID == 2000 && safeDropPoints[1] != null) targetSafe = safeDropPoints[1]; // 2층
-                        else if (activeQuestID == 3000 && safeDropPoints[2] != null) targetSafe = safeDropPoints[2]; // 3층
-                        ------------------------------------------------------------------------- */
-
-                        if (targetSafe != null)
-                        {
-                            SpawnObject(targetItemData, targetSafe.position, targetSafe.rotation);
-                        }
-                        else
-                        {
-                            Debug.LogWarning($"<color=red>[Spawner]</color> 1층 금고(safeDropPoints[0]) Transform이 인스펙터에 할당되지 않았습니다!");
-                        }
+                        SpawnObject(targetItemData, safeDropPoints[0].position, safeDropPoints[0].rotation);
+                        questItemCount++;
                     }
-                    continue; // 처리 완료 후 다음 퀘스트로
+                    continue;
                 }
 
-                // [기믹 2] 발전기 수리 퀘스트 (1010, 2010, 3010)
+                // [기믹 2] 발전기
                 if (activeQuestID == 1010 || activeQuestID == 2010 || activeQuestID == 3010)
                 {
-                    // 진짜 목표물(targetItemID)은 어댑터가 문 뒤에 스폰하므로 무시함.
-                    // 대신 맵 전체에 '수리 부속(전선 905)'을 materialCount 만큼 뿌림.
-                    ItemDataSO wireData = itemDatabase.FirstOrDefault(i => i.itemID == 905); // 905 고정 스폰
+                    ItemDataSO wireData = itemDatabase.FirstOrDefault(i => i.itemID == 905);
                     if (wireData != null)
                     {
                         int wireCount = questData.materialCount > 0 ? questData.materialCount : 1;
                         for (int j = 0; j < wireCount; j++)
                         {
-                            if (TrySpawnSpecificItem(wireData, spawnDict))
-                            {
-                                successCount++;
-                            }
-                            else
-                            {
-                                Debug.LogWarning($"<color=red>[Spawner]</color> 발전기 부속(905) 스폰 실패! (공간 부족)");
-                            }
+                            if (TrySpawnSpecificItem(wireData, spawnDict)) questItemCount++;
                         }
                     }
-                    continue; // 처리 완료 후 다음 퀘스트로
+                    continue;
                 }
-                // [기믹 3] 저주받은 동상 퀘스트 (1020, 2020, 3020)
+
+                // [기믹 3] 저주 동상
                 if (activeQuestID == 1020 || activeQuestID == 2020 || activeQuestID == 3020)
                 {
-                    // 906번 동상 데이터베이스에서 탐색
                     ItemDataSO statueData = itemDatabase.FirstOrDefault(i => i.itemID == 906);
-
                     if (statueData != null)
                     {
-                        if (TrySpawnSpecificItem(statueData, spawnDict))
-                        {
-                            successCount++;
-                            Debug.Log("<color=purple>[Spawner]</color> 저주받은 동상(906) 우선 스폰 완료.");
-                        }
-                        else
-                        {
-                            Debug.LogWarning("<color=red>[Spawner]</color> 저주받은 동상 스폰 실패! (공간 부족)");
-                        }
+                        if (TrySpawnSpecificItem(statueData, spawnDict)) questItemCount++;
                     }
-                    continue; // 처리 완료 후 다음 퀘스트로
+                    continue;
                 }
-                // [기믹 4] 일반 수집 퀘스트 (나머지)
+
+                // [기믹 4] 일반 수집 퀘스트
                 if (questData.targetItemID != 0)
                 {
                     ItemDataSO targetItemData = itemDatabase.FirstOrDefault(i => i.itemID == questData.targetItemID);
@@ -181,67 +151,109 @@ public class ItemSpawner : NetworkBehaviour
                         int requiredAmount = questData.materialCount > 0 ? questData.materialCount : 1;
                         for (int j = 0; j < requiredAmount; j++)
                         {
-                            if (TrySpawnSpecificItem(targetItemData, spawnDict))
-                            {
-                                successCount++;
-                            }
+                            if (TrySpawnSpecificItem(targetItemData, spawnDict)) questItemCount++;
                         }
                     }
                 }
             }
         }
 
-        // 2. 열쇠 아이템
+        // 2. 열쇠 아이템 (마찬가지로 +α 스폰)
+        int keySpawnCount = 0;
         var keyItems = itemDatabase.Where(i => !string.IsNullOrEmpty(i.keyID)).OrderBy(x => Random.value).ToList();
         foreach (var keyItem in keyItems)
         {
             if (Random.Range(0f, 100f) <= keySpawnChance)
             {
-                if (TrySpawnSpecificItem(keyItem, spawnDict)) successCount++;
+                if (TrySpawnSpecificItem(keyItem, spawnDict)) keySpawnCount++;
             }
         }
 
-        // 3. 일반 폐지 (AllFloor 및 잔여 스폰 지점 필터링 적용)
+        // 3. 일반 폐지 스폰 (순수하게 targetNormalSpawnCount 만큼 스폰)
         var normalItems = itemDatabase.Where(i =>
             string.IsNullOrEmpty(i.keyID) &&
             i.category != ItemCategory.Quest &&
             i.spawnLocation != SpawnLocation.ShopOnly).ToList();
 
+        int normalSuccessCount = 0;
+
         if (normalItems.Count > 0)
         {
-            int attempts = 0;
-            int maxAttempts = targetSpawnCount * 3;
+            // 퀘스트 아이템 스폰 횟수를 차감하지 않음
+            int remainingSpawns = targetNormalSpawnCount;
 
-            while (successCount < targetSpawnCount && attempts < maxAttempts)
+            Dictionary<SpawnLocation, int> quotas = new Dictionary<SpawnLocation, int>();
+
+            // 3-1. 특수룸 할당 (각 방마다 1~2개)
+            SpawnLocation[] specialRooms = { SpawnLocation.ScienceRoom, SpawnLocation.PrincipalRoom, SpawnLocation.ArtRoom, SpawnLocation.Infirmary, SpawnLocation.MusicRoom };
+
+            foreach (var room in specialRooms)
             {
-                attempts++;
-
-                // AllFloor 조건까지 포함하여 현재 씬에 꽂을 자리가 있는 아이템만 후보군으로 압축
-                var validNormalItems = normalItems.Where(i =>
+                if (spawnDict.ContainsKey(room) && spawnDict[room].Count > 0)
                 {
-                    if (i.spawnLocation == SpawnLocation.AllFloor)
-                    {
-                        return (spawnDict.ContainsKey(SpawnLocation.Floor1) && spawnDict[SpawnLocation.Floor1].Count > 0) ||
-                               (spawnDict.ContainsKey(SpawnLocation.Floor2) && spawnDict[SpawnLocation.Floor2].Count > 0) ||
-                               (spawnDict.ContainsKey(SpawnLocation.Floor3) && spawnDict[SpawnLocation.Floor3].Count > 0);
-                    }
-                    return spawnDict.ContainsKey(i.spawnLocation) && spawnDict[i.spawnLocation].Count > 0;
-                }).ToList();
-
-                if (validNormalItems.Count == 0)
-                {
-                    Debug.LogWarning($"[Spawner] 남은 자리에 맞는 일반 아이템 SO가 없어 스폰을 조기 종료합니다. ({successCount}/{targetSpawnCount})");
-                    break;
-                }
-
-                ItemDataSO randomData = validNormalItems[Random.Range(0, validNormalItems.Count)];
-
-                if (TrySpawnSpecificItem(randomData, spawnDict))
-                {
-                    successCount++;
+                    int roomQuota = Random.Range(1, 3);
+                    roomQuota = Mathf.Min(roomQuota, spawnDict[room].Count);
+                    quotas[room] = roomQuota;
+                    remainingSpawns -= roomQuota;
                 }
             }
-            Debug.Log($"[Spawner] 최종 스폰 결과: {successCount}/{targetSpawnCount}개 스폰 완료.");
+
+            // 3-2. 일반 층 할당 (남은 횟수를 균등 분배)
+            SpawnLocation[] floors = { SpawnLocation.Floor1, SpawnLocation.Floor2, SpawnLocation.Floor3 };
+            int spawnsPerFloor = Mathf.Max(0, remainingSpawns / 3);
+            int leftover = Mathf.Max(0, remainingSpawns % 3);
+
+            foreach (var floor in floors)
+            {
+                if (spawnDict.ContainsKey(floor) && spawnDict[floor].Count > 0)
+                {
+                    int floorQuota = spawnsPerFloor;
+                    if (leftover > 0) { floorQuota++; leftover--; }
+                    floorQuota = Mathf.Min(floorQuota, spawnDict[floor].Count);
+                    quotas[floor] = floorQuota;
+                }
+            }
+
+            // 3-3. 할당된 수량 스폰 실행
+            foreach (var kvp in quotas)
+            {
+                SpawnLocation targetZone = kvp.Key;
+                int amountToSpawn = kvp.Value;
+
+                for (int j = 0; j < amountToSpawn; j++)
+                {
+                    var validItems = normalItems.Where(i => i.spawnLocation == targetZone).ToList();
+
+                    if (targetZone == SpawnLocation.Floor1 || targetZone == SpawnLocation.Floor2 || targetZone == SpawnLocation.Floor3)
+                    {
+                        validItems.AddRange(normalItems.Where(i => i.spawnLocation == SpawnLocation.AllFloor));
+                    }
+
+                    // [안전망] 해당 구역용 아이템이 없으면 AllFloor로 대체
+                    if (validItems.Count == 0)
+                    {
+                        validItems = normalItems.Where(i => i.spawnLocation == SpawnLocation.AllFloor).ToList();
+                    }
+
+                    if (validItems.Count > 0)
+                    {
+                        ItemDataSO selectedData = validItems[Random.Range(0, validItems.Count)];
+
+                        if (spawnDict.TryGetValue(targetZone, out List<Transform> points) && points.Count > 0)
+                        {
+                            int idx = Random.Range(0, points.Count);
+                            Transform targetPoint = points[idx];
+
+                            SpawnObject(selectedData, targetPoint.position, targetPoint.rotation);
+                            points.RemoveAt(idx);
+                            normalSuccessCount++;
+                        }
+                    }
+                }
+            }
+
+            // 명확한 디버그 로그 출력
+            Debug.Log($"<color=cyan>[Spawner]</color> 스폰 결산 -> 퀘스트/열쇠: {questItemCount + keySpawnCount}개 + 일반 폐지: {normalSuccessCount}/{targetNormalSpawnCount}개. 총 맵 스폰: {questItemCount + keySpawnCount + normalSuccessCount}개");
         }
     }
 
@@ -249,7 +261,6 @@ public class ItemSpawner : NetworkBehaviour
     {
         List<Transform> candidatePoints = null;
 
-        // AllFloor일 경우 1~3층 중 자리가 남는 층을 무작위로 선택하여 꽂아넣음
         if (data.spawnLocation == SpawnLocation.AllFloor)
         {
             var availableFloors = new List<SpawnLocation> { SpawnLocation.Floor1, SpawnLocation.Floor2, SpawnLocation.Floor3 };
@@ -284,8 +295,8 @@ public class ItemSpawner : NetworkBehaviour
         if (data == null || data.itemPrefab == null) return;
 
         GameObject obj = Instantiate(data.itemPrefab, pos, rot);
-
         NetworkObject netObj = obj.GetComponent<NetworkObject>();
+
         if (netObj != null)
         {
             netObj.Spawn();
