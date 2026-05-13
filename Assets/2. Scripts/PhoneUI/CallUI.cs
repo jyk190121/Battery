@@ -75,6 +75,12 @@ public class CallUI : ScrollSelectionUI
     {
         if (phoneBookList.Count == 0) return;
 
+        if(PhoneUIController.Instance !=null && PhoneUIController.Instance.isDeadStatus)
+        {
+            SoundManager.Instance.PlaySfx(SfxSound.PHONE_ERROR);
+            return;
+        }
+
         string targetPlayer = phoneBookList[currentIndex];
 
         if (chatManager != null)

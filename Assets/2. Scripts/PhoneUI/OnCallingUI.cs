@@ -229,6 +229,12 @@ public class OnCallingUI : MonoBehaviour
         if (chatManager != null && !string.IsNullOrEmpty(currentTargetName))
         {
             chatManager.SendCallAccept(currentTargetName);
+
+            if(VoiceRoomManager.Instance != null)
+            {
+                string myName = chatManager.chatAppId;
+                VoiceRoomManager.Instance.JoinCallRoom(myName, currentTargetName);
+            }
         }
 
         // [핵심 적용] 전화를 받는 입장에서 내가 수락하면, 상대방 스피커를 2D로 전환

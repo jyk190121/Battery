@@ -366,7 +366,6 @@ public class PlayerController : NetworkBehaviour
         //        monster.NetworkObject.Despawn();
         //}
         GameSessionManager.Instance.CleanupAllItemsInScene();
-        GameSessionManager.Instance.CleanupMonstersInScene();
 
         // 2. 잠시 대기 (사망 연출을 보여줌)
         yield return new WaitForSeconds(1.5f);
@@ -471,6 +470,10 @@ public class PlayerController : NetworkBehaviour
 
     void OnDeadStatusChanged(bool previousValue, bool newValue)
     {
+        if (!IsOwner) return;
+
+        if (PhoneUIController.Instance != null) PhoneUIController.Instance.SetDeadStatus(newValue);
+
         if (playerAnim == null) playerAnim = GetComponent<PlayerAnim>();
         if (playerRotation == null) playerRotation = GetComponent<PlayerRotation>();
 

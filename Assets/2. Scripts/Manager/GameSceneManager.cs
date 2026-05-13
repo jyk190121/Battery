@@ -50,6 +50,11 @@ public class GameSceneManager : NetworkBehaviour
     /// </summary>
     void OnSceneLoadedForBGM(Scene scene, LoadSceneMode mode)
     {
+        if (scene.name == "KJY_TITLE" || scene.name == "KJY_Lobby")
+        {
+            ForceLocalCleanup();
+        }
+
         if (SoundManager.Instance == null) return;
 
         switch (scene.name)
@@ -68,6 +73,19 @@ public class GameSceneManager : NetworkBehaviour
                 Debug.Log("<color=cyan>[BGM]</color> 게임 씬 진입: 게임 BGM 재생");
                 SoundManager.Instance.PlayBgm(BgmSound.GAME);
                 break;
+        }
+    }
+
+    /// <summary>
+    /// 네트워크 상태와 상관없이 로컬 씬에서 몬스터를 찾아 파괴하는 최후의 수단
+    /// </summary>
+    void ForceLocalCleanup()
+    {
+        var monsters = Object.FindObjectsByType<MonsterController>(FindObjectsSortMode.None);
+        foreach (var m in monsters)
+        {
+            Debug.LogWarning($"[GameSceneManager] 유령 몬스터 발견: {m.name}. 로컬에서 강제 파괴합니다.");
+            Destroy(m.gameObject);
         }
     }
 
@@ -102,9 +120,44 @@ public class GameSceneManager : NetworkBehaviour
     /// </summary>
     public void LoadNetworkScene(string sceneName)
     {
+        //if (IsServer && NetworkManager.Singleton.NetworkConfig.EnableSceneManagement)
+        //{
+        //    NetworkManager.Singleton.SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
+        //}
+
         if (IsServer && NetworkManager.Singleton.NetworkConfig.EnableSceneManagement)
         {
+            // [추가] 씬 전환 직전, 서버 권한으로 모든 몬스터와 아이템을 정리합니다.
+            // GameSessionManager에 구현해둔 클린업 함수를 여기서 호출하거나 
+            // 아래 구현할 자체 정리 함수를 실행합니다.
+            CleanupSceneObjectsBeforeLoad();
+
+            Debug.Log($"[GameSceneManager] {sceneName}으로 이동 전 오브젝트 정리 수행.");
             NetworkManager.Singleton.SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
+        }
+    }
+
+    /// <summary>
+    /// 씬 로드 전 서버에서 실행되는 강제 정리 함수
+    /// </summary>
+    private void CleanupSceneObjectsBeforeLoad()
+    {
+        if (!IsServer) return;
+
+        // 1. 몬스터 정리
+        var monsters = FindObjectsByType<MonsterController>(FindObjectsSortMode.None);
+        foreach (var m in monsters)
+        {
+            if (m != null && m.NetworkObject != null && m.NetworkObject.IsSpawned)
+            {
+                m.NetworkObject.Despawn();
+            }
+        }
+
+        // 2. 아이템 정리 (GameSessionManager 인스턴스가 있다면 활용)
+        if (GameSessionManager.Instance != null)
+        {
+            GameSessionManager.Instance.CleanupAllItemsInScene();
         }
     }
 

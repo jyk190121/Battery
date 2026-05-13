@@ -36,17 +36,25 @@ public class PatrolState : MonsterBaseState
             owner.navAgent.enabled = true;
         }
 
-        // 2. 이동 속도 및 상태 초기화
-        owner.navAgent.speed = data.patrolSpeed;
-        owner.navAgent.isStopped = false;
+        if(owner.navAgent != null && owner.navAgent.isActiveAndEnabled && owner.navAgent.isOnNavMesh)
+        {
+            // 2. 이동 속도 및 상태 초기화
+            owner.navAgent.speed = data.patrolSpeed;
+            owner.navAgent.isStopped = false;
 
-        _isWaiting = false;
-        _stuckTimer = 0f; // 이동 시작 시 타이머 초기화
-        _fleaCheckTimer = 0f;
-        _doorDecisionTimer = 0f;
+            _isWaiting = false;
+            _stuckTimer = 0f; // 이동 시작 시 타이머 초기화
+            _fleaCheckTimer = 0f;
+            _doorDecisionTimer = 0f;
 
-        // 3. 진입과 동시에 첫 번째 목적지로 이동
-        MoveToNextPoint();
+            // 3. 진입과 동시에 첫 번째 목적지로 이동
+            MoveToNextPoint();
+        }
+        else
+        {
+            // 오브젝트 바닥 닿기 전 대기
+            _isWaiting = true;
+        }
     }
 
     public override void Exit()
@@ -68,6 +76,7 @@ public class PatrolState : MonsterBaseState
         base.Update();
 
         if (owner.CurrentStateNet.Value != MonsterStateType.Patrol) return;
+        if (owner.navAgent == null || !owner.navAgent.isActiveAndEnabled || !owner.navAgent.isOnNavMesh) return;
 
         // 상태에 따라 도착 확인 또는 대기 로직 분기
         if (!_isWaiting)
@@ -176,6 +185,8 @@ public class PatrolState : MonsterBaseState
     /// </summary>
     private void MoveToNextPoint()
     {
+        if (owner.navAgent == null || !owner.navAgent.isActiveAndEnabled || !owner.navAgent.isOnNavMesh) return;
+
         Transform nextPoint = owner.waypointManager?.GetFarWaypoint(owner.transform.position, owner.currentZone, data.minPatrolDistance);
 
         if (nextPoint != null)
