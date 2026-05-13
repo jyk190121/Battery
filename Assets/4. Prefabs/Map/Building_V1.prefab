@@ -11120,7 +11120,7 @@ GameObject:
   - component: {fileID: 6211740192495284021}
   - component: {fileID: 2660365173802162832}
   - component: {fileID: 3984806207354845945}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Wire
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11585,7 +11585,7 @@ GameObject:
   - component: {fileID: 186618112797519671}
   - component: {fileID: 1912408539412966434}
   - component: {fileID: 1409282887807457408}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Wire
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -18064,7 +18064,7 @@ GameObject:
   - component: {fileID: 4269617399695096099}
   - component: {fileID: 2461636973236178671}
   - component: {fileID: 6131864733702985693}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Wire
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -31316,7 +31316,7 @@ GameObject:
   - component: {fileID: 5569937737101454637}
   - component: {fileID: 6306733407297198013}
   - component: {fileID: 4453263454637160917}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: ShuttersWire_Mod_01 (4)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -39348,7 +39348,7 @@ GameObject:
   - component: {fileID: 7553118343199137874}
   - component: {fileID: 238025315256953856}
   - component: {fileID: 2545172101766458626}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Wire
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -49234,7 +49234,7 @@ GameObject:
   - component: {fileID: 6198826153250393627}
   - component: {fileID: 5062208964558656591}
   - component: {fileID: 7208224310967967645}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Wire
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -50117,7 +50117,7 @@ GameObject:
   - component: {fileID: 5448680273949948768}
   - component: {fileID: 5268162726315081235}
   - component: {fileID: 6305816815316999824}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: ShuttersWire_Mod_01 (11)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -66687,7 +66687,7 @@ GameObject:
   - component: {fileID: 1491263929966516943}
   - component: {fileID: 1519207509200020516}
   - component: {fileID: 3533915135326260827}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: ShuttersWire_Mod_01 (10)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -75589,7 +75589,7 @@ GameObject:
   - component: {fileID: 5826697580287646729}
   - component: {fileID: 7474711920431750315}
   - component: {fileID: 4317311297079895200}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Wire
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -78248,7 +78248,7 @@ GameObject:
   - component: {fileID: 247696039443685819}
   - component: {fileID: 6635010913433807383}
   - component: {fileID: 6696146986675674667}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: ShuttersWire_Mod_01 (7)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -84744,7 +84744,7 @@ GameObject:
   - component: {fileID: 7794672114661370408}
   - component: {fileID: 66380347774526302}
   - component: {fileID: 1507860706512817677}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: ShuttersWire_Mod_01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -102586,7 +102586,7 @@ GameObject:
   - component: {fileID: 9109998157661914625}
   - component: {fileID: 3133859651102963697}
   - component: {fileID: 4046889182720851855}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Wire
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -110148,7 +110148,7 @@ GameObject:
   - component: {fileID: 2970226003526097608}
   - component: {fileID: 7524925276339915330}
   - component: {fileID: 7074127511192143018}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: ShuttersWire_Mod_01 (8)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -113695,7 +113695,7 @@ GameObject:
   - component: {fileID: 3307814026129001840}
   - component: {fileID: 5409030010337164798}
   - component: {fileID: 5287134218966366745}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: ShuttersWire_Mod_01 (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -128963,7 +128963,7 @@ GameObject:
   - component: {fileID: 3416405442997639462}
   - component: {fileID: 151034848927694501}
   - component: {fileID: 8364858310949685533}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Wire
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -134712,7 +134712,7 @@ GameObject:
   - component: {fileID: 588819267917157260}
   - component: {fileID: 5110963296988827343}
   - component: {fileID: 8514196986488355766}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Wire
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -135489,7 +135489,7 @@ GameObject:
   - component: {fileID: 48747382125687499}
   - component: {fileID: 2194729972509777782}
   - component: {fileID: 5541119065962603411}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: ShuttersWire_Mod_01 (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -140698,7 +140698,7 @@ GameObject:
   - component: {fileID: 5165980718619033693}
   - component: {fileID: 2972429532833323919}
   - component: {fileID: 1519218774874025850}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: ShuttersWire_Mod_01 (6)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -147138,7 +147138,7 @@ GameObject:
   - component: {fileID: 3229878888624521152}
   - component: {fileID: 8957612429737965746}
   - component: {fileID: 2657935216787037148}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: ShuttersWire_Mod_01 (5)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -149092,7 +149092,7 @@ GameObject:
   - component: {fileID: 1673550397800688340}
   - component: {fileID: 8416168006602683969}
   - component: {fileID: 5279627707875842971}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: ShuttersWire_Mod_01 (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -160470,7 +160470,7 @@ GameObject:
   - component: {fileID: 6584589103066570410}
   - component: {fileID: 2745881097826430554}
   - component: {fileID: 3824493149456177607}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Wire
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -171543,7 +171543,7 @@ GameObject:
   - component: {fileID: 3344574229525114807}
   - component: {fileID: 4120354035902822566}
   - component: {fileID: 4523688211830892174}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Wire
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -179290,7 +179290,7 @@ GameObject:
   - component: {fileID: 8075001779541552351}
   - component: {fileID: 4804858902902642691}
   - component: {fileID: 8563965475528394089}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: ShuttersWire_Mod_01 (9)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -179773,7 +179773,7 @@ GameObject:
   - component: {fileID: 59219832345760734}
   - component: {fileID: 2546572984122171358}
   - component: {fileID: 1356763795187330716}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Wire
   m_TagString: Untagged
   m_Icon: {fileID: 0}
