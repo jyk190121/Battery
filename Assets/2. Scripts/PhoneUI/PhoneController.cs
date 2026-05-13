@@ -13,6 +13,7 @@ public class AutoSceneUIController : MonoBehaviour
     {
         // 씬 전환 시 오브젝트가 파괴되지 않게 유지해야 로직이 계속 돌아갑니다.
         // 만약 이미 부모가 DontDestroyOnLoad라면 이 줄은 생략 가능합니다.
+        transform.SetParent(null);
         DontDestroyOnLoad(gameObject);
     }
 

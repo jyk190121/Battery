@@ -34,6 +34,17 @@ public class PlayerUIManager : NetworkBehaviour
 
     public static PlayerUIManager LocalInstance { get; private set; }
 
+    private void OnEnable()
+    {
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+    private void OnDisable()
+    {
+        // 이벤트 구독 해제
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+
     public override void OnNetworkSpawn()
     {
         if (!IsOwner)
@@ -240,10 +251,11 @@ public class PlayerUIManager : NetworkBehaviour
             micLevelFillImage = SceneUIReference.Instance.micLevelFillImage;
             micLevelText = SceneUIReference.Instance.micLevelText;
 
+            // 추가로 필요한 CanvasGroup이나 Image 컴포넌트들을 여기서 다시 할당
+
             if (vignetteImage != null)
             {
                 vignetteRect = vignetteImage.GetComponent<RectTransform>();
-                // 기존 초기화 로직 유지...
             }
 
             isInitialized = (playerHpImage != null && stateManager != null);
@@ -254,5 +266,16 @@ public class PlayerUIManager : NetworkBehaviour
             Debug.LogWarning("[PlayerUIManager] 현재 씬에서 SceneUIReference를 찾을 수 없습니다.");
         }
     }
+
+    void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+    {
+        // 타이틀 씬이 아닐 때만 UI 참조 갱신
+        if (scene.name != "KJY_TITLE")
+        {
+            Debug.Log($"[UI] 씬 로드 감지({scene.name}): UI 참조를 재연결합니다.");
+            RefreshUIReferences();
+        }
+    }
+
     #endregion
 }

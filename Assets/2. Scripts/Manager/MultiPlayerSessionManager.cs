@@ -109,14 +109,21 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     private bool _isVoiceConnecting = false;
     public override void OnNetworkSpawn()
     {
-        if(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "KJY_TITLE")
+        if (SceneManager.GetActiveScene().name == START_SCENE_NAME)
         {
             PlayerController.AllPlayers.Clear();
+            // 씬 로드 시 부모가 생겼다면 Root로 빼줌 (DontDestroyOnLoad 에러 방지)
+            transform.SetParent(null);
         }
 
         _isVoiceConnecting = false;
-        HandleNetcodeConnected(NetworkManager.Singleton.LocalClientId);
+        //HandleNetcodeConnected(NetworkManager.Singleton.LocalClientId);
+        if (IsOwner)
+        {
+            HandleNetcodeConnected(NetworkManager.Singleton.LocalClientId);
+        }
     }
+
 
     private void HandleNetcodeConnected(ulong clientId)
     {
@@ -131,13 +138,28 @@ public class MultiPlayerSessionManager : NetworkBehaviour
 
     IEnumerator InitializePhotonServicesRoutine()
     {
-        yield return new WaitForSeconds(1.0f);
-
-        if (GlobalVoiceManager.Instance != null)
+        float timeout = 3.0f;
+        while (string.IsNullOrEmpty(CurrentChannelId) || CurrentChannelId == "LobbyChannel")
         {
-            // [수정] 내 닉네임과, 현재 접속한 세션의 고유 ID를 보이스 매니저에 전달합니다!
+            if (ActiveSession != null && !string.IsNullOrEmpty(ActiveSession.Id))
+            {
+                CurrentChannelId = ActiveSession.Id;
+                break;
+            }
+
+            timeout -= 0.5f;
+            if (timeout <= 0) break;
+            yield return new WaitForSeconds(0.5f);
+        }
+
+        if (GlobalVoiceManager.Instance != null && !string.IsNullOrEmpty(CurrentChannelId))
+        {
+            Debug.Log($"[Multiplayer] 보이스 연결 시작 - 채널ID: {CurrentChannelId}");
             GlobalVoiceManager.Instance.ConnectVoice(PlayerNickname, CurrentChannelId);
-            Debug.Log($"[Multiplayer] 포톤 보이스 서버 접속 요청 완료 (방: {CurrentChannelId})");
+        }
+        else
+        {
+            Debug.LogError("[Multiplayer] 보이스 연결 실패: 세션 ID를 가져올 수 없습니다.");
         }
     }
 
@@ -242,6 +264,7 @@ public class MultiPlayerSessionManager : NetworkBehaviour
             }
 
             CurrentChannelId = ActiveSession.Id;
+            ResetSessionState();
 
             // 중요: 별도의 Relay 할당 코드를 작성하지 마세요. 
             // ActiveSession.Code에 이미 Relay 코드가 담겨 있습니다.
@@ -399,10 +422,15 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         {
             await EnsureSignedInAsync();
 
-            // 1. 세션 서비스 참가 (이 내부에서 Relay 연결이 자동으로 준비됩니다)
+            //// 1. 세션 서비스 참가 (이 내부에서 Relay 연결이 자동으로 준비됩니다)
+            //ActiveSession = await MultiplayerService.Instance.JoinSessionByIdAsync(session.Id);
             ActiveSession = await MultiplayerService.Instance.JoinSessionByIdAsync(session.Id);
-            
-            // 이미 세션에 들어갔다면 바로 나가기 처리
+
+            if (ActiveSession != null)
+            {
+                CurrentChannelId = ActiveSession.Id;
+            }
+
             if (token.IsCancellationRequested)
             {
                 await ActiveSession.LeaveAsync();
@@ -420,8 +448,8 @@ public class MultiPlayerSessionManager : NetworkBehaviour
             {
                 NetworkManager.Singleton.StartClient();
             }
+            ResetSessionState();
 
-            Debug.Log($"[Multiplayer] 세션 참가 완료: {ActiveSession.Name}");
         }
         catch (OperationCanceledException)
         {
@@ -429,7 +457,9 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         }
         catch (Exception e)
         {
-            if (!token.IsCancellationRequested) Debug.LogError($"[Multiplayer] 세션 참가 실패: {e.Message}");
+            // 실패 시 다시 초기화
+            CurrentChannelId = "LobbyChannel";
+            Debug.LogError($"[Multiplayer] 세션 참가 실패: {e.Message}");
         }
     }
 
@@ -566,79 +596,172 @@ public class MultiPlayerSessionManager : NetworkBehaviour
             }
         }
 
-        // 2. 실제 세션 이탈 및 서버 종료
-        LeaveSession();
+        await LeaveSessionRoutine();
     }
+    public async void LeaveSession() // 기존 호출용
+    {
+        if (_isLeaving || NetworkManager.Singleton == null) return;
+        _isLeaving = true;
 
+        // 1. 보이스 연결 즉시 해제 (Task 방식이 아닌 일반 함수로 빠르게)
+        if (GlobalVoiceManager.Instance != null && GlobalVoiceManager.Instance.globalVoiceClient != null)
+        {
+            GlobalVoiceManager.Instance.globalVoiceClient.Client.Disconnect();
+        }
+
+        // 2. 서버 클린업 (실행 가능할 때만)
+        if (NetworkManager.Singleton.IsServer && NetworkManager.Singleton.IsListening)
+        {
+            GameSessionManager.Instance?.CleanupMonstersInScene();
+            await Task.Delay(100);
+        }
+
+        // 3. 세션 이탈 및 셧다운 통합 처리
+        try
+        {
+            if (ActiveSession != null)
+            {
+                // 이탈 처리가 실패하더라도 Shutdown은 반드시 일어나야 함
+                var leaveTask = ActiveSession.LeaveAsync();
+                if (await Task.WhenAny(leaveTask, Task.Delay(1000)) == leaveTask)
+                    await leaveTask;
+            }
+        }
+        catch (Exception e) { Debug.Log($"[Session] 이탈 중 무시된 예외: {e.Message}"); }
+        finally
+        {
+            if (NetworkManager.Singleton != null) NetworkManager.Singleton.Shutdown();
+            ActiveSession = null;
+            _isLeaving = false;
+            SceneManager.LoadScene(START_SCENE_NAME);
+        }
+    }
+    async Task LeaveSessionRoutine() // 실제 비동기 로직 분리
+    {
+        if (_isLeaving) return;
+        _isLeaving = true;
+
+        // 1. 보이스 연결 해제 (가장 먼저 수행)
+        if (GlobalVoiceManager.Instance != null && GlobalVoiceManager.Instance.globalVoiceClient != null)
+        {
+            GlobalVoiceManager.Instance.globalVoiceClient.Client.Disconnect();
+        }
+
+        // 2. 서버 클린업
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+        {
+            GameSessionManager.Instance?.CleanupMonstersInScene();
+            GameSessionManager.Instance?.CleanupAllItemsInScene();
+            await Task.Delay(300);
+        }
+
+        // 3. [핵심] ISession 이탈을 먼저 완료한 후 Shutdown 실행
+        if (ActiveSession != null)
+        {
+            try { await ActiveSession.LeaveAsync(); }
+            catch { } // 이미 파괴된 경우 무시
+            finally { ActiveSession = null; }
+        }
+
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+        {
+            NetworkManager.Singleton.Shutdown();
+        }
+
+        PlayerController.AllPlayers.Clear();
+        _isLeaving = false;
+        SceneManager.LoadScene(START_SCENE_NAME);
+    }
     private void OnClientDisconnected(ulong clientId)
     {
         // 내가 클라이언트인데 (방장이 아님)
         if (!NetworkManager.Singleton.IsServer)
         {
-            // 방장(ServerClientId)의 연결이 끊어졌거나, 내 연결이 끊겼을 때
+            //// 방장(ServerClientId)의 연결이 끊어졌거나, 내 연결이 끊겼을 때
+            //if (clientId == NetworkManager.ServerClientId || clientId == NetworkManager.Singleton.LocalClientId)
+            //{
+            //    // 타이틀로 돌아가기 전, 내가 접속해있던 방이 폭파된 것이므로 ID를 기록해둡니다.
+            //    if (ActiveSession != null)
+            //    {
+            //        ExplodedSessionId = ActiveSession.Id;
+            //    }
+
+            //    Debug.Log("<color=red>[Multiplayer] 서버(방장)와의 연결이 종료되어 타이틀로 귀환합니다.</color>");
+            //    ReturnToLobbyLocal();
+            //
+            //}
             if (clientId == NetworkManager.ServerClientId || clientId == NetworkManager.Singleton.LocalClientId)
             {
-                // 타이틀로 돌아가기 전, 내가 접속해있던 방이 폭파된 것이므로 ID를 기록해둡니다.
-                if (ActiveSession != null)
-                {
-                    ExplodedSessionId = ActiveSession.Id;
-                }
+                // 중복 실행 방지
+                if (_isLeaving) return;
 
-                Debug.Log("<color=red>[Multiplayer] 서버(방장)와의 연결이 종료되어 타이틀로 귀환합니다.</color>");
-                ReturnToLobbyLocal();
+                Debug.Log("<color=red>[Multiplayer] 서버와의 연결 종료. 타이틀로 귀환합니다.</color>");
+
+                // 💡 복잡한 비동기 로직 대신 통합된 LeaveSession 하나만 호출합니다.
+                LeaveSession();
             }
         }
     }
 
-    public async void LeaveSession()
-    {
-        if (_isLeaving) return;
-        _isLeaving = true;
+    //public async void LeaveSession()
+    //{
+    //    if (_isLeaving) return;
+    //    _isLeaving = true;
 
-        Debug.Log("<color=orange>[Multiplayer]</color> 세션 종료 및 클린업 시작...");
+    //    Debug.Log("<color=orange>[Multiplayer]</color> 세션 종료 및 클린업 시작...");
 
-        // 1. [최우선] 서버라면 네트워크가 살아있을 때 모든 몬스터/아이템을 먼저 디스폰
-        if (NetworkManager.Singleton.IsServer && NetworkManager.Singleton.IsListening)
-        {
-            if (GameSessionManager.Instance != null)
-            {
-                // 이 안에서 monster.NetworkObject.Despawn()이 실행됨
-                GameSessionManager.Instance.CleanupMonstersInScene();
-                GameSessionManager.Instance.CleanupAllItemsInScene();
-            }
+    //    // 1. 포톤 보이스 먼저 안전하게 끊기
+    //    if (GlobalVoiceManager.Instance != null && GlobalVoiceManager.Instance.globalVoiceClient != null)
+    //    {
+    //        try { GlobalVoiceManager.Instance.globalVoiceClient.Client.Disconnect(); }
+    //        catch { }
+    //    }
 
-            // 💡 중요: 디스폰 패킷이 클라이언트들에게 도달할 아주 짧은 시간을 벌어줌
-            await Task.Delay(500);
-        }
+    //    // 2. 서버(호스트)인 경우 몬스터/아이템 정리
+    //    if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer && NetworkManager.Singleton.IsListening)
+    //    {
+    //        if (GameSessionManager.Instance != null)
+    //        {
+    //            GameSessionManager.Instance.CleanupMonstersInScene();
+    //            GameSessionManager.Instance.CleanupAllItemsInScene();
+    //        }
+    //        await Task.Delay(300); // 패킷 전송 대기
+    //    }
 
-        // 2. 세션 서비스 이탈 (비동기 대기)
-        if (ActiveSession != null)
-        {
-            try
-            {
-                await ActiveSession.LeaveAsync();
-                Debug.Log("[Multiplayer] 세션 이탈 완료");
-            }
-            catch (Exception e) { Debug.LogWarning($"세션 이탈 중 오류: {e.Message}"); }
-            finally { ActiveSession = null; }
-        }
+    //    // 3. [핵심 수정] 세션 이탈 (에러 무시 처리)
+    //    if (ActiveSession != null)
+    //    {
+    //        try
+    //        {
+    //            // 💡 세션이 이미 파괴되었을 가능성이 높으므로 타임아웃을 짧게 잡거나 예외를 무시합니다.
+    //            await ActiveSession.LeaveAsync();
+    //            Debug.Log("[Multiplayer] 세션 서비스 이탈 완료");
+    //        }
+    //        catch (Exception e)
+    //        {
+    //            // 이미 로비가 없거나 멤버가 아니라는 에러는 무시하고 넘어갑니다.
+    //            Debug.Log($"[Multiplayer] 세션 서비스 이탈 중 예상된 예외(무시가능): {e.Message}");
+    //        }
+    //        finally { ActiveSession = null; }
+    //    }
 
-        // 3. 마지막으로 네트워크 매니저 종료
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
-        {
-            NetworkManager.Singleton.Shutdown();
-            Debug.Log("[Multiplayer] NetworkManager 셧다운 완료");
-        }
+    //    // 4. 네트워크 매니저 셧다운
+    //    if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+    //    {
+    //        NetworkManager.Singleton.Shutdown();
+    //        Debug.Log("[Multiplayer] NetworkManager 셧다운 완료");
+    //    }
 
-        // 4. 리스트 및 상태 초기화
-        PlayerController.AllPlayers.Clear();
-        CurrentChannelId = "LobbyChannel";
+    //    // 5. 상태 및 정적 데이터 초기화
+    //    PlayerController.AllPlayers.Clear();
+    //    CurrentChannelId = "LobbyChannel";
+    //    ExplodedSessionId = "";
 
-        _isLeaving = false;
+    //    _isLeaving = false;
 
-        // 5. 씬 이동
-        SceneManager.LoadScene(START_SCENE_NAME);
-    }
+    //    // 5. 씬 이동
+    //    SceneManager.LoadScene(START_SCENE_NAME);
+    //}
 
     private void OnDestroy()
     {
@@ -648,4 +771,28 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         }
     }
     #endregion
+
+    #region 씬 이동 시 참조 파괴 방지 스크립트
+    public void ResetSessionState()
+    {
+        // 기존에 살아있던 보이스 매니저나 UI 매니저에게 초기화 명령
+        if (PlayerUIManager.LocalInstance != null)
+            PlayerUIManager.LocalInstance.RefreshUIReferences();
+
+        if (GlobalVoiceManager.Instance != null)
+            GlobalVoiceManager.Instance.ReinitializeVoiceSystem();
+
+        // 호스트 이력이 있다면 특히 중요하게 체크
+        Debug.Log("[System] 이전 호스트 이력을 감지하여 시스템을 재부팅합니다.");
+    }
+
+
+    #endregion
+
+    void OnApplicationQuit()
+    {
+        // 💡 앱 종료 시에는 복잡한 이탈 로직을 타지 않도록 방어
+        _isLeaving = true;
+        CancelSessionOperations();
+    }
 }
