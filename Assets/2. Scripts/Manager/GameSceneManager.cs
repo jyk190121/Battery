@@ -26,6 +26,7 @@ public class GameSceneManager : NetworkBehaviour
         if (Instance == null)
         {
             Instance = this;
+            transform.SetParent(null);                          // DontDestroyOnLoad 에러 방지 (Root 보장)
             DontDestroyOnLoad(gameObject);                      // 이 객체를 씬이 바뀌어도 보존
         }
         else
@@ -50,9 +51,12 @@ public class GameSceneManager : NetworkBehaviour
     /// </summary>
     void OnSceneLoadedForBGM(Scene scene, LoadSceneMode mode)
     {
+        // [수정] 타이틀이나 로비로 돌아왔을 때, 이전 세션의 잔재를 로컬에서 강제 정리
         if (scene.name == "KJY_TITLE" || scene.name == "KJY_Lobby")
         {
             ForceLocalCleanup();
+
+            if (scene.name == "KJY_TITLE") ResetSessionState();
         }
 
         if (SoundManager.Instance == null) return;
@@ -60,17 +64,14 @@ public class GameSceneManager : NetworkBehaviour
         switch (scene.name)
         {
             case "KJY_TITLE":
-                Debug.Log("<color=cyan>[BGM]</color> 타이틀 씬 진입: 타이틀 BGM 재생");
                 SoundManager.Instance.PlayBgm(BgmSound.TITLE);
                 break;
 
             case "KJY_Lobby":
-                Debug.Log("<color=cyan>[BGM]</color> 로비 씬 진입: BGM 정지");
                 SoundManager.Instance.StopBgm(); // 로비는 BGM 없음
                 break;
 
             case "KJY_Player":
-                Debug.Log("<color=cyan>[BGM]</color> 게임 씬 진입: 게임 BGM 재생");
                 SoundManager.Instance.PlayBgm(BgmSound.GAME);
                 break;
         }
@@ -81,12 +82,13 @@ public class GameSceneManager : NetworkBehaviour
     /// </summary>
     void ForceLocalCleanup()
     {
-        var monsters = Object.FindObjectsByType<MonsterController>(FindObjectsSortMode.None);
-        foreach (var m in monsters)
-        {
-            Debug.LogWarning($"[GameSceneManager] 유령 몬스터 발견: {m.name}. 로컬에서 강제 파괴합니다.");
-            Destroy(m.gameObject);
-        }
+        // 몬스터뿐만 아니라 아이템 스피커 등 유령 객체 전체 파괴
+        var monsters = FindObjectsByType<MonsterController>(FindObjectsSortMode.None);
+        foreach (var m in monsters) Destroy(m.gameObject);
+
+        //// 보이스 스피커 잔상 제거
+        //var speakers = FindObjectsByType<GlobalVoiceManager>(FindObjectsSortMode.None);
+        //foreach (var s in speakers) Destroy(s);
     }
 
     public override void OnNetworkSpawn()
@@ -103,15 +105,26 @@ public class GameSceneManager : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
-        if (IsServer && NetworkManager.Singleton != null)
-        {
-            NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
+        //if (IsServer && NetworkManager.Singleton != null)
+        //{
+        //    NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
 
-            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnSceneLoaded;
-        }
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.SceneManager != null)
+        //    NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnSceneLoaded;
+        //}
+        //if (NetworkManager.Singleton != null && NetworkManager.Singleton.SceneManager != null)
+        //{
+        //    NetworkManager.Singleton.SceneManager.OnLoadComplete -= OnLocalLoadComplete;
+        //}
+
+        // [수정] NetworkManager가 이미 파괴되었을 때를 대비한 안전성 강화
+        if (NetworkManager.Singleton != null)
         {
-            NetworkManager.Singleton.SceneManager.OnLoadComplete -= OnLocalLoadComplete;
+            if (IsServer)
+            {
+                NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
+                if (NetworkManager.Singleton.SceneManager != null) NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnSceneLoaded;
+            }
+            if (NetworkManager.Singleton.SceneManager != null) NetworkManager.Singleton.SceneManager.OnLoadComplete -= OnLocalLoadComplete;
         }
     }
 
@@ -144,7 +157,7 @@ public class GameSceneManager : NetworkBehaviour
     {
         if (!IsServer) return;
 
-        // 1. 몬스터 정리
+        // 몬스터 정리
         var monsters = FindObjectsByType<MonsterController>(FindObjectsSortMode.None);
         foreach (var m in monsters)
         {
@@ -154,7 +167,7 @@ public class GameSceneManager : NetworkBehaviour
             }
         }
 
-        // 2. 아이템 정리 (GameSessionManager 인스턴스가 있다면 활용)
+        // 아이템 정리 (GameSessionManager 인스턴스가 있다면 활용)
         if (GameSessionManager.Instance != null)
         {
             GameSessionManager.Instance.CleanupAllItemsInScene();
@@ -305,20 +318,37 @@ public class GameSceneManager : NetworkBehaviour
     // 로컬 클라이언트에서 씬 로드가 끝났을 때 실행됨
     private void OnLocalLoadComplete(ulong clientId, string sceneName, LoadSceneMode loadSceneMode)
     {
-        // 내 로컬 캐릭터를 찾아서 UI를 다시 연결해줌
-        if (NetworkManager.Singleton.LocalClient != null &&
-            NetworkManager.Singleton.LocalClient.PlayerObject != null)
+        //// 내 로컬 캐릭터를 찾아서 UI를 다시 연결해줌
+        //if (NetworkManager.Singleton.LocalClient != null &&
+        //    NetworkManager.Singleton.LocalClient.PlayerObject != null)
+        //{
+        //    //var interaction = NetworkManager.Singleton.LocalClient.PlayerObject.GetComponent<PlayerInteraction>();
+        //    //if (interaction != null)
+        //    //{
+        //    //    interaction.FindUIElements();
+        //    //}
+
+        //    var playerObj = NetworkManager.Singleton.LocalClient.PlayerObject;
+
+        //    // 상호작용 UI 연결
+        //    if (playerObj.TryGetComponent(out PlayerInteraction interaction)) interaction.FindUIElements();
+        //}
+
+        if (clientId == NetworkManager.Singleton.LocalClientId)
         {
-            //var interaction = NetworkManager.Singleton.LocalClient.PlayerObject.GetComponent<PlayerInteraction>();
-            //if (interaction != null)
-            //{
-            //    interaction.FindUIElements();
-            //}
+            Debug.Log($"<color=yellow>[System]</color> {sceneName} 로드 완료. 참조 재연결 시작.");
 
-            var playerObj = NetworkManager.Singleton.LocalClient.PlayerObject;
+            if (MultiPlayerSessionManager.Instance != null)
+            {
+                MultiPlayerSessionManager.Instance.ResetSessionState();
+            }
 
-            // 상호작용 UI 연결
-            if (playerObj.TryGetComponent(out PlayerInteraction interaction)) interaction.FindUIElements();
+            // 로컬 플레이어 UI 연결
+            var localPlayer = NetworkManager.Singleton.LocalClient.PlayerObject;
+            if (localPlayer != null && localPlayer.TryGetComponent(out PlayerInteraction interaction))
+            {
+                interaction.FindUIElements();
+            }
         }
     }
 
