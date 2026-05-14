@@ -31,7 +31,14 @@ public class VoiceController : MonoBehaviour
 
         if (Camera.main != null) listener = Camera.main.transform;
     }
-
+    private void Start()
+    {
+        // 두 번째 판에서 믹서 참조가 유실되었을 경우를 대비해 수동 할당 확인 로직이 필요할 수 있습니다.
+        if (audioSource.outputAudioMixerGroup == null)
+        {
+            audioSource = SoundManager.Instance.GetComponent<AudioSource>();
+        }
+    }
     private void Update()
     {
         if (listener == null)
@@ -54,11 +61,10 @@ public class VoiceController : MonoBehaviour
         if (!isCalling)
         {
             audioSource.spatialBlend = 1.0f;
-            if (audioSource.outputAudioMixerGroup != defaultMixer)
-            {
-                audioSource.outputAudioMixerGroup = defaultMixer;
-            }
-            return;
+            audioSource.outputAudioMixerGroup = defaultMixer;
+            //return;
+            // 거리 감쇄 설정 확인 (너무 멀면 안 들림)
+            audioSource.maxDistance = 30f;
         }
 
         // 2. 전화 중일 때: X, Z 평면 거리와 Y 높이를 각각 계산

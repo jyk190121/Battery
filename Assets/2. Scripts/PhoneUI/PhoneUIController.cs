@@ -212,4 +212,21 @@ public class PhoneUIController : MonoBehaviour
 
     #endregion
 
+
+    #region 폰 먹통 및 벨소리 무한 반복 해제
+    public void ResetPhoneState()
+    {
+        isCallActive = false;
+        isInputBlocked = false;   // 이거 때문에 아이템을 못 줍는 겁니다!
+        hasPower = true;
+        isDeadStatus = false;
+
+        // 스마트폰 UI 강제 닫기
+        if (phoneUIParent != null) phoneUIParent.SetActive(false);
+
+        // 진행 중인 벨소리 등 강제 종료
+        SoundManager.Instance.StopLoopSfx(); // 사운드 매니저에 맞춰 소리를 끄는 코드 삽입
+    }
+
+    #endregion
 }
