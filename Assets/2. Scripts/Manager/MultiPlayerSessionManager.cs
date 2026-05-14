@@ -499,73 +499,41 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         if (_isLeaving || NetworkManager.Singleton == null) return;
         _isLeaving = true;
 
-        if (GlobalVoiceManager.Instance != null)
-        {
-            GlobalVoiceManager.Instance.ShutdownVoice();
-        }
+        // 1. 🧹 모든 보이스/채팅 중지
+        if (GlobalVoiceManager.Instance != null) GlobalVoiceManager.Instance.ShutdownVoice();
 
         PhotonChatManager chatManager = FindFirstObjectByType<PhotonChatManager>();
         if (chatManager != null) chatManager.DisconnectAndClear();
 
-        PhoneUIController.Instance.ResetPhoneState();
-        if (SoundManager.Instance != null)
-        {
-             SoundManager.Instance.StopLoopSfx(); // 예시: 모든 효과음 정지
-        }
+        // 2. 🧹 폰 상태 초기화 (입력 막힘 방지)
+        if (PhoneUIController.Instance != null) PhoneUIController.Instance.ResetPhoneState();
 
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+        // 3. 🧹 서버 아이템 정리 (서버일 때만)
+        if (NetworkManager.Singleton.IsServer && NetworkManager.Singleton.IsListening)
         {
             GameSessionManager.Instance?.CleanupMonstersInScene();
             GameSessionManager.Instance?.CleanupAllItemsInScene();
-            await Task.Delay(300);
+            await Task.Delay(200);
         }
 
-        //// 3. 세션 이탈 및 셧다운 통합 처리
-        //if (ActiveSession != null)
-        //{
-        //    try
-        //    {
-        //        // 1초 타임아웃을 걸어 세션 서비스가 응답 없어도 다음 단계(Shutdown) 진행
-        //        var leaveTask = ActiveSession.LeaveAsync();
-        //        if (await Task.WhenAny(leaveTask, Task.Delay(1000)) != leaveTask)
-        //        {
-        //            Debug.LogWarning("[Multiplayer] 세션 이탈 응답 지연으로 강제 진행");
-        //        }
-        //    }
-        //    catch (Exception e) { Debug.Log($"[Multiplayer] 이탈 중 예외: {e.Message}"); }
-        //    finally { ActiveSession = null; }
-        //}
-
+        // 4. 🧹 세션 서비스 이탈 및 넷코드 종료
         try
         {
-            if (ActiveSession != null)
-            {
-                await ActiveSession.LeaveAsync();
-            }
+            if (ActiveSession != null) await ActiveSession.LeaveAsync();
         }
-        catch (Exception e) { Debug.Log($"[Multiplayer] 세션 이탈 중 무시된 예외: {e.Message}"); }
+        catch { }
         finally
         {
-            // 4. Netcode 셧다운은 마지막에 수행
+            // 💡 Shutdown은 무조건 실행되도록 finally에 배치
             if (NetworkManager.Singleton != null) NetworkManager.Singleton.Shutdown();
 
             ActiveSession = null;
             PlayerController.AllPlayers.Clear();
             CurrentChannelId = "LobbyChannel";
-
             _isLeaving = false;
-            SceneManager.LoadScene(START_SCENE_NAME);
-        }
 
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
-        {
-            NetworkManager.Singleton.Shutdown();
-            ActiveSession = null;
-            PlayerController.AllPlayers.Clear();
-            CurrentChannelId = "LobbyChannel";
-            _isLeaving = false;
+            // 마지막에 씬 이동
             SceneManager.LoadScene(START_SCENE_NAME);
-            Debug.Log("[Multiplayer] NetworkManager 셧다운 완료");
         }
     }
     private void OnClientDisconnected(ulong clientId)
