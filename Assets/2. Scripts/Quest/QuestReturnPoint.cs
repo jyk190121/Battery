@@ -1,6 +1,7 @@
 using Unity.Netcode;
 using UnityEngine;
 using System.Collections;
+
 public class QuestReturnPoint : NetworkBehaviour
 {
     public static event System.Action OnSpiritualWorldEntered;
@@ -10,7 +11,7 @@ public class QuestReturnPoint : NetworkBehaviour
     public Vector3 spiritWorldPos = new Vector3(1100f, 1f, 135f);
 
     [Header("Quest Settings")]
-    public int targetQuestID;
+    public int[] targetQuestIDs = { 1040, 2040, 3040 }; // 이지, 노말, 하드 ID 배열 처리
     public int requiredItemID;
 
     [Header("Visual Components")]
@@ -26,7 +27,13 @@ public class QuestReturnPoint : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         if (QuestManager.Instance != null)
-            QuestManager.Instance.RegisterReturnPoint(targetQuestID, this);
+        {
+            // 배열에 있는 모든 퀘스트 ID 등록
+            foreach (int id in targetQuestIDs)
+            {
+                QuestManager.Instance.RegisterReturnPoint(id, this);
+            }
+        }
 
         // 데이터 변경 시 화면 갱신 연결
         RefreshState(hasItem.Value, isCompleted.Value);
@@ -96,17 +103,34 @@ public class QuestReturnPoint : NetworkBehaviour
 
         OnSpiritualWorldEntered?.Invoke();
 
-        // 퀘스트 매니저 클리어 보고
-        QuestManager.Instance.NotifyCustomQuestMet(targetQuestID, clientId);
+        // 퀘스트 매니저 클리어 보고 (현재 활성화된 난이도 퀘스트 찾기)
+        int activeId = 0;
+        foreach (int id in targetQuestIDs)
+        {
+            if (QuestManager.Instance.activeQuests.Contains(id))
+            {
+                activeId = id;
+                break;
+            }
+        }
+
+        //난이도 밸런싱
+        float dynamicDelay = returnDelay; // 기본 60초 (1040 이지)
+        if (activeId == 2040) dynamicDelay = 90f;      // 노말
+        else if (activeId == 3040) dynamicDelay = 120f; // 하드
+
+        if (activeId != 0)
+        {
+            QuestManager.Instance.NotifyCustomQuestMet(activeId, clientId);
+        }
 
         // 이동 로그 및 연출 알림
-        NotifyTeleportLogClientRpc(clientId);
+        NotifyTeleportLogClientRpc(clientId, dynamicDelay);
     }
 
     [Rpc(SendTo.Everyone)]
-    private void NotifyTeleportLogClientRpc(ulong clientId)
+    private void NotifyTeleportLogClientRpc(ulong clientId, float delayTime)
     {
-
         if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var networkClient))
         {
             //이동시킬 플레이어 찾기
@@ -118,30 +142,29 @@ public class QuestReturnPoint : NetworkBehaviour
                 // 플레이어 오브젝트에 붙은 NetworkTransform을 가져옵니다.
                 if (playerObj.TryGetComponent(out Unity.Netcode.Components.NetworkTransform nt))
                 {
-                    StartCoroutine(TeleportAndReturnRoutine(playerObj));
+                    StartCoroutine(TeleportAndReturnRoutine(playerObj, delayTime));
                 }
                 else
                 {
                     // NT가 없을 경우 수동 이동 (권한 체크 필수)
-                    playerObj.transform.position = new Vector3(1100f, 1f, 135f);
+                    playerObj.transform.position = spiritWorldPos;
                 }
             }
         }
     }
 
-    IEnumerator TeleportAndReturnRoutine(NetworkObject playerObj)
+    IEnumerator TeleportAndReturnRoutine(NetworkObject playerObj, float delayTime)
     {
         if (playerObj.TryGetComponent(out Unity.Netcode.Components.NetworkTransform nt))
         {
             Vector3 originalPos = playerObj.transform.position;
             Quaternion originalRot = playerObj.transform.rotation;
 
-            // 2. 두 번째 빌딩으로 이동 (X축 +1000f 지점)
-            //nt.Teleport(originalPos + new Vector3(1000f, 0, 0), Quaternion.identity, playerObj.transform.localScale);
             nt.Teleport(spiritWorldPos, Quaternion.identity, playerObj.transform.localScale);
-            Debug.Log($"<color=purple>[Gimmick]</color> 영혼 세계 진입. {returnDelay}초 후 복귀합니다.");
+            Debug.Log($"<color=purple>[Gimmick]</color> 영혼 세계 진입. {delayTime}초 후 복귀합니다.");
 
-            yield return new WaitForSeconds(returnDelay);
+            // 동적 할당된 난이도별 시간 적용
+            yield return new WaitForSeconds(delayTime);
 
             nt.Teleport(originalPos, originalRot, playerObj.transform.localScale);
             Debug.Log("<color=purple>[Gimmick]</color> 시간이 다 되어 원래 세계로 돌아왔습니다.");
