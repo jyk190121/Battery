@@ -2,7 +2,6 @@ using Photon.Realtime;
 using Photon.Voice.Unity;
 using System.Collections;
 using System.Collections.Generic;
-using Photon.Realtime;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -14,18 +13,18 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
     public Recorder globalRecorder;
     private string currentRoomName = "";
 
+
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            transform.SetParent(null);
             DontDestroyOnLoad(gameObject);
+            Debug.Log("<color=cyan>[Voice]</color> GlobalVoiceManager를 Root로 이동 및 보존 완료.");
         }
         else
         {
             Destroy(gameObject);
-            return;
         }
     }
 
@@ -94,52 +93,55 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
 
     public void ConnectVoice(string myNickname, string roomName)
     {
+        StopAllCoroutines();
         StartCoroutine(ReconnectVoiceRoutine(myNickname, roomName));
     }
 
     IEnumerator ReconnectVoiceRoutine(string myNickname, string roomName)
     {
-        // 1. 포톤 클라이언트가 완벽히 끊어질 때까지 대기
-        if (globalVoiceClient.Client.IsConnected)
+        // 1. 기존 소켓이 살아있다면 확실히 연결 해제 대기
+        if (globalVoiceClient.Client.IsConnected || globalVoiceClient.Client.State != ClientState.PeerCreated)
         {
-            Debug.Log("[Voice] 기존 소켓 종료 대기...");
+            Debug.Log("[Voice] 기존 소켓 정리 대기...");
             globalVoiceClient.Client.Disconnect();
 
-            float timeout = 4.0f; // 넉넉하게 4초 부여
-            while (globalVoiceClient.Client.IsConnected && timeout > 0)
+            float timeout = 3.0f;
+            while (globalVoiceClient.Client.State != ClientState.Disconnected &&
+                   globalVoiceClient.Client.State != ClientState.PeerCreated && timeout > 0)
             {
                 timeout -= Time.deltaTime;
                 yield return null;
             }
         }
 
-        // 2. 이전 방에서 생성되었던 상대방 스피커들(잔해) 파괴
+        // 2. 이전 씬의 스피커 잔해 제거
         Speaker[] activeSpeakers = GetComponentsInChildren<Speaker>();
         foreach (var s in activeSpeakers) Destroy(s.gameObject);
 
-        // 3. 콜백 재등록 및 데이터 갱신
+        // 3. 데이터 및 콜백 재설정
         currentRoomName = roomName;
         globalVoiceClient.Client.NickName = myNickname;
 
-        globalVoiceClient.Client.RemoveCallbackTarget(this);
-        globalVoiceClient.Client.AddCallbackTarget(this);
-        globalVoiceClient.SpeakerLinked -= OnSpeakerLinked;
-        globalVoiceClient.SpeakerLinked += OnSpeakerLinked;
-
-        // 4. 💡 [핵심] 클라이언트 데시벨 안 올라가는 문제 해결
-        // Recorder.cs의 프로퍼티를 이용해 마이크 하드웨어를 안전하게 재시동합니다.
+        // 4. 마이크 하드웨어 리셋 (데시벨 먹통 해결)
         if (globalRecorder != null)
         {
             globalRecorder.TransmitEnabled = false;
-            globalRecorder.RecordingEnabled = true; // 내부적으로 RestartRecording() 호출됨
-            Debug.Log("[Voice] 마이크 하드웨어 재시동 완료");
+            globalRecorder.RecordingEnabled = false;
+            yield return new WaitForSeconds(0.2f);
+            globalRecorder.RecordingEnabled = true;
+            globalRecorder.RestartRecording();
         }
 
-        yield return new WaitForSeconds(0.5f); // 소켓 안정화 대기
+        yield return new WaitForSeconds(0.5f);
 
-        // 5. 새 방으로 접속 시도
         bool isConnecting = globalVoiceClient.ConnectUsingSettings();
-        Debug.Log($"<color=#FF55FF>[Voice-1] 새 세션 접속 결과: {isConnecting}</color>");
+        Debug.Log($"<color=#FF55FF>[Voice-1] 접속 시도 결과: {isConnecting}</color>");
+
+        // 만약 이미 연결된 상태에서 이 루틴이 불렸다면 OnConnectedToMaster가 안 불릴 수 있으므로 체크
+        if (globalVoiceClient.Client.State == ClientState.ConnectedToMasterServer)
+        {
+            JoinVoiceRoomInternal();
+        }
     }
     public void ShutdownVoice()
     {
@@ -164,28 +166,6 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
         StopAllCoroutines();
         currentRoomName = "";
         Debug.Log("<color=red>[Voice]</color> 시스템 셧다운 및 마이크 해제 완료");
-    }
-    public void CheckMicrophoneDevices()
-    {
-        string[] devices = Microphone.devices;
-        if (devices.Length == 0)
-        {
-            Debug.LogError("<color=red>[Voice]</color> 시스템에서 인식 가능한 마이크 장치가 없습니다!");
-            return;
-        }
-
-        foreach (var device in devices)
-        {
-            Debug.Log($"<color=yellow>[Voice]</color> 발견된 장치: {device}");
-        }
-
-        // Recorder에 장치가 할당되어 있는지 확인
-        if (globalRecorder != null)
-        {
-            // 0번 장치(기본값)를 강제로 다시 할당해 봅니다.
-            globalRecorder.MicrophoneDevice = new Photon.Voice.DeviceInfo(devices[0]);
-            Debug.Log($"<color=cyan>[Voice]</color> Recorder에 {devices[0]} 장치 강제 할당됨.");
-        }
     }
 
     // ==========================================
@@ -370,42 +350,7 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
     public void OnFriendListUpdate(List<FriendInfo> friendList) { }
 
     #region 씬이동 시 참조 파괴 방지 스크립트
-    public void ReinitializeVoiceSystem()
-    {
-        // 1. 최신 방 이름 갱신
-        if (MultiPlayerSessionManager.Instance != null)
-        {
-            currentRoomName = MultiPlayerSessionManager.Instance.CurrentChannelId;
-            Debug.Log($"<color=cyan>[Voice]</color> 방 이름 갱신: {currentRoomName}");
-        }
 
-        // 2. 씬 내의 핵심 참조 재연결
-        if (globalRecorder == null) globalRecorder = FindFirstObjectByType<Recorder>();
-        if (globalVoiceClient == null) globalVoiceClient = FindFirstObjectByType<UnityVoiceClient>();
-
-        if (globalVoiceClient != null)
-        {
-            globalVoiceClient.PrimaryRecorder = globalRecorder;
-
-            // 중요: 이전 세션의 상태 초기화
-            if (globalRecorder != null) globalRecorder.TransmitEnabled = false;
-
-            // 3. 현재 연결 상태에 따른 분기 처리
-            var state = globalVoiceClient.Client.State;
-
-            // [추가] 연결이 아예 끊겨있다면(Disconnected) 서버 접속부터 시작
-            if (state == Photon.Realtime.ClientState.Disconnected || state == Photon.Realtime.ClientState.PeerCreated)
-            {
-                Debug.Log("<color=yellow>[Voice]</color> 서버 연결이 끊겨 있어 재접속을 시도합니다.");
-                globalVoiceClient.ConnectUsingSettings();
-            }
-            // 이미 마스터 서버에 접속해 있다면 바로 방 입장 시도
-            else if (state == Photon.Realtime.ClientState.ConnectedToMasterServer || state == Photon.Realtime.ClientState.JoinedLobby)
-            {
-                JoinVoiceRoomInternal();
-            }
-        }
-    }
     // 마스터 서버 연결 완료 시 호출되는 콜백
     public void OnConnectedToMaster()
     {
@@ -414,30 +359,22 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks, IMatchmak
     }
 
     // 실제 방 입장 로직을 별도 함수로 분리
-    private void JoinVoiceRoomInternal()
+    void JoinVoiceRoomInternal()
     {
+        // 💡 룸에 없고, 방 이름이 있을 때만 입장 요청
         if (globalVoiceClient != null && !globalVoiceClient.Client.InRoom && !string.IsNullOrEmpty(currentRoomName))
         {
-            Debug.Log($"<color=cyan>[Voice]</color> {currentRoomName} 방 입장 시도 중...");
-
-            // 1. 방 옵션 설정
-            RoomOptions options = new RoomOptions { MaxPlayers = 4 };
-
-            // 2. 통합 파라미터 객체 생성 (이 부분이 수정 핵심입니다)
-            EnterRoomParams enterRoomParams = new EnterRoomParams();
-            enterRoomParams.RoomName = currentRoomName;    // 입장/생성할 방 이름
-            enterRoomParams.RoomOptions = options;         // 방 옵션
-            enterRoomParams.Lobby = TypedLobby.Default;    // 사용할 로비
-
-            // 3. 함수 호출 (인자를 1개만 전달)
-            bool success = globalVoiceClient.Client.OpJoinOrCreateRoom(enterRoomParams);
-
-            if (!success)
+            EnterRoomParams enterParams = new EnterRoomParams
             {
-                Debug.LogError("<color=red>[Voice]</color> 서버에 요청을 보내지 못했습니다. 상태를 확인하세요.");
-            }
+                RoomName = currentRoomName,
+                RoomOptions = new RoomOptions { MaxPlayers = 4 },
+                Lobby = TypedLobby.Default
+            };
+
+            bool sent = globalVoiceClient.Client.OpJoinOrCreateRoom(enterParams);
+            Debug.Log($"<color=cyan>[Voice]</color> {currentRoomName} 방 입장 요청 송신 결과: {sent}");
         }
     }
-  
+
     #endregion
 }

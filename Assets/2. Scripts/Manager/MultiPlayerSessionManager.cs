@@ -2,7 +2,6 @@ using Photon.Voice.Unity;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Unity.Netcode;
@@ -71,6 +70,7 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         if (Instance == null)
         {
             Instance = this;
+            transform.SetParent(null);
             DontDestroyOnLoad(gameObject);
         }
         else
@@ -119,20 +119,9 @@ public class MultiPlayerSessionManager : NetworkBehaviour
 
         _isVoiceConnecting = false;
         //HandleNetcodeConnected(NetworkManager.Singleton.LocalClientId);
-        if (IsOwner)
+        if (IsOwner && SceneManager.GetActiveScene().name != START_SCENE_NAME)
         {
-            HandleNetcodeConnected(NetworkManager.Singleton.LocalClientId);
-        }
-    }
-
-
-    private void HandleNetcodeConnected(ulong clientId)
-    {
-        if (clientId == NetworkManager.Singleton.LocalClientId)
-        {
-            if (_isVoiceConnecting) return; // 이미 실행 중이면 튕겨냄
-            _isVoiceConnecting = true;
-
+            // 씬 로드가 완전히 끝난 뒤에 연결을 시도하도록 지연
             StartCoroutine(InitializePhotonServicesRoutine());
         }
     }
@@ -265,7 +254,6 @@ public class MultiPlayerSessionManager : NetworkBehaviour
             }
 
             CurrentChannelId = ActiveSession.Id;
-            ResetSessionState();
 
             // 중요: 별도의 Relay 할당 코드를 작성하지 마세요. 
             // ActiveSession.Code에 이미 Relay 코드가 담겨 있습니다.
@@ -572,19 +560,13 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
         {
             NetworkManager.Singleton.Shutdown();
+            ActiveSession = null;
+            PlayerController.AllPlayers.Clear();
+            CurrentChannelId = "LobbyChannel";
+            _isLeaving = false;
+            SceneManager.LoadScene(START_SCENE_NAME);
             Debug.Log("[Multiplayer] NetworkManager 셧다운 완료");
         }
-
-        ActiveSession = null;
-        // 5. 정적 리스트 및 채널 ID 초기화
-        PlayerController.AllPlayers.Clear();
-        CurrentChannelId = "LobbyChannel";
-        ExplodedSessionId = "";
-
-        _isLeaving = false;
-
-        // 6. 타이틀 씬으로 이동
-        SceneManager.LoadScene(START_SCENE_NAME);
     }
     private void OnClientDisconnected(ulong clientId)
     {
@@ -689,41 +671,64 @@ public class MultiPlayerSessionManager : NetworkBehaviour
     #region 씬 이동 시 참조 파괴 방지 스크립트
     public void ResetSessionState()
     {
-        //// 기존에 살아있던 보이스 매니저나 UI 매니저에게 초기화 명령
-        //if (PlayerUIManager.LocalInstance != null)
-        //    PlayerUIManager.LocalInstance.RefreshUIReferences();
+        // 1. UI 갱신
+        //if (PlayerUIManager.LocalInstance != null) PlayerUIManager.LocalInstance.RefreshUIReferences();
 
         //if (GlobalVoiceManager.Instance != null)
         //{
-        //    // [추가] 리코더 참조가 깨졌을 수 있으므로 강제 재할당
-        //    GlobalVoiceManager.Instance.globalRecorder = FindFirstObjectByType<Recorder>();
-        //    GlobalVoiceManager.Instance.ReinitializeVoiceSystem();
+        //    StopAllCoroutines();
+        //    StartCoroutine(DelayedVoiceReset());
         //}
 
-        //// 호스트 이력이 있다면 특히 중요하게 체크
-        //Debug.Log("[System] 이전 호스트 이력을 감지하여 시스템을 재부팅합니다.");
-        // 1. UI 갱신
-        if (PlayerUIManager.LocalInstance != null) PlayerUIManager.LocalInstance.RefreshUIReferences();
+        StartCoroutine(DelayedUIRefresh());
 
         if (GlobalVoiceManager.Instance != null)
         {
+            StopAllCoroutines();
             StartCoroutine(DelayedVoiceReset());
         }
-
-        Debug.Log("<color=cyan>[System]</color> 세션 재시작을 위한 엔진 리셋 완료.");
     }
+    IEnumerator DelayedUIRefresh()
+    {
+        yield return null;
+        if (PlayerUIManager.LocalInstance != null)
+        {
+            PlayerUIManager.LocalInstance.RefreshUIReferences();
+        }
+    }
+
     IEnumerator DelayedVoiceReset()
     {
-        yield return new WaitForSecondsRealtime(0.5f); // 0.5초 정도 여유를 줍니다.
+        // 너무 짧으면 씬 로딩 중이라 객체를 못 찾고, 너무 길면 유저가 답답해합니다.
+        yield return new WaitForSeconds(1.0f);
 
-        var recorder = FindFirstObjectByType<Recorder>();
+        // 💡 [수정] 씬에 있는 '내' Recorder와 VoiceClient를 찾아서 갱신합니다.
+        // 기존에 붙어있던 DontDestroy 객체의 컴포넌트를 유지하는 게 아니라,
+        // 새 씬에서 갱신된 하드웨어 참조를 덮어씌웁니다.
+        var recorder = FindFirstObjectByType<Photon.Voice.Unity.Recorder>();
         var voiceClient = FindFirstObjectByType<UnityVoiceClient>();
 
-        if (recorder != null) GlobalVoiceManager.Instance.globalRecorder = recorder;
-        if (voiceClient != null) GlobalVoiceManager.Instance.globalVoiceClient = voiceClient;
+        if (GlobalVoiceManager.Instance != null)
+        {
+            if (recorder != null) GlobalVoiceManager.Instance.globalRecorder = recorder;
+            if (voiceClient != null) GlobalVoiceManager.Instance.globalVoiceClient = voiceClient;
 
-        GlobalVoiceManager.Instance.ReinitializeVoiceSystem();
-        GlobalVoiceManager.Instance.CheckMicrophoneDevices(); // 장치 체크 추가
+            string nick = PlayerNickname; // 또는 저장된 닉네임
+            GlobalVoiceManager.Instance.ConnectVoice(nick, CurrentChannelId);
+        }
+
+        //if (newRecorder != null)
+        //{
+        //    GlobalVoiceManager.Instance.globalRecorder = newRecorder;
+        //    GlobalVoiceManager.Instance.globalVoiceClient.PrimaryRecorder = newRecorder;
+        //    Debug.Log("<color=cyan>[System]</color> 리코더 참조 갱신 완료");
+        //}
+
+        //string nick = GlobalVoiceManager.Instance.globalVoiceClient.Client.NickName;
+        //if (string.IsNullOrEmpty(nick)) nick = PlayerNickname;
+
+        //Debug.Log($"<color=yellow>[System]</color> 보이스 엔진 재접속 프로세스 시작: {CurrentChannelId}");
+        //GlobalVoiceManager.Instance.ConnectVoice(nick, CurrentChannelId);
     }
 
     #endregion

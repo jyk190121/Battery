@@ -1123,6 +1123,10 @@ PrefabInstance:
       propertyPath: m_hasFontAssetChanged
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 829000818441891300, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+      propertyPath: m_TagString
+      value: VoiceSpeaker
+      objectReference: {fileID: 0}
     - target: {fileID: 899324143520013729, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0

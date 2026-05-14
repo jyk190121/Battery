@@ -43,7 +43,11 @@ public class VoiceController : MonoBehaviour
     {
         if (listener == null)
         {
-            if (Camera.main != null) listener = Camera.main.transform;
+            // Camera.main이 존재하고 활성화되어 있는지 확인
+            if (Camera.main != null && Camera.main.enabled)
+            {
+                listener = Camera.main.transform;
+            }
             else return;
         }
 
