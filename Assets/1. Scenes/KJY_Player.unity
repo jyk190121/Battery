@@ -1590,7 +1590,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4003716943811524115, guid: c8bb6620aa64ad148a52d1e692d068ed, type: 3}
       propertyPath: requiredItemID
-      value: 401
+      value: 902
       objectReference: {fileID: 0}
     - target: {fileID: 4962810822707517600, guid: c8bb6620aa64ad148a52d1e692d068ed, type: 3}
       propertyPath: m_LocalScale.x
@@ -2386,6 +2386,14 @@ PrefabInstance:
       propertyPath: GlobalObjectIdHash
       value: 3883074361
       objectReference: {fileID: 0}
+    - target: {fileID: 2082488108574997112, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: itemDatabase.Array.size
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 2082488108574997112, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: 'itemDatabase.Array.data[11]'
+      value: 
+      objectReference: {fileID: 11400000, guid: b5e7b75a57f452b45bff225cd2405674, type: 2}
     - target: {fileID: 2082488108574997112, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: 'safeDropPoints.Array.data[0]'
       value: 
