@@ -365,7 +365,7 @@ public class PlayerController : NetworkBehaviour
         //    if (monster.NetworkObject != null && monster.NetworkObject.IsSpawned)
         //        monster.NetworkObject.Despawn();
         //}
-        GameSessionManager.Instance.CleanupAllItemsInScene();
+        //GameSessionManager.Instance.CleanupAllItemsInScene();
 
         // 2. 잠시 대기 (사망 연출을 보여줌)
         yield return new WaitForSeconds(1.5f);

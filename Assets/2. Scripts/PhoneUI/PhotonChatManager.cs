@@ -266,4 +266,33 @@ public class PhotonChatManager : MonoBehaviour, IChatClientListener
     public void OnUserSubscribed(string channel, string user) { }
     public void OnUserUnsubscribed(string channel, string user) { }
     #endregion
+
+    #region 초기화 함수 추가
+    public void DisconnectAndClear()
+    {
+        Debug.Log("<color=red>[PhotonChat]</color> 챗 서버 연결 해제 및 기록 초기화");
+
+        // 1. 챗 서버 연결 완전 해제
+        if (chatClient != null)
+        {
+            chatClient.Disconnect();
+            chatClient = null;
+        }
+
+        // 2. UI 초기화 (기존 문자/채팅 기록 날리기)
+        if (teamChatRoom != null)
+        {
+            // teamChatRoom 내부에 텍스트를 지우는 함수가 있다면 호출하세요. (예: teamChatRoom.ClearChat();)
+            teamChatRoom.gameObject.SetActive(false);
+        }
+
+        // 3. 가장 중요한 static 이벤트 초기화 (이전 씬의 껍데기가 반응하는 것 방지)
+        OnIncomingCallReceived = null;
+        OnCallAccepted = null;
+        OnCallHungUp = null;
+        OnCallBusy = null;
+    }
+
+    #endregion
+
 }

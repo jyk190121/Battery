@@ -332,7 +332,7 @@ public class GameSessionManager : NetworkBehaviour
         if (!IsServer) return; // 오직 서버(방장)만 청소 권한을 가짐
 
         // 맵에 존재하는 모든 아이템(폐지, 퀘스트템, 버려진 장비 등)을 전부 찾음
-        ItemBase[] allItems = Object.FindObjectsByType<ItemBase>(FindObjectsSortMode.None);
+        ItemBase[] allItems = FindObjectsByType<ItemBase>(FindObjectsSortMode.None);
 
         Debug.Log($"<color=orange>[Cleanup]</color> 씬 전환을 위해 {allItems.Length}개의 아이템을 소각합니다.");
 
