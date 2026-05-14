@@ -230,9 +230,36 @@ public class QuestManager : NetworkBehaviour
                 questListStr += $" - [ID:{id}] {(data != null ? data.questName : "Unknown")}\n";
             }
             Debug.Log($"<color=yellow><b>[QUEST START]</b></color> {difficulty} 난이도 계약 수락! (총 {activeQuests.Count}개)\n<color=white>{questListStr}</color>");
+            InjectMandatoryQuestItems();
         }
     }
+    private void InjectMandatoryQuestItems()
+    {
+        if (!IsServer) return;
 
+        // 봉제인형 환원 퀘스트 ID 체크 (1040, 2040, 3040)
+        int[] dollQuests = { 1040, 2040, 3040 };
+        bool hasDollQuest = false;
+
+        foreach (int id in activeQuests)
+        {
+            if (System.Array.Exists(dollQuests, q => q == id))
+            {
+                hasDollQuest = true;
+                break;
+            }
+        }
+
+        if (hasDollQuest)
+        {
+            // 배달 대기열에 인형(902) 강제 삽입
+            if (GameSessionManager.Instance != null && !GameSessionManager.Instance.pendingSpawnItemIDs.Contains(902))
+            {
+                GameSessionManager.Instance.pendingSpawnItemIDs.Add(902);
+                Debug.Log("<color=yellow>[Quest]</color> 봉제인형(902) 배달 예약 완료.");
+            }
+        }
+    }
     public QuestDataSO GetQuestData(int id) => questDatabase.Find(q => q.questID == id);
 
     public void ResetDailyQuests()
@@ -240,7 +267,7 @@ public class QuestManager : NetworkBehaviour
         if (!IsServer) return;
         activeQuests.Clear();
         serverCompletedQuests.Clear();
-        itemsInTruck.Clear(); // 💡 트럭 실시간 데이터도 싹 비워줍니다.
+        itemsInTruck.Clear(); // 트럭 실시간 데이터도 싹 비워줍니다.
 
         RefreshDailyQuestPools();
 

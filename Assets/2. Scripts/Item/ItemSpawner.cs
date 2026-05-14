@@ -51,6 +51,8 @@ public class ItemSpawner : NetworkBehaviour
 
     private void HandleDayStarted(int difficulty)
     {
+
+        if (this == null) return; // 파괴된 객체면 즉시 정지 (좀비 방어)
         ClearPreviousItems();
         RefreshSpawnPoints();
 
@@ -67,6 +69,16 @@ public class ItemSpawner : NetworkBehaviour
         Debug.Log($"[Spawner] 아침이 밝았습니다! (난이도: {difficulty}) -> 목표 일반 폐지: {targetNormalSpawnCount}개");
 
         SpawnRandomItems(targetNormalSpawnCount);
+    }
+
+    public override void OnDestroy()
+    {
+        base.OnDestroy();
+        // 객체가 파괴될 때 무조건 이벤트 연결 고리를 끊음
+        if (GameMaster.Instance != null)
+        {
+            GameMaster.Instance.OnDayStarted -= HandleDayStarted;
+        }
     }
 
     private void ClearPreviousItems()
@@ -319,7 +331,11 @@ public class ItemSpawner : NetworkBehaviour
             areaManagers.Add(manager);
         }
 #if UNITY_EDITOR
-        UnityEditor.EditorUtility.SetDirty(this);
+        // 게임 실행 중이 아니고, 객체가 살아있을 때만 실행
+        if (!Application.isPlaying && this != null)
+        {
+            UnityEditor.EditorUtility.SetDirty(this);
+        }
 #endif
         Debug.Log("[Spawner] 지역 관리자 동기화 완료.");
     }
