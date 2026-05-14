@@ -21,7 +21,7 @@ public class LockerController : MonoBehaviour
 
         if (playerTransform.TryGetComponent<PlayerController>(out var player))
         {
-            // 1. 위치 이동 (NetworkTransform 대응)
+            // 1. 위치 이동 
             var netTransform = playerTransform.GetComponent<NetworkTransform>();
             if (netTransform != null)
             {
@@ -34,12 +34,14 @@ public class LockerController : MonoBehaviour
             }
 
             // 2. 상태 설정 (Owner인 경우에만 중요 변수 업데이트)
-            // 인형이나 몬스터 스캐너가 이 변수를 체크하여 타겟팅을 해제하게 됩니다.
             if (player.IsOwner)
             {
-                player.isInsideFacility.Value = isHidePoint;
+                // 기존 코드: 클라이언트가 억지로 값을 바꾸려 해서 에러 발생
+                // player.isInsideFacility.Value = isHidePoint; 
 
-                // 락커 안에서는 움직이지 못하게 처리 (필요 시)
+                player.SetInsideFacilityServerRpc(isHidePoint);
+
+                // 락커 안에서는 움직이지 못하게 처리
                 // player.GetComponent<PlayerMovement>().enabled = !isHidePoint;
             }
 
