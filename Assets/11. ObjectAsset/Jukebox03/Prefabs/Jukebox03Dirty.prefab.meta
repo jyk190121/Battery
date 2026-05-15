@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 64f48fa3fb502c7409a36f29b9dc0131
+timeCreated: 1470644537
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 69085
+  packageName: Classic Jukebox #3
+  packageVersion: 1.1
+  assetPath: Assets/Jukebox03/Prefabs/Jukebox03Dirty.prefab
+  uploadId: 515301
