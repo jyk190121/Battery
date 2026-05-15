@@ -46,7 +46,7 @@ public class ResultUIManager : NetworkBehaviour
         }
         else
         {
-            HideResultUI(); // 💡 서버가 상태를 false로 바꾸면 전원이 동시에 이 함수를 실행
+            HideResultUI(); // 서버가 상태를 false로 바꾸면 전원이 동시에 이 함수를 실행
         }
     }
 
@@ -58,8 +58,44 @@ public class ResultUIManager : NetworkBehaviour
         int day = GameMaster.Instance.dayCycleManager.currentDayIndex.Value;
         int income = GameMaster.Instance.pendingIncome.Value;
         int score = GameMaster.Instance.pendingScore.Value;
+        bool isWipedOut = GameMaster.Instance.pendingWipedOut.Value;
 
-        resultText.text = $"[Day {day} 정산 완료]\n\n오늘의 수익: {income} G\n획득한 실적: {score} pt";
+        string questResultString = "";
+
+        // 퀘스트 성공/실패 관련 텍스트 정리
+        if (QuestManager.Instance != null && QuestManager.Instance.activeQuests.Count > 0)
+        {
+            foreach (int qId in QuestManager.Instance.activeQuests)
+            {
+                var data = QuestManager.Instance.GetQuestData(qId);
+                string qName = data != null ? data.questName : "알 수 없는 퀘스트";
+
+                // 서버의 완료 리스트에 해당 퀘스트 ID가 들어있으면 성공!
+                bool isCompleted = QuestManager.Instance.serverCompletedQuests.Contains(qId);
+
+                if (isWipedOut)
+                {
+                    // 파티 전멸 시 전부 몰수(실패) 처리된 느낌을 주기 위해 회색 텍스트 적용
+                    questResultString += $"<color=#808080>[몰수]</color> {qName}\n";
+                }
+                else
+                {
+                    // 생존 시 성공(초록색) / 실패(빨간색) 분기 적용
+                    questResultString += isCompleted
+                        ? $"{qName} <color=#00FF00>[성공]</color>\n"
+                        : $"{qName} <color=#FF0000>[실패]</color>\n";
+                }
+            }
+        }
+        else
+        {
+            questResultString = "진행한 퀘스트가 없습니다.\n";
+        }
+
+        resultText.text = $"[Day {day} 정산 완료]\n\n" +
+                                  $"{questResultString}\n" +
+                                  $"오늘의 수익: {income} G\n" +
+                                  $"획득한 실적: {score} pt";
 
         // 화면 띄우고 마우스 풀기 (전 클라이언트 실행)
         Cursor.visible = true;
@@ -88,6 +124,12 @@ public class ResultUIManager : NetworkBehaviour
     {
         // 1. 임시 보관했던 재화/점수 실제로 더하기
         GameMaster.Instance.ApplyPendingResults();
+
+        // 퀘스트 초기화
+        if (QuestManager.Instance != null)
+        {
+            QuestManager.Instance.ResetDailyQuests();
+        }
 
         int currentDay = GameMaster.Instance.dayCycleManager.currentDayIndex.Value;
         bool isCleared = GameMaster.Instance.performanceManager.CheckWeeklyClear();
