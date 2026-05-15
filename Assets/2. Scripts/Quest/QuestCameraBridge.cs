@@ -102,12 +102,13 @@ public class QuestCameraBridge : NetworkBehaviour
             if (qData.difficulty == QuestDifficulty.Easy) continue;
             else if (qData.difficulty == QuestDifficulty.Normal)
             {
+                // 노말: 몬스터 + 플레이어
                 if (!data.capturedTargets.Contains("Player")) toRemove.Add(qId);
             }
             else if (qData.difficulty == QuestDifficulty.Hard)
             {
-                if (!(data.capturedTargets.Contains("Monster") && data.capturedTargets.Contains("Player")))
-                    toRemove.Add(qId);
+                // 하드: 몬스터 + 타겟 아이템
+                if (!data.capturedTargets.Contains("Item")) toRemove.Add(qId);
             }
         }
 

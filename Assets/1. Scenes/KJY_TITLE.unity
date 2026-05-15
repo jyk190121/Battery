@@ -1263,6 +1263,10 @@ PrefabInstance:
       propertyPath: captureCamera
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 2973094662715110040, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+      propertyPath: targetLayer.m_Bits
+      value: 8523776
+      objectReference: {fileID: 0}
     - target: {fileID: 3159317392430324897, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
       propertyPath: m_IsActive
       value: 0

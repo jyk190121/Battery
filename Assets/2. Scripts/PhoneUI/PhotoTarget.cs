@@ -2,8 +2,9 @@ using UnityEngine;
 
 public class PhotoTarget : MonoBehaviour
 {
-    public string targetIdentifier; // 예: "RedCar", "BlueTree", "Player1"
-    public int questID; //퀘스트 시스템과 연동하기 위한 고유 번호
+    [Header("식별자 (Monster, Player, Item)")]
+    public string targetIdentifier;
 
-    public int baseScore = 10;
+    [Header("퀘스트 직접 연동 시 ID (필요없으면 0)")]
+    public int questID = 0;
 }

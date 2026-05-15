@@ -193,6 +193,7 @@ public class CameraUI : MonoBehaviour
             }
         }
 
+        QuestCameraBridge.ValidatePhotoData(evaluatedData);
         // 3. 매니저에 최종 데이터 등록
         PhotoDataManager.Instance.AddPhoto(evaluatedData);
         Debug.Log($"[CameraUI] 찰칵! 메타데이터 판정 완료. 클리어된 퀘스트 수: {evaluatedData.satisfiedQuestIDs.Count}");
