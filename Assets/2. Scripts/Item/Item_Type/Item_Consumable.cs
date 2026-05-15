@@ -38,6 +38,11 @@ public class Item_Consumable : ItemBase
                     pc.RestoreHealth(itemData.healAmount);
                     Debug.Log($"[서버] {pc.name} 체력 회복 완료");
                 }
+                else if (itemData.itemName.Equals("Battery"))
+                {
+                    PhoneBatteryController.Instance.RechargeBattery();
+                    Debug.Log("휴대폰 충전 완료!");
+                }
 
                 // 소유자의 인벤토리에서 아이템 제거
                 if (targetInventory != null)
