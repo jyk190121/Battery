@@ -251,6 +251,13 @@ public class GameSessionManager : NetworkBehaviour
         playerItems.Clear();
         pendingSpawnItemIDs.Clear();
 
+        // 다음 날 시작 시 스마트폰 앨범 완전 소각 (찌꺼기 버그 방지)
+        if (PhotoDataManager.Instance != null)
+        {
+            PhotoDataManager.Instance.ClearAllPhotos();
+            if (QuestCameraBridge.Instance != null) QuestCameraBridge.Instance.RecalculateLocalDeferredQuests();
+        }
+
         Debug.Log("[GameSessionManager] 세션 임시 데이터 초기화 완료.");
     }
 
