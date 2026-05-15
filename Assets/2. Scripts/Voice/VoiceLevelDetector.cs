@@ -62,37 +62,73 @@ public class VoiceLevelDetector : MonoBehaviour
     /// </summary>
     private void Update()
     {
+        // 💡 [핵심 추가] 씬 이동 후, 내 인스펙터에 할당된 recorder가 날아갔거나 고장났다면?
+        // 무적의 GlobalVoiceManager가 들고 있는 진짜 마이크를 강제로 뺏어옵니다!
+        if (recorder == null || !recorder.isActiveAndEnabled)
+        {
+            if (GlobalVoiceManager.Instance != null && GlobalVoiceManager.Instance.globalRecorder != null)
+            {
+                recorder = GlobalVoiceManager.Instance.globalRecorder;
+                Debug.Log("<color=cyan>[VoiceLevelDetector]</color> 잃어버린 진짜 마이크 참조를 성공적으로 복구했습니다!");
+            }
+            else
+            {
+                return; // 아직 진짜 마이크가 준비 안 됐으면 대기
+            }
+        }
+
         if (_localPlayer == null)
         {
             FindLocalPlayer();
             return;
         }
 
-        if (recorder != null && recorder.TransmitEnabled)
+        //if (recorder != null && recorder.TransmitEnabled)
+        //{
+        //    // 1. 현재 프레임의 가공되지 않은 피크 값 가져오기
+        //    float rawLevel = recorder.LevelMeter.CurrentPeakAmp;
+
+        //    // 2. 보간법(Lerp)을 이용해 부드러운 평균값 계산
+        //    // 이전 값과 현재 값을 섞어서 급격한 변화를 억제합니다.
+        //    _smoothedLevel = Mathf.Lerp(_smoothedLevel, rawLevel, Time.deltaTime * smoothingSpeed);
+
+        //    CurrentLevel = _smoothedLevel;
+
+        //    // 3. 평균화된 값이 임계치를 넘었는지 확인
+        //    if (CurrentLevel > voiceThreshold && Time.time - _lastReportTime >= reportCooldown)
+        //    {
+        //        float noiseLevel = (CurrentLevel - voiceThreshold) * voiceSensitivity;
+
+        //        _localPlayer.ReportNoiseServerRpc(_localPlayer.transform.position, noiseLevel, _localPlayer.isInsideFacility.Value);
+
+        //        _lastReportTime = Time.time;
+        //        Debug.Log($"<color=cyan>[Mic]</color> 평균 소음 감지! (레벨: {noiseLevel:F1})");
+        //    }
+        //}
+        //else
+        //{
+        //    _smoothedLevel = 0f;
+        //    CurrentLevel = 0f;
+        //}
+
+        if (recorder.IsCurrentlyTransmitting && recorder.LevelMeter != null)
         {
-            // 1. 현재 프레임의 가공되지 않은 피크 값 가져오기
-            float rawLevel = recorder.LevelMeter.CurrentPeakAmp;
+            CurrentLevel = Mathf.Lerp(CurrentLevel, recorder.LevelMeter.CurrentAvgAmp, Time.deltaTime * smoothingSpeed);
 
-            // 2. 보간법(Lerp)을 이용해 부드러운 평균값 계산
-            // 이전 값과 현재 값을 섞어서 급격한 변화를 억제합니다.
-            _smoothedLevel = Mathf.Lerp(_smoothedLevel, rawLevel, Time.deltaTime * smoothingSpeed);
-
-            CurrentLevel = _smoothedLevel;
-
-            // 3. 평균화된 값이 임계치를 넘었는지 확인
             if (CurrentLevel > voiceThreshold && Time.time - _lastReportTime >= reportCooldown)
             {
                 float noiseLevel = (CurrentLevel - voiceThreshold) * voiceSensitivity;
-
-                _localPlayer.ReportNoiseServerRpc(_localPlayer.transform.position, noiseLevel, _localPlayer.isInsideFacility.Value);
-
+                if (_localPlayer != null)
+                {
+                    _localPlayer.ReportNoiseServerRpc(_localPlayer.transform.position, noiseLevel, _localPlayer.isInsideFacility.Value);
+                }
                 _lastReportTime = Time.time;
                 Debug.Log($"<color=cyan>[Mic]</color> 평균 소음 감지! (레벨: {noiseLevel:F1})");
             }
         }
         else
         {
-            _smoothedLevel = 0f;
+            // V키를 떼서 송출 중이 아닐 때는 레벨을 0으로 초기화
             CurrentLevel = 0f;
         }
     }
