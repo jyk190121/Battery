@@ -18,7 +18,7 @@ MonoBehaviour:
     \uD68C\uC0AC \uC81C\uD488\uC744 \uAC19\uC774 \uCD2C\uC601\uD574 \uC8FC\uC138\uC694!"
   type: 2
   difficulty: 2
-  targetType: 
+  targetType: Monster
   baseReward: 1300
   bonusMultiplier: 0
   isHazardQuest: 1
