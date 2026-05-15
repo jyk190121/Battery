@@ -1119,6 +1119,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: UI
       objectReference: {fileID: 0}
+    - target: {fileID: 368125732550107620, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+      propertyPath: maxBattery
+      value: 180
+      objectReference: {fileID: 0}
+    - target: {fileID: 368125732550107620, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+      propertyPath: drainRatePerSecond
+      value: 1.2
+      objectReference: {fileID: 0}
     - target: {fileID: 588604865322844374, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
       propertyPath: m_hasFontAssetChanged
       value: 0
