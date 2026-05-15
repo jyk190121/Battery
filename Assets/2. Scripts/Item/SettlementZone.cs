@@ -64,7 +64,7 @@ public class SettlementZone : NetworkBehaviour
                 if (!QuestManager.Instance.itemsInTruck.Contains(id))
                 {
                     QuestManager.Instance.itemsInTruck.Add(id);
-                    QuestManager.Instance.NotifyLocalClientToggleClientRpc(id, true, RpcTarget.Everyone);
+                    
                 }
             }
 
@@ -75,7 +75,7 @@ public class SettlementZone : NetworkBehaviour
                 if (!currentDetectedIds.Contains(trackedId))
                 {
                     QuestManager.Instance.itemsInTruck.RemoveAt(i);
-                    QuestManager.Instance.NotifyLocalClientToggleClientRpc(trackedId, false, RpcTarget.Everyone);
+                    
                 }
             }
         }
