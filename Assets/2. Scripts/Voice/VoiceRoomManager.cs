@@ -8,6 +8,9 @@ public class VoiceRoomManager : MonoBehaviour, IConnectionCallbacks, IMatchmakin
     public UnityVoiceClient voiceClient;
     public Recorder callRecorder; // [추가] 명시적 리코더 연결
 
+    string roomName;
+    public string RoomName => roomName;
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -40,7 +43,7 @@ public class VoiceRoomManager : MonoBehaviour, IConnectionCallbacks, IMatchmakin
 
     public void JoinCallRoom(string userA, string userB)
     {
-        string roomName = string.Compare(userA, userB) < 0 ? $"Call_{userA}_{userB}" : $"Call_{userB}_{userA}";
+        roomName = string.Compare(userA, userB) < 0 ? $"Call_{userA}_{userB}" : $"Call_{userB}_{userA}";
         voiceClient.Client.OpJoinOrCreateRoom(new EnterRoomParams { RoomName = roomName });
 
         // 마이크 활성화

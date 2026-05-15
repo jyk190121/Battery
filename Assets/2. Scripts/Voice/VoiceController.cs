@@ -41,31 +41,41 @@ public class VoiceController : MonoBehaviour
     }
     private void Update()
     {
+        if (audioSource == null) return;
+
+        // 💡 [핵심 추가] 씬 이동으로 인해 listener(카메라)가 파괴되었다면 다시 찾기 (자동 복구)
         if (listener == null)
         {
-            if (Camera.main != null) listener = Camera.main.transform;
-            else return;
-        }
-
-        if (isCalling)
-        {
-            audioSource.spatialBlend = 0.0f; // 무조건 2D 사운드
-            if (audioSource.outputAudioMixerGroup != phoneMixer)
+            if (Camera.main != null)
             {
-                audioSource.outputAudioMixerGroup = phoneMixer;
+                listener = Camera.main.transform;
+                Debug.Log("<color=cyan>[VoiceController]</color> 새 씬의 카메라(귀)를 성공적으로 다시 찾았습니다!");
             }
-            return;
+            else
+            {
+                return; // 아직 카메라가 없으면 거리 계산 대기
+            }
         }
 
-        // 1. 전화 중이 아닐 때: 무조건 3D 사운드 (V키를 누른 소리만 들림)
-        if (!isCalling)
-        {
-            audioSource.spatialBlend = 1.0f;
-            audioSource.outputAudioMixerGroup = defaultMixer;
-            //return;
-            // 거리 감쇄 설정 확인 (너무 멀면 안 들림)
-            audioSource.maxDistance = 30f;
-        }
+        //if (isCalling)
+        //{
+        //    audioSource.spatialBlend = 0.0f; // 무조건 2D 사운드
+        //    if (audioSource.outputAudioMixerGroup != phoneMixer)
+        //    {
+        //        audioSource.outputAudioMixerGroup = phoneMixer;
+        //    }
+        //    return;
+        //}
+
+        //// 1. 전화 중이 아닐 때: 무조건 3D 사운드 (V키를 누른 소리만 들림)
+        //if (!isCalling)
+        //{
+        //    audioSource.spatialBlend = 1.0f;
+        //    audioSource.outputAudioMixerGroup = defaultMixer;
+        //    //return;
+        //    // 거리 감쇄 설정 확인 (너무 멀면 안 들림)
+        //    audioSource.maxDistance = 30f;
+        //}
 
         // 2. 전화 중일 때: X, Z 평면 거리와 Y 높이를 각각 계산
         Vector3 playerPos = transform.position;

@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Grass
   - Metal
+  - VoiceSpeaker
   layers:
   - Default
   - TransparentFX
@@ -30,7 +31,7 @@ TagManager:
   - Ghost
   - B_Ground
   - B_Stair
-  - 
+  - PhotoTarget
   - 
   - 
   - 

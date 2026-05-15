@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff10b20d6fe2cce4ab855ce5cb3e8034, type: 3}
   m_Name: Battery
   m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
-  itemID: 402
+  itemID: 306
   itemName: Battery
   handType: 0
   category: 1
-  basePrice: 200
-  icon: {fileID: 21300000, guid: 69404c62b29cd3644bd874229f55a072, type: 3}
+  basePrice: 400
+  icon: {fileID: 21300000, guid: 34cd591f80691ad44b47d47525526c12, type: 3}
   healAmount: 0
   animType: 0
   spawnLocation: 9

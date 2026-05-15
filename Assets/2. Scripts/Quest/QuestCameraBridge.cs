@@ -87,4 +87,35 @@ public class QuestCameraBridge : NetworkBehaviour
         }
         Debug.Log($"<color=orange>[스마트폰 앨범 상태 갱신]</color> 현재 제출 대기 중인 퀘스트 개수: {myLocalDeferredQuests.Count}");
     }
+    public static void ValidatePhotoData(PhotoData data)
+    {
+        if (QuestManager.Instance == null || data.satisfiedQuestIDs.Count == 0) return;
+
+        List<int> toRemove = new List<int>();
+
+        foreach (int qId in data.satisfiedQuestIDs)
+        {
+            if (qId % 100 != 30) continue;
+            QuestDataSO qData = QuestManager.Instance.GetQuestData(qId);
+            if (qData == null) continue;
+
+            if (qData.difficulty == QuestDifficulty.Easy) continue;
+            else if (qData.difficulty == QuestDifficulty.Normal)
+            {
+                // 노말: 몬스터 + 플레이어
+                if (!data.capturedTargets.Contains("Player")) toRemove.Add(qId);
+            }
+            else if (qData.difficulty == QuestDifficulty.Hard)
+            {
+                // 하드: 몬스터 + 타겟 아이템
+                if (!data.capturedTargets.Contains("Item")) toRemove.Add(qId);
+            }
+        }
+
+        foreach (int id in toRemove)
+        {
+            data.satisfiedQuestIDs.Remove(id);
+        }
+    }
+
 }
