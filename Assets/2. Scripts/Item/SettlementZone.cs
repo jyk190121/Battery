@@ -286,7 +286,7 @@ public class SettlementZone : NetworkBehaviour
                 //GameMaster.Instance.EndDay(isWipedOut, finalNetIncome, questScore);
 
                 GameMaster.Instance.SetPendingResults(isWipedOut, finalNetIncome, questScore);
-                QuestManager.Instance.ResetDailyQuests();
+                //QuestManager.Instance.ResetDailyQuests();
             }
             catch (System.Exception e) { Debug.LogWarning($"[Settlement] Error: {e.Message}"); }
         }
