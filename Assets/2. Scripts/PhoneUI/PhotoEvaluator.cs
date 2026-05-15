@@ -76,6 +76,9 @@ public class PhotoEvaluator : MonoBehaviour
 
         newData.playersInFrame = playerCount;
 
+        //  30번대 퀘스트 난이도별 복합 조건 2차 판정
+        QuestCameraBridge.ValidatePhotoData(newData);
+
         return newData;
     }
 
