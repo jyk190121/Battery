@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: c27247d8f02b09d47b7e3d6dcccb2a56
+timeCreated: 1470599414
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 69085
+  packageName: Classic Jukebox #3
+  packageVersion: 1.1
+  assetPath: Assets/Jukebox03/Materials/Jukebox03Dirty.mat
+  uploadId: 515301
