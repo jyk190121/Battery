@@ -46,7 +46,7 @@ public class ResultUIManager : NetworkBehaviour
         }
         else
         {
-            HideResultUI(); // 💡 서버가 상태를 false로 바꾸면 전원이 동시에 이 함수를 실행
+            HideResultUI(); // 서버가 상태를 false로 바꾸면 전원이 동시에 이 함수를 실행
         }
     }
 
