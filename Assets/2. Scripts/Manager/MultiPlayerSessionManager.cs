@@ -145,7 +145,7 @@ public class MultiPlayerSessionManager : NetworkBehaviour
         if (GlobalVoiceManager.Instance != null && !string.IsNullOrEmpty(CurrentChannelId))
         {
             Debug.Log($"[Multiplayer] 보이스 연결 시작 - 채널ID: {CurrentChannelId}");
-            GlobalVoiceManager.Instance.ConnectVoice(PlayerNickname, CurrentChannelId);
+            GlobalVoiceManager.Instance.ConnectVoice(PlayerNickname, VoiceRoomManager.Instance.RoomName);
         }
         else
         {
@@ -667,36 +667,27 @@ public class MultiPlayerSessionManager : NetworkBehaviour
 
     IEnumerator DelayedVoiceReset()
     {
-        // 너무 짧으면 씬 로딩 중이라 객체를 못 찾고, 너무 길면 유저가 답답해합니다.
-        yield return new WaitForSeconds(1.0f);
+        yield return new WaitForSecondsRealtime(1.0f);
 
-        // 💡 [수정] 씬에 있는 '내' Recorder와 VoiceClient를 찾아서 갱신합니다.
-        // 기존에 붙어있던 DontDestroy 객체의 컴포넌트를 유지하는 게 아니라,
-        // 새 씬에서 갱신된 하드웨어 참조를 덮어씌웁니다.
-        var recorder = FindFirstObjectByType<Photon.Voice.Unity.Recorder>();
-        var voiceClient = FindFirstObjectByType<UnityVoiceClient>();
+        // 💡 [핵심 방어 코드] 유니티 에디터 Stop을 누르거나, 씬 파괴로 인해 자신이 파괴되었다면 즉시 실행 중지!
+        if (this == null || !gameObject.activeInHierarchy) yield break;
 
-        if (GlobalVoiceManager.Instance != null)
+        try
         {
-            if (recorder != null) GlobalVoiceManager.Instance.globalRecorder = recorder;
-            if (voiceClient != null) GlobalVoiceManager.Instance.globalVoiceClient = voiceClient;
+            if (GlobalVoiceManager.Instance != null)
+            {
+                // 이제 안전하게 닉네임을 가져올 수 있습니다.
+                string nick = PlayerNickname;
+                Debug.Log($"<color=yellow>[Session]</color> 클라이언트 보이스 연결 시도! 닉네임: {nick}, 방: {CurrentChannelId}");
 
-            string nick = PlayerNickname; // 또는 저장된 닉네임
-            GlobalVoiceManager.Instance.ConnectVoice(nick, CurrentChannelId);
+                GlobalVoiceManager.Instance.ConnectVoice(nick, CurrentChannelId);
+            }
         }
-
-        //if (newRecorder != null)
-        //{
-        //    GlobalVoiceManager.Instance.globalRecorder = newRecorder;
-        //    GlobalVoiceManager.Instance.globalVoiceClient.PrimaryRecorder = newRecorder;
-        //    Debug.Log("<color=cyan>[System]</color> 리코더 참조 갱신 완료");
-        //}
-
-        //string nick = GlobalVoiceManager.Instance.globalVoiceClient.Client.NickName;
-        //if (string.IsNullOrEmpty(nick)) nick = PlayerNickname;
-
-        //Debug.Log($"<color=yellow>[System]</color> 보이스 엔진 재접속 프로세스 시작: {CurrentChannelId}");
-        //GlobalVoiceManager.Instance.ConnectVoice(nick, CurrentChannelId);
+        catch (System.Exception e)
+        {
+            // 에디터 종료 타이밍에 아슬아슬하게 서비스가 죽었을 때를 대비한 최후의 보루
+            Debug.LogWarning($"<color=orange>[Session]</color> 애플리케이션 종료/파괴 과정 중이므로 보이스 재접속을 무시합니다. ({e.Message})");
+        }
     }
 
     #endregion
