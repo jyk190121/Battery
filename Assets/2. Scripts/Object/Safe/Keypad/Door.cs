@@ -10,6 +10,7 @@ public class Door : NetworkBehaviour
     public float openSpeed = 2f;
     private bool isOpen = false;
 
+    public GameObject doorInteraction;
     public void SetPassword(string newPassword)
     {
         password = newPassword;
@@ -46,7 +47,7 @@ public class Door : NetworkBehaviour
         }
     }
 
-    // 천천히 열리게 하는 코루틴 (내용 동일)
+    // 천천히 열리게 하는 코루틴 (내용 동일)s
     private IEnumerator OpenDoorRoutine()
     {
         Quaternion startRotation = transform.rotation;
@@ -62,5 +63,6 @@ public class Door : NetworkBehaviour
         }
 
         transform.rotation = targetRotation;
+        doorInteraction.gameObject.layer = 0;
     }
 }
