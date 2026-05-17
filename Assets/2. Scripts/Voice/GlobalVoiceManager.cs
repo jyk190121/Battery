@@ -99,78 +99,74 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks
 
     public void ConnectVoice(string nickname, string roomName)
     {
-        // 💡 [핵심 방어막] 전달받은 방 이름이 비어있거나 "LobbyChannel"이면 강제로 임시 방을 파서라도 무조건 집어넣습니다!
-        if (string.IsNullOrEmpty(roomName) || roomName == "LobbyChannel")
+
+        currentRoomName = roomName;
+        globalVoiceClient.Client.NickName = nickname;
+
+        if(globalVoiceClient.Client.State == ClientState.PeerCreated ||
+            globalVoiceClient.Client.State == ClientState.Disconnected)
         {
-            currentRoomName = "GameRoom_999";
-            Debug.LogWarning($"<color=orange>[Voice Warning]</color> 정상적인 방 이름이 오지 않아 'GameRoom_999'로 강제 설정합니다.");
-        }
-        else
-        {
-            currentRoomName = roomName;
+            print("보이스 서버 신규접속 시도");
+            globalVoiceClient.ConnectUsingSettings();
         }
 
-        Debug.Log($"<color=cyan>[Voice]</color> ConnectVoice 시작! 대상 룸: {currentRoomName}");
-        StartCoroutine(ReconnectVoiceRoutine(nickname));
+        else if(globalVoiceClient.Client.Server == ServerConnection.MasterServer)
+        {
+            JoinVoiceRoomInternal();
+        }
+
     }
-    IEnumerator ReconnectVoiceRoutine(string nickname)
-    {
-        isConnecting = false;
+    //IEnumerator ReconnectVoiceRoutine(string nickname)
+    //{
+    //    isConnecting = false;
 
-        // 💡 [핵심 2] 혹시라도 방 이름이 비어있다면 MultiPlayerSessionManager에서 강제로 다시 뜯어옵니다.
-        if (string.IsNullOrEmpty(currentRoomName) || currentRoomName == "LobbyChannel")
-        {
-            if (MultiPlayerSessionManager.Instance != null)
-            {
-                currentRoomName = MultiPlayerSessionManager.Instance.CurrentChannelId;
-                Debug.LogWarning($"<color=orange>[Voice Warning]</color> 방 이름이 비어있어 SessionManager에서 강제로 가져왔습니다: {currentRoomName}");
-            }
-        }
+    //    // 💡 [핵심 2] 혹시라도 방 이름이 비어있다면 MultiPlayerSessionManager에서 강제로 다시 뜯어옵니다.
+    //    if (string.IsNullOrEmpty(currentRoomName) || currentRoomName == "LobbyChannel")
+    //    {
+    //        if (MultiPlayerSessionManager.Instance != null)
+    //        {
+    //            currentRoomName = MultiPlayerSessionManager.Instance.CurrentChannelId;
+    //            Debug.LogWarning($"<color=orange>[Voice Warning]</color> 방 이름이 비어있어 SessionManager에서 강제로 가져왔습니다: {currentRoomName}");
+    //        }
+    //    }
 
-        if (globalVoiceClient.Client.State != ClientState.Disconnected && globalVoiceClient.Client.State != ClientState.PeerCreated)
-        {
-            Debug.Log("<color=orange>[Voice]</color> 기존 연결을 완전히 해제합니다...");
-            globalVoiceClient.Client.Disconnect();
-            yield return new WaitUntil(() => globalVoiceClient.Client.State == ClientState.Disconnected || globalVoiceClient.Client.State == ClientState.PeerCreated);
-        }
+    //    if (globalVoiceClient.Client.State != ClientState.Disconnected && globalVoiceClient.Client.State != ClientState.PeerCreated)
+    //    {
+    //        Debug.Log("<color=orange>[Voice]</color> 기존 연결을 완전히 해제합니다...");
+    //        globalVoiceClient.Client.Disconnect();
+    //        yield return new WaitUntil(() => globalVoiceClient.Client.State == ClientState.Disconnected || globalVoiceClient.Client.State == ClientState.PeerCreated);
+    //    }
 
-        yield return new WaitForSeconds(0.5f);
+    //    yield return new WaitForSeconds(0.5f);
 
-        if (globalRecorder != null)
-        {
-            globalRecorder.RecordingEnabled = false;
-            globalRecorder.TransmitEnabled = false;
-            globalRecorder.RestartRecording();
-            Debug.Log("<color=cyan>[Voice]</color> 마이크 하드웨어 강제 리셋 완료");
-        }
+    //    if (globalRecorder != null)
+    //    {
+    //        globalRecorder.RecordingEnabled = false;
+    //        globalRecorder.TransmitEnabled = false;
+    //        globalRecorder.RestartRecording();
+    //        Debug.Log("<color=cyan>[Voice]</color> 마이크 하드웨어 강제 리셋 완료");
+    //    }
 
-        globalVoiceClient.Client.LocalPlayer.NickName = nickname;
-        bool connected = globalVoiceClient.ConnectUsingSettings();
+    //    globalVoiceClient.Client.LocalPlayer.NickName = nickname;
+    //    bool connected = globalVoiceClient.ConnectUsingSettings();
 
-        // 💡 방 이름이 정상적으로 들어갔는지 최종 확인하는 로그
-        Debug.Log($"<color=#FF55FF>[Voice-1]</color> 재접속 시도 결과: {connected} / 대상 방: {currentRoomName}");
-    }
+    //    // 💡 방 이름이 정상적으로 들어갔는지 최종 확인하는 로그
+    //    Debug.Log($"<color=#FF55FF>[Voice-1]</color> 재접속 시도 결과: {connected} / 대상 방: {currentRoomName}");
+    //}
     public void ShutdownVoice()
     {
-        if (globalVoiceClient != null && globalVoiceClient.Client != null)
+        if (globalVoiceClient != null)
         {
-            globalVoiceClient.SpeakerLinked -= OnSpeakerLinked;
-            globalVoiceClient.Client.RemoveCallbackTarget(this);
-
-            if (globalVoiceClient.Client.IsConnected)
-            {
-                globalVoiceClient.Client.Disconnect();
-            }
-        }
-
-        if (globalRecorder != null)
-        {
-            globalRecorder.TransmitEnabled = false;
-            // 💡 [핵심] 마이크 하드웨어의 사용 권한을 완전히 내려놓게 합니다.
             globalRecorder.RecordingEnabled = false;
+            globalRecorder.TransmitEnabled = false;
         }
 
-        StopAllCoroutines();
+        if (globalVoiceClient.Client.IsConnected)
+        {
+            globalVoiceClient.Client.Disconnect();
+        }
+
+        isConnecting = false;
         currentRoomName = "";
         Debug.Log("<color=red>[Voice]</color> 시스템 셧다운 및 마이크 해제 완료");
     }
