@@ -34,6 +34,9 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks
         if (globalRecorder == null) globalRecorder = GetComponent<Recorder>();
 
         globalVoiceClient.PrimaryRecorder = globalRecorder;
+
+        globalRecorder.RecordingEnabled = true;
+
         globalRecorder.TransmitEnabled = false;
 
         // [수정] 두 가지 콜백을 모두 등록합니다.
@@ -206,49 +209,63 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks
 
         //StartCoroutine(AttachSpeakerToAvatar(speaker, targetNick));
 
-        var remoteVoice = speaker.RemoteVoice;
-        // 💡 [수정] 즉시 실행하지 않고, 아주 짧은 프레임 대기 후 코루틴 시작
-        StartCoroutine(WaitForNickNameAndAttach(speaker, remoteVoice.PlayerId));
-    }
+        int playerId = speaker.RemoteVoice.PlayerId;
+        speaker.gameObject.name = $"Global_Speaker_{playerId}";
 
-    IEnumerator WaitForNickNameAndAttach(Speaker speaker, int playerId)
-    {
-        string targetNick = "";
-        int retries = 0;
-        const int MAX_RETRIES = 20; // 약 10초 대기
-
-        Debug.Log($"<color=#FFAA00>[Voice] ID {playerId}의 닉네임 대기 시작...</color>");
-
-        while (retries < MAX_RETRIES)
+        AudioSource aud = speaker.GetComponent<AudioSource>();
+        if (aud != null)
         {
-            // 룸에 있는 플레이어 리스트에서 직접 탐색
-            if (globalVoiceClient.Client.InRoom)
-            {
-                var player = globalVoiceClient.Client.CurrentRoom.GetPlayer(playerId);
-                if (player != null && !string.IsNullOrEmpty(player.NickName))
-                {
-                    targetNick = player.NickName.Replace("\0", "").Trim();
-                    if (targetNick != "") break; // 유효한 닉네임 확보 시 탈출
-                }
-            }
-
-            retries++;
-            yield return new WaitForSeconds(0.5f);
+            aud.spatialBlend = 0f;  // 2D 사운드
+            aud.volume = 1f;
+            aud.mute = false;
         }
 
-        if (string.IsNullOrEmpty(targetNick))
-        {
-            // 💡 [백업 플랜] 닉네임 확보 실패 시 ID라도 사용하여 매핑 시도
-            Debug.LogWarning($"<color=red>[Voice] {playerId}번 유저의 닉네임 확보 실패. ID로 매핑을 시도합니다.</color>");
-            // 닉네임 대신 ID를 사용하여 Speaker 이름을 설정 (AttachSpeakerToAvatar에서도 ID 체크 로직 필요)
-            targetNick = $"ID_{playerId}";
-        }
 
-        speaker.gameObject.name = $"VoiceSpeaker_{targetNick}";
-        Debug.Log($"<color=#00FF00>[Voice-6 SUCCESS] {targetNick} 정보 매칭 완료!</color>");
+        //var remoteVoice = speaker.RemoteVoice;
+        //// 💡 [수정] 즉시 실행하지 않고, 아주 짧은 프레임 대기 후 코루틴 시작
+        //StartCoroutine(WaitForNickNameAndAttach(speaker, remoteVoice.PlayerId));
 
-        StartCoroutine(AttachSpeakerToAvatar(speaker, targetNick));
+
     }
+
+    //IEnumerator WaitForNickNameAndAttach(Speaker speaker, int playerId)
+    //{
+    //    string targetNick = "";
+    //    int retries = 0;
+    //    const int MAX_RETRIES = 20; // 약 10초 대기
+
+    //    Debug.Log($"<color=#FFAA00>[Voice] ID {playerId}의 닉네임 대기 시작...</color>");
+
+    //    while (retries < MAX_RETRIES)
+    //    {
+    //        // 룸에 있는 플레이어 리스트에서 직접 탐색
+    //        if (globalVoiceClient.Client.InRoom)
+    //        {
+    //            var player = globalVoiceClient.Client.CurrentRoom.GetPlayer(playerId);
+    //            if (player != null && !string.IsNullOrEmpty(player.NickName))
+    //            {
+    //                targetNick = player.NickName.Replace("\0", "").Trim();
+    //                if (targetNick != "") break; // 유효한 닉네임 확보 시 탈출
+    //            }
+    //        }
+
+    //        retries++;
+    //        yield return new WaitForSeconds(0.5f);
+    //    }
+
+    //    if (string.IsNullOrEmpty(targetNick))
+    //    {
+    //        // 💡 [백업 플랜] 닉네임 확보 실패 시 ID라도 사용하여 매핑 시도
+    //        Debug.LogWarning($"<color=red>[Voice] {playerId}번 유저의 닉네임 확보 실패. ID로 매핑을 시도합니다.</color>");
+    //        // 닉네임 대신 ID를 사용하여 Speaker 이름을 설정 (AttachSpeakerToAvatar에서도 ID 체크 로직 필요)
+    //        targetNick = $"ID_{playerId}";
+    //    }
+
+    //    speaker.gameObject.name = $"VoiceSpeaker_{targetNick}";
+    //    Debug.Log($"<color=#00FF00>[Voice-6 SUCCESS] {targetNick} 정보 매칭 완료!</color>");
+
+    //    StartCoroutine(AttachSpeakerToAvatar(speaker, targetNick));
+    //}
 
     IEnumerator AttachSpeakerToAvatar(Speaker speaker, string targetNick)
     {
