@@ -218,8 +218,10 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks
             aud.spatialBlend = 0f;  // 2D 사운드
             aud.volume = 1f;
             aud.mute = false;
+            aud.playOnAwake = true;
         }
 
+        print($"상대방 Player {playerId} 의 스피커 셋팅 완료");
 
         //var remoteVoice = speaker.RemoteVoice;
         //// 💡 [수정] 즉시 실행하지 않고, 아주 짧은 프레임 대기 후 코루틴 시작
