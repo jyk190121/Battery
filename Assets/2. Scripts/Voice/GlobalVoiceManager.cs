@@ -12,7 +12,6 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks
     public UnityVoiceClient globalVoiceClient;
     public Recorder globalRecorder;
     private string currentRoomName = "";
-    bool isConnecting = false;
     float _autoJoinTimer = 0f;
     private void Awake()
     {
@@ -54,7 +53,6 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks
             _autoJoinTimer += Time.deltaTime;
             if (_autoJoinTimer > 2.0f)
             {
-                isConnecting = false;
                 JoinVoiceRoomInternal();
                 _autoJoinTimer = 0f;
             }
@@ -116,43 +114,7 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks
         }
 
     }
-    //IEnumerator ReconnectVoiceRoutine(string nickname)
-    //{
-    //    isConnecting = false;
-
-    //    // 💡 [핵심 2] 혹시라도 방 이름이 비어있다면 MultiPlayerSessionManager에서 강제로 다시 뜯어옵니다.
-    //    if (string.IsNullOrEmpty(currentRoomName) || currentRoomName == "LobbyChannel")
-    //    {
-    //        if (MultiPlayerSessionManager.Instance != null)
-    //        {
-    //            currentRoomName = MultiPlayerSessionManager.Instance.CurrentChannelId;
-    //            Debug.LogWarning($"<color=orange>[Voice Warning]</color> 방 이름이 비어있어 SessionManager에서 강제로 가져왔습니다: {currentRoomName}");
-    //        }
-    //    }
-
-    //    if (globalVoiceClient.Client.State != ClientState.Disconnected && globalVoiceClient.Client.State != ClientState.PeerCreated)
-    //    {
-    //        Debug.Log("<color=orange>[Voice]</color> 기존 연결을 완전히 해제합니다...");
-    //        globalVoiceClient.Client.Disconnect();
-    //        yield return new WaitUntil(() => globalVoiceClient.Client.State == ClientState.Disconnected || globalVoiceClient.Client.State == ClientState.PeerCreated);
-    //    }
-
-    //    yield return new WaitForSeconds(0.5f);
-
-    //    if (globalRecorder != null)
-    //    {
-    //        globalRecorder.RecordingEnabled = false;
-    //        globalRecorder.TransmitEnabled = false;
-    //        globalRecorder.RestartRecording();
-    //        Debug.Log("<color=cyan>[Voice]</color> 마이크 하드웨어 강제 리셋 완료");
-    //    }
-
-    //    globalVoiceClient.Client.LocalPlayer.NickName = nickname;
-    //    bool connected = globalVoiceClient.ConnectUsingSettings();
-
-    //    // 💡 방 이름이 정상적으로 들어갔는지 최종 확인하는 로그
-    //    Debug.Log($"<color=#FF55FF>[Voice-1]</color> 재접속 시도 결과: {connected} / 대상 방: {currentRoomName}");
-    //}
+   
     public void ShutdownVoice()
     {
         if (globalVoiceClient != null)
@@ -166,7 +128,6 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks
             globalVoiceClient.Client.Disconnect();
         }
 
-        isConnecting = false;
         currentRoomName = "";
         Debug.Log("<color=red>[Voice]</color> 시스템 셧다운 및 마이크 해제 완료");
     }
@@ -176,34 +137,15 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks
     // ==========================================
     public void OnJoinedRoom()
     {
-        isConnecting = false;
         Debug.Log($"<color=#55FF55>[Voice-3]</color> 보이스 방 입장 성공! ({globalVoiceClient.Client.CurrentRoom.Name})");
     }
     public void OnDisconnected(DisconnectCause cause)
     {
-        isConnecting = false; // 💡 무조건 락 해제
         Debug.LogWarning($"<color=red>[Voice Error] 보이스 서버 연결 끊김! 원인: 방 파괴");
     }
 
     private void OnSpeakerLinked(Speaker speaker)
     {
-        ////Photon.Realtime.Player remotePlayer = globalVoiceClient.Client.CurrentRoom.GetPlayer(speaker.RemoteVoice.PlayerId);
-        //var remoteVoice = speaker.RemoteVoice;
-        //Photon.Realtime.Player remotePlayer = globalVoiceClient.Client.CurrentRoom.GetPlayer(remoteVoice.PlayerId);
-
-        //StartCoroutine(WaitForNickNameAndAttach(speaker, remoteVoice.PlayerId));
-        //if (remotePlayer == null)
-        //{
-        //    Debug.LogError("<color=red>[Voice-6 ERROR] 스피커 주인을 찾을 수 없습니다!</color>");
-        //    return;
-        //}
-
-        //string targetNick = remotePlayer.NickName.Replace("\0", "").Trim();
-        //speaker.gameObject.name = $"VoiceSpeaker_{targetNick}";
-
-        //Debug.Log($"<color=#FFAA00>[Voice-6] 상대방({targetNick})의 음성 스트림 도착! 매핑 코루틴 시작!</color>");
-
-        //StartCoroutine(AttachSpeakerToAvatar(speaker, targetNick));
 
         int playerId = speaker.RemoteVoice.PlayerId;
         speaker.gameObject.name = $"Global_Speaker_{playerId}";
@@ -219,133 +161,8 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks
 
         print($"상대방 Player {playerId} 의 스피커 셋팅 완료");
 
-        //var remoteVoice = speaker.RemoteVoice;
-        //// 💡 [수정] 즉시 실행하지 않고, 아주 짧은 프레임 대기 후 코루틴 시작
-        //StartCoroutine(WaitForNickNameAndAttach(speaker, remoteVoice.PlayerId));
-
-
     }
-
-    //IEnumerator WaitForNickNameAndAttach(Speaker speaker, int playerId)
-    //{
-    //    string targetNick = "";
-    //    int retries = 0;
-    //    const int MAX_RETRIES = 20; // 약 10초 대기
-
-    //    Debug.Log($"<color=#FFAA00>[Voice] ID {playerId}의 닉네임 대기 시작...</color>");
-
-    //    while (retries < MAX_RETRIES)
-    //    {
-    //        // 룸에 있는 플레이어 리스트에서 직접 탐색
-    //        if (globalVoiceClient.Client.InRoom)
-    //        {
-    //            var player = globalVoiceClient.Client.CurrentRoom.GetPlayer(playerId);
-    //            if (player != null && !string.IsNullOrEmpty(player.NickName))
-    //            {
-    //                targetNick = player.NickName.Replace("\0", "").Trim();
-    //                if (targetNick != "") break; // 유효한 닉네임 확보 시 탈출
-    //            }
-    //        }
-
-    //        retries++;
-    //        yield return new WaitForSeconds(0.5f);
-    //    }
-
-    //    if (string.IsNullOrEmpty(targetNick))
-    //    {
-    //        // 💡 [백업 플랜] 닉네임 확보 실패 시 ID라도 사용하여 매핑 시도
-    //        Debug.LogWarning($"<color=red>[Voice] {playerId}번 유저의 닉네임 확보 실패. ID로 매핑을 시도합니다.</color>");
-    //        // 닉네임 대신 ID를 사용하여 Speaker 이름을 설정 (AttachSpeakerToAvatar에서도 ID 체크 로직 필요)
-    //        targetNick = $"ID_{playerId}";
-    //    }
-
-    //    speaker.gameObject.name = $"VoiceSpeaker_{targetNick}";
-    //    Debug.Log($"<color=#00FF00>[Voice-6 SUCCESS] {targetNick} 정보 매칭 완료!</color>");
-
-    //    StartCoroutine(AttachSpeakerToAvatar(speaker, targetNick));
-    //}
-
-    IEnumerator AttachSpeakerToAvatar(Speaker speaker, string targetNick)
-    {
-        speaker.transform.SetParent(this.transform);
-
-        string searchNick = targetNick.Replace("\0", "").Trim().ToLower();
-        string simpleNick = searchNick.Split('#')[0];
-
-        Transform targetAvatar = null;
-        AudioSource aud = speaker.GetComponent<AudioSource>();
-
-        // 💡 [핵심 1] 스피커 초기화 시 확실한 3D 세팅 및 범위 대폭 상향
-        if (aud != null)
-        {
-            aud.rolloffMode = AudioRolloffMode.Linear; // 거리에 비례해 일정하게 소리 감소 (필수)
-            aud.minDistance = 2f;
-            aud.maxDistance = 50f; // 들리는 범위를 아주 넓게 설정하여 테스트
-        }
-
-        Debug.Log($"<color=#FFAA00>[Voice]</color> '{searchNick}' 아바타 추적 드론 가동 시작...");
-
-        while (true)
-        {
-            if (speaker == null) yield break;
-
-            // 타겟을 잃었거나 씬이 바뀌었을 때 (아직 아바타를 못 찾음)
-            if (targetAvatar == null)
-            {
-                if (aud != null) aud.spatialBlend = 0f; // 2D 무전기 모드 (어디서든 들림)
-                if (Camera.main != null) speaker.transform.position = Camera.main.transform.position;
-
-                PlayerNameSync[] allSyncs = FindObjectsByType<PlayerNameSync>(FindObjectsSortMode.None);
-                foreach (var sync in allSyncs)
-                {
-                    if (sync == null) continue;
-                    string currentSyncNick = sync.NetworkNickname.Value.ToString().Replace("\0", "").Trim().ToLower();
-                    string currentSimpleNick = currentSyncNick.Split('#')[0];
-
-                    if (currentSyncNick == searchNick || (currentSimpleNick == simpleNick && !string.IsNullOrEmpty(simpleNick)))
-                    {
-                        targetAvatar = sync.transform;
-                        Debug.Log($"<color=#00FF00>[Voice SUCCESS]</color> '{targetNick}' 새 아바타 발견! 3D 추적 재개.");
-                        break;
-                    }
-                }
-
-                if (targetAvatar == null)
-                {
-                    yield return new WaitForSeconds(1f);
-                    continue;
-                }
-            }
-
-            // 타겟 아바타를 찾고 씬에 존재할 때
-            if (targetAvatar != null)
-            {
-                // 💡 [핵심 2] 씬 전환 등으로 인해 오디오가 멈췄다면 강제 재생
-                if (aud != null && !aud.isPlaying)
-                {
-                    aud.Play();
-                }
-
-                // 다시 3D 생목소리 모드로 복구
-                if (aud != null && aud.spatialBlend != 1.0f)
-                {
-                    aud.spatialBlend = 1.0f;
-                }
-
-                // 스피커 위치를 아바타 머리 위로 실시간 이동
-                speaker.transform.position = targetAvatar.position + new Vector3(0, 1.8f, 0.2f);
-
-                // 💡 [핵심 3] 내 카메라(귀)와 상대방 스피커 간의 실제 거리 로그 (약 5초마다 출력)
-                if (Time.frameCount % 300 == 0 && Camera.main != null)
-                {
-                    float dist = Vector3.Distance(Camera.main.transform.position, speaker.transform.position);
-                    Debug.Log($"<color=#00FFFF>[Voice Info]</color> 상대방 스피커와 내 카메라의 거리: {dist:F1}m");
-                }
-
-                yield return null;
-            }
-        }
-    }
+ 
 
     public void SetCallMode(string targetNickname, bool isCalling)
     {
@@ -376,10 +193,10 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks
     }
 
     // 💡 1. 락(Lock)을 강제로 풀어주는 콜백들 (방 입장 실패 시 영원히 멈추는 현상 방지)
-    public void OnCreateRoomFailed(short returnCode, string message) { isConnecting = false; Debug.LogError($"[Voice] 방 생성 실패: {message}"); }
-    public void OnJoinRoomFailed(short returnCode, string message) { isConnecting = false; Debug.LogError($"[Voice] 방 입장 실패: {message}"); }
-    public void OnJoinRandomFailed(short returnCode, string message) { isConnecting = false; }
-    public void OnLeftRoom() { isConnecting = false; }
+    public void OnCreateRoomFailed(short returnCode, string message) { }
+    public void OnJoinRoomFailed(short returnCode, string message) { }
+    public void OnJoinRandomFailed(short returnCode, string message) { }
+    public void OnLeftRoom() { }
 
     // 빈 인터페이스 구현부들
     public void OnConnected() { }
@@ -415,7 +232,6 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks
                 currentRoomName = "GameRoom_999"; // 최후의 보루
         }
 
-        isConnecting = true;
         Debug.Log($"<color=cyan>[Voice]</color> '{currentRoomName}' 방으로 입장을 시도합니다!");
 
         EnterRoomParams enterRoom = new EnterRoomParams
