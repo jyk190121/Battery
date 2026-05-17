@@ -52,6 +52,18 @@ public class VoiceLevelDetector : MonoBehaviour
         if (recorder == null) recorder = GetComponent<Recorder>();
     }
 
+    void Start()
+    {
+        if(GlobalVoiceManager.Instance !=null && GlobalVoiceManager.Instance.globalRecorder !=null)
+        {
+            recorder = GlobalVoiceManager.Instance.globalRecorder;
+            print("글로벌 레코더를 찾음");
+        }
+        else
+        {
+            print($"{recorder} : 글로벌 레코더 못찾음");
+        }    
+    }
 
     // =========================================================
     // 3. 유니티 루프 
