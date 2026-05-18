@@ -29,6 +29,12 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks
 
     private void Start()
     {
+        if(Microphone.devices.Length > 0)
+        {
+            globalRecorder.MicrophoneDevice = new Photon.Voice.DeviceInfo(Microphone.devices[0]);
+        }
+
+
         if (globalVoiceClient == null) globalVoiceClient = GetComponent<UnityVoiceClient>();
         if (globalRecorder == null) globalRecorder = GetComponent<Recorder>();
 
@@ -147,23 +153,85 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks
     private void OnSpeakerLinked(Speaker speaker)
     {
 
+        //int playerId = speaker.RemoteVoice.PlayerId;
+        //speaker.gameObject.name = $"Global_Speaker_{playerId}";
+
+        //AudioSource aud = speaker.GetComponent<AudioSource>();
+        //if (aud != null)
+        //{
+        //    aud.spatialBlend = 0f;  // 2D 사운드
+        //    aud.volume = 1f;
+        //    aud.mute = false;
+        //    aud.playOnAwake = true;
+        //}
+
+        //print($"상대방 Player {playerId} 의 스피커 셋팅 완료");
+
         int playerId = speaker.RemoteVoice.PlayerId;
         speaker.gameObject.name = $"Global_Speaker_{playerId}";
 
         AudioSource aud = speaker.GetComponent<AudioSource>();
         if (aud != null)
         {
-            aud.spatialBlend = 0f;  // 2D 사운드
-            aud.volume = 1f;
-            aud.mute = false;
+            // 💡 1. 3D 사운드로 변경
+            aud.spatialBlend = 1.0f;
+            aud.rolloffMode = AudioRolloffMode.Linear;
+            aud.minDistance = 2f;
+            aud.maxDistance = 25f; // 소리가 들리는 최대 거리
             aud.playOnAwake = true;
         }
 
-        print($"상대방 Player {playerId} 의 스피커 셋팅 완료");
-
+        // 💡 2. 스피커를 허공(0,0,0)에 두지 않고, 상대방 캐릭터를 찾아서 머리통에 붙여줍니다!
+        StartCoroutine(AttachSpeakerToPlayer(speaker, playerId));
     }
- 
 
+    IEnumerator AttachSpeakerToPlayer(Speaker speaker, int playerId)
+    {
+        // 1. 캐릭터가 스폰되고 닉네임이 동기화될 때까지 약간 대기 (필수)
+        yield return new WaitForSeconds(1.5f);
+
+        if (speaker == null) yield break;
+
+        // 2. 포톤 서버에서 현재 스피커의 주인(playerId)이 누구인지 닉네임을 가져옵니다.
+        string photonNickname = "";
+        var currentRoom = globalVoiceClient.Client.CurrentRoom;
+
+        if (currentRoom != null)
+        {
+            Photon.Realtime.Player photonPlayer = currentRoom.GetPlayer(playerId);
+            if (photonPlayer != null)
+            {
+                photonNickname = photonPlayer.NickName;
+            }
+        }
+
+        if (string.IsNullOrEmpty(photonNickname))
+        {
+            Debug.LogWarning($"<color=red>[Voice]</color> 포톤 플레이어(ID:{playerId})의 닉네임을 찾을 수 없습니다.");
+            yield break;
+        }
+
+        // 3. 씬에 있는 모든 PlayerNameSync (네트워크 캐릭터)를 찾습니다.
+        PlayerNameSync[] allPlayers = FindObjectsByType<PlayerNameSync>(FindObjectsSortMode.None);
+
+        foreach (var p in allPlayers)
+        {
+            // 4. Netcode의 닉네임과 Photon의 닉네임을 비교합니다!
+            string netcodeNickname = p.NetworkNickname.Value.ToString().Replace("\0", "").Trim();
+
+            if (netcodeNickname == photonNickname)
+            {
+                // 💡 일치하는 캐릭터를 찾았습니다! 스피커를 캐릭터의 자식(Child)으로 넣습니다.
+                speaker.transform.SetParent(p.transform);
+
+                // 💡 목소리가 발밑이 아니라 '머리(입)' 위치에서 나도록 Y축을 1.5f 정도 올려줍니다.
+                speaker.transform.localPosition = new Vector3(0, 1.5f, 0);
+
+                Debug.Log($"<color=magenta>[Voice]</color> 3D 스피커를 '{photonNickname}' 캐릭터에 완벽하게 부착했습니다!");
+                break;
+            }
+        }
+    }
     public void SetCallMode(string targetNickname, bool isCalling)
     {
         // 닉네임 공백, 널문자 제거
