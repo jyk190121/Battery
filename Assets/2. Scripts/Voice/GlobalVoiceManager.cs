@@ -29,6 +29,12 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks
 
     private void Start()
     {
+        if(Microphone.devices.Length > 0)
+        {
+            globalRecorder.MicrophoneDevice = new Photon.Voice.DeviceInfo(Microphone.devices[0]);
+        }
+
+
         if (globalVoiceClient == null) globalVoiceClient = GetComponent<UnityVoiceClient>();
         if (globalRecorder == null) globalRecorder = GetComponent<Recorder>();
 
@@ -147,38 +153,140 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks
     private void OnSpeakerLinked(Speaker speaker)
     {
 
+        //int playerId = speaker.RemoteVoice.PlayerId;
+        //speaker.gameObject.name = $"Global_Speaker_{playerId}";
+
+        //AudioSource aud = speaker.GetComponent<AudioSource>();
+        //if (aud != null)
+        //{
+        //    aud.spatialBlend = 0f;  // 2D 사운드
+        //    aud.volume = 1f;
+        //    aud.mute = false;
+        //    aud.playOnAwake = true;
+        //}
+
+        //print($"상대방 Player {playerId} 의 스피커 셋팅 완료");
+
         int playerId = speaker.RemoteVoice.PlayerId;
         speaker.gameObject.name = $"Global_Speaker_{playerId}";
 
         AudioSource aud = speaker.GetComponent<AudioSource>();
         if (aud != null)
         {
-            aud.spatialBlend = 0f;  // 2D 사운드
-            aud.volume = 1f;
-            aud.mute = false;
+            // 💡 1. 3D 사운드로 변경
+            aud.spatialBlend = 1.0f;
+            aud.rolloffMode = AudioRolloffMode.Linear;
+            aud.minDistance = 2f;
+            aud.maxDistance = 25f; // 소리가 들리는 최대 거리
             aud.playOnAwake = true;
         }
 
-        print($"상대방 Player {playerId} 의 스피커 셋팅 완료");
-
+        // 💡 2. 스피커를 허공(0,0,0)에 두지 않고, 상대방 캐릭터를 찾아서 머리통에 붙여줍니다!
+        StartCoroutine(AttachSpeakerToPlayer(speaker, playerId));
     }
- 
 
-    public void SetCallMode(string targetNickname, bool isCalling)
+    IEnumerator AttachSpeakerToPlayer(Speaker speaker, int playerId)
     {
-        // 닉네임 공백, 널문자 제거
-        string clearNick = targetNickname.Replace("\0", "").Trim();
+        // 1. 캐릭터가 스폰되고 닉네임이 동기화될 때까지 약간 대기 (필수)
+        yield return new WaitForSeconds(1.5f);
 
-        VoiceController[] controllers = FindObjectsByType<VoiceController>(FindObjectsSortMode.None);
-        foreach (var vc in controllers)
+        if (speaker == null) yield break;
+
+        // 2. 포톤 서버에서 현재 스피커의 주인(playerId)이 누구인지 닉네임을 가져옵니다.
+        string photonNickname = "";
+        var currentRoom = globalVoiceClient.Client.CurrentRoom;
+
+        if (currentRoom != null)
         {
-            bool isProximityVoice = vc.gameObject.name == $"VoiceSpeaker_{clearNick}";
-
-            if(isProximityVoice)
+            Photon.Realtime.Player photonPlayer = currentRoom.GetPlayer(playerId);
+            if (photonPlayer != null)
             {
-                vc.SetCallMode(isCalling);
+                photonNickname = photonPlayer.NickName;
+            }
+        }
 
-                if (globalRecorder != null) globalRecorder.TransmitEnabled = isCalling;
+        if (string.IsNullOrEmpty(photonNickname))
+        {
+            Debug.LogWarning($"<color=red>[Voice]</color> 포톤 플레이어(ID:{playerId})의 닉네임을 찾을 수 없습니다.");
+            yield break;
+        }
+
+        // 3. 씬에 있는 모든 PlayerNameSync (네트워크 캐릭터)를 찾습니다.
+        PlayerNameSync[] allPlayers = FindObjectsByType<PlayerNameSync>(FindObjectsSortMode.None);
+
+        foreach (var p in allPlayers)
+        {
+            // 4. Netcode의 닉네임과 Photon의 닉네임을 비교합니다!
+            string netcodeNickname = p.NetworkNickname.Value.ToString().Replace("\0", "").Trim();
+
+            if (netcodeNickname == photonNickname)
+            {
+                // 💡 일치하는 캐릭터를 찾았습니다! 스피커를 캐릭터의 자식(Child)으로 넣습니다.
+                speaker.transform.SetParent(p.transform);
+
+                // 💡 목소리가 발밑이 아니라 '머리(입)' 위치에서 나도록 Y축을 1.5f 정도 올려줍니다.
+                speaker.transform.localPosition = new Vector3(0, 1.5f, 0);
+
+                Debug.Log($"<color=magenta>[Voice]</color> 3D 스피커를 '{photonNickname}' 캐릭터에 완벽하게 부착했습니다!");
+                break;
+            }
+        }
+    }
+    /// <summary>
+    /// 스마트폰 통화 상태에 따라 특정 플레이어의 목소리를 2D(통화) 또는 3D(일반)로 전환합니다.
+    /// </summary>
+    /// <param name="targetNickname">통화 대상 닉네임</param>
+    /// <param name="isCallActive">true면 2D 통화 모드, false면 3D 일반 대화 모드</param>
+    public void SetCallMode(string targetNickname, bool isCallActive)
+    {
+        // 1. 현재 접속 중인 방에서 상대방(targetNickname)의 고유 ID(PlayerId)를 찾습니다.
+        int targetPlayerId = -1;
+        var currentRoom = globalVoiceClient.Client.CurrentRoom;
+
+        if (currentRoom != null)
+        {
+            foreach (var p in currentRoom.Players.Values)
+            {
+                if (p.NickName == targetNickname)
+                {
+                    targetPlayerId = p.ActorNumber;
+                    break;
+                }
+            }
+        }
+
+        if (targetPlayerId == -1)
+        {
+            Debug.LogWarning($"<color=red>[Phone]</color> '{targetNickname}' 플레이어를 방에서 찾을 수 없습니다.");
+            return;
+        }
+
+        // 2. 씬에 존재하는 모든 포톤 스피커 중, 상대방의 스피커를 찾아 2D/3D 전환!
+        Photon.Voice.Unity.Speaker[] allSpeakers = FindObjectsByType<Photon.Voice.Unity.Speaker>(FindObjectsSortMode.None);
+
+        foreach (var speaker in allSpeakers)
+        {
+            if (speaker.RemoteVoice.PlayerId == targetPlayerId)
+            {
+                AudioSource aud = speaker.GetComponent<AudioSource>();
+                if (aud != null)
+                {
+                    if (isCallActive)
+                    {
+                        // 📞 통화 모드 (2D 귀에 직접 꽂힘)
+                        aud.spatialBlend = 0f;
+                        aud.bypassEffects = true; // 거리나 공간 이펙트 무시
+                        Debug.Log($"<color=magenta>[Phone]</color> '{targetNickname}'와의 통화 연결! 사운드를 2D로 전환합니다.");
+                    }
+                    else
+                    {
+                        // 🗣️ 일반 모드 (3D 캐릭터 위치 기반)
+                        aud.spatialBlend = 1.0f;
+                        aud.bypassEffects = false;
+                        Debug.Log($"<color=magenta>[Phone]</color> '{targetNickname}'와의 통화 종료! 사운드를 3D로 복구합니다.");
+                    }
+                }
+                break;
             }
         }
     }
