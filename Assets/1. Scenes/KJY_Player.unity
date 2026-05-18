@@ -1133,7 +1133,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PhotoTarget
   targetIdentifier: Test
   questID: 1030
-  baseScore: 15
 --- !u!65 &283359444
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -3763,6 +3762,14 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 121
       objectReference: {fileID: 0}
+    - target: {fileID: 1015162414619960517, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: roomLocation
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1015162414619960517, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: questItemSpawnPoint
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 1021904608756820649, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 121
@@ -4411,6 +4418,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 121
       objectReference: {fileID: 0}
+    - target: {fileID: 1443672286929201392, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_Name
+      value: Swing_Door_Music
+      objectReference: {fileID: 0}
     - target: {fileID: 1446563778441918279, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 121
@@ -4566,6 +4577,10 @@ PrefabInstance:
     - target: {fileID: 1556377954998116952, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 121
+      objectReference: {fileID: 0}
+    - target: {fileID: 1557274648045568287, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: roomLocation
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 1558560010506062617, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -4774,6 +4789,14 @@ PrefabInstance:
     - target: {fileID: 1751948479951192971, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 121
+      objectReference: {fileID: 0}
+    - target: {fileID: 1752293043857986739, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: roomLocation
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1752293043857986739, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: questItemSpawnPoint
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 1752336084930502069, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -5103,6 +5126,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 121
       objectReference: {fileID: 0}
+    - target: {fileID: 1980263578494997632, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_Name
+      value: Swing_Door_Health
+      objectReference: {fileID: 0}
     - target: {fileID: 1981009382864342243, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 121
@@ -5266,6 +5293,10 @@ PrefabInstance:
     - target: {fileID: 2096969769857081708, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 121
+      objectReference: {fileID: 0}
+    - target: {fileID: 2098003336283466609, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: roomLocation
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 2103749375557671434, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -5630,6 +5661,18 @@ PrefabInstance:
     - target: {fileID: 2465855416307242155, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 121
+      objectReference: {fileID: 0}
+    - target: {fileID: 2466954662058415498, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 7.538
+      objectReference: {fileID: 0}
+    - target: {fileID: 2466954662058415498, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.9997
+      objectReference: {fileID: 0}
+    - target: {fileID: 2466954662058415498, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -7.24
       objectReference: {fileID: 0}
     - target: {fileID: 2467221648195080658, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -6106,6 +6149,10 @@ PrefabInstance:
     - target: {fileID: 2803930400215822200, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 121
+      objectReference: {fileID: 0}
+    - target: {fileID: 2804596842649173015, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: roomLocation
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 2809182038789948281, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -6603,6 +6650,18 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 121
       objectReference: {fileID: 0}
+    - target: {fileID: 3264317180963071286, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -2.498
+      objectReference: {fileID: 0}
+    - target: {fileID: 3264317180963071286, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.319
+      objectReference: {fileID: 0}
+    - target: {fileID: 3264317180963071286, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -6.77
+      objectReference: {fileID: 0}
     - target: {fileID: 3264516883375484313, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 121
@@ -7090,6 +7149,10 @@ PrefabInstance:
     - target: {fileID: 3642326686606207235, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 121
+      objectReference: {fileID: 0}
+    - target: {fileID: 3644172153291612535, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: roomLocation
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 3644269721628461966, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -7799,6 +7862,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 121
       objectReference: {fileID: 0}
+    - target: {fileID: 4227494636413128494, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: roomLocation
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 4230513306902508052, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 121
@@ -7910,6 +7977,10 @@ PrefabInstance:
     - target: {fileID: 4288599254558744434, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 121
+      objectReference: {fileID: 0}
+    - target: {fileID: 4289801762184235549, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_Name
+      value: Swing_Door_Art
       objectReference: {fileID: 0}
     - target: {fileID: 4296198528620542890, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -8070,6 +8141,14 @@ PrefabInstance:
     - target: {fileID: 4426991030570478381, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 121
+      objectReference: {fileID: 0}
+    - target: {fileID: 4428745627891114488, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: roomLocation
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4428745627891114488, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: questItemSpawnPoint
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 4437817978477456819, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -8242,6 +8321,14 @@ PrefabInstance:
     - target: {fileID: 4573874682797734658, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 121
+      objectReference: {fileID: 0}
+    - target: {fileID: 4574991728129237871, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: roomLocation
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4574991728129237871, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: isLocked.m_InternalValue
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4575746422149096801, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -10815,6 +10902,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 121
       objectReference: {fileID: 0}
+    - target: {fileID: 6569305016443588181, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: roomLocation
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 6571372350963203025, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 121
@@ -10979,6 +11070,14 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 121
       objectReference: {fileID: 0}
+    - target: {fileID: 6704313066584854194, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -5.651
+      objectReference: {fileID: 0}
+    - target: {fileID: 6704313066584854194, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -8.23
+      objectReference: {fileID: 0}
     - target: {fileID: 6705461146224805728, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 121
@@ -10986,6 +11085,10 @@ PrefabInstance:
     - target: {fileID: 6712569195236579648, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 121
+      objectReference: {fileID: 0}
+    - target: {fileID: 6713597750646614203, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_Name
+      value: Swing_Door_Princ
       objectReference: {fileID: 0}
     - target: {fileID: 6714146482794799036, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -12267,6 +12370,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 121
       objectReference: {fileID: 0}
+    - target: {fileID: 7793054657630595322, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: questItemSpawnPoint
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 7794108522844527727, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 121
@@ -12278,6 +12385,18 @@ PrefabInstance:
     - target: {fileID: 7801193599351298789, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 121
+      objectReference: {fileID: 0}
+    - target: {fileID: 7803049358291662240, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -8.656
+      objectReference: {fileID: 0}
+    - target: {fileID: 7803049358291662240, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.081
+      objectReference: {fileID: 0}
+    - target: {fileID: 7803049358291662240, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -8.03
       objectReference: {fileID: 0}
     - target: {fileID: 7804589632036828657, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -12774,6 +12893,10 @@ PrefabInstance:
     - target: {fileID: 8085169750290878410, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 121
+      objectReference: {fileID: 0}
+    - target: {fileID: 8086026647575780047, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_Name
+      value: Swing_Door_Science
       objectReference: {fileID: 0}
     - target: {fileID: 8088879151701037444, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -13434,6 +13557,18 @@ PrefabInstance:
     - target: {fileID: 8651135020563494518, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 121
+      objectReference: {fileID: 0}
+    - target: {fileID: 8656834006616803191, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -1.274
+      objectReference: {fileID: 0}
+    - target: {fileID: 8656834006616803191, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 8656834006616803191, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -7.45
       objectReference: {fileID: 0}
     - target: {fileID: 8665512186483242097, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: m_StaticEditorFlags
