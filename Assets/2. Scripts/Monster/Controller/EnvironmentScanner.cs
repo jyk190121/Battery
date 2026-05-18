@@ -202,7 +202,7 @@ public class EnvironmentScanner : MonoBehaviour
         if (distToSound <= finalHearingRadius)
         {
             LastHeardPosition = soundOrigin;
-            Debug.Log($"<color=yellow>[소리 감지]</color> {owner.name}이(가) 소리를 들었습니다. (최종 반경: {finalHearingRadius:F1}m)");
+            //Debug.Log($"<color=yellow>[소리 감지]</color> {owner.name}이(가) 소리를 들었습니다. (최종 반경: {finalHearingRadius:F1}m)");
 
             if (owner.CurrentStateNet.Value == MonsterStateType.Patrol ||
                 owner.CurrentStateNet.Value == MonsterStateType.Idle ||

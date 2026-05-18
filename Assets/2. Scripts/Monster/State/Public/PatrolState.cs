@@ -191,7 +191,7 @@ public class PatrolState : MonsterBaseState
 
         if (nextPoint != null)
         {
-            Debug.Log($"<color=green>[Patrol]</color> {nextPoint.name} 지점으로 순찰 이동 시작");
+           // Debug.Log($"<color=green>[Patrol]</color> {nextPoint.name} 지점으로 순찰 이동 시작");
 
             owner.navAgent.SetDestination(nextPoint.position);
             owner.navAgent.isStopped = false;
@@ -210,7 +210,7 @@ public class PatrolState : MonsterBaseState
         // [끼임 방지 시스템] 너무 오랫동안 목적지에 도착하지 못했다면 강제 탈출
         if (_stuckTimer >= data.maxPatrolMoveTime)
         {
-            Debug.LogWarning($"<color=orange>[Patrol]</color> {owner.gameObject.name}이(가) 지형에 끼었거나 목적지 도달에 실패했습니다. 새로운 경로를 탐색합니다.");
+            //Debug.LogWarning($"<color=orange>[Patrol]</color> {owner.gameObject.name}이(가) 지형에 끼었거나 목적지 도달에 실패했습니다. 새로운 경로를 탐색합니다.");
             MoveToNextPoint();
             return;
         }
