@@ -13,8 +13,9 @@ public class PlayerAttack : NetworkBehaviour
     [Header("상태")]
     public bool isAttacking = false;
 
-    [Header("데미지")]
+    [Header("무기관련 스텟변화")]
     public float attackDamage = 0f;
+    public float attackRange = 0f;
 
     public override void OnNetworkSpawn()
     {
@@ -101,20 +102,55 @@ public class PlayerAttack : NetworkBehaviour
     void PerformHitDetection()
     {
         // 공격 범위 설정 (무기 아이템 데이터에서 가져오는 것이 좋음)
-        float attackRange = 2.0f;
+        //float attackRange = 2.0f;
         //float attackDamage = 20f; // 예시 데미지
 
-        // 레이캐스트 또는 OverlapSphere로 몬스터 탐색
+        PlayerInventory inventory = GetComponent<PlayerInventory>();
+        ItemBase currentItem = (inventory != null) ? inventory.HeldItem : null;
+
+        // 💡 핵심: 손에 든 아이템이 존재하고, 그게 '무기(Item_Weapon)' 클래스라면?
+        if (currentItem != null && currentItem is Item_Weapon equippedWeapon)
+        {
+            // 무기 SO 데이터에 적혀있는 수치로 데미지와 사거리를 덮어씌웁니다!
+            attackDamage = equippedWeapon.attackPower;
+            attackRange = equippedWeapon.attackRange;
+        }
+
+        PlayerController localPlayer = GetComponent<PlayerController>();
+
+        if (localPlayer != null && localPlayer.isSnared.Value)
+        {
+            MonsterController attachedMonster = GetComponentInChildren<MonsterController>();
+
+            if (attachedMonster != null)
+            {
+                attachedMonster.TakeDamage(attackDamage);
+                Debug.Log($"[Server] 내 얼굴에 붙은 몬스터 {attachedMonster.name} 타격 성공! 떼어냅니다!");
+                return;
+            }
+        }
+
         RaycastHit hit;
         if (Physics.Raycast(transform.position + Vector3.up, transform.forward, out hit, attackRange))
         {
             if (hit.collider.TryGetComponent<MonsterController>(out var monster))
             {
-                // 서버 권한으로 몬스터에게 데미지 부여
                 monster.TakeDamage(attackDamage);
                 Debug.Log($"[Server] 몬스터 {monster.name} 타격 성공!");
             }
         }
+
+        // 레이캐스트 또는 OverlapSphere로 몬스터 탐색
+        //RaycastHit hit;
+        //if (Physics.Raycast(transform.position + Vector3.up, transform.forward, out hit, attackRange))
+        //{
+        //    if (hit.collider.TryGetComponent<MonsterController>(out var monster))
+        //    {
+        //        // 서버 권한으로 몬스터에게 데미지 부여
+        //        monster.TakeDamage(attackDamage);
+        //        Debug.Log($"[Server] 몬스터 {monster.name} 타격 성공!");
+        //    }
+        //}
     }
 
     public void AttemptAttack()
