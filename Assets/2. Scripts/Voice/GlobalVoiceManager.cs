@@ -232,21 +232,61 @@ public class GlobalVoiceManager : MonoBehaviour, IConnectionCallbacks
             }
         }
     }
-    public void SetCallMode(string targetNickname, bool isCalling)
+    /// <summary>
+    /// 스마트폰 통화 상태에 따라 특정 플레이어의 목소리를 2D(통화) 또는 3D(일반)로 전환합니다.
+    /// </summary>
+    /// <param name="targetNickname">통화 대상 닉네임</param>
+    /// <param name="isCallActive">true면 2D 통화 모드, false면 3D 일반 대화 모드</param>
+    public void SetCallMode(string targetNickname, bool isCallActive)
     {
-        // 닉네임 공백, 널문자 제거
-        string clearNick = targetNickname.Replace("\0", "").Trim();
+        // 1. 현재 접속 중인 방에서 상대방(targetNickname)의 고유 ID(PlayerId)를 찾습니다.
+        int targetPlayerId = -1;
+        var currentRoom = globalVoiceClient.Client.CurrentRoom;
 
-        VoiceController[] controllers = FindObjectsByType<VoiceController>(FindObjectsSortMode.None);
-        foreach (var vc in controllers)
+        if (currentRoom != null)
         {
-            bool isProximityVoice = vc.gameObject.name == $"VoiceSpeaker_{clearNick}";
-
-            if(isProximityVoice)
+            foreach (var p in currentRoom.Players.Values)
             {
-                vc.SetCallMode(isCalling);
+                if (p.NickName == targetNickname)
+                {
+                    targetPlayerId = p.ActorNumber;
+                    break;
+                }
+            }
+        }
 
-                if (globalRecorder != null) globalRecorder.TransmitEnabled = isCalling;
+        if (targetPlayerId == -1)
+        {
+            Debug.LogWarning($"<color=red>[Phone]</color> '{targetNickname}' 플레이어를 방에서 찾을 수 없습니다.");
+            return;
+        }
+
+        // 2. 씬에 존재하는 모든 포톤 스피커 중, 상대방의 스피커를 찾아 2D/3D 전환!
+        Photon.Voice.Unity.Speaker[] allSpeakers = FindObjectsByType<Photon.Voice.Unity.Speaker>(FindObjectsSortMode.None);
+
+        foreach (var speaker in allSpeakers)
+        {
+            if (speaker.RemoteVoice.PlayerId == targetPlayerId)
+            {
+                AudioSource aud = speaker.GetComponent<AudioSource>();
+                if (aud != null)
+                {
+                    if (isCallActive)
+                    {
+                        // 📞 통화 모드 (2D 귀에 직접 꽂힘)
+                        aud.spatialBlend = 0f;
+                        aud.bypassEffects = true; // 거리나 공간 이펙트 무시
+                        Debug.Log($"<color=magenta>[Phone]</color> '{targetNickname}'와의 통화 연결! 사운드를 2D로 전환합니다.");
+                    }
+                    else
+                    {
+                        // 🗣️ 일반 모드 (3D 캐릭터 위치 기반)
+                        aud.spatialBlend = 1.0f;
+                        aud.bypassEffects = false;
+                        Debug.Log($"<color=magenta>[Phone]</color> '{targetNickname}'와의 통화 종료! 사운드를 3D로 복구합니다.");
+                    }
+                }
+                break;
             }
         }
     }
