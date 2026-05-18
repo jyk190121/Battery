@@ -10,6 +10,9 @@ public class Item_Weapon : ItemBase
     [Tooltip("이 무기의 기본 타격 데미지")]
     public float attackPower = 10f;
 
+    [Tooltip("무기별 공격 사거리 (이 무기의 크기/길이에 맞게 설정)")]
+    public float attackRange = 10.0f;
+
     [Tooltip("무기별 넉백 수치 (필요 시 팀원과 협의하여 사용)")]
     public float knockbackForce = 5f;
 
