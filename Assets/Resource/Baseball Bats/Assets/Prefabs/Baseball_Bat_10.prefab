@@ -73,7 +73,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 401674847
+  GlobalObjectIdHash: 1615756853
   InScenePlacedSourceGlobalObjectIdHash: 1615756853
   DeferredDespawnTick: 0
   Ownership: 1
@@ -211,9 +211,10 @@ MonoBehaviour:
   isEquipped: 0
   gripPositionOffset: {x: 0, y: 0, z: 0}
   gripRotationOffset: {x: 0, y: 0, z: 0}
-  attackPower: 10
-  attackRange: 2
-  knockbackForce: 5
+  attackPower: 30
+  maxDurability: 10
+  currentDurability:
+    m_InternalValue: 10
 --- !u!33 &5182915440695218480
 MeshFilter:
   m_ObjectHideFlags: 0

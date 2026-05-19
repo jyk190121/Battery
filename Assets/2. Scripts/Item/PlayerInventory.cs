@@ -8,7 +8,8 @@ using Unity.Netcode;
 public class PlayerInventory : NetworkBehaviour
 {
     public static PlayerInventory LocalInstance { get; private set; }
-    public ItemBase HeldItem => twoHandedItem ?? slots[currentSlotIndex];
+    //public ItemBase HeldItem => twoHandedItem ?? slots[currentSlotIndex];
+    public ItemBase HeldItem => (twoHandedItem != null) ? twoHandedItem : slots[currentSlotIndex];
     public static bool IsHoldingTwoHanded => LocalInstance?.twoHandedItem != null;
 
     [Header("Inventory Slots")]
@@ -752,25 +753,61 @@ public class PlayerInventory : NetworkBehaviour
         if (!IsServer) slots[slotIndex] = null;
     }
     #region 내구도형 아이템 삭제 로직
+    /// <summary>
+    /// 내구도가 다한 무기를 모든 네트워크 클라이언트의 인벤토리 슬롯에서 안전하게 지워줍니다.
+    /// </summary>
     public void RemoveBrokenItem(ItemBase brokenItem)
     {
-        if (twoHandedItem == brokenItem)
+        if (!IsServer || brokenItem == null) return;
+
+        // 💡 1. 무기가 세상에서 파괴(Despawn)되기 전에, 절대 유실되지 않는 고유 번호를 빼옵니다.
+        ulong netId = brokenItem.NetworkObjectId;
+
+        // 💡 2. 방장(서버)은 참조가 끊기기 전에 즉시 자기 인벤토리와 UI를 먼저 정리합니다.
+        ClearBrokenItemLocal(netId);
+
+        // 💡 3. 클라이언트들에게도 번호를 주며 지우라고 명령합니다.
+        RemoveBrokenItemClientRpc(netId);
+    }
+
+    [ClientRpc]
+    private void RemoveBrokenItemClientRpc(ulong netId)
+    {
+        // 방장은 위에서 이미 지웠으므로 중복으로 지우지 않습니다.
+        if (IsServer) return;
+
+        ClearBrokenItemLocal(netId);
+    }
+
+    /// <summary>
+    /// 실제 인벤토리 배열을 null로 비우고 UI를 갱신하는 공통 함수입니다.
+    /// </summary>
+    private void ClearBrokenItemLocal(ulong netId)
+    {
+        // 1. 양손 무기(Bat) 검사
+        if (twoHandedItem != null && twoHandedItem.NetworkObjectId == netId)
         {
             twoHandedItem = null;
             OnTwoHandedToggled?.Invoke(false);
         }
-        else
+        for (int i = 0; i < slots.Length; i++)
         {
-            for (int i = 0; i < slots.Length; i++)
+            if (slots[i] != null && slots[i].NetworkObjectId == netId)
             {
-                if (slots[i] == brokenItem)
-                {
-                    slots[i] = null;
-                    break;
-                }
+                slots[i] = null;
+                break;
             }
         }
+
+        // 3. 인벤토리가 비워졌으니 InventoryUI.cs의 UpdateUI를 깨워 화면을 갱신합니다.
         OnInventoryUpdated?.Invoke();
+
+        // 4. [핵심] 무기가 파괴되었으니 PlayerEquipment의 장착 상태를 즉시 새로고침합니다!
+        PlayerEquipment equipment = GetComponent<PlayerEquipment>();
+        if (equipment != null)
+        {
+            equipment.UpdateWeaponStatus();
+        }
     }
     #endregion
 }

@@ -38,7 +38,8 @@ public class Item_Weapon : ItemBase
         if (!IsServer) return;
 
         currentDurability.Value--;
-        Debug.Log($"[Durability] {itemData.itemName} 타격 성공! 남은 내구도: {currentDurability.Value}/{maxDurability}");
+        print($"[Durability] {itemData.itemName} 타격 성공! 남은 내구도: {currentDurability.Value}/{maxDurability}");
+        print($"{attackPower} 데미지 줌");
 
         if (currentDurability.Value <= 0)
         {
