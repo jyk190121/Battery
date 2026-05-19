@@ -307,6 +307,8 @@ public class PlayerInventory : NetworkBehaviour
 
         SetItemPhysicsAndLayer(item, true);
 
+        bool isWeapon = item.itemData.category == ItemCategory.Weapon;
+
         if (item.itemData.handType == HandType.TwoHand)
         {
             slots[emptySlotIndex] = item;
@@ -315,7 +317,8 @@ public class PlayerInventory : NetworkBehaviour
             if (slots[currentSlotIndex] != null && slots[currentSlotIndex] != item)
                 slots[currentSlotIndex].gameObject.SetActive(false);
 
-            item.ExecuteChangeOwnership(true, bothHandsTransform);
+            Transform targetHand = isWeapon ? leftHandTransform : bothHandsTransform;
+            item.ExecuteChangeOwnership(true, targetHand);
             if (IsOwner) OnTwoHandedToggled?.Invoke(true);
         }
         else
@@ -448,7 +451,10 @@ public class PlayerInventory : NetworkBehaviour
 
             SetItemPhysicsAndLayer(item, true);
 
-            Transform targetHand = (item.itemData.handType == HandType.TwoHand) ? bothHandsTransform : leftHandTransform;
+            // [핵심] 복구할 때도 무기인지 확인하고, 무기라면 양손이어도 왼손으로 강제 고정
+            bool isWeapon = item.itemData.category == ItemCategory.Weapon;
+            Transform targetHand = (item.itemData.handType == HandType.TwoHand && !isWeapon) ? bothHandsTransform : leftHandTransform;
+
             item.ExecuteChangeOwnership(true, targetHand);
 
             if (item.itemData.handType == HandType.TwoHand)
