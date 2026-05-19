@@ -158,8 +158,8 @@ GameObject:
   - component: {fileID: 6737483484655814712}
   - component: {fileID: 8351278791248112915}
   - component: {fileID: 3727254929513963575}
-  - component: {fileID: 6846908254052586561}
   - component: {fileID: 222395138190695892}
+  - component: {fileID: 6846908254052586561}
   - component: {fileID: 6664900567721981824}
   - component: {fileID: 5294770353059116435}
   m_Layer: 9
@@ -263,34 +263,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.2119231, y: 2.0852115, z: 0.2}
   m_Center: {x: -0.6058681, y: 0.00000035762787, z: -0.00000013038516}
---- !u!114 &6846908254052586561
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6350125821750604089}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 27d4d754ff13abb45bb44b5097232cd6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DoorController
-  ShowTopMostFoldoutHeaderGroup: 1
-  doorType: 1
-  roomLocation: 0
-  questItemSpawnPoint: {fileID: 0}
-  isOpen:
-    m_InternalValue: 0
-  isLocked:
-    m_InternalValue: 0
-  requiredKeyID: 
-  speed: 6
-  openAngle: 90
-  openOffset: {x: -1.1, y: 0, z: 0}
-  doorAudioSource: {fileID: 5294770353059116435}
-  openSound: {fileID: 8300000, guid: 66d1a14edde60ac4cb4dfe1a5a25fcba, type: 3}
-  closeSound: {fileID: 8300000, guid: 734c1a5fa779db2409c33d80bf1935fa, type: 3}
-  lockedSound: {fileID: 8300000, guid: aadf68eb549bcba4a8a45d397bfd8791, type: 3}
 --- !u!114 &222395138190695892
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -316,6 +288,33 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
+--- !u!114 &6846908254052586561
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6350125821750604089}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27d4d754ff13abb45bb44b5097232cd6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DoorController
+  ShowTopMostFoldoutHeaderGroup: 1
+  doorType: 1
+  roomLocation: 0
+  questItemSpawnPoint: {fileID: 0}
+  isOpen:
+    m_InternalValue: 0
+  isLocked:
+    m_InternalValue: 0
+  speed: 6
+  openAngle: 90
+  openOffset: {x: -1.1, y: 0, z: 0}
+  doorAudioSource: {fileID: 5294770353059116435}
+  openSound: {fileID: 8300000, guid: 66d1a14edde60ac4cb4dfe1a5a25fcba, type: 3}
+  closeSound: {fileID: 8300000, guid: 734c1a5fa779db2409c33d80bf1935fa, type: 3}
+  lockedSound: {fileID: 8300000, guid: aadf68eb549bcba4a8a45d397bfd8791, type: 3}
 --- !u!208 &6664900567721981824
 NavMeshObstacle:
   m_ObjectHideFlags: 0
@@ -341,7 +340,7 @@ AudioSource:
   m_GameObject: {fileID: 6350125821750604089}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: -5523281420493120505, guid: 6e59fb41f1735d744bcfc0b8e4bcebdc, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
