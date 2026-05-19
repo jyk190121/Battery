@@ -125,11 +125,7 @@ public class PlayerInventory : NetworkBehaviour
                 else if (lastLookedReturnPoint != null) lastLookedReturnPoint.Interact(this);
                 else if (lastLookedDoor != null)
                 {
-                    string myKeyID = "";
-                    ItemBase heldItem = HeldItem;
-                    if (heldItem != null && heldItem.itemData != null && !string.IsNullOrEmpty(heldItem.itemData.keyID))
-                        myKeyID = heldItem.itemData.keyID;
-                    lastLookedDoor.TryOpen(myKeyID);
+                   lastLookedDoor.TryOpen();
                 }
                 else if (lastLookedItem != null) TryPickUpAction();
             }
@@ -597,20 +593,6 @@ public class PlayerInventory : NetworkBehaviour
         {
             item.NetworkObject.RemoveOwnership();
             NotifyItemDroppedClientRpc(item.NetworkObjectId, pos, dir);
-        }
-    }
-
-    public void ConsumeKeyItem(ItemBase item)
-    {
-        if (item == null) return;
-
-        if (IsServer)
-        {
-            RemoveItemByServer(item.itemData.itemID);
-        }
-        else
-        {
-            RequestRemoveItemServerRpc(item.itemData.itemID);
         }
     }
 

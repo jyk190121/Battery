@@ -133,25 +133,8 @@ public class PlayerInteraction : NetworkBehaviour
             {
                 if (Keyboard.current.eKey.wasPressedThisFrame)
                 {
-                    if (TryGetComponent(out PlayerInventory PlayerInventory))
-                    {
-                        ItemBase heldItem = PlayerInventory.HeldItem;
-                        string myKeyID = heldItem?.itemData?.keyID ?? "";
-
-                        // 열쇠와 문의 판정
-                        if (targetDoor.isLocked.Value && !targetDoor.isOpen.Value && targetDoor.requiredKeyID == myKeyID && !string.IsNullOrEmpty(myKeyID))
-                        {
-                            // 문 Open.
-                            targetDoor.TryOpen(myKeyID);
-                            // 성공시 열쇠 삭제.
-                            PlayerInventory.ConsumeKeyItem(heldItem);
-                        }
-                        else
-                        {
-                            // 열쇠가 틀렸거나, 안 잠긴 문이거나, 빈손인 경우 -> 문 열기 시도만 하고 열쇠는 안 지움
-                            targetDoor.TryOpen(myKeyID);
-                        }
-                    }
+                    // 열쇠 검사 없이 문에게 무조건 열기 시도만 지시 (잠김 여부는 문 스스로가 판단함)
+                    targetDoor.TryOpen();
                 }
             }
             else if (targetTabletUI != null)

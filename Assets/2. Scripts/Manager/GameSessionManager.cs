@@ -326,10 +326,17 @@ public class GameSessionManager : NetworkBehaviour
         {
             QuestDataSO questData = QuestManager.Instance.GetQuestData(questID);
 
-            if (questData != null && questData.type == QuestType.Return)
+            if (questData != null)
             {
-                pendingSpawnItemIDs.Add(questData.targetItemID);
-                Debug.Log($"<color=green>[Quest]</color> 환원 퀘스트 지급품({questData.targetItemID}) 적재 완료.");
+                // 환원 퀘스트이거나 하드 난이도 촬영 퀘스트인지 확인
+                bool isReturnQuest = questData.type == QuestType.Return;
+                bool isHardPhotoQuest = questData.type == QuestType.Photo && questData.difficulty == QuestDifficulty.Hard;
+
+                if ((isReturnQuest || isHardPhotoQuest) && questData.targetItemID != 0)
+                {
+                    pendingSpawnItemIDs.Add(questData.targetItemID);
+                    Debug.Log($"<color=green>[Quest]</color> 퀘스트 지급품({questData.targetItemID}) 배달존 적재 완료.");
+                }
             }
         }
     }

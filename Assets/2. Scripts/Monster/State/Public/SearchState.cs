@@ -60,7 +60,7 @@ public class SearchState : MonsterBaseState
 
         // 4. 첫 번째 목적지(예측 지점)로 이동 시작
         MoveToPosition(_predictedPosition);
-        Debug.Log($"<color=magenta>[Search]</color> 도주 예측 지점 {_predictedPosition}으로 이동하여 수색을 시작합니다.");
+        //Debug.Log($"<color=magenta>[Search]</color> 도주 예측 지점 {_predictedPosition}으로 이동하여 수색을 시작합니다.");
     }
 
     public override void Exit()

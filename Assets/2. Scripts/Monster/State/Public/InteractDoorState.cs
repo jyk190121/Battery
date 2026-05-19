@@ -106,7 +106,7 @@ public class InteractDoorState : MonsterBaseState
         if (owner.TargetDoor.CanOpenWithoutKey)
         {
             // 문 개방 시도
-            owner.TargetDoor.TryOpen("");
+            owner.TargetDoor.TryOpen();
 
             // 타겟 유무와 이전 상태(PreviousState)에 따른 지능적 상태 전환 로직
 

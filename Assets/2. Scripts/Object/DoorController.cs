@@ -13,7 +13,6 @@ public class DoorController : NetworkBehaviour
     [Header("Settings")]
     public NetworkVariable<bool> isOpen = new NetworkVariable<bool>(false);
     public NetworkVariable<bool> isLocked = new NetworkVariable<bool>(false);
-    public string requiredKeyID;
     public float speed = 3f;
 
     [Header("Swing Settings")]
@@ -84,25 +83,25 @@ public class DoorController : NetworkBehaviour
         }
     }
 
-    public void TryOpen(string heldKeyID)
+    public void TryOpen()
     {
         if (IsServer)
         {
-            ProcessDoorLogic(heldKeyID);
+            ProcessDoorLogic();
         }
         else
         {
-            RequestOpenDoorServerRpc(heldKeyID);
+            RequestOpenDoorServerRpc();
         }
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-    private void RequestOpenDoorServerRpc(string heldKeyID)
+    private void RequestOpenDoorServerRpc()
     {
-        ProcessDoorLogic(heldKeyID);
+        ProcessDoorLogic();
     }
 
-    private void ProcessDoorLogic(string heldKeyID)
+    private void ProcessDoorLogic()
     {
         if (isOpen.Value)
         {
@@ -112,13 +111,7 @@ public class DoorController : NetworkBehaviour
 
         if (isLocked.Value)
         {
-            if (heldKeyID == requiredKeyID)
-            {
-                Debug.Log("<color=green>열쇠가 일치합니다! 잠금을 해제하고 문을 엽니다.</color>");
-                isLocked.Value = false;
-                isOpen.Value = true; // -> 여기서 true가 되면 OnDoorStateChanged가 불리고 열림 소리 재생
-            }
-            else
+            if (isLocked.Value)
             {
                 Debug.Log("<color=red>문이 잠겨 있습니다. 맞는 열쇠가 필요합니다.</color>");
 
