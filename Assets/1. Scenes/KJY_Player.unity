@@ -6106,6 +6106,14 @@ PrefabInstance:
       value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 2082488108574997112, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: itemDatabase.Array.size
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 2082488108574997112, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: 'itemDatabase.Array.data[13]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 086498ddc89568143a8d69bb898e7621, type: 2}
+    - target: {fileID: 2082488108574997112, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: 'safeDropPoints.Array.data[0]'
       value: 
       objectReference: {fileID: 1463900345}

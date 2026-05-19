@@ -12,11 +12,6 @@ public class ItemSpawner : NetworkBehaviour
     public int maxSpawnCount = 27;  // 일반 폐지 최대 개수 유지
     public int extraSpawnPerDifficulty = 2;
 
-    [Header("확률 설정")]
-    [Tooltip("각 열쇠가 스폰될 확률 (%)")]
-    [Range(0f, 100f)]
-    public float keySpawnChance = 15f;
-
     [Header("퀘스트 기믹 설정")]
     public Transform[] safeDropPoints = new Transform[3];
 
@@ -170,20 +165,10 @@ public class ItemSpawner : NetworkBehaviour
             }
         }
 
-        // 2. 열쇠 아이템 (마찬가지로 +α 스폰)
-        int keySpawnCount = 0;
-        var keyItems = itemDatabase.Where(i => !string.IsNullOrEmpty(i.keyID)).OrderBy(x => Random.value).ToList();
-        foreach (var keyItem in keyItems)
-        {
-            if (Random.Range(0f, 100f) <= keySpawnChance)
-            {
-                if (TrySpawnSpecificItem(keyItem, spawnDict)) keySpawnCount++;
-            }
-        }
+       
 
         // 3. 일반 폐지 스폰 (순수하게 targetNormalSpawnCount 만큼 스폰)
         var normalItems = itemDatabase.Where(i =>
-            string.IsNullOrEmpty(i.keyID) &&
             i.category != ItemCategory.Quest &&
             i.spawnLocation != SpawnLocation.ShopOnly).ToList();
 
@@ -265,7 +250,7 @@ public class ItemSpawner : NetworkBehaviour
             }
 
             // 명확한 디버그 로그 출력
-            Debug.Log($"<color=cyan>[Spawner]</color> 스폰 결산 -> 퀘스트/열쇠: {questItemCount + keySpawnCount}개 + 일반 폐지: {normalSuccessCount}/{targetNormalSpawnCount}개. 총 맵 스폰: {questItemCount + keySpawnCount + normalSuccessCount}개");
+            Debug.Log($"<color=cyan>[Spawner]</color> 스폰 결산 -> 퀘스트 아이템: {questItemCount}개 + 일반 폐지: {normalSuccessCount}/{targetNormalSpawnCount}개. 총 맵 스폰: {questItemCount + normalSuccessCount}개");
         }
     }
 
