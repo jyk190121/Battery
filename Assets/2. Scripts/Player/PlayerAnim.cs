@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
 public class PlayerAnim : MonoBehaviour
 {
@@ -118,8 +119,12 @@ public class PlayerAnim : MonoBehaviour
         anim.Update(0f);
     }
 
-    public void PlayAttack()
+    public void PlayAttack(HandType handType)
     {
+        // 애니메이터에 Int 파라미터로 무기 타입(1: 한손, 2: 양손)을 셋팅해줍니다.
+        anim.SetInteger("WeaponHandType", handType == HandType.OneHand ? 1 : 2);
+
+        // 그 후 공격 트리거 발동!
         anim.SetTrigger("Attack");
     }
 }
