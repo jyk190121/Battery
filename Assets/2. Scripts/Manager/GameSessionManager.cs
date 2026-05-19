@@ -157,7 +157,10 @@ public class GameSessionManager : NetworkBehaviour
             {
                 QuestManager.Instance.ActivateGeneratorGimmick();
             }
-
+            if (sceneName == "KJY_Lobby")
+            {
+                ClearLocalPhotosClientRpc();
+            }
         }
 
 
@@ -288,16 +291,28 @@ public class GameSessionManager : NetworkBehaviour
         }
         shopCart.Clear();
 
-        // 2. 출발 전 짐 싸기 (의존성 분리: 퀘스트 관련은 QuestManager에게 위임)
+        // 2. 출발 전 짐 싸기 
         PrepareReturnQuestItems();
-
+      
         // 3. 씬 이동 (모든 클라이언트 동기화)
         if (NetworkManager.Singleton.SceneManager != null)
         {
             NetworkManager.Singleton.SceneManager.LoadScene(targetSceneName, UnityEngine.SceneManagement.LoadSceneMode.Single);
         }
     }
-
+    [Rpc(SendTo.Everyone)]
+    public void ClearLocalPhotosClientRpc()
+    {
+        if (PhotoDataManager.Instance != null)
+        {
+            PhotoDataManager.Instance.ClearAllPhotos();
+        }
+        if (QuestCameraBridge.Instance != null)
+        {
+            QuestCameraBridge.Instance.RecalculateLocalDeferredQuests();
+        }
+        Debug.Log("<color=red>[SessionManager]</color> 씬 이동 전, 이전 판의 사진 찌꺼기를 로컬에서 완벽히 소각했습니다.");
+    }
     void ApprovalCheck(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
     {
         // 자물쇠가 잠겼거나(IsRoomLocked), 씬 전환 시작 버튼을 누른 상태면
