@@ -3522,6 +3522,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   isAttacking: 0
   attackDamage: 0
+  attackRange: 3
 --- !u!114 &8808567715922933914
 MonoBehaviour:
   m_ObjectHideFlags: 0

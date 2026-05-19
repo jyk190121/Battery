@@ -140,7 +140,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemCheat
   ShowTopMostFoldoutHeaderGroup: 1
-  targetItemID: 401
+  targetItemID: 306
   helpMessage: "F2: \uC544\uC774\uD15C \uC18C\uD658 | F5: \uC2E0\uC6A9\uD55C\uB3C4
     \uCD94\uAC00"
 --- !u!114 &8195691170999809342

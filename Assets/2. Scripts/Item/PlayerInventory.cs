@@ -751,4 +751,26 @@ public class PlayerInventory : NetworkBehaviour
     {
         if (!IsServer) slots[slotIndex] = null;
     }
+    #region 내구도형 아이템 삭제 로직
+    public void RemoveBrokenItem(ItemBase brokenItem)
+    {
+        if (twoHandedItem == brokenItem)
+        {
+            twoHandedItem = null;
+            OnTwoHandedToggled?.Invoke(false);
+        }
+        else
+        {
+            for (int i = 0; i < slots.Length; i++)
+            {
+                if (slots[i] == brokenItem)
+                {
+                    slots[i] = null;
+                    break;
+                }
+            }
+        }
+        OnInventoryUpdated?.Invoke();
+    }
+    #endregion
 }
