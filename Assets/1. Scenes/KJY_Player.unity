@@ -2203,6 +2203,14 @@ PrefabInstance:
       propertyPath: GlobalObjectIdHash
       value: 3883074361
       objectReference: {fileID: 0}
+    - target: {fileID: 2082488108574997112, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: itemDatabase.Array.size
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 2082488108574997112, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
+      propertyPath: 'itemDatabase.Array.data[14]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 3d039d9b9f5d6e547a182eaae8de610f, type: 2}
     - target: {fileID: 2132889108990204269, guid: 415bb2978141c3048b438f95cd818b99, type: 3}
       propertyPath: GlobalObjectIdHash
       value: 3064217570

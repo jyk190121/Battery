@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff10b20d6fe2cce4ab855ce5cb3e8034, type: 3}
   m_Name: Flashbang
   m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
-  itemID: 401
+  itemID: 301
   itemName: Flashbang
   handType: 0
   category: 1

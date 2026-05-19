@@ -96,6 +96,7 @@ MonoBehaviour:
   - {fileID: 894007757027859632, guid: 7816c5c7444ac2642a1c2cd55ffa762d, type: 3}
   - {fileID: 1106448145002226843, guid: 87d098a7dd7a95d43a90c7f866512751, type: 3}
   - {fileID: 6905728940990820160, guid: 772fe8925de8add4e9c7f396e0264f18, type: 3}
+  - {fileID: -6612525828497113074, guid: 28fb68795a53a364a8b2466212a121d8, type: 3}
 --- !u!114 &3852236523237432094
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -140,7 +141,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemCheat
   ShowTopMostFoldoutHeaderGroup: 1
-  targetItemID: 401
+  targetItemID: 501
   helpMessage: "F2: \uC544\uC774\uD15C \uC18C\uD658 | F5: \uC2E0\uC6A9\uD55C\uB3C4
     \uCD94\uAC00"
 --- !u!114 &8195691170999809342
@@ -157,7 +158,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::QuestDebugManager
   ShowTopMostFoldoutHeaderGroup: 1
   targetQuestID: 1011
-  targetItemID: 301
+  targetItemID: 502
   helpMessage: "F1:Easy\uC218\uB77D, F6:Normal\uC218\uB77D, F7:Hard\uC218\uB77D\nF2:\uD15C\uC18C\uD658,
     F3:ID\uAC15\uC81C\uC644\uB8CC, F4:\uC0C1\uD0DC\uCD9C\uB825\nF5:\uB3C8\uCD94\uAC00,
     F8:\uC77C\uC77C\uD018\uC2A4\uD2B8 \uC0C8\uB85C\uACE0\uCE68(\uB2E4\uC74C\uB0A0)"
