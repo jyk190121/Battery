@@ -135,7 +135,7 @@ AudioSource:
   m_GameObject: {fileID: 244564091847349486}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: -5523281420493120505, guid: 6e59fb41f1735d744bcfc0b8e4bcebdc, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
@@ -1554,7 +1554,7 @@ AudioSource:
   m_GameObject: {fileID: 2072805259607874625}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: -5523281420493120505, guid: 6e59fb41f1735d744bcfc0b8e4bcebdc, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
@@ -3522,6 +3522,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   isAttacking: 0
   attackDamage: 0
+  attackRange: 0
 --- !u!114 &8808567715922933914
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5653,7 +5654,7 @@ AudioSource:
   m_GameObject: {fileID: 8662155400186658021}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: -5523281420493120505, guid: 6e59fb41f1735d744bcfc0b8e4bcebdc, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1

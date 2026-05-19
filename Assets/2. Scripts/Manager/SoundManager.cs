@@ -245,7 +245,7 @@ public class SoundManager : MonoBehaviour
 
     #endregion
 
-    #region 볼륨 조절 메서드
+    #region 볼륨 조절 메서드 (Audio Mixer 연동)
 
     // 처음 시작할 때 PlayerPrefs에 저장된 볼륨을 믹서에 적용
     void LoadVolumeSettings()
@@ -256,29 +256,32 @@ public class SoundManager : MonoBehaviour
     }
 
     // 슬라이더 값(0.0001 ~ 1)을 받아 dB(-80 ~ 0)로 변환하여 믹서에 적용
+    // Log10(0)은 에러가 나므로 Mathf.Max로 최소값을 0.0001f로 방어합니다.
+
     public void SetMasterVolume(float volume)
     {
-        AudioListener.volume = Mathf.Clamp01(volume);
+        if (audioMixer != null)
+        {
+            float db = Mathf.Log10(Mathf.Max(volume, 0.0001f)) * 20f;
+            audioMixer.SetFloat("MasterVol", db);
+        }
     }
 
     public void SetBgmVolume(float volume)
     {
-        if (bgmSource != null)
+        if (audioMixer != null)
         {
-            bgmSource.volume = Mathf.Clamp01(volume);
+            float db = Mathf.Log10(Mathf.Max(volume, 0.0001f)) * 20f;
+            audioMixer.SetFloat("BgmVol", db);
         }
     }
 
     public void SetSfxVolume(float volume)
     {
-        if (sfxSource != null)
+        if (audioMixer != null)
         {
-            sfxSource.volume = Mathf.Clamp01(volume);
-        }
-
-        if (loopSfxSource != null)
-        {
-            loopSfxSource.volume = Mathf.Clamp01(volume);
+            float db = Mathf.Log10(Mathf.Max(volume, 0.0001f)) * 20f;
+            audioMixer.SetFloat("SfxVol", db);
         }
     }
 
