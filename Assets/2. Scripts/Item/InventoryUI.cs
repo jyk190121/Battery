@@ -16,7 +16,7 @@ public class InventoryUI : MonoBehaviour
 
     private System.Collections.IEnumerator BindLocalPlayerRoutine()
     {
-        // 💡 [핵심] '나(로컬 클라이언트)'의 인벤토리가 스폰될 때까지 대기
+        // [핵심] '나(로컬 클라이언트)'의 인벤토리가 스폰될 때까지 대기
         while (PlayerInventory.LocalInstance == null)
         {
             yield return null;
@@ -30,6 +30,8 @@ public class InventoryUI : MonoBehaviour
 
         UpdateUI();
         UpdateHighlight(playerInventory.currentSlotIndex);
+
+        HandleTwoHandedUI(PlayerInventory.IsHoldingTwoHanded);
     }
 
     private void UpdateUI()
@@ -47,6 +49,8 @@ public class InventoryUI : MonoBehaviour
                 slotIcons[i].enabled = false;
             }
         }
+        // 아이템을 버리거나 주웠을 때 즉시 무기 판별 갱신
+        if (playerInventory != null) HandleTwoHandedUI(PlayerInventory.IsHoldingTwoHanded);
     }
 
     private void UpdateHighlight(int index)
@@ -57,6 +61,9 @@ public class InventoryUI : MonoBehaviour
             if (slotImg != null)
                 slotImg.color = (i == index) ? Color.white : new Color(1, 1, 1, 0.3f);
         }
+
+        // 슬롯을 바꿨을 때 즉시 무기 판별 갱신
+        if (playerInventory != null) HandleTwoHandedUI(PlayerInventory.IsHoldingTwoHanded);
     }
 
     //태블릿 상태에 따라 UI 투명도 조절 함수
@@ -64,14 +71,17 @@ public class InventoryUI : MonoBehaviour
     {
         if (TryGetComponent(out CanvasGroup cg))
         {
-            cg.alpha = isTabletOpen ? 0f : (PlayerInventory.IsHoldingTwoHanded ? 0.5f : 1.0f);
+            // 태블릿 열고 닫을 때도 무기 여부 체크
+            bool isHeavy = PlayerInventory.IsHoldingTwoHanded;
+
+            cg.alpha = isTabletOpen ? 0f : (isHeavy ? 0.5f : 1.0f);
             cg.interactable = !isTabletOpen;
             cg.blocksRaycasts = !isTabletOpen;
         }
     }
+
     private void HandleTwoHandedUI(bool isHeavy)
     {
-        // 양손 아이템 들면 UI 전체를 약간 어둡게 처리
         GetComponent<CanvasGroup>().alpha = isHeavy ? 0.5f : 1.0f;
     }
 
