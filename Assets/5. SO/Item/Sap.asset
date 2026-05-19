@@ -17,7 +17,7 @@ MonoBehaviour:
   handType: 0
   category: 4
   basePrice: 150
-  icon: {fileID: 21300000, guid: 43426b4d7288fe748b346e28c277a5aa, type: 3}
+  icon: {fileID: 21300000, guid: 282c116a57d53be47ab4d31c9f6f54c3, type: 3}
   healAmount: 0
   animType: 2
   spawnLocation: 0
