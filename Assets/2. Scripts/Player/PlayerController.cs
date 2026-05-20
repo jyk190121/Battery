@@ -8,10 +8,18 @@ public class PlayerController : NetworkBehaviour
     // 서버와 사운드 매니저가 즉시 내 로컬 캐릭터를 찾을 수 있는 지정석
     public static PlayerController LocalPlayer { get; private set; }
 
+    // 서버와 몬스터가 즉시 참조할 수 있는 전역(Static) 출석부
+    public static List<PlayerController> AllPlayers = new List<PlayerController>();
+    int _currentSpectateIndex = -1;
+    PlayerAnim playerAnim;
+    PlayerSound playerSound;
+    PlayerRotation playerRotation;
+    PlayerEquipment playerEquipment;
+    PlayerAttack playerAttack;
+
     [Header("사망 연계 설정")]
     public GameObject droppedPhonePrefab; // 바닥에 남겨질 콜라이더/ 폰 프리팹
     public GameObject playerModel;        // 플레이어 모델
-
 
     [Header("Base Data")]
     [SerializeField] private Player _playerData; // SO 데이터
@@ -29,13 +37,27 @@ public class PlayerController : NetworkBehaviour
     // 컴포넌트들을 미리 캐싱하여 다른 곳에서 쉽게 찾게 할 수도 있습니다.
     public PlayerStateManager StateManager { get; private set; }
     public PlayerInteraction Interaction { get; private set; }
-    PlayerRotation playerRotation;
 
-    // 서버와 몬스터가 즉시 참조할 수 있는 전역(Static) 출석부
-    public static List<PlayerController> AllPlayers = new List<PlayerController>();
-    private int _currentSpectateIndex = -1;
-    private PlayerAnim playerAnim;
-    private PlayerSound playerSound;
+    // 1. 설정창 오픈 여부
+    public bool IsSettingsOpen => SettingsUIController.Instance != null && SettingsUIController.Instance.IsSettingsOpen;
+
+    // 2. 내가 현재 태블릿을 조종 중인지 여부 (Netcode ID 비교)
+    public bool IsTabletOpen => TabletUIManager.Instance != null && TabletUIManager.Instance.currentTabletUser.Value == OwnerClientId;
+
+    // 3. 스마트폰 사용 여부 (PlayerEquipment 연동)
+    public bool IsUsingPhone => playerEquipment != null && playerEquipment.IsUsingPhone;
+
+    // 4. 무기 공격 동작 수행 중 여부
+    public bool IsAttacking => playerAttack != null && playerAttack.isAttacking;
+
+    // 이동 가능: 살아있고, 올무 안 걸렸고, 설정창/태블릿이 모두 닫혀있을 때
+    public bool CanMove => !isDead.Value && !isSnared.Value && !IsSettingsOpen && !IsTabletOpen;
+
+    // 회전 가능: 이동 가능 조건 + 추가로 공격 중이 아닐 때만 마우스 회전 허용!
+    public bool CanRotate => CanMove && !IsAttacking;
+
+    // 아이템 사용/공격 가능: 이동 가능 조건 + 추가로 폰 사용 중이 아니고, 공격 연타 중이 아닐 때
+    public bool CanUseItem => CanMove && !IsUsingPhone && !IsAttacking;
 
     private void Awake()
     {
@@ -44,6 +66,8 @@ public class PlayerController : NetworkBehaviour
         playerRotation = GetComponent<PlayerRotation>();
         playerAnim = GetComponent<PlayerAnim>();
         playerSound = GetComponent<PlayerSound>();
+        playerAttack = GetComponent<PlayerAttack>();
+        playerEquipment = GetComponent<PlayerEquipment>();
     }
 
     public override void OnNetworkSpawn()
