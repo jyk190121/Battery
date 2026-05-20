@@ -41,6 +41,9 @@ public class PlayerAttack : NetworkBehaviour
 
     private bool CanAttack()
     {
+        PlayerController controller = GetComponent<PlayerController>();
+        if (controller != null && !controller.CanUseItem) return false;
+
         // 1. 공격 중이 아니고
         // 2. 땅에 붙어 있으며
         // 3. PlayerEquipment를 통해 무기를 들고 있는지 확인

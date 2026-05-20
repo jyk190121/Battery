@@ -18,10 +18,17 @@ MonoBehaviour:
   spawnCost: 4
   maxSpawnCount: 2
   spawnWeight: 50
+  footstepClips: []
+  screamClip: {fileID: 0}
+  chaseClip: {fileID: 0}
+  attackClip: {fileID: 0}
+  breathClip: {fileID: 0}
+  hitClip: {fileID: 0}
+  deathClip: {fileID: 0}
   patrolSpeed: 3
   chaseSpeed: 8
   attackDamage: 20
-  attackRange: 2
+  attackRange: 2.5
   attackCooldown: 2.1
   attackAnimDuration: 2
   attackTrackingTime: 0.7
