@@ -136,6 +136,13 @@ public class PlayerInventory : NetworkBehaviour
                 RequestDropCurrentItem();
             }
         }
+        //if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        //{
+        //    if (HeldItem != null)
+        //    { 
+        //        HeldItem.RequestUseItem(Camera.main.transform.forward);
+        //    }
+        //}
 
         HandleSlotChange();
     }

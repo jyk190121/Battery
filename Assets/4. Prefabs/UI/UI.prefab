@@ -535,7 +535,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 9033205307651874393}
-  - {fileID: 6614686631675630356}
   m_Father: {fileID: 5213042443106156266}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1052,7 +1051,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7603700400893642924}
-  m_Father: {fileID: 1968884411620612728}
+  m_Father: {fileID: 1518049941489366681}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1724,6 +1723,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 9110059613720074729, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4887622026793524900}
+    - targetCorrespondingSourceObject: {fileID: 9110059613720074729, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6614686631675630356}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 651cfd02e36b3f6428f277e116e7bc5b, type: 3}
 --- !u!1 &1023357652447359807 stripped

@@ -97,6 +97,7 @@ MonoBehaviour:
   - {fileID: 1106448145002226843, guid: 87d098a7dd7a95d43a90c7f866512751, type: 3}
   - {fileID: 6905728940990820160, guid: 772fe8925de8add4e9c7f396e0264f18, type: 3}
   - {fileID: -6612525828497113074, guid: 28fb68795a53a364a8b2466212a121d8, type: 3}
+  - {fileID: 5263623123973842954, guid: fe6f3113fdd3c7849a4ad4b77b144257, type: 3}
 --- !u!114 &3852236523237432094
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -141,7 +142,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemCheat
   ShowTopMostFoldoutHeaderGroup: 1
-  targetItemID: 501
+  targetItemID: 401
   helpMessage: "F2: \uC544\uC774\uD15C \uC18C\uD658 | F5: \uC2E0\uC6A9\uD55C\uB3C4
     \uCD94\uAC00"
 --- !u!114 &8195691170999809342
