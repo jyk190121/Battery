@@ -332,7 +332,7 @@ public class PlayerMove : NetworkBehaviour
 
         if (isCrouching) return;
 
-        if (Input.GetKey(Key.LeftCtrl) && isGrounded)
+        if (Input.GetKeyDown(Key.Space) && isGrounded)
         {
             rb.isKinematic = false;
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpForce, rb.linearVelocity.z);

@@ -1,5 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
+using Unity.Netcode.Components;
 
 public class Item_Flash : ItemBase
 {
@@ -13,6 +14,9 @@ public class Item_Flash : ItemBase
     [Tooltip("초당 배터리 소모량")]
     public float batteryDrainRate = 2f;
 
+    PlayerRotation playerRotation;
+    private NetworkTransform netTransform; // ?? 내 오브젝트의 NetworkTransform 컴포넌트 참조
+
     public NetworkVariable<float> currentBatteryNet = new NetworkVariable<float>(
         100f,
         NetworkVariableReadPermission.Everyone,
@@ -24,8 +28,16 @@ public class Item_Flash : ItemBase
         base.Awake();
 
         if (spotLight != null) spotLight.enabled = false;
+        TryGetComponent(out netTransform);
     }
-
+    void OnEnable()
+    {
+        // ?? 인벤토리 슬롯을 전환하면서 활성화될 때 NetworkTransform이 멋대로 켜져서 고정되는 것을 재방지합니다.
+        if (isEquipped && netTransform != null)
+        {
+            netTransform.enabled = false;
+        }
+    }
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
@@ -62,6 +74,42 @@ public class Item_Flash : ItemBase
         }
     }
 
+    /// <summary>
+    /// 아이템을 줍거나 버릴 때 (ItemBase의 함수 오버라이드)
+    /// </summary>
+    public override void ExecuteChangeOwnership(bool isPickingUp, Transform targetHand)
+    {
+        base.ExecuteChangeOwnership(isPickingUp, targetHand);
+
+        if (isPickingUp && targetHand != null)
+        {
+            // 1. 아이템을 주웠을 때: 들고 있는 플레이어의 회전 스크립트를 캐싱합니다.
+            playerRotation = targetHand.GetComponentInParent<PlayerRotation>();
+
+            if (netTransform != null) netTransform.enabled = false;
+
+            Rigidbody rb = GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.isKinematic = true;
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
+        }
+        else
+        {
+            playerRotation = null;
+
+            if (netTransform != null) netTransform.enabled = true;
+
+            if (spotLight != null)
+            {
+                spotLight.transform.localRotation = Quaternion.identity;
+                spotLight.transform.localPosition = Vector3.zero; // 원래 위치로 복귀
+            }
+        }
+    }
+
     // ==========================================
     // 2. 배터리 소모 (내구도 계산)
     // ==========================================
@@ -89,7 +137,25 @@ public class Item_Flash : ItemBase
             }
         }
     }
+ 
 
+    /// <summary>
+    /// 애니메이션이 손의 위치를 다 옮긴 직후(LateUpdate)에 불빛의 각도만 시선으로 꺾어줍니다.
+    /// </summary>
+    void LateUpdate()
+    {
+        // 누군가 장착 중이고 시선 컴포넌트와 라이트가 유효할 때
+        if (isEquipped && playerRotation != null && spotLight != null)
+        {
+            if (playerRotation.CameraGroup != null)
+            {
+                // ?? 회전(Rotation)만 맞추면 손전등 본체가 저 뒤에 남았을 때 빛의 시작점이 깨집니다.
+                // 불빛의 위치(Position)까지 실시간으로 플레이어 눈(CameraGroup)의 좌표로 강제 워프(Snap)시킵니다.
+                spotLight.transform.position = playerRotation.CameraGroup.transform.position;
+                spotLight.transform.rotation = playerRotation.CameraGroup.transform.rotation;
+            }
+        }
+    }
 
     private void ForceTurnOff()
     {
