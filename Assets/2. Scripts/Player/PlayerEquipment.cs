@@ -1,7 +1,9 @@
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using System.Collections;
+using Key = UnityEngine.InputSystem.Key;
+using UnityEngine.InputSystem;
+using Unity.VisualScripting;
 
 public class PlayerEquipment : NetworkBehaviour
 {
@@ -17,10 +19,11 @@ public class PlayerEquipment : NetworkBehaviour
     public ItemBase currentEquippedItem;
 
     [Header("아이템 판별")]
-    private PlayerInventory _inventory;
+    PlayerInventory _inventory;
 
     // 현재 무기를 들고 있는지 여부를 외부(PlayerAttack)에서 확인하기 위한 프로퍼티
     public bool HasWeapon { get; private set; }
+    public bool IsUsingPhone => isUsingPhone.Value;
 
     // 현재 생성되어 있는 폰 객체
     GameObject spawnedPhone;
@@ -70,13 +73,18 @@ public class PlayerEquipment : NetworkBehaviour
         if (!IsOwner) return;
 
         // Q 키 토글
-        if (Keyboard.current.qKey.wasPressedThisFrame)
+        if (Input.GetKeyDown(Key.Q))
         {
+            if (PlayerInventory.IsHoldingTwoHanded)
+            {
+                Debug.Log("[System] 양손 무기를 들고 있을 때는 폰을 꺼낼 수 없습니다.");
+                return;
+            }
             isUsingPhone.Value = !isUsingPhone.Value;
         }
 
         // 마우스 좌클릭 통합 관리
-        if (Mouse.current.leftButton.wasPressedThisFrame)
+        if (Input.GetMouseButtonDown(0))
         {
             // 스마트폰을 보고 있거나 제어가 잠긴 경우 제외
             if (PhoneUIController.Instance != null && PhoneUIController.Instance.isPhoneActive) return;
@@ -216,6 +224,8 @@ public class PlayerEquipment : NetworkBehaviour
         ItemBase item = (_inventory != null) ? _inventory.HeldItem : null;
 
         if (item == null) return;
+        PlayerController controller = GetComponent<PlayerController>();
+        if (controller != null && !controller.CanUseItem) return;
 
         // 무기 여부 업데이트
         UpdateWeaponStatus();

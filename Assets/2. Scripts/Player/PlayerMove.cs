@@ -1,6 +1,5 @@
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using Key = UnityEngine.InputSystem.Key;
 
 
@@ -142,27 +141,29 @@ public class PlayerMove : NetworkBehaviour
     {
         if (!IsOwner) return;
 
-        if (isControlLocked || isTabletLocked || isNumpadLocked ||
-        (SettingsUIController.Instance != null && SettingsUIController.Instance.IsSettingsOpen))
+        PlayerController controller = GetComponent<PlayerController>();
+        if(controller != null && !controller.CanMove)
         {
-            inputMagnitude = 0;
-            if (rb != null && isGrounded)
+            if(rb !=null)
             {
-                rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
+                rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
             }
+
             return;
-        }
+        }    
 
-        Cursor.lockState = CursorLockMode.Locked;
-
-        //if (isControlLocked)
+        //if (isControlLocked || isTabletLocked || isNumpadLocked ||
+        //(SettingsUIController.Instance != null && SettingsUIController.Instance.IsSettingsOpen))
         //{
-        //    // 애니메이션 파라미터 초기화용
-        //    inputMagnitude = 0; 
+        //    inputMagnitude = 0;
+        //    if (rb != null && isGrounded)
+        //    {
+        //        rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
+        //    }
         //    return;
         //}
 
-        if (Keyboard.current == null) return;
+        Cursor.lockState = CursorLockMode.Locked;
 
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
@@ -269,7 +270,7 @@ public class PlayerMove : NetworkBehaviour
         float animValue = 0f;
         if (inputMagnitude > 0.1f)
         {
-            bool isRunning = Keyboard.current.leftShiftKey.isPressed && !isCrouching && !stateManager.IsExhausted;
+            bool isRunning = Input.GetKey(Key.LeftShift) && !isCrouching && !stateManager.IsExhausted;
             animValue = isRunning ? 2.0f : 1.0f;
         }
         playerAnim.UpdateMoveAnimation(animValue);
@@ -298,7 +299,7 @@ public class PlayerMove : NetworkBehaviour
                 // (단, 계단 중간에 멈춰있어야 하는 기획이라면 이 줄은 제외하세요)
                 if (!isOnStair) playerAnim.UpdateStairStatus(false);
 
-                bool canRun = Keyboard.current.leftShiftKey.isPressed && isGrounded && !stateManager.IsExhausted;
+                bool canRun = Input.GetKey(Key.LeftShift) && isGrounded && !stateManager.IsExhausted;
                 currentSpeed = canRun ? runSpeed : walkSpeed;
             }
 
@@ -307,7 +308,7 @@ public class PlayerMove : NetworkBehaviour
             //currentSpeed = (canRun ? runSpeed : walkSpeed) * moveSpeedMultiplier;
 
             currentSpeed *= (moveSpeedMultiplier * questSpeedMultiplier);
-            bool isRunning = Keyboard.current.leftShiftKey.isPressed && !isCrouching && isGrounded && !stateManager.IsExhausted;
+            bool isRunning = Input.GetKey(Key.LeftShift) && !isCrouching && isGrounded && !stateManager.IsExhausted;
             playerAnim.UpdateMoveAnimation(isRunning ? 2.0f : 1.0f);
 
             Move(h, v);
@@ -321,7 +322,7 @@ public class PlayerMove : NetworkBehaviour
 
     void HandleActions()
     {
-        isCrouching = Keyboard.current.leftCtrlKey.isPressed && isGrounded && !isFaceMonsterAttached;
+        isCrouching = Input.GetKey(Key.LeftCtrl) && isGrounded && !isFaceMonsterAttached;
 
         //isCrouching = Keyboard.current.leftCtrlKey.isPressed && isGrounded;
 
@@ -331,7 +332,7 @@ public class PlayerMove : NetworkBehaviour
 
         if (isCrouching) return;
 
-        if (Keyboard.current.spaceKey.wasPressedThisFrame && isGrounded)
+        if (Input.GetKey(Key.LeftCtrl) && isGrounded)
         {
             rb.isKinematic = false;
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpForce, rb.linearVelocity.z);
@@ -343,8 +344,8 @@ public class PlayerMove : NetworkBehaviour
 
         if (isGrounded && inputMagnitude < 0.1f)
         {
-            if (Keyboard.current.digit1Key.wasPressedThisFrame) playerAnim.PlayEmotion1();
-            if (Keyboard.current.digit2Key.wasPressedThisFrame) playerAnim.PlayEmotion2();
+            if (Input.GetKeyDown(Key.Digit1)) playerAnim.PlayEmotion1();
+            if (Input.GetKeyDown(Key.Digit2)) playerAnim.PlayEmotion2();
         }
         else if (inputMagnitude > 0.1f)
         {

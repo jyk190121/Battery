@@ -1,6 +1,5 @@
 using Unity.Cinemachine;
 using Unity.Netcode;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerRotation : NetworkBehaviour
@@ -227,8 +226,9 @@ public class PlayerRotation : NetworkBehaviour
 
     void Update()
     {
-        if (_isSpectating || !IsOwner || (SettingsUIController.Instance != null && SettingsUIController.Instance.IsSettingsOpen)) return;
-
+        //if (_isSpectating || !IsOwner || (SettingsUIController.Instance != null && SettingsUIController.Instance.IsSettingsOpen)) return;
+        if (!IsOwner) return;
+        if (playerController != null && !playerController.CanRotate) return;
 
         if (PhoneUIController.Instance != null)
         {
@@ -262,7 +262,9 @@ public class PlayerRotation : NetworkBehaviour
 
     void LateUpdate()
     {
-        if (!IsOwner || (SettingsUIController.Instance != null && SettingsUIController.Instance.IsSettingsOpen)) return;
+        //if (!IsOwner || (SettingsUIController.Instance != null && SettingsUIController.Instance.IsSettingsOpen)) return;
+        if (!IsOwner) return;
+        if (playerController != null && !playerController.CanRotate) return;
 
         // 1. 카메라 및 컴포넌트 체크
         if (vcam == null || _panTilt == null)
@@ -312,7 +314,6 @@ public class PlayerRotation : NetworkBehaviour
 
         // --- 1. 기본 목표값 설정 ---
         bool isRunning = playerMove.currentSpeed > playerMove.walkSpeed + 0.1f;
-        //float targetZ = playerMove.IsCrouching ? 0.6f : (isRunning ? runYPos : walkZPos);
 
         // [수정 포인트] 변수명은 YPos지만 Z로 쓰이고 있음. 값이 너무 크면 콜라이더 밖으로 나갑니다.
         // 앉았을 때 0.6f는 캡슐 반경을 넘어가기 쉬우므로, 0.3f 정도로 수치 최적화 추천
@@ -374,20 +375,7 @@ public class PlayerRotation : NetworkBehaviour
         // 최종 적용
         Vector3 finalLocalPos = new Vector3(0, dynamicY, dynamicZ);
         cameraTarget.localPosition = Vector3.Lerp(cameraTarget.localPosition, finalLocalPos, Time.deltaTime * transitionSpeed);
-
-        //Vector3 headOffset = Vector3.up * (originYoffset + (playerMove.IsCrouching ? 0.5f : 1.5f));
-        //Vector3 origin = transform.position + headOffset;
-        //Vector3 direction = cameraTarget.forward;
-
-        //// SphereCast를 사용하여 카메라가 물리적으로 들어갈 공간이 있는지 확인
-        //if (Physics.SphereCast(origin, collisionRadius, direction, out RaycastHit hit, dynamicZ, collisionLayers))
-        //{
-        //    // 충돌이 발생하면 충돌 지점보다 약간 앞(minDistance)에 카메라 배치
-        //    dynamicZ = Mathf.Max(0, hit.distance - minDistance);
-        //}
-
-        //Vector3 targetLocalPos = new Vector3(0, dynamicY, dynamicZ);
-        //cameraTarget.localPosition = Vector3.Lerp(cameraTarget.localPosition, targetLocalPos, Time.deltaTime * transitionSpeed);
+    
     }
     void ProcessMouseInput()
     {
@@ -416,16 +404,6 @@ public class PlayerRotation : NetworkBehaviour
         }
         else
         {
-            //float minTilt = -70f;
-            //float _currentMaxTilt = 70f;
-            ////float maxTilt = isHoldingSmartphone ? 20f : 70f;
-            ////_panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, minTilt, maxTilt);
-
-            //float targetMaxTilt = isHoldingSmartphone ? 20f : 70f;
-            //float newTilt = _panTilt.TiltAxis.Value - (mouseDelta.y * finalSensitivity);
-            //_currentMaxTilt = Mathf.Lerp(_currentMaxTilt, targetMaxTilt, Time.deltaTime * transitionSpeed);
-            //_panTilt.TiltAxis.Value = Mathf.Clamp(newTilt, minTilt, _currentMaxTilt);
-
             // 정상 상태: 상하 회전 가능
             float minTilt = -70f;
 
@@ -458,35 +436,6 @@ public class PlayerRotation : NetworkBehaviour
         {
             CameraGroup.transform.rotation = Quaternion.Euler(targetTilt, targetPan, 0f);
         }
-
-        // (기존에 있던 vcam.ForceCameraPosition 이나 Transform 강제 덮어쓰기 로직은 삭제합니다)
-
-        //// 타겟의 눈 위치로 카메라 이동
-        //if (_spectatingTarget.cameraTarget != null)
-        //{
-        //    vcam.transform.position = _spectatingTarget.cameraTarget.position;
-        //}
-
-        //// 타겟의 데이터 로드
-        //float targetPan = _spectatingTarget.NetHorizontalRotation.Value;
-        //float targetTilt = _spectatingTarget.NetVerticalRotation.Value;
-
-        //// 내 PanTilt 컴포넌트도 동기화하여 관전 해제 시 튀지 않게 함
-        //if (_panTilt != null)
-        //{
-        //    _panTilt.PanAxis.Value = targetPan;
-        //    _panTilt.TiltAxis.Value = targetTilt;
-        //}
-
-        //// 월드 회전 적용 (Euler의 세 번째 인자인 Z를 0으로 고정하는 것이 핵심)
-        //Quaternion targetRot = Quaternion.Euler(targetTilt, targetPan, 0f);
-
-        //vcam.ForceCameraPosition(vcam.transform.position, targetRot);
-        //vcam.transform.rotation = targetRot;
-
-        //if (CameraGroup != null) CameraGroup.transform.rotation = targetRot;
-
-        ////vcam.Lens.Dutch = 0; // 화면 기울기 완전 초기화
     }
 
     void HandleRotation()
@@ -578,19 +527,6 @@ public class PlayerRotation : NetworkBehaviour
 
             // PanTilt는 켜두어, HandleSpectatingLogic에서 주입하는 네트워크 값을 반영하게 함
             if (_panTilt != null) _panTilt.enabled = true;
-
-            //vcam.Follow = null;
-            //vcam.LookAt = null;
-
-            //// [추가] 내 PanTilt 컴포넌트가 활성화되어 있다면 값을 타겟과 일치시킴
-            //// 이렇게 해야 HandleSpectatingLogic()이 실행될 때 튀지 않습니다.
-            //if (_panTilt != null) _panTilt.enabled = false;
-
-            //// 타겟 설정 직후 즉시 1회 강제 동기화
-            //ForceSyncRotation(target.NetHorizontalRotation.Value, target.NetVerticalRotation.Value);
-
-            //// 즉시 로직 1회 강제 실행하여 위치/회전 고정
-            ////HandleSpectatingLogic();
         }
         else
         {
@@ -598,9 +534,6 @@ public class PlayerRotation : NetworkBehaviour
             vcam.Follow = cameraTarget;
             if (_inputController != null) _inputController.enabled = true;
             if (_panTilt != null) _panTilt.enabled = true;
-
-            //vcam.Follow = cameraTarget;
-            //if (_panTilt != null) _panTilt.enabled = true;
 
             // 관전 종료 시 닉네임 초기화 (선택 사항)
             if (SpectatorUIController.Instance != null) SpectatorUIController.Instance.UpdateNickname("");

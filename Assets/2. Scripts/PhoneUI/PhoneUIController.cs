@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
+using Key = UnityEngine.InputSystem.Key;
 
 public class PhoneUIController : MonoBehaviour
 {
@@ -87,10 +87,9 @@ public class PhoneUIController : MonoBehaviour
     private void Update()
     {
         if (GameMaster.Instance == null) return; 
-        if (Keyboard.current == null) return; 
         if (isInputBlocked) return; 
 
-        if (Keyboard.current.qKey.wasPressedThisFrame) 
+        if (Input.GetKeyDown(Key.Q))
         {
             // 배터리가 없으면 켜지지 않도록 차단
             if (!hasPower)
@@ -113,14 +112,14 @@ public class PhoneUIController : MonoBehaviour
         if (!phoneUIParent.activeSelf) return;
 
         // 1. C 키: 뒤로가기 (앱 종료 등)
-        if (Keyboard.current.cKey.wasPressedThisFrame)
+        if (Input.GetKeyDown(Key.C))
         {
             SoundManager.Instance.PlaySfx(SfxSound.PHONE_RETURN); 
             OnBackButtonPressed?.Invoke(); 
         }
 
         // 2. 마우스 우클릭: 라이트 토글 이벤트 알림 전송
-        if (Mouse.current.rightButton.wasPressedThisFrame)
+        if (Input.GetMouseButtonDown(1))
         {
             OnFlashlightToggleRequested?.Invoke(); 
         }
