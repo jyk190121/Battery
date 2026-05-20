@@ -75,6 +75,11 @@ public class PlayerEquipment : NetworkBehaviour
         // Q 키 토글
         if (Input.GetKeyDown(Key.Q))
         {
+            if (PlayerInventory.IsHoldingTwoHanded)
+            {
+                Debug.Log("[System] 양손 무기를 들고 있을 때는 폰을 꺼낼 수 없습니다.");
+                return;
+            }
             isUsingPhone.Value = !isUsingPhone.Value;
         }
 
