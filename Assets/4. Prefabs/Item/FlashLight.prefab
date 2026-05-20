@@ -144,7 +144,7 @@ MonoBehaviour:
   gripPositionOffset: {x: -0.1, y: 0, z: -0.2}
   gripRotationOffset: {x: 180, y: 30, z: 0}
   spotLight: {fileID: 1189055678477391754}
-  maxBattery: 100
+  maxBattery: 10
   batteryDrainRate: 2
 --- !u!114 &82495846502851905
 MonoBehaviour:

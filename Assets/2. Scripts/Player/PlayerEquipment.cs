@@ -83,6 +83,21 @@ public class PlayerEquipment : NetworkBehaviour
             isUsingPhone.Value = !isUsingPhone.Value;
         }
 
+        // F키 토글
+        if (Keyboard.current.fKey.wasPressedThisFrame)
+        {
+            // 폰을 보고 있을 때는 작동안함
+            if (PhoneUIController.Instance != null && PhoneUIController.Instance.isPhoneActive) return;
+
+            ItemBase heldItem = (_inventory != null) ? _inventory.HeldItem : null;
+
+            // 현재 손에 들고 있는 아이템이 '손전등(Item_Flash)'일 때만 켜고 끕니다!
+            if (heldItem != null && heldItem is Item_Flash)
+            {
+                heldItem.RequestUseItem(Camera.main.transform.forward);
+            }
+        }
+
         // 마우스 좌클릭 통합 관리
         if (Input.GetMouseButtonDown(0))
         {
@@ -235,7 +250,7 @@ public class PlayerEquipment : NetworkBehaviour
             // 무기라면 PlayerAttack 스크립트로 전달
             if (_playerAttack != null) _playerAttack.AttemptAttack();
         }
-        else if (item.itemData.category == ItemCategory.Consumable || item.itemData.category == ItemCategory.Durability)
+        else if (item.itemData.category == ItemCategory.Consumable)
         {
             // 소모품/도구라면 아이템 자체의 사용 로직 호출
             Vector3 lookDir = Camera.main.transform.forward;
@@ -248,6 +263,12 @@ public class PlayerEquipment : NetworkBehaviour
             }
 
             item.RequestUseItem(lookDir);
+        }
+        else if (item.itemData.category == ItemCategory.Durability)
+        {
+            // 내구도 아이템(손전등 등)을 좌클릭 했을 때의 행동
+            // F키로 켜기로 했으므로, 좌클릭은 아무 일도 일어나지 않게 비워둡니다
+            // (만약 나중에 좌클릭으로도 켜고 싶다면 여기에 item.RequestUseItem(lookDir); 한 줄만 넣으면 됩니다)
         }
     }
 }
