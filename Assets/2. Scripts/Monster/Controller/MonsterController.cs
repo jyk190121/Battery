@@ -278,6 +278,8 @@ public class MonsterController : NetworkBehaviour
 
         PlayHitEffectClientRpc();
 
+        if (soundHandler != null) soundHandler.PlayHitSoundClientRpc();
+
         if (CurrentHealth.Value <= 0)
         {
             CurrentHealth.Value = 0;

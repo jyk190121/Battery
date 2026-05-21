@@ -1123,6 +1123,10 @@ PrefabInstance:
       propertyPath: targetLayer.m_Bits
       value: 8388608
       objectReference: {fileID: 0}
+    - target: {fileID: 3676428655432511256, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
+      propertyPath: m_Color.a
+      value: 0.29803923
+      objectReference: {fileID: 0}
     - target: {fileID: 5213042443106156266, guid: 05b34650fb280f842bdc5820a42344dc, type: 3}
       propertyPath: m_LocalPosition.x
       value: 850.6606
