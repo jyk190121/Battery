@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff10b20d6fe2cce4ab855ce5cb3e8034, type: 3}
   m_Name: BothHand
   m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
-  itemID: 201
+  itemID: 0
   itemName: BothHand
   handType: 1
   category: 0
