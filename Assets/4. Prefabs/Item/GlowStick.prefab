@@ -503,7 +503,7 @@ MonoBehaviour:
   gripRotationOffset: {x: 0, y: 0, z: 0}
   glowLight: {fileID: 1306778266645808728}
   glowMeshRenderer: {fileID: 1270505343798820256}
-  lifeTime: 5
+  lifeTime: 30
   throwForce: 15
   activeEmissionColor: {r: 1, g: 0, b: 0.03096056, a: 1}
 --- !u!114 &8005008008760402235
