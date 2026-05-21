@@ -98,6 +98,7 @@ MonoBehaviour:
   - {fileID: 6905728940990820160, guid: 772fe8925de8add4e9c7f396e0264f18, type: 3}
   - {fileID: -6612525828497113074, guid: 28fb68795a53a364a8b2466212a121d8, type: 3}
   - {fileID: 5263623123973842954, guid: fe6f3113fdd3c7849a4ad4b77b144257, type: 3}
+  - {fileID: 5263623123973842954, guid: 443a453875cac3f41be2a168f68ec2f9, type: 3}
 --- !u!114 &3852236523237432094
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -159,7 +160,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::QuestDebugManager
   ShowTopMostFoldoutHeaderGroup: 1
   targetQuestID: 1011
-  targetItemID: 303
+  targetItemID: 402
   helpMessage: "F1:Easy\uC218\uB77D, F6:Normal\uC218\uB77D, F7:Hard\uC218\uB77D\nF2:\uD15C\uC18C\uD658,
     F3:ID\uAC15\uC81C\uC644\uB8CC, F4:\uC0C1\uD0DC\uCD9C\uB825\nF5:\uB3C8\uCD94\uAC00,
     F8:\uC77C\uC77C\uD018\uC2A4\uD2B8 \uC0C8\uB85C\uACE0\uCE68(\uB2E4\uC74C\uB0A0)"
