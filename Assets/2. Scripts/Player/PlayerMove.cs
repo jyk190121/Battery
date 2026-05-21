@@ -1,10 +1,17 @@
 using Unity.Netcode;
 using UnityEngine;
+using System.Collections;
 using Key = UnityEngine.InputSystem.Key;
 
 
 public class PlayerMove : NetworkBehaviour
 {
+    [Header("주사기 아이템 버프")]
+    Coroutine speedBuffCoroutine;
+    float bufWalkSpeed;
+    float bufRunSpeed;
+    float bufEndTime;
+
     [Header("이동 설정")]
     public float walkSpeed = 3.5f;                  // 기본 걷기 속도
     public float runSpeed = 6.0f;                   // 달리기 속도
@@ -490,4 +497,49 @@ public class PlayerMove : NetworkBehaviour
             if (rb != null) rb.linearVelocity = Vector3.zero;
         }
     }
+
+    #region 주사기 아이템 사용
+    /// <summary>
+    /// 로컬 플레이어의 이동 속도를 일시적으로 증가시킵니다.
+    /// </summary>
+    public void ApplySpeedBuff(float multiplier, float duration)
+    {
+        // 내 캐릭터의 속도만 올리면 되므로 Owner가 아니면 무시
+        if (!IsOwner) return;
+
+        // 주사기를 연속으로 여러 개 꽂았을 때 속도가 기하급수적으로 폭증하는 것을 막는 방어 로직
+        if (speedBuffCoroutine != null)
+        {
+            bufEndTime += duration;
+            Debug.Log($"<color=green>[Buff]</color> 주사기 중첩 사용! 버프 시간이 연장되었습니다. (총 남은 시간: {bufEndTime - Time.time:F1}초)");
+        }
+        else
+        {
+            // 첫 버프 시점에 원래 속도 백업
+            bufWalkSpeed = walkSpeed;
+            bufRunSpeed = runSpeed;
+
+            bufEndTime = Time.time + duration;
+            speedBuffCoroutine = StartCoroutine(SpeedBuffRoutine(multiplier, duration));
+        }
+
+    }
+
+    IEnumerator SpeedBuffRoutine(float multiplier, float duration)
+    {
+        walkSpeed = bufWalkSpeed * multiplier;
+        runSpeed = bufRunSpeed * multiplier;
+
+        //yield return new WaitForSeconds(duration);
+        while (Time.time < bufEndTime)
+        {
+            yield return null;
+        }
+
+        // 3초 뒤 정확히 원래 속도로 복구
+        walkSpeed = bufWalkSpeed;
+        runSpeed = bufRunSpeed;
+        speedBuffCoroutine = null;
+    }
+    #endregion
 }
