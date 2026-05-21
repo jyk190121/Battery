@@ -39,7 +39,7 @@ public class Item_Flashbang : ItemBase
         BeginThrownState();
 
         // 3. 레이어 변경 (EquippedItem -> Item)
-        gameObject.layer = LayerMask.NameToLayer("Item");
+        gameObject.layer = LayerMask.NameToLayer("Default");
 
         // 4. 힘 가하기 (서버에서만 물리적 충격 적용 권장)
         if (IsServer)

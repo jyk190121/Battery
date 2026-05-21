@@ -252,15 +252,12 @@ public class PlayerEquipment : NetworkBehaviour
         }
         else if (item.itemData.category == ItemCategory.Consumable)
         {
-            // 소모품/도구라면 아이템 자체의 사용 로직 호출
             Vector3 lookDir = Camera.main.transform.forward;
             int currentIndex = _inventory.currentSlotIndex;
+
             _inventory.RequestClearSlotServerRpc(currentIndex);
 
-            if (item is Item_Flashbang || item is Item_Consumable)
-            {
-                _inventory.ClearItemReference(item);
-            }
+            _inventory.ClearItemReference(item);
 
             item.RequestUseItem(lookDir);
         }
