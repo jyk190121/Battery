@@ -15,6 +15,15 @@ public class Item_Consumable : ItemBase
         base.ExecuteUseItem(direction);
         Debug.Log($"{itemData.itemName} 실행 (IsServer: {IsServer})");
 
+        if (IsOwner && itemData.itemName.Equals("Syringe"))
+        {
+            if (NetworkManager.Singleton.LocalClient.PlayerObject.TryGetComponent(out PlayerMove playerMove))
+            {
+                // 1.5배(50% 증가) 속도로 3초간 버프 실행
+                playerMove.ApplySpeedBuff(1.5f, 3f);
+            }
+        }
+
         // 2. 서버에서만 실행되어야 하는 로직 (데이터 수정, 객체 삭제)
         if (IsServer)
         {
@@ -36,13 +45,18 @@ public class Item_Consumable : ItemBase
                 if (itemData.itemName.Equals("Hambuger"))
                 {
                     pc.RestoreHealth(itemData.healAmount);
-                    Debug.Log($"[서버] {pc.name} 체력 회복 완료");
+                    print($"[서버] {pc.name} 체력 회복 완료");
                 }
                 else if (itemData.itemName.Equals("Battery"))
                 {
                     PhoneBatteryController.Instance.RechargeBattery();
-                    Debug.Log("휴대폰 충전 완료!");
+                    print("휴대폰 충전 완료!");
                 }
+                else if(itemData.itemName.Equals("Syringe"))
+                {
+                    print("주사기 아이템 사용");
+                }
+                
 
                 // 소유자의 인벤토리에서 아이템 제거
                 if (targetInventory != null)
