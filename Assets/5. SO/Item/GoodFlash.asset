@@ -21,5 +21,5 @@ MonoBehaviour:
   healAmount: 0
   animType: 1
   spawnLocation: 1
-  itemPrefab: {fileID: 0}
+  itemPrefab: {fileID: 5276242500762066697, guid: 443a453875cac3f41be2a168f68ec2f9, type: 3}
   keyID: 
