@@ -136,14 +136,6 @@ public class Item_Flash : ItemBase
                 ForceTurnOff();
             }
         }
-    }
- 
-
-    /// <summary>
-    /// 애니메이션이 손의 위치를 다 옮긴 직후(LateUpdate)에 불빛의 각도만 시선으로 꺾어줍니다.
-    /// </summary>
-    void LateUpdate()
-    {
         // 누군가 장착 중이고 시선 컴포넌트와 라이트가 유효할 때
         if (isEquipped && playerRotation != null && spotLight != null)
         {
@@ -155,21 +147,22 @@ public class Item_Flash : ItemBase
                 spotLight.transform.rotation = playerRotation.CameraGroup.transform.rotation;
             }
         }
-    }
 
-    private void ForceTurnOff()
+    }
+ 
+    void ForceTurnOff()
     {
         if (IsOwner) ForceTurnOffServerRpc();
     }
 
     [Rpc(SendTo.Server)]
-    private void ForceTurnOffServerRpc()
+    void ForceTurnOffServerRpc()
     {
         ForceTurnOffClientRpc();
     }
 
     [Rpc(SendTo.Everyone)]
-    private void ForceTurnOffClientRpc()
+    void ForceTurnOffClientRpc()
     {
         // 주인(Owner)은 위에서 먼저 껐으므로, 주인이 아닌 다른 플레이어들의 화면에서만 불을 꺼줍니다.
         if (!IsOwner && spotLight != null)
