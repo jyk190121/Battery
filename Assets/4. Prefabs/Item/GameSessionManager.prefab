@@ -161,7 +161,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::QuestDebugManager
   ShowTopMostFoldoutHeaderGroup: 1
   targetQuestID: 1011
-  targetItemID: 302
+  targetItemID: 402
   helpMessage: "F1:Easy\uC218\uB77D, F6:Normal\uC218\uB77D, F7:Hard\uC218\uB77D\nF2:\uD15C\uC18C\uD658,
     F3:ID\uAC15\uC81C\uC644\uB8CC, F4:\uC0C1\uD0DC\uCD9C\uB825\nF5:\uB3C8\uCD94\uAC00,
     F8:\uC77C\uC77C\uD018\uC2A4\uD2B8 \uC0C8\uB85C\uACE0\uCE68(\uB2E4\uC74C\uB0A0)"
