@@ -50,16 +50,32 @@ public class InventoryUI : MonoBehaviour
             }
         }
         // 아이템을 버리거나 주웠을 때 즉시 무기 판별 갱신
-        if (playerInventory != null) HandleTwoHandedUI(PlayerInventory.IsHoldingTwoHanded);
+        UpdateHighlight(playerInventory.currentSlotIndex);
+        HandleTwoHandedUI(PlayerInventory.IsHoldingTwoHanded);
     }
 
     private void UpdateHighlight(int index)
     {
+        int targetIndex = index;
+
+        // [핵심 기획 추가] 양손 아이템을 들고 있다면, 해당 아이템이 위치한 슬롯 번호로 타겟 변경
+        if (playerInventory != null && PlayerInventory.IsHoldingTwoHanded)
+        {
+            for (int i = 0; i < playerInventory.slots.Length; i++)
+            {
+                if (playerInventory.slots[i] == playerInventory.twoHandedItem)
+                {
+                    targetIndex = i;
+                    break;
+                }
+            }
+        }
+
         for (int i = 0; i < highlightBox.Length; i++)
         {
             Image slotImg = highlightBox[i].GetComponent<Image>();
             if (slotImg != null)
-                slotImg.color = (i == index) ? Color.white : new Color(1, 1, 1, 0.3f);
+                slotImg.color = (i == targetIndex) ? Color.white : new Color(1, 1, 1, 0.3f);
         }
 
         // 슬롯을 바꿨을 때 즉시 무기 판별 갱신
