@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff10b20d6fe2cce4ab855ce5cb3e8034, type: 3}
-  m_Name: Flash
+  m_Name: GlowStick
   m_EditorClassIdentifier: Assembly-CSharp::ItemDataSO
-  itemID: 401
-  itemName: Flash
+  itemID: 302
+  itemName: GlowStick
   handType: 0
-  category: 2
-  basePrice: 150
-  icon: {fileID: 21300000, guid: a89bbabbbb6ff7e4cb1a888f0388fb9d, type: 3}
+  category: 1
+  basePrice: 30
+  icon: {fileID: 21300000, guid: b47e5e900aad8344f8c4b8bf0a328d3c, type: 3}
   healAmount: 0
-  animType: 1
+  animType: 4
   spawnLocation: 9
-  itemPrefab: {fileID: 5276242500762066697, guid: fe6f3113fdd3c7849a4ad4b77b144257, type: 3}
+  itemPrefab: {fileID: 0}
   keyID: 
