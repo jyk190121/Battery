@@ -256,6 +256,6 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   itemData: {fileID: 11400000, guid: 804e77e82c750be46ac450dc65dff421, type: 2}
   isEquipped: 0
-  gripPositionOffset: {x: 0.84, y: -0.1, z: 0.43}
-  gripRotationOffset: {x: -39, y: 12.5, z: 29.4}
+  gripPositionOffset: {x: 0.8, y: -0.45, z: 0.25}
+  gripRotationOffset: {x: -40.6, y: 76.11, z: -4.2}
   currentScrapValue: 120

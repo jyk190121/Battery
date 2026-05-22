@@ -128,7 +128,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2759568354
+  GlobalObjectIdHash: 3275254085
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -246,9 +246,9 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   itemData: {fileID: 11400000, guid: f8d7e5b2295616642b6dd3e52f7dcba8, type: 2}
   isEquipped: 0
-  gripPositionOffset: {x: 0, y: 0, z: 0}
-  gripRotationOffset: {x: 0, y: 0, z: 0}
-  currentScrapValue: 0
+  gripPositionOffset: {x: -0.09, y: 0.04, z: 0}
+  gripRotationOffset: {x: 70, y: 0, z: 0}
+  currentScrapValue: 40
 --- !u!65 &3486623211063204584
 BoxCollider:
   m_ObjectHideFlags: 0

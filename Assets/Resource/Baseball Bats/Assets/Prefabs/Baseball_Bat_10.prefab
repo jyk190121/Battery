@@ -209,8 +209,8 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   itemData: {fileID: 11400000, guid: 601a4e2636a5dbc429899cfc28788574, type: 2}
   isEquipped: 0
-  gripPositionOffset: {x: 0, y: 0, z: 0}
-  gripRotationOffset: {x: 0, y: 0, z: 0}
+  gripPositionOffset: {x: 0, y: 0.03, z: 0.03}
+  gripRotationOffset: {x: -102.12, y: 0, z: 0}
   attackPower: 30
   maxDurability: 10
   currentDurability:

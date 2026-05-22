@@ -261,4 +261,4 @@ MonoBehaviour:
   itemData: {fileID: 11400000, guid: b5e7b75a57f452b45bff225cd2405674, type: 2}
   isEquipped: 0
   gripPositionOffset: {x: 0, y: 0, z: 0}
-  gripRotationOffset: {x: 0, y: 0, z: 0}
+  gripRotationOffset: {x: 77.81, y: 0, z: 0}
