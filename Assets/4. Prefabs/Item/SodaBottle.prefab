@@ -307,7 +307,7 @@ MonoBehaviour:
   itemData: {fileID: 11400000, guid: 086498ddc89568143a8d69bb898e7621, type: 2}
   isEquipped: 0
   gripPositionOffset: {x: 0, y: 0, z: 0}
-  gripRotationOffset: {x: 0, y: 0, z: 0}
+  gripRotationOffset: {x: 77.81, y: 0, z: 0}
 --- !u!65 &-5308469322980924189
 BoxCollider:
   m_ObjectHideFlags: 0

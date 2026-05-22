@@ -245,8 +245,8 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   itemData: {fileID: 11400000, guid: e3f0b48fcf02d9b439138f2aa8d9dd43, type: 2}
   isEquipped: 0
-  gripPositionOffset: {x: 0, y: 0, z: 0}
-  gripRotationOffset: {x: 0, y: 0, z: 0}
+  gripPositionOffset: {x: 0.65, y: 0.1, z: -0.49}
+  gripRotationOffset: {x: -51.7, y: -50.64, z: 12}
 --- !u!65 &-4958264254751531027
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -266,5 +266,5 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.38679627, y: 0.21430032, z: 0.5893452}
-  m_Center: {x: 0, y: -0.026115993, z: 0.294932}
+  m_Size: {x: 0.51, y: 0.21430026, z: 0.7365835}
+  m_Center: {x: 0, y: -0.026115993, z: 0.36855125}

@@ -260,5 +260,5 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   itemData: {fileID: 11400000, guid: 1432299a1ea34d24bbb672e79a48302e, type: 2}
   isEquipped: 0
-  gripPositionOffset: {x: 0, y: 0, z: 0}
+  gripPositionOffset: {x: -0.26, y: 0, z: 0}
   gripRotationOffset: {x: 0, y: 0, z: 0}
