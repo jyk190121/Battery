@@ -135,36 +135,36 @@ public class Item_Flash : ItemBase
                 ForceTurnOff();
             }
         }
-        //// 누군가 장착 중이고 시선 컴포넌트와 라이트가 유효할 때
-        //if (isEquipped && playerRotation != null && spotLight != null)
-        //{
-        //    if (playerRotation.CameraGroup != null)
-        //    {
-        //        // ?? 회전(Rotation)만 맞추면 손전등 본체가 저 뒤에 남았을 때 빛의 시작점이 깨집니다.
-        //        // 불빛의 위치(Position)까지 실시간으로 플레이어 눈(CameraGroup)의 좌표로 강제 워프(Snap)시킵니다.
-        //        spotLight.transform.position = playerRotation.CameraGroup.transform.position;
-        //        spotLight.transform.rotation = playerRotation.CameraGroup.transform.rotation;
-        //    }
-        //}
-
-    }
-    void LateUpdate()
-    {
-        if (isEquipped && netTransform != null && netTransform.enabled)
-        {
-            netTransform.enabled = false;
-        }
-
-        // 2. [멀미 방지] 불빛(SpotLight)만 플레이어 시야(CameraGroup)를 부드럽게 추적
+        // 누군가 장착 중이고 시선 컴포넌트와 라이트가 유효할 때
         if (isEquipped && playerRotation != null && spotLight != null)
         {
             if (playerRotation.CameraGroup != null)
             {
+                // ?? 회전(Rotation)만 맞추면 손전등 본체가 저 뒤에 남았을 때 빛의 시작점이 깨집니다.
+                // 불빛의 위치(Position)까지 실시간으로 플레이어 눈(CameraGroup)의 좌표로 강제 워프(Snap)시킵니다.
                 spotLight.transform.position = playerRotation.CameraGroup.transform.position;
                 spotLight.transform.rotation = playerRotation.CameraGroup.transform.rotation;
             }
         }
+
     }
+    //void LateUpdate()
+    //{
+    //    if (isEquipped && netTransform != null && netTransform.enabled)
+    //    {
+    //        netTransform.enabled = false;
+    //    }
+
+    //    // 2. [멀미 방지] 불빛(SpotLight)만 플레이어 시야(CameraGroup)를 부드럽게 추적
+    //    if (isEquipped && playerRotation != null && spotLight != null)
+    //    {
+    //        if (playerRotation.CameraGroup != null)
+    //        {
+    //            spotLight.transform.position = playerRotation.CameraGroup.transform.position;
+    //            spotLight.transform.rotation = playerRotation.CameraGroup.transform.rotation;
+    //        }
+    //    }
+    //}
 
     void ForceTurnOff()
     {
