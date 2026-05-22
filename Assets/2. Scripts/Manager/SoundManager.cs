@@ -254,7 +254,6 @@ public class SoundManager : MonoBehaviour
         SetBgmVolume(PlayerPrefs.GetFloat("BgmVol", 1f));
         SetSfxVolume(PlayerPrefs.GetFloat("SfxVol", 1f));
     }
-
     // 슬라이더 값(0.0001 ~ 1)을 받아 dB(-80 ~ 0)로 변환하여 믹서에 적용
     // Log10(0)은 에러가 나므로 Mathf.Max로 최소값을 0.0001f로 방어합니다.
 
@@ -262,8 +261,7 @@ public class SoundManager : MonoBehaviour
     {
         if (audioMixer != null)
         {
-            float db = Mathf.Log10(Mathf.Max(volume, 0.0001f)) * 20f;
-            audioMixer.SetFloat("MasterVol", db);
+            AudioListener.volume = Mathf.Clamp01(volume);
         }
     }
 
@@ -271,17 +269,20 @@ public class SoundManager : MonoBehaviour
     {
         if (audioMixer != null)
         {
-            float db = Mathf.Log10(Mathf.Max(volume, 0.0001f)) * 20f;
-            audioMixer.SetFloat("BgmVol", db);
+            bgmSource.volume = Mathf.Clamp01(volume);
         }
     }
 
     public void SetSfxVolume(float volume)
     {
-        if (audioMixer != null)
+        if (sfxSource != null)
         {
-            float db = Mathf.Log10(Mathf.Max(volume, 0.0001f)) * 20f;
-            audioMixer.SetFloat("SfxVol", db);
+            sfxSource.volume = Mathf.Clamp01(volume);
+        }
+
+        if (loopSfxSource != null)
+        {
+            loopSfxSource.volume = Mathf.Clamp01(volume);
         }
     }
 
