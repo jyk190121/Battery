@@ -33,8 +33,6 @@ public class DoorController : NetworkBehaviour
     private Vector3 closedPos;
     private Quaternion closedRot;
 
-    public bool CanOpenWithoutKey => !isLocked.Value;
-
     void Start()
     {
         closedPos = transform.localPosition;
@@ -111,14 +109,8 @@ public class DoorController : NetworkBehaviour
 
         if (isLocked.Value)
         {
-            if (isLocked.Value)
-            {
-                Debug.Log("<color=red>문이 잠겨 있습니다. 맞는 열쇠가 필요합니다.</color>");
-
-                // [추가] 잠긴 문을 열려고 시도했을 때 덜컹거리는 소리를 내고 싶다면?
-                // 이건 상태가 변한 게 아니라 시도만 한 것이므로, 서버에서 ClientRpc를 쏴서 재생시킵니다.
-                PlayLockedSoundClientRpc();
-            }
+            Debug.Log("<color=red>문이 잠겨 있습니다.</color>");
+            PlayLockedSoundClientRpc();
         }
         else
         {
