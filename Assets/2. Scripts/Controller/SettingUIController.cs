@@ -105,12 +105,6 @@ public class SettingsUIController : MonoBehaviour
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
-        else
-        {
-            // 로비나 타이틀에서는 커서가 보여야 함
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-        }
 
         SetPlayerInputState(true);
     }

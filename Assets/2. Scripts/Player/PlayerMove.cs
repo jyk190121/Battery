@@ -157,7 +157,7 @@ public class PlayerMove : NetworkBehaviour
             }
 
             return;
-        }    
+        }
 
         //if (isControlLocked || isTabletLocked || isNumpadLocked ||
         //(SettingsUIController.Instance != null && SettingsUIController.Instance.IsSettingsOpen))
@@ -169,8 +169,6 @@ public class PlayerMove : NetworkBehaviour
         //    }
         //    return;
         //}
-
-        Cursor.lockState = CursorLockMode.Locked;
 
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
