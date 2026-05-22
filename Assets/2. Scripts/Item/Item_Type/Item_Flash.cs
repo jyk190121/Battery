@@ -1,21 +1,21 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using Unity.Netcode;
 using Unity.Netcode.Components;
 
 public class Item_Flash : ItemBase
 {
     [Header("Flashlight Settings")]
-    [Tooltip("¼ÕÀüµî ºÒºûÀ» ½ò Light ÄÄÆ÷³ÍÆ®")]
+    [Tooltip("ì†ì „ë“± ë¶ˆë¹›ì„ ì  Light ì»´í¬ë„ŒíŠ¸")]
     public Light spotLight;
 
-    [Tooltip("ÃÖ´ë ¹èÅÍ¸®·® (³»±¸µµ)")]
+    [Tooltip("ìµœëŒ€ ë°°í„°ë¦¬ëŸ‰ (ë‚´êµ¬ë„)")]
     public float maxBattery = 100f;
 
-    [Tooltip("ÃÊ´ç ¹èÅÍ¸® ¼Ò¸ğ·®")]
+    [Tooltip("ì´ˆë‹¹ ë°°í„°ë¦¬ ì†Œëª¨ëŸ‰")]
     public float batteryDrainRate = 2f;
 
     PlayerRotation playerRotation;
-    private NetworkTransform netTransform; // ?? ³» ¿ÀºêÁ§Æ®ÀÇ NetworkTransform ÄÄÆ÷³ÍÆ® ÂüÁ¶
+    private NetworkTransform netTransform; // ?? ë‚´ ì˜¤ë¸Œì íŠ¸ì˜ NetworkTransform ì»´í¬ë„ŒíŠ¸ ì°¸ì¡°
 
     public NetworkVariable<float> currentBatteryNet = new NetworkVariable<float>(
         100f,
@@ -41,40 +41,40 @@ public class Item_Flash : ItemBase
     {
         base.OnNetworkSpawn();
 
-        // 1. ¼­¹ö(¹æÀå)¶ó¸é SO¿¡ ¼³Á¤µÈ ÃÊ±â ¹èÅÍ¸® °ªÀ» µ¿±âÈ­ º¯¼ö¿¡ ³Ö¾îÁİ´Ï´Ù.
+        // 1. ì„œë²„(ë°©ì¥)ë¼ë©´ SOì— ì„¤ì •ëœ ì´ˆê¸° ë°°í„°ë¦¬ ê°’ì„ ë™ê¸°í™” ë³€ìˆ˜ì— ë„£ì–´ì¤ë‹ˆë‹¤.
         if (IsServer)
         {
             currentBatteryNet.Value = maxBattery;
         }
 
-        // 2. [ÆÁ] ¸ÖÆ¼ÇÃ·¹ÀÌ¾î °ÔÀÓ¿¡¼­ ÃÊ±â ºÒºû »óÅÂ µ¿±âÈ­¸¦ À§ÇØ
-        // FÅ°¸¦ ¾È ´­·¯µµ ½ÃÀÛ ½Ã ºÒºû ÄÄÆ÷³ÍÆ®¸¦ ÄÑµÎ´Â °Ô ÁÁ½À´Ï´Ù. (¼¼ÀÌºê ·Îµå ´ëÀÀ)
-        // ¿©±â¼­´Â º¹Àâµµ¸¦ ³·Ãß±â À§ÇØ ÀÏ´Ü ²¨µÎ´Â °É·Î À¯ÁöÇÕ´Ï´Ù.
+        // 2. [íŒ] ë©€í‹°í”Œë ˆì´ì–´ ê²Œì„ì—ì„œ ì´ˆê¸° ë¶ˆë¹› ìƒíƒœ ë™ê¸°í™”ë¥¼ ìœ„í•´
+        // Fí‚¤ë¥¼ ì•ˆ ëˆŒëŸ¬ë„ ì‹œì‘ ì‹œ ë¶ˆë¹› ì»´í¬ë„ŒíŠ¸ë¥¼ ì¼œë‘ëŠ” ê²Œ ì¢‹ìŠµë‹ˆë‹¤. (ì„¸ì´ë¸Œ ë¡œë“œ ëŒ€ì‘)
+        // ì—¬ê¸°ì„œëŠ” ë³µì¡ë„ë¥¼ ë‚®ì¶”ê¸° ìœ„í•´ ì¼ë‹¨ êº¼ë‘ëŠ” ê±¸ë¡œ ìœ ì§€í•©ë‹ˆë‹¤.
     }
 
     // ==========================================
-    // 1. ¾ÆÀÌÅÛ »ç¿ë (FÅ° ÀÔ·Â ½Ã È£ÃâµÊ)
+    // 1. ì•„ì´í…œ ì‚¬ìš© (Fí‚¤ ì…ë ¥ ì‹œ í˜¸ì¶œë¨)
     // ==========================================
     public override void ExecuteUseItem(Vector3 direction)
     {
         base.ExecuteUseItem(direction);
 
-        // ³×Æ®¿öÅ© º¯¼öÀÇ Value¸¦ Ã¼Å©ÇÕ´Ï´Ù. ¹èÅÍ¸®°¡ ¾øÀ¸¸é ¾È ÄÑÁü.
+        // ë„¤íŠ¸ì›Œí¬ ë³€ìˆ˜ì˜ Valueë¥¼ ì²´í¬í•©ë‹ˆë‹¤. ë°°í„°ë¦¬ê°€ ì—†ìœ¼ë©´ ì•ˆ ì¼œì§.
         if (currentBatteryNet.Value <= 0f)
         {
-            // [ÆÁ] ¹èÅÍ¸® ¾øÀ» ¶§ µş±ïµş±ïÇÏ´Â ¼Ò¸® Àç»ı
+            // [íŒ] ë°°í„°ë¦¬ ì—†ì„ ë•Œ ë”¸ê¹ë”¸ê¹í•˜ëŠ” ì†Œë¦¬ ì¬ìƒ
             return;
         }
 
         if (spotLight != null)
         {
             spotLight.enabled = !spotLight.enabled;
-            // [TODO] µş±ï! ÇÏ´Â ½ºÀ§Ä¡ »ç¿îµå Àç»ı
+            // [TODO] ë”¸ê¹! í•˜ëŠ” ìŠ¤ìœ„ì¹˜ ì‚¬ìš´ë“œ ì¬ìƒ
         }
     }
 
     /// <summary>
-    /// ¾ÆÀÌÅÛÀ» Áİ°Å³ª ¹ö¸± ¶§ (ItemBaseÀÇ ÇÔ¼ö ¿À¹ö¶óÀÌµå)
+    /// ì•„ì´í…œì„ ì¤ê±°ë‚˜ ë²„ë¦´ ë•Œ (ItemBaseì˜ í•¨ìˆ˜ ì˜¤ë²„ë¼ì´ë“œ)
     /// </summary>
     public override void ExecuteChangeOwnership(bool isPickingUp, Transform targetHand)
     {
@@ -82,7 +82,7 @@ public class Item_Flash : ItemBase
 
         if (isPickingUp && targetHand != null)
         {
-            // 1. ¾ÆÀÌÅÛÀ» ÁÖ¿üÀ» ¶§: µé°í ÀÖ´Â ÇÃ·¹ÀÌ¾îÀÇ È¸Àü ½ºÅ©¸³Æ®¸¦ Ä³½ÌÇÕ´Ï´Ù.
+            // 1. ì•„ì´í…œì„ ì£¼ì› ì„ ë•Œ: ë“¤ê³  ìˆëŠ” í”Œë ˆì´ì–´ì˜ íšŒì „ ìŠ¤í¬ë¦½íŠ¸ë¥¼ ìºì‹±í•©ë‹ˆë‹¤.
             playerRotation = targetHand.GetComponentInParent<PlayerRotation>();
 
             if (netTransform != null) netTransform.enabled = false;
@@ -104,44 +104,44 @@ public class Item_Flash : ItemBase
             if (spotLight != null)
             {
                 spotLight.transform.localRotation = Quaternion.identity;
-                spotLight.transform.localPosition = Vector3.zero; // ¿ø·¡ À§Ä¡·Î º¹±Í
+                spotLight.transform.localPosition = Vector3.zero; // ì›ë˜ ìœ„ì¹˜ë¡œ ë³µê·€
             }
         }
     }
 
     // ==========================================
-    // 2. ¹èÅÍ¸® ¼Ò¸ğ (³»±¸µµ °è»ê)
+    // 2. ë°°í„°ë¦¬ ì†Œëª¨ (ë‚´êµ¬ë„ ê³„ì‚°)
     // ==========================================
     private void Update()
     {
         if (spotLight == null || !spotLight.enabled) return;
 
-        // ÁÖÀÎ(Owner)¸¸ ¹èÅÍ¸®¸¦ °è»êÇØ¼­ µ¿±âÈ­ º¯¼ö¿¡ ¾¹´Ï´Ù.
+        // ì£¼ì¸(Owner)ë§Œ ë°°í„°ë¦¬ë¥¼ ê³„ì‚°í•´ì„œ ë™ê¸°í™” ë³€ìˆ˜ì— ì”ë‹ˆë‹¤.
         if (IsOwner && isEquipped)
         {
-            // ³×Æ®¿öÅ© º¯¼öÀÇ °ªÀ» Á÷Á¢ ±ğ½À´Ï´Ù.
+            // ë„¤íŠ¸ì›Œí¬ ë³€ìˆ˜ì˜ ê°’ì„ ì§ì ‘ ê¹ìŠµë‹ˆë‹¤.
             float newValue = currentBatteryNet.Value - (batteryDrainRate * Time.deltaTime);
             currentBatteryNet.Value = newValue;
 
-            // [TODO] UI¿¡ ÇöÀç ¹èÅÍ¸®·®(currentBatteryNet.Value / maxBattery) ¾÷µ¥ÀÌÆ®
+            // [TODO] UIì— í˜„ì¬ ë°°í„°ë¦¬ëŸ‰(currentBatteryNet.Value / maxBattery) ì—…ë°ì´íŠ¸
 
             if (currentBatteryNet.Value <= 0f)
             {
                 currentBatteryNet.Value = 0f;
 
-                // ³» È­¸é¿¡¼­ ¸ÕÀú ºÒÀ» ²¨¼­ Update¹® »ó´ÜÀÇ return; ¿¡ °É¸®°Ô ÇÕ´Ï´Ù.
+                // ë‚´ í™”ë©´ì—ì„œ ë¨¼ì € ë¶ˆì„ êº¼ì„œ Updateë¬¸ ìƒë‹¨ì˜ return; ì— ê±¸ë¦¬ê²Œ í•©ë‹ˆë‹¤.
                 spotLight.enabled = false;
 
                 ForceTurnOff();
             }
         }
-        // ´©±º°¡ ÀåÂø ÁßÀÌ°í ½Ã¼± ÄÄÆ÷³ÍÆ®¿Í ¶óÀÌÆ®°¡ À¯È¿ÇÒ ¶§
+        // ëˆ„êµ°ê°€ ì¥ì°© ì¤‘ì´ê³  ì‹œì„  ì»´í¬ë„ŒíŠ¸ì™€ ë¼ì´íŠ¸ê°€ ìœ íš¨í•  ë•Œ
         if (isEquipped && playerRotation != null && spotLight != null)
         {
             if (playerRotation.CameraGroup != null)
             {
-                // ?? È¸Àü(Rotation)¸¸ ¸ÂÃß¸é ¼ÕÀüµî º»Ã¼°¡ Àú µÚ¿¡ ³²¾ÒÀ» ¶§ ºûÀÇ ½ÃÀÛÁ¡ÀÌ ±úÁı´Ï´Ù.
-                // ºÒºûÀÇ À§Ä¡(Position)±îÁö ½Ç½Ã°£À¸·Î ÇÃ·¹ÀÌ¾î ´«(CameraGroup)ÀÇ ÁÂÇ¥·Î °­Á¦ ¿öÇÁ(Snap)½ÃÅµ´Ï´Ù.
+                // ?? íšŒì „(Rotation)ë§Œ ë§ì¶”ë©´ ì†ì „ë“± ë³¸ì²´ê°€ ì € ë’¤ì— ë‚¨ì•˜ì„ ë•Œ ë¹›ì˜ ì‹œì‘ì ì´ ê¹¨ì§‘ë‹ˆë‹¤.
+                // ë¶ˆë¹›ì˜ ìœ„ì¹˜(Position)ê¹Œì§€ ì‹¤ì‹œê°„ìœ¼ë¡œ í”Œë ˆì´ì–´ ëˆˆ(CameraGroup)ì˜ ì¢Œí‘œë¡œ ê°•ì œ ì›Œí”„(Snap)ì‹œí‚µë‹ˆë‹¤.
                 spotLight.transform.position = playerRotation.CameraGroup.transform.position;
                 spotLight.transform.rotation = playerRotation.CameraGroup.transform.rotation;
             }
@@ -155,7 +155,7 @@ public class Item_Flash : ItemBase
     //        netTransform.enabled = false;
     //    }
 
-    //    // 2. [¸Ö¹Ì ¹æÁö] ºÒºû(SpotLight)¸¸ ÇÃ·¹ÀÌ¾î ½Ã¾ß(CameraGroup)¸¦ ºÎµå·´°Ô ÃßÀû
+    //    // 2. [ë©€ë¯¸ ë°©ì§€] ë¶ˆë¹›(SpotLight)ë§Œ í”Œë ˆì´ì–´ ì‹œì•¼(CameraGroup)ë¥¼ ë¶€ë“œëŸ½ê²Œ ì¶”ì 
     //    if (isEquipped && playerRotation != null && spotLight != null)
     //    {
     //        if (playerRotation.CameraGroup != null)
@@ -180,34 +180,34 @@ public class Item_Flash : ItemBase
     [Rpc(SendTo.Everyone)]
     void ForceTurnOffClientRpc()
     {
-        // ÁÖÀÎ(Owner)Àº À§¿¡¼­ ¸ÕÀú ²°À¸¹Ç·Î, ÁÖÀÎÀÌ ¾Æ´Ñ ´Ù¸¥ ÇÃ·¹ÀÌ¾îµéÀÇ È­¸é¿¡¼­¸¸ ºÒÀ» ²¨Áİ´Ï´Ù.
+        // ì£¼ì¸(Owner)ì€ ìœ„ì—ì„œ ë¨¼ì € ê»ìœ¼ë¯€ë¡œ, ì£¼ì¸ì´ ì•„ë‹Œ ë‹¤ë¥¸ í”Œë ˆì´ì–´ë“¤ì˜ í™”ë©´ì—ì„œë§Œ ë¶ˆì„ êº¼ì¤ë‹ˆë‹¤.
         if (!IsOwner && spotLight != null)
         {
             spotLight.enabled = false;
         }
 
-        // [TODO] ¹èÅÍ¸® ¹æÀü ÁöÁöÁ÷ ¼Ò¸® Àç»ı (Àü¿ø ²¨Áü ¿¬Ãâ)
+        // [TODO] ë°°í„°ë¦¬ ë°©ì „ ì§€ì§€ì§ ì†Œë¦¬ ì¬ìƒ (ì „ì› êº¼ì§ ì—°ì¶œ)
     }
 
-    // ÃæÀü±â ¿¬µ¿ ´ëºñ
+    // ì¶©ì „ê¸° ì—°ë™ ëŒ€ë¹„
     public void Recharge()
     {
         if (IsOwner) currentBatteryNet.Value = maxBattery;
-        Debug.Log($"<color=cyan>[Flashlight]</color> {itemData.itemName} ÃæÀü ¿Ï·á!");
+        Debug.Log($"<color=cyan>[Flashlight]</color> {itemData.itemName} ì¶©ì „ ì™„ë£Œ!");
     }
 
     // ==========================================
-    // 3. ¼¼ÀÌºê & ·Îµå ¿¬µ¿
+    // 3. ì„¸ì´ë¸Œ & ë¡œë“œ ì—°ë™
     // ==========================================
     public override float[] ExtractSaveData()
     {
-        // ³×Æ®¿öÅ© º¯¼öÀÇ °ªÀ» ÃßÃâÇØ¼­ ÀúÀå
+        // ë„¤íŠ¸ì›Œí¬ ë³€ìˆ˜ì˜ ê°’ì„ ì¶”ì¶œí•´ì„œ ì €ì¥
         return new float[] { currentBatteryNet.Value };
     }
 
     public override void ApplySaveData(float[] savedStates)
     {
-        // ¼­¹öÀÎ °æ¿ì¿¡¸¸ ¼¼ÀÌºê µ¥ÀÌÅÍ¸¦ ³×Æ®¿öÅ© º¯¼ö¿¡ µ¤¾î¾¹´Ï´Ù.
+        // ì„œë²„ì¸ ê²½ìš°ì—ë§Œ ì„¸ì´ë¸Œ ë°ì´í„°ë¥¼ ë„¤íŠ¸ì›Œí¬ ë³€ìˆ˜ì— ë®ì–´ì”ë‹ˆë‹¤.
         if (IsServer && savedStates != null && savedStates.Length > 0)
         {
             currentBatteryNet.Value = savedStates[0];
