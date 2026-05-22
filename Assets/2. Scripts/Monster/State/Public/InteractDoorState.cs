@@ -103,7 +103,7 @@ public class InteractDoorState : MonsterBaseState
         }
 
         // 1. 문을 열 수 있는 상황일 때 (열쇠가 필요 없는 문)
-        if (owner.TargetDoor.CanOpenWithoutKey)
+        if (!owner.TargetDoor.isLocked.Value)
         {
             // 문 개방 시도
             owner.TargetDoor.TryOpen();
