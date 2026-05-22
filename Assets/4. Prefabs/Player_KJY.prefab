@@ -3251,7 +3251,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3733838721
+  GlobalObjectIdHash: 6777840
   InScenePlacedSourceGlobalObjectIdHash: 6777840
   DeferredDespawnTick: 0
   Ownership: 1
@@ -3556,9 +3556,9 @@ MonoBehaviour:
   Interactable:
     serializedVersion: 2
     m_Bits: 65536
-  NumberpadLayer:
+  obstacleLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 768
   interactUI: {fileID: 0}
   progressImage: {fileID: 0}
   requiredHoldTime: 2

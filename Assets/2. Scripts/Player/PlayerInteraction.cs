@@ -6,31 +6,33 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-
 public class PlayerInteraction : NetworkBehaviour
 {
     [Header("Data & Settings")]
-    //public Player data;                                 // 플레이어 SO
     PlayerController controller;
     Player data => controller.Data;
-    public LayerMask DoorLayer;                         // 문 레이어
-    public LayerMask TabletLayer;                       // 태블릿 레이어
-    public LayerMask Interactable;                      // 발전기 레이어
-    public LayerMask NumberpadLayer;                    // 키패드 레이어
-    public GameObject interactUI;                       // UI오브젝트
-    TextMeshProUGUI interactText;                       // 텍스트
+
+    [Header("Interaction Layers")]
+    public LayerMask DoorLayer;                 // 문 레이어
+    public LayerMask TabletLayer;               // 태블릿 레이어
+    public LayerMask Interactable;              // 발전기, 락커 등 레이어
+
+    [Header("Obstacle Settings")]
+    [Tooltip("락커 껍데기나 벽처럼 시야를 가리는 레이어 (보통 Default 선택)")]
+    public LayerMask obstacleLayer;             // 투시 방지용 방해물 레이어
+
+    [Header("UI References")]
+    public GameObject interactUI;               // UI오브젝트
+    TextMeshProUGUI interactText;               // 텍스트
     public Image progressImage;
+
     public float requiredHoldTime = 2f;
     private float currentHoldTime = 0f;
 
-    //[Header("References")]
-    //[SerializeField] private Transform camTransform;    // 카메라 위치
-
-    //씨네머신의 위치값만
     PlayerRotation playerRotation;
     Transform camTransform;
 
-    private bool isLookingAtInteractable = false;       // 문을 보고 있는가
+    private bool isLookingAtInteractable = false;       // 무언가를 보고 있는가
 
     private DoorController targetDoor = null;
     private PortalController targetPortal = null;
@@ -42,85 +44,49 @@ public class PlayerInteraction : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        //interactUI = GameObject.Find("Interact_Text").gameObject;
-        ////if (camTransform == null) camTransform = FindAnyObjectByType<CinemachineCamera>().GetComponent<Transform>();
-        //if (playerRotation == null) playerRotation = GetComponent<PlayerRotation>();
-
-        ////if (camTransform == null) camTransform = Camera.main.transform;
-        //interactText = interactUI.GetComponent<TextMeshProUGUI>();
-
-        //interactUI.SetActive(false);
         controller = GetComponent<PlayerController>();
         if (IsOwner)
         {
-            FindUIElements(); // 1. 처음 스폰될 때 한 번 찾기
-
-            // 2. 씬이 바뀔 때마다 'FindUIElements' 함수를 실행하도록 예약(구독)
-            //SceneManager.sceneLoaded += OnSceneLoaded;
-
+            FindUIElements();
             if (playerRotation == null) playerRotation = GetComponent<PlayerRotation>();
         }
     }
 
-    //public override void OnNetworkDespawn()
-    //{
-    //    if (IsOwner)
-    //    {
-    //        SceneManager.sceneLoaded -= OnSceneLoaded;
-    //    }
-    //}
-
-    // Update is called once per frame
     void Update()
     {
-        //CheckInteraction();
-
-        //if (Keyboard.current.eKey.wasPressedThisFrame == true)
-        //{
-        //    PerformInteraction();
-        //}
-
         if (!IsOwner || interactUI == null) return;
 
         CheckInteraction();
 
+        // 1. 상태 이상 시 강제 초기화
         if (controller.isDead.Value || controller.isSnared.Value)
         {
-            if (isLookingAtInteractable)
-            {
-                interactUI.SetActive(false);
-                isLookingAtInteractable = false;
-                ResetHold();
-            }
-            return; 
+            ClearInteraction();
+            return;
         }
 
         if (isLookingAtInteractable)
         {
-            // 1. 포탈인 경우: '홀드(Hold)' 방식
+            // [포탈 홀드 로직]
             if (targetPortal != null)
             {
-                // E키를 누르고 있는 중인가?
                 if (Keyboard.current.eKey.isPressed)
                 {
-                    // 시간 누적 및 게이지 UI 업데이트
                     currentHoldTime += Time.deltaTime;
                     if (progressImage != null) progressImage.fillAmount = currentHoldTime / requiredHoldTime;
 
-                    // 지정된 시간이 다 차면 텔레포트 실행!
                     if (currentHoldTime >= requiredHoldTime)
                     {
                         targetPortal.TeleportPlayer(this.transform);
-                        ResetHold(); // 텔레포트 후 게이지 초기화
+                        ResetHold();
                     }
                 }
                 else
                 {
-                    // 손을 떼면 즉시 초기화
-                    ResetHold();
+                    ResetHold(); // 손을 떼면 게이지 초기화
                 }
             }
-            // 락커인 경우: '클릭(Press)' 방식 [추가]
+            // [락커 클릭]
             else if (targetLocker != null)
             {
                 if (Keyboard.current.eKey.wasPressedThisFrame)
@@ -128,39 +94,38 @@ public class PlayerInteraction : NetworkBehaviour
                     targetLocker.InteractLocker(this.transform);
                 }
             }
-            // 2. 일반 문인 경우: '클릭(Press)' 방식
+            // [일반 문 클릭]
             else if (targetDoor != null)
             {
                 if (Keyboard.current.eKey.wasPressedThisFrame)
                 {
-                    // 열쇠 검사 없이 문에게 무조건 열기 시도만 지시 (잠김 여부는 문 스스로가 판단함)
                     targetDoor.TryOpen();
                 }
             }
+            // [태블릿 클릭]
             else if (targetTabletUI != null)
             {
                 if (Keyboard.current.eKey.wasPressedThisFrame)
                 {
-                    // 플레이어의 컨트롤러 정보를 함께 넘겨줍니다.
-                    // 이를 통해 태블릿 측에서 플레이어의 이동을 막고 마우스를 켤 수 있습니다.
                     targetTabletUI.OpenTabletUI(controller);
                 }
             }
+            // [트럭 문 클릭]
             else if (carDoor != null)
             {
                 if (Keyboard.current.eKey.wasPressedThisFrame)
                 {
                     string currentKey = "Truck_Zil130_TrailerDoor";
-
                     carDoor.TryOpen(currentKey);
                 }
             }
+            // [발전기 상호작용]
             else if (targetGenerator != null && !targetGenerator.isRepaired.Value)
             {
-                // 1. 퀘스트 타겟이고 부품이 부족한 경우: 클릭으로 부품 삽입
+                // 퀘스트 발전기 (부품 삽입 - 클릭)
                 if (targetQuestGenerator != null && targetQuestGenerator.isQuestTarget.Value && targetQuestGenerator.currentParts.Value < targetQuestGenerator.requiredParts.Value)
                 {
-                    ResetHold(); // 부품 삽입 중에는 홀드 게이지 초기화
+                    ResetHold();
 
                     if (Keyboard.current.eKey.wasPressedThisFrame)
                     {
@@ -170,7 +135,7 @@ public class PlayerInteraction : NetworkBehaviour
                         }
                     }
                 }
-                // 2. 일반 발전기이거나 부품이 다 찬 경우: 꾹 눌러서 3초 가동
+                // 일반 발전기 (수리 - 홀드)
                 else
                 {
                     if (Keyboard.current.eKey.isPressed)
@@ -186,6 +151,7 @@ public class PlayerInteraction : NetworkBehaviour
                     }
                     else
                     {
+                        // [핵심] E키에서 손을 떼면 여기서 즉시 0으로 초기화됩니다!
                         ResetHold();
                     }
                 }
@@ -195,17 +161,7 @@ public class PlayerInteraction : NetworkBehaviour
                 ResetHold();
             }
         }
-        else
-        {
-            // 상호작용 물체에서 시선을 돌리면 무조건 초기화
-            ResetHold();
-        }
     }
-
-    //private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    //{
-    //    FindUIElements();
-    //}
 
     public void CheckInteraction()
     {
@@ -213,11 +169,19 @@ public class PlayerInteraction : NetworkBehaviour
         camTransform = playerRotation.vcam.transform;
 
         RaycastHit hit;
-
         LayerMask combinedLayer = DoorLayer | TabletLayer | Interactable;
 
         if (Physics.Raycast(camTransform.position, camTransform.forward, out hit, data.interactDistance, combinedLayer))
         {
+ 
+            Vector3 checkEndPos = hit.point - (camTransform.forward * 0.05f);
+            if (Physics.Linecast(camTransform.position, checkEndPos, obstacleLayer))
+            {
+                // 락커 밖에서 안에 있는 걸 쳐다봤다면 철벽에 막힌 것으로 간주하고 초기화
+                ClearInteraction();
+                return;
+            }
+
             // 타겟 갱신
             targetDoor = hit.collider.GetComponentInParent<DoorController>();
             targetPortal = hit.collider.GetComponentInParent<PortalController>();
@@ -241,7 +205,7 @@ public class PlayerInteraction : NetworkBehaviour
                 {
                     interactText.text = targetPortal.GetInteractText(controller.isInsideFacility.Value);
                 }
-                else if (targetLocker != null) 
+                else if (targetLocker != null)
                 {
                     interactText.text = targetLocker.GetInteractText();
                 }
@@ -255,40 +219,48 @@ public class PlayerInteraction : NetworkBehaviour
                 }
                 else if (targetGenerator != null)
                 {
-                    Debug.Log($"<color=cyan>[Interaction Debug]</color> 감지된 발전기: <b>{targetGenerator.gameObject.name}</b> | 어댑터 존재: {targetQuestGenerator != null}");
-                    // 어댑터를 찾는 경로를 콜라이더 본인부터 부모까지 샅샅이 뒤짐
                     targetQuestGenerator = hit.collider.GetComponent<QuestGeneratorAdapter>();
                     if (targetQuestGenerator == null)
                         targetQuestGenerator = hit.collider.GetComponentInParent<QuestGeneratorAdapter>();
 
-                    // 어댑터를 찾았는지, 퀘스트 타겟으로 설정되었는지 콘솔에 출력
-                    // 이 로그가 False라면 컴포넌트가 안 붙어있거나 퀘스트가 시작되지 않은 것임
-                    // Debug.Log($"[Check] 발전기 감지! 어댑터: {targetQuestGenerator != null}, 퀘스트타겟: {(targetQuestGenerator != null ? targetQuestGenerator.isQuestTarget.Value.ToString() : "N/A")}");
-
                     if (targetQuestGenerator != null && targetQuestGenerator.isQuestTarget.Value)
                     {
-                        // QuestGeneratorAdapter의 GetInteractText()를 가져옴
                         interactText.text = targetQuestGenerator.GetInteractText();
                     }
                     else
                     {
-                        // 퀘스트가 아니면 원본 GeneratorController의 GetInteractText()를 가져옴
                         interactText.text = targetGenerator.GetInteractText();
                     }
                 }
-                return; // 찾았으므로 종료
+                return; // 정상적으로 찾았으므로 종료
             }
-        }  
+        }
 
-        // 아무것도 보지 않을 때
+        // 아무것도 보지 않거나 방해물에 막혔을 때 완벽 초기화
+        ClearInteraction();
+    }
+
+    // 시선을 돌리거나 투시가 막혔을 때 타겟들을 깔끔하게 날려주는 함수입니다.
+    private void ClearInteraction()
+    {
         if (isLookingAtInteractable) interactUI.SetActive(false);
         isLookingAtInteractable = false;
+
         targetDoor = null;
         targetPortal = null;
         targetTabletUI = null;
         targetLocker = null;
+        targetGenerator = null;
         targetQuestGenerator = null;
         carDoor = null;
+
+        ResetHold();
+    }
+
+    private void ResetHold()
+    {
+        currentHoldTime = 0f;
+        if (progressImage != null) progressImage.fillAmount = 0f;
     }
 
     public void FindUIElements()
@@ -308,16 +280,5 @@ public class PlayerInteraction : NetworkBehaviour
             progressImage = foundRing.GetComponent<Image>();
             progressImage.fillAmount = 0f;
         }
-
-        if (foundUI == null || foundRing == null)
-        {
-            string sceneName = (GameSceneManager.Instance != null) ? GameSceneManager.Instance.SceneName() : "Unknown Scene";
-        }
-    }
-
-    private void ResetHold()
-    {
-        currentHoldTime = 0f;
-        if (progressImage != null) progressImage.fillAmount = 0f;
     }
 }
