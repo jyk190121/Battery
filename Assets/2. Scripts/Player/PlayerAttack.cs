@@ -23,6 +23,32 @@ public class PlayerAttack : NetworkBehaviour
         _playerMove = GetComponent<PlayerMove>();
         _playerEquipment = GetComponent<PlayerEquipment>();
         _playerSound = GetComponent<PlayerSound>();
+
+        if (IsOwner && GameSceneManager.Instance != null)
+        {
+            GameSceneManager.Instance.OnSceneLoadComplete += ForceResetState;
+        }
+    }
+    public override void OnNetworkDespawn()
+    {
+        base.OnNetworkDespawn();
+
+        // 💡 [추가]
+        if (IsOwner && GameSceneManager.Instance != null)
+        {
+            GameSceneManager.Instance.OnSceneLoadComplete -= ForceResetState;
+        }
+    }
+
+    void ForceResetState()
+    {
+        if (!IsOwner) return;
+
+        if (isAttacking)
+        {
+            isAttacking = false;
+            Debug.Log("[PlayerAttack] 씬 전환으로 인해 굳어있던 공격 상태를 초기화했습니다.");
+        }
     }
 
     void Update()

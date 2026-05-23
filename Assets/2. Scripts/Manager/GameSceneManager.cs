@@ -7,6 +7,9 @@ using UnityEngine.SceneManagement;
 public class GameSceneManager : NetworkBehaviour
 {
     public static GameSceneManager Instance { get; private set; }
+
+    // 💡 [추가] 씬 로드가 끝났음을 외부 스크립트들에게 알리는 방송용 이벤트
+    public event System.Action OnSceneLoadComplete;
     public float LoadingProgress { get; private set; }          // 로딩 진행률을 외부(UI)에서 읽을 수 있도록 공개
 
     [Header("설정")]
@@ -39,11 +42,18 @@ public class GameSceneManager : NetworkBehaviour
         // 유니티 기본 씬 로드 완료 이벤트 구독 
         // (네트워크가 연결되지 않은 타이틀 씬에서도 BGM이 정상 재생되도록 유니티 자체 이벤트를 사용합니다)
         SceneManager.sceneLoaded += OnSceneLoadedForBGM;
+        SceneManager.sceneLoaded += HandleSceneLoaded;
     }
 
     void OnDisable()
     {
         SceneManager.sceneLoaded -= OnSceneLoadedForBGM;
+        SceneManager.sceneLoaded -= HandleSceneLoaded;
+    }
+    private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        Debug.Log($"[GameSceneManager] {scene.name} 씬 로드 완료! 플레이어들의 꼬인 상태를 초기화합니다.");
+        OnSceneLoadComplete?.Invoke();
     }
 
     /// <summary>
