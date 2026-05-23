@@ -49,6 +49,7 @@ public class PlayerEquipment : NetworkBehaviour
         // 상태 동기화 이벤트 등록
         isUsingPhone.OnValueChanged += OnPhoneStateChanged;
 
+
         // 애니메이터 준비를 위해 한 프레임 뒤 실행
         if (IsSpawned)
         {
@@ -60,12 +61,21 @@ public class PlayerEquipment : NetworkBehaviour
             _inventory.OnSlotChanged += (index) => UpdateWeaponStatus();
             _inventory.OnInventoryUpdated += UpdateWeaponStatus;
         }
+        if (IsOwner && GameSceneManager.Instance != null)
+        {
+            GameSceneManager.Instance.OnSceneLoadComplete += ForceResetState;
+        }
     }
 
     public override void OnNetworkDespawn()
     {
         isUsingPhone.OnValueChanged -= OnPhoneStateChanged;
         if (spawnedPhone != null) Destroy(spawnedPhone);
+
+        if (IsOwner && GameSceneManager.Instance != null)
+        {
+            GameSceneManager.Instance.OnSceneLoadComplete -= ForceResetState;
+        }
     }
 
     void Update()
@@ -261,11 +271,34 @@ public class PlayerEquipment : NetworkBehaviour
 
             item.RequestUseItem(lookDir);
         }
-        else if (item.itemData.category == ItemCategory.Durability)
+    }
+
+    void ForceResetState()
+    {
+        if (!IsOwner) return;
+
+        if (isUsingPhone.Value)
         {
-            // 내구도 아이템(손전등 등)을 좌클릭 했을 때의 행동
-            // F키로 켜기로 했으므로, 좌클릭은 아무 일도 일어나지 않게 비워둡니다
-            // (만약 나중에 좌클릭으로도 켜고 싶다면 여기에 item.RequestUseItem(lookDir); 한 줄만 넣으면 됩니다)
+            isUsingPhone.Value = false;
+
+            if (playerAnim != null)
+            {
+                playerAnim.UpdatePhoneAnimation(false);
+            }
+
+            // 캐릭터 손에 들려있는 3D 폰 모델 숨기기
+            if (spawnedPhone != null) spawnedPhone.SetActive(false);
+
+            // ❌ 기존: 오브젝트만 강제로 숨기던 코드 삭제
+            // if (_phoneUIParent != null) _phoneUIParent.SetActive(false);
+
+            // ✅ 수정: PhoneUIController에게 정식으로 강제 종료를 요청하여 내부 변수와 이벤트를 모두 초기화!
+            if (PhoneUIController.Instance != null)
+            {
+                PhoneUIController.Instance.ForceTurnOff();
+            }
+
+            Debug.Log("[PlayerEquipment] 씬 전환으로 인해 굳어있던 폰 사용 상태를 완벽히 강제 초기화했습니다.");
         }
     }
 }

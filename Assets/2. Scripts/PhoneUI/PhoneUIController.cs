@@ -170,7 +170,7 @@ public class PhoneUIController : MonoBehaviour
     }
 
     // 기존 방어 로직(통화 중 차단)을 무시하고 무조건 끄는 강제 종료 함수
-    private void ForceTurnOff()
+    public void ForceTurnOff()
     {
         if (phoneUIParent == null) return;
 
