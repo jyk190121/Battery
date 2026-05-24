@@ -101,7 +101,7 @@ public class PlayerMove : NetworkBehaviour
             Cursor.visible = false;
 
             // 물리 상태 강제 해제
-            rb.isKinematic = false;
+            //rb.isKinematic = false;
             rb.linearVelocity = Vector3.zero;
             isControlLocked = false;
             isTabletLocked = false;
@@ -218,17 +218,12 @@ public class PlayerMove : NetworkBehaviour
 
         if (isGrounded)
         {
-            currentGroundTag = hit.collider.tag;
-
             bool layerIsStair = ((1 << hit.collider.gameObject.layer) & stairLayer) != 0;
 
             float angle = Vector3.Angle(Vector3.up, hit.normal);
             bool isSloped = angle > 5f; // 5도 이상 기울어져 있어야 계단 애니메이션 발동
             isOnStair = layerIsStair && isSloped;
-            //isOnStair = ((1 << hit.collider.gameObject.layer) & stairLayer) != 0;
 
-            // 애니메이션 초기화 로직 추가 (Stair -> Ground로 레이어가 변경될 떄) 
-            // 상태 변화 감지 및 애니메이션 강제 초기화
             if (wasOnStair && !isOnStair)
             {
                 playerAnim.UpdateStairStatus(false);
@@ -238,15 +233,35 @@ public class PlayerMove : NetworkBehaviour
                 rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
             }
 
-            if (isOnStair && inputMagnitude < 0.1f && !isTabletLocked)
+            //if (isOnStair && inputMagnitude < 0.1f && !isTabletLocked)
+            //{
+            //    rb.isKinematic = true;
+            //}
+            //else
+            //{
+            //    rb.isKinematic = false;
+            //}
+            if (isOnStair)
             {
-                rb.isKinematic = true;
+                if (inputMagnitude == 0f)
+                {
+                    // 💡 1. 멈췄을 때: 중력을 끄고, 속도를 완전히 0으로 죽여서 미끄러짐을 방지합니다.
+                    rb.useGravity = false;
+                    rb.linearVelocity = Vector3.zero;
+                }
+                else
+                {
+                    // 💡 2. 움직일 때: 중력을 다시 켜서 캐릭터가 공중에 붕 뜨지 않고 계단 바닥에 찰싹 붙어서 오르내리게 합니다.
+                    rb.useGravity = true;
+
+                    // (이 아래에는 기존에 작성해두신 이동 코드들이 정상적으로 실행되도록 두시면 됩니다.)
+                }
             }
             else
             {
-                rb.isKinematic = false;
+                // 💡 3. 계단이 아닌 일반 평지/공중일 때: 항상 중력을 켭니다.
+                rb.useGravity = true;
             }
-
             //// --- [하강 보정 수정] ---
             //// 캐릭터가 올라가려는 의지가 없을 때(Y속도가 낮은 상태)만 DownForce 적용
             //if (isOnStair && inputMagnitude > 0.1f)
@@ -262,7 +277,7 @@ public class PlayerMove : NetworkBehaviour
         else
         {
             isOnStair = false;
-            rb.isKinematic = false;
+            //rb.isKinematic = false;
         }
 
         playerAnim.UpdateGroundStatus(isGrounded);
@@ -339,7 +354,7 @@ public class PlayerMove : NetworkBehaviour
 
         if (Input.GetKeyDown(Key.Space) && isGrounded)
         {
-            rb.isKinematic = false;
+            //rb.isKinematic = false;
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpForce, rb.linearVelocity.z);
             playerAnim.PlayJump();
             playerAnim.StopEmotions();
@@ -381,7 +396,7 @@ public class PlayerMove : NetworkBehaviour
                 {
                     // 오르기 상태 감지
                     //isStepUpDetected = true;
-                    rb.isKinematic = false;
+                    //rb.isKinematic = false;
 
                     // 수직으로 밀어 올려 턱을 넘김
                     rb.position += Vector3.up * stairStepUpForce * Time.fixedDeltaTime;
@@ -393,11 +408,11 @@ public class PlayerMove : NetworkBehaviour
         }
 
         // 이동 실행
-        if (!rb.isKinematic)
-        {
+        //if (!rb.isKinematic)
+        //{
             Vector3 nextPos = rb.position + worldMoveDir * currentSpeed * Time.fixedDeltaTime;
             rb.MovePosition(nextPos);
-        }
+        //}
     }
 
     // 외부에서 이동 여부를 확인하기 위한 프로퍼티
