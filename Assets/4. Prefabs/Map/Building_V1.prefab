@@ -222766,6 +222766,10 @@ PrefabInstance:
       propertyPath: m_LocalPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2774791811074842775, guid: c8bb6620aa64ad148a52d1e692d068ed, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.435
+      objectReference: {fileID: 0}
     - target: {fileID: 3126323254266078931, guid: c8bb6620aa64ad148a52d1e692d068ed, type: 3}
       propertyPath: m_Name
       value: QuestReturnPoint_Prefab
@@ -222800,7 +222804,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4962810822707517600, guid: c8bb6620aa64ad148a52d1e692d068ed, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.8200002
+      value: 1.588
       objectReference: {fileID: 0}
     - target: {fileID: 4962810822707517600, guid: c8bb6620aa64ad148a52d1e692d068ed, type: 3}
       propertyPath: m_LocalPosition.z
@@ -230109,7 +230113,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8537483356027571445, guid: ca072720e47db4f4c8eeebe1857c8473, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.60800004
+      value: 0.357
       objectReference: {fileID: 0}
     - target: {fileID: 8537483356027571445, guid: ca072720e47db4f4c8eeebe1857c8473, type: 3}
       propertyPath: m_LocalPosition.z

@@ -173,13 +173,14 @@ public class QuestReturnPoint : NetworkBehaviour
 
     private void RefreshState(bool itemReturned, bool completed)
     {
-        // 1단계(반납)가 완료되면 실제 모델을 보여줌
         if (realModel != null) realModel.SetActive(itemReturned);
-
-        // 아이템 반납 전이고 매니저가 활성화했을 때만 고스트 모델 보여줌
         if (ghostModel != null) ghostModel.SetActive(isActivatedByManager.Value && !itemReturned);
 
-        // 최종 2단계까지 끝나면 콜라이더와 아웃라인 제거
+        if (PlayerInventory.LocalInstance != null)
+        {
+            PlayerInventory.LocalInstance.ClearHighlight();
+        }
+
         if (completed)
         {
             if (TryGetComponent(out Collider col)) col.enabled = false;
