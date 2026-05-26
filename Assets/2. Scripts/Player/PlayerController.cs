@@ -21,6 +21,10 @@ public class PlayerController : NetworkBehaviour
     public GameObject droppedPhonePrefab; // 바닥에 남겨질 콜라이더/ 폰 프리팹
     public GameObject playerModel;        // 플레이어 모델
 
+    [Header("시야 및 기믹 연동")]
+    [Tooltip("몬스터가 시선을 판별할 때 기준이 되는 머리 또는 카메라 Transform")]
+    public Transform headTransform;
+
     [Header("Base Data")]
     [SerializeField] private Player _playerData; // SO 데이터
     public Player Data => _playerData; // 읽기 전용 프로퍼티
