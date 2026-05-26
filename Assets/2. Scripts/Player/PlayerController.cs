@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using Key = UnityEngine.InputSystem.Key;
+
 
 public class PlayerController : NetworkBehaviour
 {
@@ -198,9 +200,8 @@ public class PlayerController : NetworkBehaviour
     {
         if (IsOwner && isDead.Value)
         {
-            HandleSpectateInput();
-
             CheckCurrentTargetStatus();
+            HandleSpectateInput();
         }
     }
     void CheckCurrentTargetStatus()
@@ -233,7 +234,7 @@ public class PlayerController : NetworkBehaviour
     void HandleSpectateInput()
     {
         // 마우스 좌클릭 시 다음 타겟으로 전환
-        if (UnityEngine.InputSystem.Mouse.current.leftButton.wasPressedThisFrame)
+        if (Input.GetMouseButton(0))
         {
             SwitchToNextTarget();
         }
@@ -484,13 +485,27 @@ public class PlayerController : NetworkBehaviour
     [ClientRpc]
     private void ReviveClientRpc()
     {
-        // OnDeadStatusChanged가 false일 때 처리를 하지만, 
-        // 여기서 한번 더 확실하게 관전 코루틴을 중지하고 카메라를 복구합니다.
-        StopAllCoroutines();
+        //// OnDeadStatusChanged가 false일 때 처리를 하지만, 
+        //// 여기서 한번 더 확실하게 관전 코루틴을 중지하고 카메라를 복구합니다.
+        //StopAllCoroutines();
+        //if (IsOwner && playerRotation != null)
+        //{
+        //    playerRotation.SetSpectatingMode(false);
+        //    playerRotation.SetSpectatingTarget(null);
+        //}
+
+        // 기존의 모델 활성화 및 폰 상태 복구 로직 유지
+        if (playerModel != null) playerModel.SetActive(true);
+
+        if (PhoneUIController.Instance != null)
+        {
+            PhoneUIController.Instance.SetDeadStatus(false);
+        }
+
+        // 💡 [추가] 내가 이 캐릭터의 주인(로컬 플레이어)이라면 관전을 종료하고 카메라를 회수합니다.
         if (IsOwner && playerRotation != null)
         {
-            playerRotation.SetSpectatingMode(false);
-            playerRotation.SetSpectatingTarget(null);
+            playerRotation.StopSpectating();
         }
     }
 

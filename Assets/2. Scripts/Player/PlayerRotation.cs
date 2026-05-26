@@ -25,7 +25,6 @@ public class PlayerRotation : NetworkBehaviour
 
     [Header("카메라 전방 거리(Z축) 제어")]
     public float walkZPos = 0.15f;                  // 평소 앞뒤 위치
-    public float crouchYPos = 0.6f;                 // 앉았을 때 카메라 위치 앞으로 조정
 
     [Header("회전 설정")]
     public float sensitivity = 0.1f;
@@ -77,10 +76,8 @@ public class PlayerRotation : NetworkBehaviour
 
                 if (cameraController != null) // 최종 확인
                 {
-                    if (isSnared)
-                        cameraController.SetMonsterCameraActive();
-                    else
-                        cameraController.SetMainCameraActive();
+                    if (!isSnared) cameraController.SetMainCameraActive();
+                    else cameraController.SetMonsterCameraActive();
                 }
                 else
                 {
@@ -228,8 +225,17 @@ public class PlayerRotation : NetworkBehaviour
     {
         //if (_isSpectating || !IsOwner || (SettingsUIController.Instance != null && SettingsUIController.Instance.IsSettingsOpen)) return;
         if (!IsOwner) return;
-        if (playerController != null && !playerController.CanRotate) return;
-
+        //if (playerController != null && !playerController.CanRotate) return;
+        if(_isSpectating && _spectatingTarget !=null)
+        {
+            if(_panTilt != null)
+            {
+                _panTilt.PanAxis.Value = _spectatingTarget.NetHorizontalRotation.Value;
+                _panTilt.TiltAxis.Value = _spectatingTarget.NetVerticalRotation.Value;
+            }
+            return;
+        }
+        if (SettingsUIController.Instance != null && SettingsUIController.Instance.IsSettingsOpen) return;
         if (PhoneUIController.Instance != null)
         {
             // 처음 한 번만 참조를 가져옴
@@ -251,8 +257,7 @@ public class PlayerRotation : NetworkBehaviour
 
         HandleRotation();
 
-        // 동기화 변수에 값 갱신 (HandleRotation에서 Clamp된 최종값을 보냄)
-        if (_panTilt != null)
+        if (_panTilt != null && _panTilt.enabled)
         {
             NetVerticalRotation.Value = _panTilt.TiltAxis.Value;
             NetHorizontalRotation.Value = _panTilt.PanAxis.Value;
@@ -490,6 +495,8 @@ public class PlayerRotation : NetworkBehaviour
 
     public void SetSpectatingTarget(PlayerRotation target)
     {
+        if (target == null) return;
+
         _spectatingTarget = target;
         _isSpectating = (target != null);
 
@@ -531,6 +538,7 @@ public class PlayerRotation : NetworkBehaviour
         else
         {
             // 관전 종료 시 내 원래 타겟으로 복귀
+            vcam.Priority = 100;
             vcam.Follow = cameraTarget;
             if (_inputController != null) _inputController.enabled = true;
             if (_panTilt != null) _panTilt.enabled = true;
@@ -651,5 +659,32 @@ public class PlayerRotation : NetworkBehaviour
         HandleSpectatingLogic();
     }
 
+    /// <summary>
+    /// 부활하거나 게임이 재시작되어 관전 모드를 종료하고 내 캐릭터 시점으로 복구합니다.
+    /// </summary>
+    public void StopSpectating()
+    {
+        // 1. 관전 플래그 및 타겟 초기화
+        _isSpectating = false;
+        _spectatingTarget = null;
+
+        if (vcam != null)
+        {
+            // 2. 시네머신 카메라 우선순위를 정상으로 돌리고 다시 나를 추적하게 설정
+            vcam.Priority = 10;
+            vcam.Follow = cameraTarget;
+            vcam.LookAt = cameraTarget;
+
+            // 3. 현재 내 캐릭터 몸통이 회전해 있는 Y축 각도를 시네머신 Pan 축에 그대로 이식
+            if (_panTilt != null)
+            {
+                // 부활하는 순간 캐릭터가 바라보고 있는 정면을 카메라가 똑같이 쳐다보게 만듭니다.
+                _panTilt.PanAxis.Value = transform.eulerAngles.y;
+                _panTilt.TiltAxis.Value = 0f; // 상하 고개 각도는 정면(0)으로 초기화
+            }
+        }
+
+        Debug.Log("<color=lime>[Spectating]</color> 관전 모드가 종료되어 카메라 및 회전 값이 내 캐릭터 기준으로 복구되었습니다.");
+    }
     #endregion
 }
