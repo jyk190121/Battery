@@ -244,7 +244,7 @@ public class PlayerInventory : NetworkBehaviour
         ClearHighlight();
     }
 
-    private void ClearHighlight()
+    public void ClearHighlight()
     {
         if (lastLookedItem != null)
         {
