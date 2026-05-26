@@ -18,6 +18,7 @@ GameObject:
   - component: {fileID: 2141971518855160868}
   - component: {fileID: 4629236269421193854}
   - component: {fileID: 8044447567286528804}
+  - component: {fileID: -4374813693627607729}
   m_Layer: 17
   m_Name: Good_FlashLight
   m_TagString: Untagged
@@ -148,6 +149,8 @@ MonoBehaviour:
   batteryDrainRate: 1
   currentBatteryNet:
     m_InternalValue: 100
+  networkLightRot:
+    m_InternalValue: {x: 0, y: 0, z: 0, w: 1}
 --- !u!114 &82495846502851905
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -277,6 +280,24 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.3, y: 0.3, z: 0.3}
   m_Center: {x: 0, y: 0, z: -0.05}
+--- !u!114 &-4374813693627607729
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5276242500762066697}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 630d0ae4e11e3854080afb32151a74ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FlashlightBlinder
+  ShowTopMostFoldoutHeaderGroup: 1
+  maxBlindDistance: 15
+  maxViewAngle: 60
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 151809
 --- !u!1 &6637249816061856237
 GameObject:
   m_ObjectHideFlags: 0
