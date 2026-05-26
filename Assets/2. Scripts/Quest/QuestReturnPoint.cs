@@ -23,7 +23,8 @@ public class QuestReturnPoint : NetworkBehaviour
     private NetworkVariable<bool> isCompleted = new NetworkVariable<bool>(false);       // 최종 클리어 (2단계 완료)
     private NetworkVariable<bool> hasItem = new NetworkVariable<bool>(false);            // 아이템 반납됨 (1단계 완료)
     private NetworkVariable<bool> isActivatedByManager = new NetworkVariable<bool>(false);
-
+   
+    private bool hasResetOutlineForRealModel = false;
     public override void OnNetworkSpawn()
     {
         if (QuestManager.Instance != null)
@@ -173,13 +174,22 @@ public class QuestReturnPoint : NetworkBehaviour
 
     private void RefreshState(bool itemReturned, bool completed)
     {
-        // 1단계(반납)가 완료되면 실제 모델을 보여줌
         if (realModel != null) realModel.SetActive(itemReturned);
-
-        // 아이템 반납 전이고 매니저가 활성화했을 때만 고스트 모델 보여줌
         if (ghostModel != null) ghostModel.SetActive(isActivatedByManager.Value && !itemReturned);
 
-        // 최종 2단계까지 끝나면 콜라이더와 아웃라인 제거
+        // [최초 1회 실행] 1단계 완료(itemReturned) 시점에 딱 한 번만 아웃라인 재시동
+        if (itemReturned && !completed && !hasResetOutlineForRealModel)
+        {
+            hasResetOutlineForRealModel = true; // 자물쇠 잠금 (이후 두 번 다시 실행 안 됨)
+
+            // 플레이어가 이 순간 쳐다보고 있어서 이미 켜져있다면 메쉬 재수집을 위해 껐다 켬
+            if (outline != null && outline.enabled)
+            {
+                outline.enabled = false;
+                outline.enabled = true;
+            }
+        }
+
         if (completed)
         {
             if (TryGetComponent(out Collider col)) col.enabled = false;
