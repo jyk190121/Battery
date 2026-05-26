@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
 using Unity.Netcode;
 using Unity.Netcode.Components;
+using UnityEngine;
 
 public class Item_Flash : ItemBase
 {
@@ -22,6 +23,13 @@ public class Item_Flash : ItemBase
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Owner
     );
+    public NetworkVariable<Quaternion> networkLightRot = new NetworkVariable<Quaternion>(
+        Quaternion.identity,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Owner
+    );
+
+    public static List<Item_Flash> AllFlashes = new List<Item_Flash>();
 
     protected override void Awake()
     {
@@ -29,7 +37,16 @@ public class Item_Flash : ItemBase
 
         if (spotLight != null) spotLight.enabled = false;
         TryGetComponent(out netTransform);
+
+        if (!AllFlashes.Contains(this)) AllFlashes.Add(this);
     }
+    public override void OnDestroy()
+    {
+        base.OnDestroy();
+        // 파괴될 때 리스트에서 제거
+        if (AllFlashes.Contains(this)) AllFlashes.Remove(this);
+    }
+
     void OnEnable()
     {
         if (isEquipped && netTransform != null)
@@ -114,39 +131,57 @@ public class Item_Flash : ItemBase
     // ==========================================
     private void Update()
     {
-        if (spotLight == null || !spotLight.enabled) return;
+        //// 주인(Owner)만 배터리를 계산해서 동기화 변수에 씁니다.
+        //if (IsOwner && isEquipped)
+        //{
+        //    // 네트워크 변수의 값을 직접 깎습니다.
+        //    float newValue = currentBatteryNet.Value - (batteryDrainRate * Time.deltaTime);
+        //    currentBatteryNet.Value = newValue;
 
-        // 주인(Owner)만 배터리를 계산해서 동기화 변수에 씁니다.
-        if (IsOwner && isEquipped)
+        //    // [TODO] UI에 현재 배터리량(currentBatteryNet.Value / maxBattery) 업데이트
+
+        //    if (currentBatteryNet.Value <= 0f)
+        //    {
+        //        currentBatteryNet.Value = 0f;
+
+        //        // 내 화면에서 먼저 불을 꺼서 Update문 상단의 return; 에 걸리게 합니다.
+        //        spotLight.enabled = false;
+
+        //        ForceTurnOff();
+        //    }
+        //}
+        //// 누군가 장착 중이고 시선 컴포넌트와 라이트가 유효할 때
+        //if (isEquipped && playerRotation != null && spotLight != null)
+        //{
+        //    if (playerRotation.CameraGroup != null)
+        //    {
+        //        // ?? 회전(Rotation)만 맞추면 손전등 본체가 저 뒤에 남았을 때 빛의 시작점이 깨집니다.
+        //        // 불빛의 위치(Position)까지 실시간으로 플레이어 눈(CameraGroup)의 좌표로 강제 워프(Snap)시킵니다.
+        //        spotLight.transform.position = playerRotation.CameraGroup.transform.position;
+        //        spotLight.transform.rotation = playerRotation.CameraGroup.transform.rotation;
+        //    }
+        //}
+        // 아이템이 장착되어 있고 불빛이 켜져 있을 때만 실행
+        if (isEquipped && spotLight != null && spotLight.enabled)
         {
-            // 네트워크 변수의 값을 직접 깎습니다.
-            float newValue = currentBatteryNet.Value - (batteryDrainRate * Time.deltaTime);
-            currentBatteryNet.Value = newValue;
-
-            // [TODO] UI에 현재 배터리량(currentBatteryNet.Value / maxBattery) 업데이트
-
-            if (currentBatteryNet.Value <= 0f)
+            if (IsOwner)
             {
-                currentBatteryNet.Value = 0f;
+                // 💡 2. [본인] 복잡하게 스크립트를 찾을 필요 없이, 
+                // 내 메인 카메라(내가 쳐다보는 방향)의 회전값을 손전등에 그대로 꽂아버립니다. (본인 화면 매우 부드러움)
+                if (Camera.main != null)
+                {
+                    spotLight.transform.rotation = Camera.main.transform.rotation;
 
-                // 내 화면에서 먼저 불을 꺼서 Update문 상단의 return; 에 걸리게 합니다.
-                spotLight.enabled = false;
-
-                ForceTurnOff();
+                    // 3. 다른 사람들도 똑같이 비출 수 있도록 실시간으로 내 회전값을 네트워크에 저장합니다.
+                    networkLightRot.Value = spotLight.transform.rotation;
+                }
+            }
+            else
+            {
+                // 💡 4. [다른 플레이어들] 주인이 돌리고 있는 손전등 회전값을 그대로 전달받아 적용합니다.
+                spotLight.transform.rotation = networkLightRot.Value;
             }
         }
-        // 누군가 장착 중이고 시선 컴포넌트와 라이트가 유효할 때
-        if (isEquipped && playerRotation != null && spotLight != null)
-        {
-            if (playerRotation.CameraGroup != null)
-            {
-                // ?? 회전(Rotation)만 맞추면 손전등 본체가 저 뒤에 남았을 때 빛의 시작점이 깨집니다.
-                // 불빛의 위치(Position)까지 실시간으로 플레이어 눈(CameraGroup)의 좌표로 강제 워프(Snap)시킵니다.
-                spotLight.transform.position = playerRotation.CameraGroup.transform.position;
-                spotLight.transform.rotation = playerRotation.CameraGroup.transform.rotation;
-            }
-        }
-
     }
     //void LateUpdate()
     //{
