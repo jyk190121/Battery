@@ -243,23 +243,24 @@ public class PlayerMove : NetworkBehaviour
             //}
             if (isOnStair)
             {
+                if((rb.linearVelocity.y > 0.5f))
+                {
+                    rb.useGravity = true;
+                    return;
+                }
+
                 if (inputMagnitude == 0f)
                 {
-                    // 💡 1. 멈췄을 때: 중력을 끄고, 속도를 완전히 0으로 죽여서 미끄러짐을 방지합니다.
                     rb.useGravity = false;
                     rb.linearVelocity = Vector3.zero;
                 }
                 else
                 {
-                    // 💡 2. 움직일 때: 중력을 다시 켜서 캐릭터가 공중에 붕 뜨지 않고 계단 바닥에 찰싹 붙어서 오르내리게 합니다.
                     rb.useGravity = true;
-
-                    // (이 아래에는 기존에 작성해두신 이동 코드들이 정상적으로 실행되도록 두시면 됩니다.)
                 }
             }
             else
             {
-                // 💡 3. 계단이 아닌 일반 평지/공중일 때: 항상 중력을 켭니다.
                 rb.useGravity = true;
             }
             //// --- [하강 보정 수정] ---
