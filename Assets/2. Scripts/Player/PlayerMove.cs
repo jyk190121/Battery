@@ -278,7 +278,7 @@ public class PlayerMove : NetworkBehaviour
         else
         {
             isOnStair = false;
-            //rb.isKinematic = false;
+            rb.useGravity = true;
         }
 
         playerAnim.UpdateGroundStatus(isGrounded);
