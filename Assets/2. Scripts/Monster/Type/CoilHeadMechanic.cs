@@ -67,41 +67,35 @@ public class CoilHeadMechanic : NetworkBehaviour
     /// <returns>누군가 보고 있으면 true (정지), 아무도 안 보면 false (돌진)</returns>
     private bool CheckIfLookedByAnyPlayer()
     {
-        // 1. 몬스터의 중심점 계산 (발바닥 대신 가슴/머리 높이 기준)
         Vector3 monsterCenter = transform.position + (Vector3.up * 1.5f);
         float maxDistance = _controller.monsterData.gimmickCheckDistance;
 
-        // 2. 모든 플레이어를 순회하며 시야 검사
         foreach (PlayerController player in PlayerController.AllPlayers)
         {
-            // 죽은 플레이어나 비활성화된 플레이어는 시야 판정에서 제외
             if (player == null || !player.gameObject.activeInHierarchy || player.isDead.Value)
                 continue;
 
-            // [TODO] 임시 처리: 추후 플레이어의 진짜 카메라(Camera.main)나 머리 Transform으로 교체 권장
-            Vector3 playerEyePos = player.transform.position + (Vector3.up * 1.5f);
-            Vector3 playerLookDir = player.transform.forward;
+            Transform playerHead = player.headTransform;
+
+            Vector3 playerEyePos = playerHead.position;
+            Vector3 playerLookDir = playerHead.forward; // 상하좌우를 모두 포함하는 정확한 시선
 
             Vector3 dirToMonster = (monsterCenter - playerEyePos).normalized;
             float distanceToMonster = Vector3.Distance(playerEyePos, monsterCenter);
 
-            // 거리가 너무 멀면 쳐다봐도 무효 처리
             if (distanceToMonster > maxDistance)
                 continue;
 
-            // 3. 시야각(FOV) 검사 (Dot Product 내적 활용)
+            // 내적 계산 (0.5f면 정면 기준 좌우 상하 60도, 즉 120도 원뿔형 시야각)
+            // 모니터 화면과 거의 일치하는 판정이 나옵니다.
             if (Vector3.Dot(playerLookDir, dirToMonster) > fieldOfViewThreshold)
             {
-                // 4. 장애물(벽) 가림 검사 (Raycast)
-                // 눈에서 몬스터를 향해 레이저를 쏴서 벽에 막히지 않았다면?
                 if (!Physics.Raycast(playerEyePos, dirToMonster, distanceToMonster, obstacleMask))
                 {
-                    return true; // 살아있는 누군가가 확실히 보고 있으므로 몬스터 얼어붙음
+                    return true;
                 }
             }
         }
-
-        // 모든 검사를 통과했다면 아무도 몬스터를 보지 못하고 있는 상태
         return false;
     }
 }

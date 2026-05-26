@@ -3707,6 +3707,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   droppedPhonePrefab: {fileID: 3256090640262015324, guid: 4d128d5a57c756144884162fb356fef0, type: 3}
   playerModel: {fileID: 6007660870544166405}
+  headTransform: {fileID: 658577172614144005}
   _playerData: {fileID: 11400000, guid: 51fe10672196c0c4daf37fc48f14bb9a, type: 2}
   isDead:
     m_InternalValue: 0
