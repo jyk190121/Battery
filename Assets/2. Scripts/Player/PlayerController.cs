@@ -234,7 +234,7 @@ public class PlayerController : NetworkBehaviour
     void HandleSpectateInput()
     {
         // 마우스 좌클릭 시 다음 타겟으로 전환
-        if (Input.GetMouseButton(0))
+        if (Input.GetMouseButtonDown(0))
         {
             SwitchToNextTarget();
         }
