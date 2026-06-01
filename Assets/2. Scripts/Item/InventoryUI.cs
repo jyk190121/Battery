@@ -5,10 +5,10 @@ using UnityEngine.UI;
 public class InventoryUI : MonoBehaviour
 {
     public PlayerInventory playerInventory;
-    public Image[] slotIcons = new Image[4];      // ItemIcon_1~4 드래그 앤 드롭
-    public GameObject[] highlightBox = new GameObject[4]; // ItemSlot_1~4 드래그 앤 드롭
+    public Image[] slotIcons = new Image[4];
+    public GameObject[] highlightBox = new GameObject[4];
 
-    void Start()
+    private void Start()
     {
         StartCoroutine(BindLocalPlayerRoutine());
         TabletUIManager.OnTabletStateChanged += HandleTabletStateChanged;
@@ -16,7 +16,6 @@ public class InventoryUI : MonoBehaviour
 
     private System.Collections.IEnumerator BindLocalPlayerRoutine()
     {
-        // [핵심] '나(로컬 클라이언트)'의 인벤토리가 스폰될 때까지 대기
         while (PlayerInventory.LocalInstance == null)
         {
             yield return null;
@@ -36,80 +35,86 @@ public class InventoryUI : MonoBehaviour
 
     private void UpdateUI()
     {
-        for (int i = 0; i < slotIcons.Length; i++)
+        for (int slotIndex = 0; slotIndex < slotIcons.Length; slotIndex++)
         {
-            ItemBase item = playerInventory.slots[i];
+            ItemBase item = playerInventory.slots[slotIndex];
+
             if (item != null)
             {
-                slotIcons[i].sprite = item.itemData.icon;
-                slotIcons[i].enabled = true;
+                slotIcons[slotIndex].sprite = item.itemData.icon;
+                slotIcons[slotIndex].enabled = true;
             }
             else
             {
-                slotIcons[i].enabled = false;
+                slotIcons[slotIndex].enabled = false;
             }
         }
-        // 아이템을 버리거나 주웠을 때 즉시 무기 판별 갱신
+
         UpdateHighlight(playerInventory.currentSlotIndex);
         HandleTwoHandedUI(PlayerInventory.IsHoldingTwoHanded);
     }
 
-    private void UpdateHighlight(int index)
+    private void UpdateHighlight(int selectedIndex)
     {
-        int targetIndex = index;
+        int targetIndex = selectedIndex;
 
-        // [핵심 기획 추가] 양손 아이템을 들고 있다면, 해당 아이템이 위치한 슬롯 번호로 타겟 변경
         if (playerInventory != null && PlayerInventory.IsHoldingTwoHanded)
         {
-            for (int i = 0; i < playerInventory.slots.Length; i++)
+            for (int slotIndex = 0; slotIndex < playerInventory.slots.Length; slotIndex++)
             {
-                if (playerInventory.slots[i] == playerInventory.twoHandedItem)
+                if (playerInventory.slots[slotIndex] == playerInventory.twoHandedItem)
                 {
-                    targetIndex = i;
+                    targetIndex = slotIndex;
                     break;
                 }
             }
         }
 
-        for (int i = 0; i < highlightBox.Length; i++)
+        for (int boxIndex = 0; boxIndex < highlightBox.Length; boxIndex++)
         {
-            Image slotImg = highlightBox[i].GetComponent<Image>();
-            if (slotImg != null)
-                slotImg.color = (i == targetIndex) ? Color.white : new Color(1, 1, 1, 0.3f);
+            Image slotImage = highlightBox[boxIndex].GetComponent<Image>();
+
+            if (slotImage != null)
+            {
+                slotImage.color = (boxIndex == targetIndex) ? Color.white : new Color(1f, 1f, 1f, 0.3f);
+            }
         }
 
-        // 슬롯을 바꿨을 때 즉시 무기 판별 갱신
-        if (playerInventory != null) HandleTwoHandedUI(PlayerInventory.IsHoldingTwoHanded);
+        if (playerInventory != null)
+        {
+            HandleTwoHandedUI(PlayerInventory.IsHoldingTwoHanded);
+        }
     }
 
-    //태블릿 상태에 따라 UI 투명도 조절 함수
     private void HandleTabletStateChanged(bool isTabletOpen)
     {
-        if (TryGetComponent(out CanvasGroup cg))
+        if (TryGetComponent(out CanvasGroup canvasGroup))
         {
-            // 태블릿 열고 닫을 때도 무기 여부 체크
             bool isHeavy = PlayerInventory.IsHoldingTwoHanded;
 
-            cg.alpha = isTabletOpen ? 0f : (isHeavy ? 0.5f : 1.0f);
-            cg.interactable = !isTabletOpen;
-            cg.blocksRaycasts = !isTabletOpen;
+            canvasGroup.alpha = isTabletOpen ? 0f : (isHeavy ? 0.5f : 1.0f);
+            canvasGroup.interactable = !isTabletOpen;
+            canvasGroup.blocksRaycasts = !isTabletOpen;
         }
     }
 
     private void HandleTwoHandedUI(bool isHeavy)
     {
-        GetComponent<CanvasGroup>().alpha = isHeavy ? 0.5f : 1.0f;
+        if (TryGetComponent(out CanvasGroup canvasGroup))
+        {
+            canvasGroup.alpha = isHeavy ? 0.5f : 1.0f;
+        }
     }
 
     private void OnDestroy()
     {
-        // 스크립트가 파괴될 때(씬 이동 등) 연결된 이벤트를 모두 끊어줍니다.
         if (playerInventory != null)
         {
             playerInventory.OnInventoryUpdated -= UpdateUI;
             playerInventory.OnSlotChanged -= UpdateHighlight;
             playerInventory.OnTwoHandedToggled -= HandleTwoHandedUI;
         }
+
         TabletUIManager.OnTabletStateChanged -= HandleTabletStateChanged;
     }
 }

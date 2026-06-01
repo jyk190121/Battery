@@ -3,13 +3,16 @@ using UnityEngine;
 using Unity.Netcode;
 using System.Linq;
 
+/// <summary>
+/// 매일 아침(Day Cycle) 시작 시 맵 전체에 폐지와 퀘스트 아이템을 무작위로 스폰하는 매니저.
+/// </summary>
 public class ItemSpawner : NetworkBehaviour
 {
     public ItemDataSO[] itemDatabase;
 
     [Header("스폰 설정")]
-    public int minSpawnCount = 21;  // 일반 폐지 최소 개수 유지
-    public int maxSpawnCount = 27;  // 일반 폐지 최대 개수 유지
+    public int minSpawnCount = 21;
+    public int maxSpawnCount = 27;
     public int extraSpawnPerDifficulty = 2;
 
     [Header("퀘스트 기믹 설정")]
@@ -18,6 +21,11 @@ public class ItemSpawner : NetworkBehaviour
     [SerializeField] private List<ItemSpawnPoint> areaManagers = new List<ItemSpawnPoint>();
     private List<NetworkObject> spawnedItems = new List<NetworkObject>();
 
+
+    // ===============
+    // 1.이벤트 연결
+    // ===============
+
     public override void OnNetworkSpawn()
     {
         if (IsServer)
@@ -25,15 +33,9 @@ public class ItemSpawner : NetworkBehaviour
             if (GameMaster.Instance != null)
             {
                 GameMaster.Instance.OnDayStarted += HandleDayStarted;
-                StartCoroutine(DelayedStartDay());
+                StartCoroutine(DelayedStartDayRoutine());
             }
         }
-    }
-
-    private System.Collections.IEnumerator DelayedStartDay()
-    {
-        yield return new WaitForSeconds(0.5f);
-        GameMaster.Instance.StartDay();
     }
 
     public override void OnNetworkDespawn()
@@ -44,10 +46,31 @@ public class ItemSpawner : NetworkBehaviour
         }
     }
 
+    public override void OnDestroy()
+    {
+        base.OnDestroy();
+
+        if (GameMaster.Instance != null)
+        {
+            GameMaster.Instance.OnDayStarted -= HandleDayStarted;
+        }
+    }
+
+    private System.Collections.IEnumerator DelayedStartDayRoutine()
+    {
+        yield return new WaitForSeconds(0.5f);
+        GameMaster.Instance.StartDay();
+    }
+
+
+    // ==========================================
+    // 2. 일일 스폰 로직 (Spawning Logic)
+    // ==========================================
+
     private void HandleDayStarted(int difficulty)
     {
+        if (this == null) { return; }
 
-        if (this == null) return; // 파괴된 객체면 즉시 정지 (좀비 방어)
         ClearPreviousItems();
         RefreshSpawnPoints();
 
@@ -57,7 +80,6 @@ public class ItemSpawner : NetworkBehaviour
             return;
         }
 
-        // 목표 일반 폐지 개수만 산정 (21~27 + 난이도)
         int randomBaseCount = Random.Range(minSpawnCount, maxSpawnCount + 1);
         int targetNormalSpawnCount = randomBaseCount + (difficulty * extraSpawnPerDifficulty);
 
@@ -66,19 +88,9 @@ public class ItemSpawner : NetworkBehaviour
         SpawnRandomItems(targetNormalSpawnCount);
     }
 
-    public override void OnDestroy()
-    {
-        base.OnDestroy();
-        // 객체가 파괴될 때 무조건 이벤트 연결 고리를 끊음
-        if (GameMaster.Instance != null)
-        {
-            GameMaster.Instance.OnDayStarted -= HandleDayStarted;
-        }
-    }
-
     private void ClearPreviousItems()
     {
-        foreach (var netObj in spawnedItems)
+        foreach (NetworkObject netObj in spawnedItems)
         {
             if (netObj != null && netObj.IsSpawned)
             {
@@ -88,33 +100,33 @@ public class ItemSpawner : NetworkBehaviour
         spawnedItems.Clear();
     }
 
-    void SpawnRandomItems(int targetNormalSpawnCount)
+    private void SpawnRandomItems(int targetNormalSpawnCount)
     {
-        if (itemDatabase == null || areaManagers.Count == 0) return;
+        if (itemDatabase == null || areaManagers.Count == 0) { return; }
 
-        Dictionary<SpawnLocation, List<Transform>> spawnDict = new Dictionary<SpawnLocation, List<Transform>>();
-        foreach (var manager in areaManagers)
+        Dictionary<SpawnLocation, List<Transform>> spawnDictionary = new Dictionary<SpawnLocation, List<Transform>>();
+
+        foreach (ItemSpawnPoint manager in areaManagers)
         {
-            if (!spawnDict.ContainsKey(manager.location))
-                spawnDict[manager.location] = new List<Transform>();
-
-            spawnDict[manager.location].AddRange(manager.GetPoints());
+            if (!spawnDictionary.ContainsKey(manager.location))
+            {
+                spawnDictionary[manager.location] = new List<Transform>();
+            }
+            spawnDictionary[manager.location].AddRange(manager.GetPoints());
         }
 
         int questItemCount = 0;
 
-        // 1. 수집 퀘스트 아이템 생성 (일반 폐지와 카운트 분리: +α 스폰)
         if (QuestManager.Instance != null)
         {
             foreach (int activeQuestID in QuestManager.Instance.activeQuests)
             {
                 QuestDataSO questData = QuestManager.Instance.GetQuestData(activeQuestID);
-                if (questData == null) continue;
+                if (questData == null) { continue; }
 
-                // [기믹 1] 금고
                 if (activeQuestID == 1000 || activeQuestID == 2000 || activeQuestID == 3000)
                 {
-                    ItemDataSO targetItemData = itemDatabase.FirstOrDefault(i => i.itemID == questData.targetItemID);
+                    ItemDataSO targetItemData = itemDatabase.FirstOrDefault(item => item.itemID == questData.targetItemID);
                     if (targetItemData != null && safeDropPoints[0] != null)
                     {
                         SpawnObject(targetItemData, safeDropPoints[0].position, safeDropPoints[0].rotation);
@@ -123,200 +135,208 @@ public class ItemSpawner : NetworkBehaviour
                     continue;
                 }
 
-                // [기믹 2] 발전기
                 if (activeQuestID == 1010 || activeQuestID == 2010 || activeQuestID == 3010)
                 {
-                    ItemDataSO wireData = itemDatabase.FirstOrDefault(i => i.itemID == 905);
+                    ItemDataSO wireData = itemDatabase.FirstOrDefault(item => item.itemID == 905);
                     if (wireData != null)
                     {
                         int wireCount = questData.materialCount > 0 ? questData.materialCount : 1;
-                        for (int j = 0; j < wireCount; j++)
+                        for (int count = 0; count < wireCount; count++)
                         {
-                            if (TrySpawnSpecificItem(wireData, spawnDict)) questItemCount++;
+                            if (TrySpawnSpecificItem(wireData, spawnDictionary))
+                            {
+                                questItemCount++;
+                            }
                         }
                     }
                     continue;
                 }
 
-                // [기믹 3] 저주 동상
                 if (activeQuestID == 1020 || activeQuestID == 2020 || activeQuestID == 3020)
                 {
-                    ItemDataSO statueData = itemDatabase.FirstOrDefault(i => i.itemID == 906);
+                    ItemDataSO statueData = itemDatabase.FirstOrDefault(item => item.itemID == 906);
                     if (statueData != null)
                     {
-                        if (TrySpawnSpecificItem(statueData, spawnDict)) questItemCount++;
+                        if (TrySpawnSpecificItem(statueData, spawnDictionary))
+                        {
+                            questItemCount++;
+                        }
                     }
                     continue;
                 }
 
-                // [기믹 4] 일반 수집 퀘스트
                 if (questData.targetItemID != 0)
                 {
-                    ItemDataSO targetItemData = itemDatabase.FirstOrDefault(i => i.itemID == questData.targetItemID);
+                    ItemDataSO targetItemData = itemDatabase.FirstOrDefault(item => item.itemID == questData.targetItemID);
                     if (targetItemData != null)
                     {
                         int requiredAmount = questData.materialCount > 0 ? questData.materialCount : 1;
-                        for (int j = 0; j < requiredAmount; j++)
+                        for (int count = 0; count < requiredAmount; count++)
                         {
-                            if (TrySpawnSpecificItem(targetItemData, spawnDict)) questItemCount++;
+                            if (TrySpawnSpecificItem(targetItemData, spawnDictionary))
+                            {
+                                questItemCount++;
+                            }
                         }
                     }
                 }
             }
         }
 
-       
-
-        // 3. 일반 폐지 스폰 (순수하게 targetNormalSpawnCount 만큼 스폰)
-        var normalItems = itemDatabase.Where(i =>
-            i.category != ItemCategory.Quest &&
-            i.spawnLocation != SpawnLocation.ShopOnly).ToList();
+        List<ItemDataSO> normalItems = itemDatabase.Where(item =>
+            item.category != ItemCategory.Quest &&
+            item.spawnLocation != SpawnLocation.ShopOnly).ToList();
 
         int normalSuccessCount = 0;
 
         if (normalItems.Count > 0)
         {
-            // 퀘스트 아이템 스폰 횟수를 차감하지 않음
             int remainingSpawns = targetNormalSpawnCount;
+            Dictionary<SpawnLocation, int> spawnQuotas = new Dictionary<SpawnLocation, int>();
 
-            Dictionary<SpawnLocation, int> quotas = new Dictionary<SpawnLocation, int>();
-
-            // 3-1. 특수룸 할당 (각 방마다 1~2개)
             SpawnLocation[] specialRooms = { SpawnLocation.ScienceRoom, SpawnLocation.PrincipalRoom, SpawnLocation.ArtRoom, SpawnLocation.Infirmary, SpawnLocation.MusicRoom };
 
-            foreach (var room in specialRooms)
+            foreach (SpawnLocation room in specialRooms)
             {
-                if (spawnDict.ContainsKey(room) && spawnDict[room].Count > 0)
+                if (spawnDictionary.ContainsKey(room) && spawnDictionary[room].Count > 0)
                 {
                     int roomQuota = Random.Range(1, 3);
-                    roomQuota = Mathf.Min(roomQuota, spawnDict[room].Count);
-                    quotas[room] = roomQuota;
+                    roomQuota = Mathf.Min(roomQuota, spawnDictionary[room].Count);
+                    spawnQuotas[room] = roomQuota;
                     remainingSpawns -= roomQuota;
                 }
             }
 
-            // 3-2. 일반 층 할당 (남은 횟수를 균등 분배)
             SpawnLocation[] floors = { SpawnLocation.Floor1, SpawnLocation.Floor2, SpawnLocation.Floor3 };
             int spawnsPerFloor = Mathf.Max(0, remainingSpawns / 3);
-            int leftover = Mathf.Max(0, remainingSpawns % 3);
+            int leftoverSpawns = Mathf.Max(0, remainingSpawns % 3);
 
-            foreach (var floor in floors)
+            foreach (SpawnLocation floor in floors)
             {
-                if (spawnDict.ContainsKey(floor) && spawnDict[floor].Count > 0)
+                if (spawnDictionary.ContainsKey(floor) && spawnDictionary[floor].Count > 0)
                 {
                     int floorQuota = spawnsPerFloor;
-                    if (leftover > 0) { floorQuota++; leftover--; }
-                    floorQuota = Mathf.Min(floorQuota, spawnDict[floor].Count);
-                    quotas[floor] = floorQuota;
+                    if (leftoverSpawns > 0)
+                    {
+                        floorQuota++;
+                        leftoverSpawns--;
+                    }
+                    floorQuota = Mathf.Min(floorQuota, spawnDictionary[floor].Count);
+                    spawnQuotas[floor] = floorQuota;
                 }
             }
 
-            // 3-3. 할당된 수량 스폰 실행
-            foreach (var kvp in quotas)
+            foreach (KeyValuePair<SpawnLocation, int> quotaInfo in spawnQuotas)
             {
-                SpawnLocation targetZone = kvp.Key;
-                int amountToSpawn = kvp.Value;
+                SpawnLocation targetZone = quotaInfo.Key;
+                int amountToSpawn = quotaInfo.Value;
 
-                for (int j = 0; j < amountToSpawn; j++)
+                for (int spawnCount = 0; spawnCount < amountToSpawn; spawnCount++)
                 {
-                    var validItems = normalItems.Where(i => i.spawnLocation == targetZone).ToList();
+                    List<ItemDataSO> validItems = normalItems.Where(item => item.spawnLocation == targetZone).ToList();
 
                     if (targetZone == SpawnLocation.Floor1 || targetZone == SpawnLocation.Floor2 || targetZone == SpawnLocation.Floor3)
                     {
-                        validItems.AddRange(normalItems.Where(i => i.spawnLocation == SpawnLocation.AllFloor));
+                        validItems.AddRange(normalItems.Where(item => item.spawnLocation == SpawnLocation.AllFloor));
                     }
 
-                    // [안전망] 해당 구역용 아이템이 없으면 AllFloor로 대체
                     if (validItems.Count == 0)
                     {
-                        validItems = normalItems.Where(i => i.spawnLocation == SpawnLocation.AllFloor).ToList();
+                        validItems = normalItems.Where(item => item.spawnLocation == SpawnLocation.AllFloor).ToList();
                     }
 
                     if (validItems.Count > 0)
                     {
                         ItemDataSO selectedData = validItems[Random.Range(0, validItems.Count)];
 
-                        if (spawnDict.TryGetValue(targetZone, out List<Transform> points) && points.Count > 0)
+                        if (spawnDictionary.TryGetValue(targetZone, out List<Transform> points) && points.Count > 0)
                         {
-                            int idx = Random.Range(0, points.Count);
-                            Transform targetPoint = points[idx];
+                            int pointIndex = Random.Range(0, points.Count);
+                            Transform targetPoint = points[pointIndex];
 
                             SpawnObject(selectedData, targetPoint.position, targetPoint.rotation);
-                            points.RemoveAt(idx);
+                            points.RemoveAt(pointIndex);
                             normalSuccessCount++;
                         }
                     }
                 }
             }
 
-            // 명확한 디버그 로그 출력
             Debug.Log($"<color=cyan>[Spawner]</color> 스폰 결산 -> 퀘스트 아이템: {questItemCount}개 + 일반 폐지: {normalSuccessCount}/{targetNormalSpawnCount}개. 총 맵 스폰: {questItemCount + normalSuccessCount}개");
         }
     }
 
-    bool TrySpawnSpecificItem(ItemDataSO data, Dictionary<SpawnLocation, List<Transform>> dict)
+
+    // ========================
+    // 3. 유틸리티 및 에디터 툴 
+    // ========================
+
+    private bool TrySpawnSpecificItem(ItemDataSO data, Dictionary<SpawnLocation, List<Transform>> spawnDictionary)
     {
         List<Transform> candidatePoints = null;
 
         if (data.spawnLocation == SpawnLocation.AllFloor)
         {
-            var availableFloors = new List<SpawnLocation> { SpawnLocation.Floor1, SpawnLocation.Floor2, SpawnLocation.Floor3 };
-            var validFloors = availableFloors.Where(f => dict.ContainsKey(f) && dict[f].Count > 0).ToList();
+            List<SpawnLocation> availableFloors = new List<SpawnLocation> { SpawnLocation.Floor1, SpawnLocation.Floor2, SpawnLocation.Floor3 };
+            List<SpawnLocation> validFloors = availableFloors.Where(floor => spawnDictionary.ContainsKey(floor) && spawnDictionary[floor].Count > 0).ToList();
 
             if (validFloors.Count > 0)
             {
                 SpawnLocation selectedFloor = validFloors[Random.Range(0, validFloors.Count)];
-                candidatePoints = dict[selectedFloor];
+                candidatePoints = spawnDictionary[selectedFloor];
             }
         }
-        else if (dict.TryGetValue(data.spawnLocation, out List<Transform> points) && points.Count > 0)
+        else if (spawnDictionary.TryGetValue(data.spawnLocation, out List<Transform> points) && points.Count > 0)
         {
             candidatePoints = points;
         }
 
         if (candidatePoints != null && candidatePoints.Count > 0)
         {
-            int idx = Random.Range(0, candidatePoints.Count);
-            Transform target = candidatePoints[idx];
+            int pointIndex = Random.Range(0, candidatePoints.Count);
+            Transform target = candidatePoints[pointIndex];
 
             SpawnObject(data, target.position, target.rotation);
 
-            candidatePoints.RemoveAt(idx);
+            candidatePoints.RemoveAt(pointIndex);
             return true;
         }
         return false;
     }
 
-    void SpawnObject(ItemDataSO data, Vector3 pos, Quaternion rot)
+    private void SpawnObject(ItemDataSO data, Vector3 position, Quaternion rotation)
     {
-        if (data == null || data.itemPrefab == null) return;
+        if (data == null || data.itemPrefab == null) { return; }
 
-        GameObject obj = Instantiate(data.itemPrefab, pos, rot);
-        NetworkObject netObj = obj.GetComponent<NetworkObject>();
+        GameObject obj = Instantiate(data.itemPrefab, position, rotation);
+        NetworkObject networkObj = obj.GetComponent<NetworkObject>();
 
-        if (netObj != null)
+        if (networkObj != null)
         {
-            netObj.Spawn();
-            spawnedItems.Add(netObj);
+            networkObj.Spawn();
+            spawnedItems.Add(networkObj);
         }
 
         ItemBase item = obj.GetComponent<ItemBase>();
-        if (item != null) item.itemData = data;
+        if (item != null)
+        {
+            item.itemData = data;
+        }
     }
 
     [ContextMenu("Bake: 모든 지역 관리자 동기화")]
     public void RefreshSpawnPoints()
     {
         areaManagers.Clear();
-        ItemSpawnPoint[] found = Object.FindObjectsByType<ItemSpawnPoint>(FindObjectsSortMode.None);
+        ItemSpawnPoint[] foundManagers = Object.FindObjectsByType<ItemSpawnPoint>(FindObjectsSortMode.None);
 
-        foreach (var manager in found)
+        foreach (ItemSpawnPoint manager in foundManagers)
         {
             manager.UpdateChildPoints();
             areaManagers.Add(manager);
         }
+
 #if UNITY_EDITOR
-        // 게임 실행 중이 아니고, 객체가 살아있을 때만 실행
         if (!Application.isPlaying && this != null)
         {
             UnityEditor.EditorUtility.SetDirty(this);
