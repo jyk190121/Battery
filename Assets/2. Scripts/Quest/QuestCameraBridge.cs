@@ -3,28 +3,33 @@ using UnityEngine;
 using Unity.Netcode;
 using System.Linq;
 
+/// <summary>
+/// 스마트폰 카메라로 촬영한 사진 데이터를 판독하고, 정산 시 서버로 전송하는 로컬 앨범 브릿지.
+/// </summary>
 public class QuestCameraBridge : NetworkBehaviour
 {
     public static QuestCameraBridge Instance;
 
-    //찍었지만 서버는 모르는 상태 (개인 앨범) -> 이후 제출.
+    // 찍었지만 서버는 모르는 상태 (개인 앨범) -> 이후 제출.
     private List<int> myLocalDeferredQuests = new List<int>();
 
-    private void Awake() => Instance = this;
-
-    //퀘스트 목표 촬영시 호출할 함수
-    public void AddCapturedQuest(int qId)
+    private void Awake()
     {
-        //이미 추가된 퀘스트 ID는 다시 추가안함.
-        if (!myLocalDeferredQuests.Contains(qId))
+        if (Instance == null)
         {
-            myLocalDeferredQuests.Add(qId);//로컬에 보관하면서
-
-            Debug.Log($"<color=orange>[스마트폰 앨범]</color> {qId}번 데이터 확보완료. (정산 시 인정됨)");
+            Instance = this;
         }
     }
 
-    //유저가 스마트폰에서 사진을 직접 삭제했을 때 (체크 해제)
+    public void AddCapturedQuest(int questID)
+    {
+        if (!myLocalDeferredQuests.Contains(questID))
+        {
+            myLocalDeferredQuests.Add(questID);
+            Debug.Log($"<color=orange>[스마트폰 앨범]</color> {questID}번 데이터 확보완료. (정산 시 인정됨)");
+        }
+    }
+
     public void DeletePhotoFromAlbum(int questID)
     {
         if (myLocalDeferredQuests.Contains(questID))
@@ -34,88 +39,102 @@ public class QuestCameraBridge : NetworkBehaviour
         }
     }
 
-
-
-    //정산존 명령 수신 (모든 클라이언트가 동시 실행)
     [Rpc(SendTo.Everyone)]
     public void CommandSubmitDataClientRpc(ulong[] survivorIds)
     {
-        ulong myId = NetworkManager.Singleton.LocalClientId;
+        ulong myClientId = NetworkManager.Singleton.LocalClientId;
 
-        //각자 자기 ID가 생존자 명단에 있는지 스스로 확인
-        if (survivorIds.Contains(myId) && myLocalDeferredQuests.Count > 0)
+        if (survivorIds.Contains(myClientId) && myLocalDeferredQuests.Count > 0)
         {
-            //내가 살아있다면 앨범 데이터를 서버로 전송!
             SubmitDeferredDataServerRpc(myLocalDeferredQuests.ToArray());
         }
 
-        //확인이 끝났으면 살았든 죽었든 앨범은 초기화 (다음 날 준비 or 증발)
         myLocalDeferredQuests.Clear();
     }
 
-    //서버 매니저에게 실제 데이터 제출 (기록 확정)
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     private void SubmitDeferredDataServerRpc(int[] questIDs, RpcParams rpcParams = default)
     {
         ulong actualSenderId = rpcParams.Receive.SenderClientId;
 
-        foreach (int id in questIDs)
+        foreach (int questID in questIDs)
         {
-            QuestManager.Instance.NotifyFinalClear(id, actualSenderId);
+            QuestManager.Instance.NotifyFinalClear(questID, actualSenderId);
         }
     }
 
-    //스마트폰 UI 판독기에서 앨범 상태를 물어볼 때 사용
-    public bool IsPhotoInLocalAlbum(int id) => myLocalDeferredQuests.Contains(id);
+    public bool IsPhotoInLocalAlbum(int questID)
+    {
+        return myLocalDeferredQuests.Contains(questID);
+    }
 
-    // 갤러리에 사진이 추가되거나 삭제될 때마다 현재 제출 대기 중인 퀘스트 목록을 로컬 갱신하는 함수입니다.
     public void RecalculateLocalDeferredQuests()
     {
         myLocalDeferredQuests.Clear();
 
-        // 현재 갤러리에 있는 모든 사진을 뒤져서
-        foreach (var photo in PhotoDataManager.Instance.currentPhotos)
+        foreach (PhotoData photoData in PhotoDataManager.Instance.currentPhotos)
         {
-            foreach (int qId in photo.satisfiedQuestIDs)
+            foreach (int questID in photoData.satisfiedQuestIDs)
             {
-                // 중복 없이 클리어 예정 퀘스트 목록에 담습니다.
-                if (!myLocalDeferredQuests.Contains(qId))
+                if (!myLocalDeferredQuests.Contains(questID))
                 {
-                    myLocalDeferredQuests.Add(qId);
+                    myLocalDeferredQuests.Add(questID);
                 }
             }
         }
+
         Debug.Log($"<color=orange>[스마트폰 앨범 상태 갱신]</color> 현재 제출 대기 중인 퀘스트 개수: {myLocalDeferredQuests.Count}");
     }
+
     public static void ValidatePhotoData(PhotoData data)
     {
-        if (QuestManager.Instance == null || data.satisfiedQuestIDs.Count == 0) return;
-
-        List<int> toRemove = new List<int>();
-
-        foreach (int qId in data.satisfiedQuestIDs)
+        if (QuestManager.Instance == null || data.satisfiedQuestIDs.Count == 0)
         {
-            if (qId % 100 != 30) continue;
-            QuestDataSO qData = QuestManager.Instance.GetQuestData(qId);
-            if (qData == null) continue;
+            return;
+        }
 
-            if (qData.difficulty == QuestDifficulty.Easy) continue;
-            else if (qData.difficulty == QuestDifficulty.Normal)
+        List<int> invalidQuestIDsToRemove = new List<int>();
+
+        foreach (int questID in data.satisfiedQuestIDs)
+        {
+            // 사진 퀘스트(30번대)가 아니면 검사 패스
+            if (questID % 100 != 30)
             {
-                // 노말: 몬스터 + 플레이어
-                if (!data.capturedTargets.Contains("Player")) toRemove.Add(qId);
+                continue;
             }
-            else if (qData.difficulty == QuestDifficulty.Hard)
+
+            QuestDataSO questData = QuestManager.Instance.GetQuestData(questID);
+
+            if (questData == null)
             {
-                // 하드: 몬스터 + 타겟 아이템
-                if (!data.capturedTargets.Contains("Item")) toRemove.Add(qId);
+                continue;
+            }
+
+            if (questData.difficulty == QuestDifficulty.Easy)
+            {
+                continue;
+            }
+            else if (questData.difficulty == QuestDifficulty.Normal)
+            {
+                // 노말: 몬스터 + 플레이어 동시 촬영 필요
+                if (!data.capturedTargets.Contains("Player"))
+                {
+                    invalidQuestIDsToRemove.Add(questID);
+                }
+            }
+            else if (questData.difficulty == QuestDifficulty.Hard)
+            {
+                // 하드: 몬스터 + 특정 아이템 동시 촬영 필요
+                if (!data.capturedTargets.Contains("Item"))
+                {
+                    invalidQuestIDsToRemove.Add(questID);
+                }
             }
         }
 
-        foreach (int id in toRemove)
+        foreach (int removeID in invalidQuestIDsToRemove)
         {
-            data.satisfiedQuestIDs.Remove(id);
+            data.satisfiedQuestIDs.Remove(removeID);
         }
     }
-
 }

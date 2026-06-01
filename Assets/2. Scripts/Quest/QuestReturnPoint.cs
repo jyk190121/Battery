@@ -2,16 +2,19 @@ using Unity.Netcode;
 using UnityEngine;
 using System.Collections;
 
+/// <summary>
+/// 특정 아이템을 반납하고 영혼 세계(Spiritual World)로 텔레포트하는 환원 퀘스트 상호작용 포인트를 관리.
+/// </summary>
 public class QuestReturnPoint : NetworkBehaviour
 {
     public static event System.Action OnSpiritualWorldEntered;
 
     [Header("Teleport Settings")]
-    public float returnDelay = 60f; // 1분 뒤 복귀
+    public float returnDelay = 60f;
     public Vector3 spiritWorldPos = new Vector3(1100f, 1f, 135f);
 
     [Header("Quest Settings")]
-    public int[] targetQuestIDs = { 1040, 2040, 3040 }; // 이지, 노말, 하드 ID 배열 처리
+    public int[] targetQuestIDs = { 1040, 2040, 3040 };
     public int requiredItemID;
 
     [Header("Visual Components")]
@@ -19,23 +22,20 @@ public class QuestReturnPoint : NetworkBehaviour
     public GameObject realModel;
     public Outline outline;
 
-    // [동기화 데이터] 
-    private NetworkVariable<bool> isCompleted = new NetworkVariable<bool>(false);       // 최종 클리어 (2단계 완료)
-    private NetworkVariable<bool> hasItem = new NetworkVariable<bool>(false);            // 아이템 반납됨 (1단계 완료)
+    private NetworkVariable<bool> isCompleted = new NetworkVariable<bool>(false);
+    private NetworkVariable<bool> hasItem = new NetworkVariable<bool>(false);
     private NetworkVariable<bool> isActivatedByManager = new NetworkVariable<bool>(false);
 
     public override void OnNetworkSpawn()
     {
         if (QuestManager.Instance != null)
         {
-            // 배열에 있는 모든 퀘스트 ID 등록
-            foreach (int id in targetQuestIDs)
+            foreach (int questId in targetQuestIDs)
             {
-                QuestManager.Instance.RegisterReturnPoint(id, this);
+                QuestManager.Instance.RegisterReturnPoint(questId, this);
             }
         }
 
-        // 데이터 변경 시 화면 갱신 연결
         RefreshState(hasItem.Value, isCompleted.Value);
 
         hasItem.OnValueChanged += (prev, next) => RefreshState(next, isCompleted.Value);
@@ -45,7 +45,10 @@ public class QuestReturnPoint : NetworkBehaviour
 
     public void SetPointActivation(bool isActive)
     {
-        if (IsServer) isActivatedByManager.Value = isActive;
+        if (IsServer)
+        {
+            isActivatedByManager.Value = isActive;
+        }
     }
 
     public bool IsInteractable()
@@ -53,138 +56,144 @@ public class QuestReturnPoint : NetworkBehaviour
         return isActivatedByManager.Value && !isCompleted.Value;
     }
 
-    public void Interact(PlayerInventory player)
+    public void Interact(PlayerInventory playerInventory)
     {
-        if (!IsInteractable()) return;
+        if (!IsInteractable()) { return; }
 
-        // 1단계: 아이템 반납이 아직 안 된 경우
         if (!hasItem.Value)
         {
-            ItemBase held = player.HeldItem;
-            if (held == null || held.itemData.itemID != requiredItemID)
+            ItemBase heldItem = playerInventory.HeldItem;
+            if (heldItem == null || heldItem.itemData.itemID != requiredItemID)
             {
                 Debug.Log($"<color=orange>[Quest] {requiredItemID}번 아이템을 손에 들어야 작동합니다!</color>");
                 return;
             }
-            // 아이템 반납 RPC 호출
-            TryReturnItemServerRpc(player.OwnerClientId);
+
+            TryReturnItemServerRpc(playerInventory.OwnerClientId);
         }
-        // 2단계: 아이템은 이미 있고, 다시 한번 눌러서 영혼 세계 이동 및 클리어
         else
         {
-            TryFinalClearServerRpc(player.OwnerClientId);
+            TryFinalClearServerRpc(playerInventory.OwnerClientId);
         }
     }
 
-    // [1단계] 아이템 반납 처리 RPC
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     private void TryReturnItemServerRpc(ulong clientId)
     {
-        if (hasItem.Value) return;
+        if (hasItem.Value) { return; }
 
-        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client))
+        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out NetworkClient client))
         {
-            PlayerInventory inv = client.PlayerObject.GetComponent<PlayerInventory>();
-            if (inv != null && inv.RemoveItemByServer(requiredItemID))
+            PlayerInventory inventory = client.PlayerObject.GetComponent<PlayerInventory>();
+            if (inventory != null && inventory.RemoveItemByServer(requiredItemID))
             {
-                hasItem.Value = true; // 아이템 반납 상태로 변경 (모델 교체됨)
+                hasItem.Value = true;
                 Debug.Log($"<color=cyan>[Quest]</color> Client {clientId} 아이템 반납 완료. 다음 클릭 시 영혼 세계 이동.");
             }
         }
     }
 
-    // [2단계] 최종 상호작용 (이동 및 퀘스트 클리어) RPC
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     private void TryFinalClearServerRpc(ulong clientId)
     {
-        if (isCompleted.Value || !hasItem.Value) return;
+        if (isCompleted.Value || !hasItem.Value) { return; }
 
-        isCompleted.Value = true; // 최종 완료
-
+        isCompleted.Value = true;
         OnSpiritualWorldEntered?.Invoke();
 
-        // 퀘스트 매니저 클리어 보고 (현재 활성화된 난이도 퀘스트 찾기)
-        int activeId = 0;
-        foreach (int id in targetQuestIDs)
+        int activeQuestId = 0;
+        foreach (int questId in targetQuestIDs)
         {
-            if (QuestManager.Instance.activeQuests.Contains(id))
+            if (QuestManager.Instance.activeQuests.Contains(questId))
             {
-                activeId = id;
+                activeQuestId = questId;
                 break;
             }
         }
 
-        //난이도 밸런싱
-        float dynamicDelay = returnDelay; // 기본 60초 (1040 이지)
-        if (activeId == 2040) dynamicDelay = 90f;      // 노말
-        else if (activeId == 3040) dynamicDelay = 120f; // 하드
-
-        if (activeId != 0)
+        float dynamicDelay = returnDelay;
+        if (activeQuestId == 2040)
         {
-            QuestManager.Instance.NotifyCustomQuestMet(activeId, clientId);
+            dynamicDelay = 90f;
+        }
+        else if (activeQuestId == 3040)
+        {
+            dynamicDelay = 120f;
         }
 
-        // 이동 로그 및 연출 알림
+        if (activeQuestId != 0)
+        {
+            QuestManager.Instance.NotifyCustomQuestMet(activeQuestId, clientId);
+        }
+
         NotifyTeleportLogClientRpc(clientId, dynamicDelay);
     }
 
     [Rpc(SendTo.Everyone)]
     private void NotifyTeleportLogClientRpc(ulong clientId, float delayTime)
     {
-        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var networkClient))
+        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out NetworkClient networkClient))
         {
-            //이동시킬 플레이어 찾기
-            var playerObj = networkClient.PlayerObject;
+            NetworkObject playerObj = networkClient.PlayerObject;
 
-            // 내 로컬 화면에서 내가 이동해야 하는 경우인지 확인 (Owner 권한 기반 이동)
             if (playerObj.IsOwner)
             {
-                // 플레이어 오브젝트에 붙은 NetworkTransform을 가져옵니다.
-                if (playerObj.TryGetComponent(out Unity.Netcode.Components.NetworkTransform nt))
+                if (playerObj.TryGetComponent(out Unity.Netcode.Components.NetworkTransform networkTransform))
                 {
                     StartCoroutine(TeleportAndReturnRoutine(playerObj, delayTime));
                 }
                 else
                 {
-                    // NT가 없을 경우 수동 이동 (권한 체크 필수)
                     playerObj.transform.position = spiritWorldPos;
                 }
             }
         }
     }
 
-    IEnumerator TeleportAndReturnRoutine(NetworkObject playerObj, float delayTime)
+    private IEnumerator TeleportAndReturnRoutine(NetworkObject playerObj, float delayTime)
     {
-        if (playerObj.TryGetComponent(out Unity.Netcode.Components.NetworkTransform nt))
+        if (playerObj.TryGetComponent(out Unity.Netcode.Components.NetworkTransform networkTransform))
         {
             Vector3 originalPos = playerObj.transform.position;
             Quaternion originalRot = playerObj.transform.rotation;
 
-            nt.Teleport(spiritWorldPos, Quaternion.identity, playerObj.transform.localScale);
+            networkTransform.Teleport(spiritWorldPos, Quaternion.identity, playerObj.transform.localScale);
             Debug.Log($"<color=purple>[Gimmick]</color> 영혼 세계 진입. {delayTime}초 후 복귀합니다.");
 
-            // 동적 할당된 난이도별 시간 적용
             yield return new WaitForSeconds(delayTime);
 
-            nt.Teleport(originalPos, originalRot, playerObj.transform.localScale);
+            networkTransform.Teleport(originalPos, originalRot, playerObj.transform.localScale);
             Debug.Log("<color=purple>[Gimmick]</color> 시간이 다 되어 원래 세계로 돌아왔습니다.");
         }
     }
 
-    private void RefreshState(bool itemReturned, bool completed)
+    private void RefreshState(bool itemReturned, bool isPointCompleted)
     {
-        if (realModel != null) realModel.SetActive(itemReturned);
-        if (ghostModel != null) ghostModel.SetActive(isActivatedByManager.Value && !itemReturned);
+        if (realModel != null)
+        {
+            realModel.SetActive(itemReturned);
+        }
+
+        if (ghostModel != null)
+        {
+            ghostModel.SetActive(isActivatedByManager.Value && !itemReturned);
+        }
 
         if (PlayerInventory.LocalInstance != null)
         {
             PlayerInventory.LocalInstance.ClearHighlight();
         }
 
-        if (completed)
+        if (isPointCompleted)
         {
-            if (TryGetComponent(out Collider col)) col.enabled = false;
-            if (outline != null) outline.enabled = false;
+            if (TryGetComponent(out Collider pointCollider))
+            {
+                pointCollider.enabled = false;
+            }
+            if (outline != null)
+            {
+                outline.enabled = false;
+            }
         }
     }
 }

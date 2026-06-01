@@ -1,8 +1,10 @@
 using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
-using UnityEngine.Splines;
 
+/// <summary>
+/// 게임 내 모든 아이템의 물리 엔진, 네트워크 소유권, 장착 및 동기화 상태를 관리하는 최상위 부모 클래스입니다.
+/// </summary>
 public abstract class ItemBase : NetworkBehaviour
 {
     [Header("Item Data")]
@@ -20,16 +22,23 @@ public abstract class ItemBase : NetworkBehaviour
     public Vector3 gripPositionOffset = Vector3.zero;
     public Vector3 gripRotationOffset = Vector3.zero;
 
-    NetworkTransform _netTransform;
+    private NetworkTransform networkTransform;
+
+
+    // ==========================================
+    // 1. 생명주기 및 초기화 (Lifecycle)
+    // ==========================================
+
     protected virtual void Awake()
     {
         itemPhysicsRigidbody = GetComponent<Rigidbody>();
         itemPhysicalCollider = GetComponent<Collider>();
 
-        TryGetComponent(out _netTransform);
+        TryGetComponent(out networkTransform);
     }
 
     protected virtual void Start() { }
+
     private void OnEnable()
     {
         if (isEquipped && currentTargetHand != null)
@@ -37,6 +46,21 @@ public abstract class ItemBase : NetworkBehaviour
             ForceSnapPosition();
         }
     }
+
+    protected virtual void LateUpdate()
+    {
+        if (isEquipped && currentTargetHand != null)
+        {
+            transform.position = currentTargetHand.TransformPoint(gripPositionOffset);
+            transform.rotation = currentTargetHand.rotation * Quaternion.Euler(gripRotationOffset);
+        }
+    }
+
+
+    // =====================
+    // 2. 장착 및 물리 제어 
+    // =====================
+
     public virtual void ExecuteChangeOwnership(bool isPickingUp, Transform targetHand)
     {
         isEquipped = isPickingUp;
@@ -44,9 +68,10 @@ public abstract class ItemBase : NetworkBehaviour
         currentTargetHand = isPickingUp ? targetHand : null;
 
         Outline outline = GetComponentInChildren<Outline>();
-        if (outline != null) outline.enabled = false;
-
-        //var netTransform = GetComponent<NetworkTransform>();
+        if (outline != null)
+        {
+            outline.enabled = false;
+        }
 
         if (isPickingUp)
         {
@@ -57,12 +82,17 @@ public abstract class ItemBase : NetworkBehaviour
                 itemPhysicsRigidbody.isKinematic = true;
             }
 
-            // 네트워크 변환 동기화 일시 중지 (손 위치 강제 추적을 위함)
-            if (_netTransform != null) _netTransform.enabled = false;
+            if (networkTransform != null)
+            {
+                networkTransform.enabled = false;
+            }
 
             ForceSnapPosition();
 
-            if (itemData != null) Debug.Log($"<color=green>[Execute]</color> {itemData.itemName} 장착 완료.");
+            if (itemData != null)
+            {
+                Debug.Log($"<color=green>[Execute]</color> {itemData.itemName} 장착 완료.");
+            }
         }
         else
         {
@@ -71,30 +101,20 @@ public abstract class ItemBase : NetworkBehaviour
             if (itemPhysicsRigidbody != null)
             {
                 itemPhysicsRigidbody.isKinematic = false;
-                //물리현상 강제적용
                 itemPhysicsRigidbody.WakeUp();
             }
-            if (_netTransform != null)
+
+            if (networkTransform != null)
             {
-                // 중요: Teleport는 '서버' 권한이 있는 쪽에서만 호출합니다.
                 if (IsServer)
                 {
-                    // 현재 transform 위치로 동기화 위치를 강제 설정합니다.
-                    _netTransform.Teleport(transform.position, transform.rotation, transform.localScale);
+                    networkTransform.Teleport(transform.position, transform.rotation, transform.localScale);
                 }
-
-                // NetworkTransform을 다시 켜서 동기화를 재개합니다. (모든 클라이언트 공통)
-                _netTransform.enabled = true;
+                networkTransform.enabled = true;
             }
-
-        //if (netTransform != null)
-        //    {
-        //        netTransform.Teleport(transform.position, transform.rotation, transform.localScale);
-        //        netTransform.enabled = true;
-        //    }
-        //    if (itemPhysicsRigidbody != null) itemPhysicsRigidbody.isKinematic = false;
         }
     }
+
     private void ForceSnapPosition()
     {
         if (currentTargetHand != null)
@@ -104,18 +124,10 @@ public abstract class ItemBase : NetworkBehaviour
         }
     }
 
-
-    // 애니메이션 덜덜거림 방지를 위해 Update 대신 LateUpdate 사용
-    protected virtual void LateUpdate()
+    public virtual void BeginThrownState()
     {
-        if (isEquipped && currentTargetHand != null)
-        {
-            transform.position = currentTargetHand.TransformPoint(gripPositionOffset);
-            transform.rotation = currentTargetHand.rotation * Quaternion.Euler(gripRotationOffset);
-        }
+        isThrown = true;
     }
-
-    public virtual void BeginThrownState() { isThrown = true; }
 
     protected virtual void OnCollisionEnter(Collision collision)
     {
@@ -130,25 +142,46 @@ public abstract class ItemBase : NetworkBehaviour
         }
     }
 
+
+    // ========================
+    // 3. 네트워크 및 사용 연동 
+    // ========================
+
     public virtual float[] ExtractSaveData() { return null; }
+
     public virtual void ApplySaveData(float[] savedStates) { }
 
     public virtual void RequestDespawn()
     {
-        if (IsSpawned && IsOwner) RequestDespawnServerRpc();
-        else if (!IsSpawned) Destroy(gameObject);
+        if (IsSpawned && IsOwner)
+        {
+            RequestDespawnServerRpc();
+        }
+        else if (!IsSpawned)
+        {
+            Destroy(gameObject);
+        }
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     private void RequestDespawnServerRpc()
     {
-        if (NetworkObject.IsSpawned) NetworkObject.Despawn();
+        if (NetworkObject.IsSpawned)
+        {
+            NetworkObject.Despawn();
+        }
     }
 
     public virtual void RequestUseItem(Vector3 direction = default)
     {
-        if (IsSpawned && IsOwner) RequestUseItemServerRpc(direction);
-        else if (!IsSpawned) ExecuteUseItem(direction);
+        if (IsSpawned && IsOwner)
+        {
+            RequestUseItemServerRpc(direction);
+        }
+        else if (!IsSpawned)
+        {
+            ExecuteUseItem(direction);
+        }
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]

@@ -5,23 +5,26 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Netcode;
 
+/// <summary>
+/// 플레이어의 인벤토리 시스템, 상호작용(Raycast), 아이템 관리 및 네트워크 동기화를 담당.
+/// </summary>
 public class PlayerInventory : NetworkBehaviour
 {
     public static PlayerInventory LocalInstance { get; private set; }
-    //public ItemBase HeldItem => twoHandedItem ?? slots[currentSlotIndex];
-    public ItemBase HeldItem => (twoHandedItem != null) ? twoHandedItem : slots[currentSlotIndex];
     public static bool IsHoldingTwoHanded => LocalInstance?.twoHandedItem != null;
+    public ItemBase HeldItem => (twoHandedItem != null) ? twoHandedItem : slots[currentSlotIndex];
 
     [Header("Inventory Slots")]
     public ItemBase[] slots = new ItemBase[4];
     public int currentSlotIndex = 0;
+
     [HideInInspector] public ItemBase twoHandedItem = null;
     [HideInInspector] public bool isControlLocked = false;
 
     [Header("Interaction Settings")]
     public float interactRange = 3f;
     public LayerMask itemLayer;
-    public LayerMask obstacleLayer; //방해물 체크
+    public LayerMask obstacleLayer;
 
     [Header("Hand Transform Names")]
     public string leftHandName = "OneHandle";
@@ -29,7 +32,6 @@ public class PlayerInventory : NetworkBehaviour
 
     [HideInInspector] public Transform leftHandTransform;
     [HideInInspector] public Transform bothHandsTransform;
-
     public float throwForce = 1f;
 
     public Action<int> OnSlotChanged;
@@ -41,21 +43,28 @@ public class PlayerInventory : NetworkBehaviour
     private DoorController lastLookedDoor;
     private QuestReturnPoint lastLookedReturnPoint;
 
-    // [저주 아이템 상태 관리용 변수]
     private Coroutine curseRoutine = null;
-    private bool currentHasAggro = false;
-    private bool currentHasHallucination = false;
+    private bool hasCurseAggro = false;
+    private bool hasCurseHallucination = false;
+
+
+    // ==========
+    // 1.초기화
+    // ==========
 
     public override void OnNetworkSpawn()
     {
         leftHandTransform = FindChildByName(transform, leftHandName);
         bothHandsTransform = FindChildByName(transform, bothHandsName);
 
-        if (IsOwner) LocalInstance = this;
+        if (IsOwner)
+        {
+            LocalInstance = this;
+        }
 
         if (IsServer)
         {
-            StartCoroutine(WaitOneFrameAndRestore());
+            StartCoroutine(WaitOneFrameAndRestoreRoutine());
             NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnSceneLoaded;
             NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnSceneLoaded;
         }
@@ -78,134 +87,70 @@ public class PlayerInventory : NetworkBehaviour
         RestoreItemsFromServer();
     }
 
-    private IEnumerator WaitOneFrameAndRestore()
+    private IEnumerator WaitOneFrameAndRestoreRoutine()
     {
-        while (GameSessionManager.Instance == null) yield return null;
+        while (GameSessionManager.Instance == null)
+        {
+            yield return null;
+        }
         RestoreItemsFromServer();
     }
 
-    private Transform FindChildByName(Transform parent, string targetName)
+    private void Update()
     {
-        foreach (Transform child in parent.GetComponentsInChildren<Transform>(true))
-            if (child.name == targetName) return child;
-        return null;
-    }
-
-    private void SetItemPhysicsAndLayer(ItemBase item, bool equipped)
-    {
-        if (item == null) return;
-
-        Collider col = item.GetComponentInChildren<Collider>();
-        if (col != null)
-        {
-            col.isTrigger = equipped;
-        }
-
-        if (item.TryGetComponent(out Rigidbody rb))
-        {
-            rb.isKinematic = equipped;
-        }
-
-        item.gameObject.layer = LayerMask.NameToLayer(equipped ? "EquippedItem" : "Item");
-    }
-
-    void Update()
-    {
-        if (!IsOwner) return;
-
-        if (isControlLocked) return;
-        if (PhoneUIController.Instance != null && PhoneUIController.Instance.isPhoneActive) return;
+        if (!IsOwner) { return; }
+        if (isControlLocked) { return; }
+        if (PhoneUIController.Instance != null && PhoneUIController.Instance.isPhoneActive) { return; }
 
         CheckInteraction();
-
-        if (Keyboard.current != null)
-        {
-            if (Keyboard.current[Key.E].wasPressedThisFrame)
-            {
-                if (lastLookedButton != null) lastLookedButton.Interact(this);
-                else if (lastLookedReturnPoint != null) lastLookedReturnPoint.Interact(this);
-                else if (lastLookedDoor != null)
-                {
-                   lastLookedDoor.TryOpen();
-                }
-                else if (lastLookedItem != null) TryPickUpAction();
-            }
-
-            if (Keyboard.current[Key.G].wasPressedThisFrame)
-            {
-                RequestDropCurrentItem();
-            }
-        }
-        //if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
-        //{
-        //    if (HeldItem != null)
-        //    { 
-        //        HeldItem.RequestUseItem(Camera.main.transform.forward);
-        //    }
-        //}
-
+        HandleInputs();
         HandleSlotChange();
     }
 
-    #region 변경점
-    void HandleSlotChange()
-    {
-        if (twoHandedItem != null) return;
-        float scroll = Mouse.current.scroll.ReadValue().y;
-        if (scroll == 0f) return;
 
-        int newIndex = currentSlotIndex;
-        if (scroll < 0f && newIndex < slots.Length - 1) newIndex++;
-        else if (scroll > 0f && newIndex > 0) newIndex--;
-
-        if (newIndex != currentSlotIndex) RequestChangeSlotServerRpc(newIndex);
-    }
-
-    [Rpc(SendTo.Everyone)]
-    void SyncSlotChangeClientRpc(int newIndex)
-    {
-        if (slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(false);
-        currentSlotIndex = newIndex;
-        ItemBase newHeldItem = slots[currentSlotIndex];
-        if (newHeldItem != null) newHeldItem.gameObject.SetActive(true);
-
-        if (TryGetComponent(out PlayerEquipment equipment)) equipment.OnSlotItemChanged(newHeldItem);
-
-        if (IsOwner) OnSlotChanged?.Invoke(currentSlotIndex);
-    }
-    #endregion
+    // ==========================================
+    // 2. 사용자 입력 및 상호작용 (Input & Interaction)
+    // ==========================================
 
     private void CheckInteraction()
     {
-        if (Camera.main == null) return;
-        Vector3 camPos = Camera.main.transform.position;
+        if (Camera.main == null) { return; }
+
+        Vector3 cameraPosition = Camera.main.transform.position;
         Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
 
         if (Physics.Raycast(ray, out RaycastHit hit, interactRange, itemLayer))
         {
-            Vector3 checkEndPos = hit.point - (ray.direction * 0.1f);
-            if (Physics.Linecast(camPos, checkEndPos, obstacleLayer))
+            Vector3 checkEndPosition = hit.point - (ray.direction * 0.1f);
+            if (Physics.Linecast(cameraPosition, checkEndPosition, obstacleLayer))
             {
                 ClearHighlight();
                 return;
             }
 
-            ItemBase targetItem = hit.collider.GetComponentInParent<ItemBase>();
+            if (hit.collider.TryGetComponent(out ItemBase targetItem))
+            {
+                targetItem = hit.collider.GetComponentInParent<ItemBase>();
+            }
+
             if (targetItem != null && !targetItem.isEquipped)
             {
                 if (lastLookedItem != targetItem)
                 {
                     ClearHighlight();
                     lastLookedItem = targetItem;
-                    Outline outline = lastLookedItem.GetComponentInChildren<Outline>();
-                    if (outline != null) outline.enabled = true;
+                    EnableOutline(lastLookedItem);
                 }
                 return;
             }
 
-            if (hit.collider.TryGetComponent(out DepartureButton dBtn))
+            if (hit.collider.TryGetComponent(out DepartureButton departureBtn))
             {
-                if (lastLookedButton != dBtn) { ClearHighlight(); lastLookedButton = dBtn; }
+                if (lastLookedButton != departureBtn)
+                {
+                    ClearHighlight();
+                    lastLookedButton = departureBtn;
+                }
                 return;
             }
 
@@ -217,8 +162,7 @@ public class PlayerInventory : NetworkBehaviour
                     {
                         ClearHighlight();
                         lastLookedReturnPoint = returnPoint;
-                        Outline outline = lastLookedReturnPoint.GetComponentInChildren<Outline>();
-                        if (outline != null) outline.enabled = true;
+                        EnableOutline(lastLookedReturnPoint);
                     }
                     return;
                 }
@@ -235,8 +179,7 @@ public class PlayerInventory : NetworkBehaviour
                 {
                     ClearHighlight();
                     lastLookedDoor = door;
-                    Outline outline = lastLookedDoor.GetComponentInChildren<Outline>();
-                    if (outline != null) outline.enabled = true;
+                    EnableOutline(lastLookedDoor);
                 }
                 return;
             }
@@ -244,39 +187,106 @@ public class PlayerInventory : NetworkBehaviour
         ClearHighlight();
     }
 
+    private void HandleInputs()
+    {
+        if (Keyboard.current == null) { return; }
+
+        if (Keyboard.current[Key.E].wasPressedThisFrame)
+        {
+            if (lastLookedButton != null)
+            {
+                lastLookedButton.Interact(this);
+            }
+            else if (lastLookedReturnPoint != null)
+            {
+                lastLookedReturnPoint.Interact(this);
+            }
+            else if (lastLookedDoor != null)
+            {
+                lastLookedDoor.TryOpen();
+            }
+            else if (lastLookedItem != null)
+            {
+                TryPickUpAction();
+            }
+        }
+
+        if (Keyboard.current[Key.G].wasPressedThisFrame)
+        {
+            RequestDropCurrentItem();
+        }
+    }
+
+    private void EnableOutline(Component targetComponent)
+    {
+        Outline outline = targetComponent.GetComponentInChildren<Outline>();
+        if (outline != null)
+        {
+            outline.enabled = true;
+        }
+    }
+
     public void ClearHighlight()
     {
         if (lastLookedItem != null)
         {
             Outline outline = lastLookedItem.GetComponentInChildren<Outline>();
-            if (outline != null) outline.enabled = false;
+            if (outline != null) { outline.enabled = false; }
             lastLookedItem = null;
         }
+
         if (lastLookedReturnPoint != null)
         {
             Outline outline = lastLookedReturnPoint.GetComponentInChildren<Outline>();
-            if (outline != null) outline.enabled = false;
+            if (outline != null) { outline.enabled = false; }
             lastLookedReturnPoint = null;
         }
+
         if (lastLookedDoor != null)
         {
             Outline outline = lastLookedDoor.GetComponentInChildren<Outline>();
-            if (outline != null) outline.enabled = false;
+            if (outline != null) { outline.enabled = false; }
             lastLookedDoor = null;
         }
+
         lastLookedButton = null;
     }
+
+    public void SetControlLock(bool isLocked)
+    {
+        isControlLocked = isLocked;
+        if (isLocked)
+        {
+            ClearHighlight();
+        }
+    }
+
+
+    // ==========================================
+    // 3. 아이템 습득 (Pick Up)
+    // ==========================================
 
     private void TryPickUpAction()
     {
         if (lastLookedItem != null && twoHandedItem == null && !lastLookedItem.isEquipped)
         {
             bool hasEmptySlot = false;
-            foreach (var slot in slots) if (slot == null) hasEmptySlot = true;
-            if (!hasEmptySlot) return;
+            foreach (ItemBase slotItem in slots)
+            {
+                if (slotItem == null)
+                {
+                    hasEmptySlot = true;
+                    break;
+                }
+            }
+
+            if (!hasEmptySlot) { return; }
 
             Outline outline = lastLookedItem.GetComponentInChildren<Outline>();
-            if (outline != null) outline.enabled = false;
+            if (outline != null)
+            {
+                outline.enabled = false;
+            }
 
             RequestPickUpServerRpc(lastLookedItem.NetworkObjectId);
             lastLookedItem = null;
@@ -284,36 +294,45 @@ public class PlayerInventory : NetworkBehaviour
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
-    private void RequestPickUpServerRpc(ulong itemNetId, RpcParams rpcParams = default)
+    private void RequestPickUpServerRpc(ulong itemNetworkId, RpcParams rpcParams = default)
     {
-        if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(itemNetId, out var netObj)) return;
-        ItemBase item = netObj.GetComponent<ItemBase>();
-        if (item == null || item.isEquipped) return;
+        if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(itemNetworkId, out NetworkObject networkObj)) { return; }
+
+        ItemBase item = networkObj.GetComponent<ItemBase>();
+        if (item == null || item.isEquipped) { return; }
 
         item.isEquipped = true;
-
         item.NetworkObject.ChangeOwnership(rpcParams.Receive.SenderClientId);
-        NotifyPickUpClientRpc(itemNetId);
+        NotifyPickUpClientRpc(itemNetworkId);
     }
 
     [Rpc(SendTo.Everyone)]
-    private void NotifyPickUpClientRpc(ulong itemNetId)
+    private void NotifyPickUpClientRpc(ulong itemNetworkId)
     {
-        if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(itemNetId, out var netObj)) return;
-        ItemBase item = netObj.GetComponent<ItemBase>();
+        if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(itemNetworkId, out NetworkObject networkObj)) { return; }
 
+        ItemBase item = networkObj.GetComponent<ItemBase>();
         int emptySlotIndex = -1;
-        if (slots[currentSlotIndex] == null) emptySlotIndex = currentSlotIndex;
+
+        if (slots[currentSlotIndex] == null)
+        {
+            emptySlotIndex = currentSlotIndex;
+        }
         else
         {
-            for (int i = 0; i < slots.Length; i++)
-                if (slots[i] == null) { emptySlotIndex = i; break; }
+            for (int slotIndex = 0; slotIndex < slots.Length; slotIndex++)
+            {
+                if (slots[slotIndex] == null)
+                {
+                    emptySlotIndex = slotIndex;
+                    break;
+                }
+            }
         }
 
-        if (emptySlotIndex == -1) return;
+        if (emptySlotIndex == -1) { return; }
 
         SetItemPhysicsAndLayer(item, true);
-
         bool isWeapon = item.itemData.category == ItemCategory.Weapon;
 
         if (item.itemData.handType == HandType.TwoHand)
@@ -322,98 +341,165 @@ public class PlayerInventory : NetworkBehaviour
             twoHandedItem = item;
 
             if (slots[currentSlotIndex] != null && slots[currentSlotIndex] != item)
+            {
                 slots[currentSlotIndex].gameObject.SetActive(false);
+            }
 
             Transform targetHand = isWeapon ? leftHandTransform : bothHandsTransform;
             item.ExecuteChangeOwnership(true, targetHand);
-            if (IsOwner) OnTwoHandedToggled?.Invoke(true);
+
+            if (IsOwner)
+            {
+                OnTwoHandedToggled?.Invoke(true);
+            }
         }
         else
         {
             slots[emptySlotIndex] = item;
             item.ExecuteChangeOwnership(true, leftHandTransform);
 
-            if (emptySlotIndex != currentSlotIndex) item.gameObject.SetActive(false);
+            if (emptySlotIndex != currentSlotIndex)
+            {
+                item.gameObject.SetActive(false);
+            }
         }
 
-        if (IsOwner) OnInventoryUpdated?.Invoke();
-        RefreshQuestDebuffTiming();
+        if (IsOwner)
+        {
+            OnInventoryUpdated?.Invoke();
+            RefreshQuestDebuffTiming();
+        }
     }
+
+
+    // ==========================================
+    // 4. 아이템 투척 및 버리기 (Drop)
+    // ==========================================
 
     public void RequestDropCurrentItem()
     {
         ItemBase itemToDrop = null;
-        if (twoHandedItem != null) itemToDrop = twoHandedItem;
-        else if (slots[currentSlotIndex] != null) itemToDrop = slots[currentSlotIndex];
+        if (twoHandedItem != null)
+        {
+            itemToDrop = twoHandedItem;
+        }
+        else if (slots[currentSlotIndex] != null)
+        {
+            itemToDrop = slots[currentSlotIndex];
+        }
 
         if (itemToDrop != null)
         {
-            Transform camTransform = Camera.main.transform;
-            Vector3 throwDir = camTransform.forward;
-            Vector3 dropPos = camTransform.position + throwDir * 1.5f;
+            Transform cameraTransform = Camera.main.transform;
+            Vector3 throwDirection = cameraTransform.forward;
+            Vector3 dropPosition = cameraTransform.position + (throwDirection * 1.5f);
 
-            if (Physics.Raycast(camTransform.position, throwDir, out RaycastHit hit, 1.5f))
+            if (Physics.Raycast(cameraTransform.position, throwDirection, out RaycastHit hit, 1.5f))
             {
                 if (hit.collider.gameObject != this.gameObject)
-                    dropPos = hit.point - throwDir * 0.2f;
+                {
+                    dropPosition = hit.point - (throwDirection * 0.2f);
+                }
             }
 
-            RequestDropServerRpc(itemToDrop.NetworkObjectId, dropPos, throwDir);
+            RequestDropServerRpc(itemToDrop.NetworkObjectId, dropPosition, throwDirection);
         }
     }
 
     public void ForceDropCurrentItemServer()
     {
-        if (!IsServer) return;
+        if (!IsServer) { return; }
 
         ItemBase itemToDrop = HeldItem;
-
         if (itemToDrop != null)
         {
-            Vector3 dropOrigin = transform.position + Vector3.up * 0.8f;
-            Vector3 dropDir = (transform.forward * 0.5f + Vector3.up * 0.5f).normalized;
+            Vector3 dropOrigin = transform.position + (Vector3.up * 0.8f);
+            Vector3 dropDirection = (transform.forward * 0.5f + Vector3.up * 0.5f).normalized;
 
-            ForceDropItem(itemToDrop, dropOrigin, dropDir);
-            Debug.Log($"<color=orange>[Inventory]</color> 충격으로 인해 {itemToDrop.itemData.itemName}을(를) 떨어뜨렸습니다!");
+            ForceDropItem(itemToDrop, dropOrigin, dropDirection);
+        }
+    }
+
+    public void DropAllItemsOnDeathServer()
+    {
+        if (!IsServer) { return; }
+
+        Vector3 dropOrigin = transform.position + (Vector3.up * 0.8f);
+
+        if (twoHandedItem != null)
+        {
+            Vector3 randomDirection = new Vector3(UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(0.5f, 1.5f), UnityEngine.Random.Range(-1f, 1f)).normalized;
+            ForceDropItem(twoHandedItem, dropOrigin, randomDirection);
+        }
+
+        foreach (ItemBase slotItem in slots)
+        {
+            if (slotItem != null)
+            {
+                Vector3 randomDirection = new Vector3(UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(0.5f, 1.5f), UnityEngine.Random.Range(-1f, 1f)).normalized;
+                ForceDropItem(slotItem, dropOrigin, randomDirection);
+            }
+        }
+    }
+
+    private void ForceDropItem(ItemBase item, Vector3 position, Vector3 direction)
+    {
+        if (item != null && item.NetworkObject != null && item.NetworkObject.IsSpawned)
+        {
+            item.NetworkObject.RemoveOwnership();
+            NotifyItemDroppedClientRpc(item.NetworkObjectId, position, direction);
         }
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
-    private void RequestDropServerRpc(ulong itemNetId, Vector3 dropPos, Vector3 throwDir)
+    private void RequestDropServerRpc(ulong itemNetworkId, Vector3 dropPosition, Vector3 throwDirection)
     {
-        if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(itemNetId, out var netObj)) return;
-        ItemBase item = netObj.GetComponent<ItemBase>();
+        if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(itemNetworkId, out NetworkObject networkObj)) { return; }
+
+        ItemBase item = networkObj.GetComponent<ItemBase>();
         item.NetworkObject.RemoveOwnership();
-        NotifyItemDroppedClientRpc(itemNetId, dropPos, throwDir);
+        NotifyItemDroppedClientRpc(itemNetworkId, dropPosition, throwDirection);
     }
 
     [Rpc(SendTo.Everyone)]
-    private void NotifyItemDroppedClientRpc(ulong itemNetId, Vector3 dropPos, Vector3 throwDir)
+    private void NotifyItemDroppedClientRpc(ulong itemNetworkId, Vector3 dropPosition, Vector3 throwDirection)
     {
-        if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(itemNetId, out var netObj)) return;
-        ItemBase item = netObj.GetComponent<ItemBase>();
+        if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(itemNetworkId, out NetworkObject networkObj)) { return; }
+
+        ItemBase item = networkObj.GetComponent<ItemBase>();
 
         if (item == twoHandedItem)
         {
             twoHandedItem = null;
-            if (IsOwner) OnTwoHandedToggled?.Invoke(false);
-            if (slots[currentSlotIndex] != null) slots[currentSlotIndex].gameObject.SetActive(true);
+            if (IsOwner)
+            {
+                OnTwoHandedToggled?.Invoke(false);
+            }
+            if (slots[currentSlotIndex] != null)
+            {
+                slots[currentSlotIndex].gameObject.SetActive(true);
+            }
         }
 
-        for (int i = 0; i < slots.Length; i++)
-            if (slots[i] == item) slots[i] = null;
+        for (int slotIndex = 0; slotIndex < slots.Length; slotIndex++)
+        {
+            if (slots[slotIndex] == item)
+            {
+                slots[slotIndex] = null;
+            }
+        }
 
         SetItemPhysicsAndLayer(item, false);
 
         item.gameObject.SetActive(true);
-        item.transform.position = dropPos;
+        item.transform.position = dropPosition;
         item.ExecuteChangeOwnership(false, null);
 
         if (IsServer)
         {
             if (item.TryGetComponent(out Rigidbody rb))
             {
-                rb.AddForce((throwDir + Vector3.up * 0.2f) * throwForce, ForceMode.Impulse);
+                rb.AddForce((throwDirection + Vector3.up * 0.2f) * throwForce, ForceMode.Impulse);
                 item.BeginThrownState();
             }
         }
@@ -425,99 +511,54 @@ public class PlayerInventory : NetworkBehaviour
         }
     }
 
-    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
-    private void RequestChangeSlotServerRpc(int newIndex) { SyncSlotChangeClientRpc(newIndex); }
 
-    private void RestoreItemsFromServer()
-    {
-        ulong myId = OwnerClientId;
-        if (GameSessionManager.Instance.playerItems.TryGetValue(myId, out var savedItems))
-        {
-            foreach (var data in savedItems)
-            {
-                ItemBase prefab = GameSessionManager.Instance.GetPrefab(data.itemID);
-                if (prefab == null) continue;
-
-                ItemBase spawned = Instantiate(prefab);
-                if (spawned is Item_Durability dur) dur.currentDurability = data.stateValue1;
-
-                spawned.NetworkObject.SpawnWithOwnership(myId);
-                SyncRestoredItemClientRpc(new NetworkObjectReference(spawned.NetworkObject), data.slotIndex);
-            }
-        }
-        GameSessionManager.Instance.playerItems.Remove(myId);
-    }
-
-    [Rpc(SendTo.Everyone)]
-    private void SyncRestoredItemClientRpc(NetworkObjectReference itemRef, int slotIdx)
-    {
-        if (itemRef.TryGet(out NetworkObject netObj))
-        {
-            ItemBase item = netObj.GetComponent<ItemBase>();
-            slots[slotIdx] = item;
-
-            SetItemPhysicsAndLayer(item, true);
-
-            // [핵심] 복구할 때도 무기인지 확인하고, 무기라면 양손이어도 왼손으로 강제 고정
-            bool isWeapon = item.itemData.category == ItemCategory.Weapon;
-            Transform targetHand = (item.itemData.handType == HandType.TwoHand && !isWeapon) ? bothHandsTransform : leftHandTransform;
-
-            item.ExecuteChangeOwnership(true, targetHand);
-
-            if (item.itemData.handType == HandType.TwoHand)
-            {
-                twoHandedItem = item;
-                OnTwoHandedToggled?.Invoke(true);
-            }
-
-            if (slotIdx != currentSlotIndex && item.itemData.handType != HandType.TwoHand)
-                item.gameObject.SetActive(false);
-            else if (twoHandedItem != null && item != twoHandedItem)
-                item.gameObject.SetActive(false);
-
-            OnInventoryUpdated?.Invoke();
-            OnSlotChanged?.Invoke(currentSlotIndex);
-            RefreshQuestDebuffTiming();
-        }
-    }
-
-    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
-    private void RequestSyncLateJoinerServerRpc(RpcParams rpcParams = default)
-    {
-        ulong senderId = rpcParams.Receive.SenderClientId;
-        PlayerInventory[] allPlayers = FindObjectsByType<PlayerInventory>(FindObjectsSortMode.None);
-        foreach (var p in allPlayers)
-        {
-            for (int i = 0; i < p.slots.Length; i++)
-            {
-                if (p.slots[i] != null && p.slots[i].NetworkObject != null && p.slots[i].NetworkObject.IsSpawned)
-                {
-                    p.SyncRestoredItemClientRpc(new NetworkObjectReference(p.slots[i].NetworkObject), i, RpcTarget.Single(senderId, RpcTargetUse.Temp));
-                }
-            }
-        }
-    }
-
-    [Rpc(SendTo.SpecifiedInParams)]
-    private void SyncRestoredItemClientRpc(NetworkObjectReference itemRef, int slotIdx, RpcParams rpcParams)
-    {
-        SyncRestoredItemClientRpc(itemRef, slotIdx);
-    }
+    // ==========================================
+    // 5. 아이템 삭제 및 내구도 파괴 로직 (Remove & Broken)
+    // ==========================================
 
     public bool HasItem(int itemID)
     {
-        if (twoHandedItem != null && twoHandedItem.itemData.itemID == itemID) return true;
-        for (int i = 0; i < slots.Length; i++)
-            if (slots[i] != null && slots[i].itemData.itemID == itemID) return true;
+        if (twoHandedItem != null && twoHandedItem.itemData.itemID == itemID) { return true; }
+
+        foreach (ItemBase slotItem in slots)
+        {
+            if (slotItem != null && slotItem.itemData.itemID == itemID) { return true; }
+        }
         return false;
+    }
+
+    public void ClearItemReference(ItemBase item)
+    {
+        if (item == twoHandedItem)
+        {
+            twoHandedItem = null;
+            if (IsOwner) { OnTwoHandedToggled?.Invoke(false); }
+        }
+        else
+        {
+            for (int slotIndex = 0; slotIndex < slots.Length; slotIndex++)
+            {
+                if (slots[slotIndex] == item)
+                {
+                    slots[slotIndex] = null;
+                    break;
+                }
+            }
+        }
+
+        if (IsOwner)
+        {
+            OnInventoryUpdated?.Invoke();
+            OnSlotChanged?.Invoke(currentSlotIndex);
+        }
     }
 
     public bool RemoveItemByServer(int itemID)
     {
-        if (!IsServer) return false;
+        if (!IsServer) { return false; }
 
         ItemBase itemToRemove = null;
-        int slotIdx = -1;
+        int targetSlotIndex = -1;
         bool isTwoHand = false;
 
         if (twoHandedItem != null && twoHandedItem.itemData.itemID == itemID)
@@ -527,12 +568,12 @@ public class PlayerInventory : NetworkBehaviour
         }
         else
         {
-            for (int i = 0; i < slots.Length; i++)
+            for (int slotIndex = 0; slotIndex < slots.Length; slotIndex++)
             {
-                if (slots[i] != null && slots[i].itemData.itemID == itemID)
+                if (slots[slotIndex] != null && slots[slotIndex].itemData.itemID == itemID)
                 {
-                    itemToRemove = slots[i];
-                    slotIdx = i;
+                    itemToRemove = slots[slotIndex];
+                    targetSlotIndex = slotIndex;
                     break;
                 }
             }
@@ -540,7 +581,7 @@ public class PlayerInventory : NetworkBehaviour
 
         if (itemToRemove != null)
         {
-            NotifySyncItemRemovedClientRpc(slotIdx, isTwoHand);
+            NotifySyncItemRemovedClientRpc(targetSlotIndex, isTwoHand);
 
             if (itemToRemove.NetworkObject != null && itemToRemove.NetworkObject.IsSpawned)
             {
@@ -552,6 +593,40 @@ public class PlayerInventory : NetworkBehaviour
         return false;
     }
 
+    public void RemoveBrokenItem(ItemBase brokenItem)
+    {
+        if (!IsServer || brokenItem == null) { return; }
+
+        ulong networkId = brokenItem.NetworkObjectId;
+        ClearBrokenItemLocal(networkId);
+        RemoveBrokenItemClientRpc(networkId);
+    }
+
+    private void ClearBrokenItemLocal(ulong networkId)
+    {
+        if (twoHandedItem != null && twoHandedItem.NetworkObjectId == networkId)
+        {
+            twoHandedItem = null;
+            OnTwoHandedToggled?.Invoke(false);
+        }
+
+        for (int slotIndex = 0; slotIndex < slots.Length; slotIndex++)
+        {
+            if (slots[slotIndex] != null && slots[slotIndex].NetworkObjectId == networkId)
+            {
+                slots[slotIndex] = null;
+                break;
+            }
+        }
+
+        OnInventoryUpdated?.Invoke();
+
+        if (TryGetComponent(out PlayerEquipment equipment))
+        {
+            equipment.UpdateWeaponStatus();
+        }
+    }
+
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     public void RequestRemoveItemServerRpc(int itemID)
     {
@@ -559,16 +634,16 @@ public class PlayerInventory : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone)]
-    private void NotifySyncItemRemovedClientRpc(int slotIdx, bool isTwoHand)
+    private void NotifySyncItemRemovedClientRpc(int slotIndex, bool isTwoHand)
     {
         if (isTwoHand)
         {
             twoHandedItem = null;
-            if (IsOwner) OnTwoHandedToggled?.Invoke(false);
+            if (IsOwner) { OnTwoHandedToggled?.Invoke(false); }
         }
-        else if (slotIdx != -1)
+        else if (slotIndex != -1)
         {
-            slots[slotIdx] = null;
+            slots[slotIndex] = null;
         }
 
         if (IsOwner)
@@ -579,115 +654,229 @@ public class PlayerInventory : NetworkBehaviour
         }
     }
 
-    public void DropAllItemsOnDeathServer()
+    [ClientRpc]
+    private void RemoveBrokenItemClientRpc(ulong networkId)
     {
-        if (!IsServer) return;
+        if (IsServer) { return; }
+        ClearBrokenItemLocal(networkId);
+    }
 
-        Vector3 dropOrigin = transform.position + Vector3.up * 0.8f;
 
-        if (twoHandedItem != null)
+    // ==========================================
+    // 6. 슬롯 및 인벤토리 데이터 동기화 (Slot & Restoration Sync)
+    // ==========================================
+
+    private void HandleSlotChange()
+    {
+        if (twoHandedItem != null) { return; }
+
+        float scrollValue = Mouse.current.scroll.ReadValue().y;
+        if (scrollValue == 0f) { return; }
+
+        int newIndex = currentSlotIndex;
+        if (scrollValue < 0f && newIndex < slots.Length - 1)
         {
-            Vector3 randomDir = new Vector3(UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(0.5f, 1.5f), UnityEngine.Random.Range(-1f, 1f)).normalized;
-            ForceDropItem(twoHandedItem, dropOrigin, randomDir);
+            newIndex++;
+        }
+        else if (scrollValue > 0f && newIndex > 0)
+        {
+            newIndex--;
         }
 
-        for (int i = 0; i < slots.Length; i++)
+        if (newIndex != currentSlotIndex)
         {
-            if (slots[i] != null)
-            {
-                Vector3 randomDir = new Vector3(UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(0.5f, 1.5f), UnityEngine.Random.Range(-1f, 1f)).normalized;
-                ForceDropItem(slots[i], dropOrigin, randomDir);
-            }
+            RequestChangeSlotServerRpc(newIndex);
         }
     }
 
-    private void ForceDropItem(ItemBase item, Vector3 pos, Vector3 dir)
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    private void RequestChangeSlotServerRpc(int newIndex)
     {
-        if (item != null && item.NetworkObject != null && item.NetworkObject.IsSpawned)
+        SyncSlotChangeClientRpc(newIndex);
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    public void RequestClearSlotServerRpc(int slotIndex)
+    {
+        if (slotIndex >= 0 && slotIndex < slots.Length)
         {
-            item.NetworkObject.RemoveOwnership();
-            NotifyItemDroppedClientRpc(item.NetworkObjectId, pos, dir);
+            slots[slotIndex] = null;
+            ClearSlotClientRpc(slotIndex);
         }
     }
 
-    public void SetControlLock(bool locked)
+    [Rpc(SendTo.Everyone)]
+    private void SyncSlotChangeClientRpc(int newIndex)
     {
-        isControlLocked = locked;
-        if (locked) ClearHighlight();
-    }
-
-    public void ClearItemReference(ItemBase item)
-    {
-        if (item == twoHandedItem)
+        if (slots[currentSlotIndex] != null)
         {
-            twoHandedItem = null;
-            if (IsOwner) OnTwoHandedToggled?.Invoke(false);
+            slots[currentSlotIndex].gameObject.SetActive(false);
         }
-        else
+
+        currentSlotIndex = newIndex;
+        ItemBase newHeldItem = slots[currentSlotIndex];
+
+        if (newHeldItem != null)
         {
-            for (int i = 0; i < slots.Length; i++)
-            {
-                if (slots[i] == item)
-                {
-                    slots[i] = null;
-                    break;
-                }
-            }
+            newHeldItem.gameObject.SetActive(true);
+        }
+
+        if (TryGetComponent(out PlayerEquipment equipment))
+        {
+            equipment.OnSlotItemChanged(newHeldItem);
         }
 
         if (IsOwner)
         {
-            OnInventoryUpdated?.Invoke();
             OnSlotChanged?.Invoke(currentSlotIndex);
         }
     }
 
+    [ClientRpc]
+    private void ClearSlotClientRpc(int slotIndex)
+    {
+        if (!IsServer)
+        {
+            slots[slotIndex] = null;
+        }
+    }
+
+    private void RestoreItemsFromServer()
+    {
+        ulong localClientId = OwnerClientId;
+        if (GameSessionManager.Instance.playerItems.TryGetValue(localClientId, out var savedItems))
+        {
+            foreach (ItemSaveData data in savedItems)
+            {
+                ItemBase itemPrefab = GameSessionManager.Instance.GetPrefab(data.itemID);
+                if (itemPrefab == null) { continue; }
+
+                ItemBase spawnedItem = Instantiate(itemPrefab);
+                if (spawnedItem is Item_Durability durabilityItem)
+                {
+                    durabilityItem.currentDurability = data.stateValue1;
+                }
+
+                spawnedItem.NetworkObject.SpawnWithOwnership(localClientId);
+                SyncRestoredItemClientRpc(new NetworkObjectReference(spawnedItem.NetworkObject), data.slotIndex);
+            }
+        }
+        GameSessionManager.Instance.playerItems.Remove(localClientId);
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    private void RequestSyncLateJoinerServerRpc(RpcParams rpcParams = default)
+    {
+        ulong senderId = rpcParams.Receive.SenderClientId;
+        PlayerInventory[] allPlayers = FindObjectsByType<PlayerInventory>(FindObjectsSortMode.None);
+
+        foreach (PlayerInventory player in allPlayers)
+        {
+            for (int slotIndex = 0; slotIndex < player.slots.Length; slotIndex++)
+            {
+                if (player.slots[slotIndex] != null && player.slots[slotIndex].NetworkObject != null && player.slots[slotIndex].NetworkObject.IsSpawned)
+                {
+                    player.SyncRestoredItemClientRpc(
+                        new NetworkObjectReference(player.slots[slotIndex].NetworkObject),
+                        slotIndex,
+                        RpcTarget.Single(senderId, RpcTargetUse.Temp)
+                    );
+                }
+            }
+        }
+    }
+
+    [Rpc(SendTo.SpecifiedInParams)]
+    private void SyncRestoredItemClientRpc(NetworkObjectReference itemReference, int slotIndex, RpcParams rpcParams)
+    {
+        SyncRestoredItemClientRpc(itemReference, slotIndex);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void SyncRestoredItemClientRpc(NetworkObjectReference itemReference, int slotIndex)
+    {
+        if (itemReference.TryGet(out NetworkObject networkObj))
+        {
+            ItemBase item = networkObj.GetComponent<ItemBase>();
+            slots[slotIndex] = item;
+            SetItemPhysicsAndLayer(item, true);
+
+            bool isWeapon = item.itemData.category == ItemCategory.Weapon;
+            Transform targetHand = (item.itemData.handType == HandType.TwoHand && !isWeapon) ? bothHandsTransform : leftHandTransform;
+
+            item.ExecuteChangeOwnership(true, targetHand);
+
+            if (item.itemData.handType == HandType.TwoHand)
+            {
+                twoHandedItem = item;
+                OnTwoHandedToggled?.Invoke(true);
+            }
+
+            if (slotIndex != currentSlotIndex && item.itemData.handType != HandType.TwoHand)
+            {
+                item.gameObject.SetActive(false);
+            }
+            else if (twoHandedItem != null && item != twoHandedItem)
+            {
+                item.gameObject.SetActive(false);
+            }
+
+            OnInventoryUpdated?.Invoke();
+            OnSlotChanged?.Invoke(currentSlotIndex);
+            RefreshQuestDebuffTiming();
+        }
+    }
+
+
     // ==========================================
-    // [저주 기믹 연동부]
+    // 7. 저주 퀘스트 아이템 기믹 (Curse Gimmick)
     // ==========================================
+
     private void RefreshQuestDebuffTiming()
     {
-        if (!IsOwner || QuestManager.Instance == null) return;
+        if (!IsOwner || QuestManager.Instance == null) { return; }
 
         bool applySpeedDebuff = false;
         bool applyAggro = false;
         bool applyHallucination = false;
 
         List<ItemBase> checkList = new List<ItemBase>(slots);
-        if (twoHandedItem != null) checkList.Add(twoHandedItem);
-
-        foreach (var item in checkList)
+        if (twoHandedItem != null)
         {
-            if (item == null) continue;
-            int id = item.itemData.itemID;
+            checkList.Add(twoHandedItem);
+        }
 
-            // 중앙 퀘스트 매니저를 통해 기획서 데이터(QuestDataSO) 동적 참조
-            foreach (int qId in QuestManager.Instance.activeQuests)
+        foreach (ItemBase item in checkList)
+        {
+            if (item == null) { continue; }
+            int itemId = item.itemData.itemID;
+
+            foreach (int questId in QuestManager.Instance.activeQuests)
             {
-                QuestDataSO qData = QuestManager.Instance.GetQuestData(qId);
-                if (qData != null && qData.targetItemID == id)
+                QuestDataSO questData = QuestManager.Instance.GetQuestData(questId);
+                if (questData != null && questData.targetItemID == itemId)
                 {
-                    if (qData.hasSpeedDebuff) applySpeedDebuff = true;
-                    if (qData.hasMonsterAggro) applyAggro = true;
-                    if (qData.hasHallucination) applyHallucination = true;
+                    if (questData.hasSpeedDebuff) applySpeedDebuff = true;
+                    if (questData.hasMonsterAggro) applyAggro = true;
+                    if (questData.hasHallucination) applyHallucination = true;
                 }
             }
         }
 
-        // 1. 이동속도 디버프 즉시 적용
-        if (TryGetComponent(out PlayerMove move))
+        if (TryGetComponent(out PlayerMove playerMove))
         {
-            move.questSpeedMultiplier = applySpeedDebuff ? 0.75f : 1.0f;
-            Debug.Log("<color=blue>[Curse]</color> 이동속도 제한.");
+            playerMove.questSpeedMultiplier = applySpeedDebuff ? 0.75f : 1.0f;
         }
 
-        // 2. 코루틴을 이용한 어그로/환청 제어
-        currentHasAggro = applyAggro;
-        currentHasHallucination = applyHallucination;
+        hasCurseAggro = applyAggro;
+        hasCurseHallucination = applyHallucination;
 
         if (applyAggro || applyHallucination)
         {
-            if (curseRoutine == null) curseRoutine = StartCoroutine(CurseEffectRoutine());
+            if (curseRoutine == null)
+            {
+                curseRoutine = StartCoroutine(CurseEffectRoutine());
+            }
         }
         else
         {
@@ -699,31 +888,23 @@ public class PlayerInventory : NetworkBehaviour
         }
     }
 
-    private System.Collections.IEnumerator CurseEffectRoutine()
+    private IEnumerator CurseEffectRoutine()
     {
-        WaitForSeconds wait = new WaitForSeconds(7.0f); // 기획에 맞춰 주기 조절
+        WaitForSeconds waitDelay = new WaitForSeconds(7.0f);
 
         while (true)
         {
-            yield return wait;
+            yield return waitDelay;
 
-            if (currentHasAggro)
+            if (hasCurseAggro)
             {
-                // [핵심] SoundManager의 몬스터 호출 함수를 그대로 사용
-                // 내 컴퓨터에서 3D 사운드를 재생하고, 몬스터 매니저에게 소음을 신고함
                 SoundManager.Instance.PlaySfxAndReportNoise(SfxSound.VENT_CREAK, transform.position, 1.0f);
-
-                // 다른 팀원들도 이 공포스러운 소리를 들어야 하므로 사운드 동기화 지시
                 PlayCurseAggroSoundServerRpc();
-
-                Debug.Log("<color=red>[Curse]</color> 소지한 저주 아이템이 괴물을 부릅니다!");
             }
 
-            if (currentHasHallucination)
+            if (hasCurseHallucination)
             {
-                // [핵심] 오직 '나(Owner)'에게만 들리는 로컬 2D 사운드 재생
                 SoundManager.Instance.PlaySfx(SfxSound.ENV_RAIN);
-                Debug.Log("<color=purple>[Curse]</color> 등 뒤에서 발소리가 들린 것 같다...");
             }
         }
     }
@@ -731,15 +912,12 @@ public class PlayerInventory : NetworkBehaviour
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     private void PlayCurseAggroSoundServerRpc()
     {
-        // 서버를 거쳐 '나를 제외한 나머지 팀원들'에게만 사운드 재생 명령을 내림
         PlayCurseAggroSoundClientRpc();
     }
 
-    // SendTo.NotMe: 나는 이미 PlaySfxAndReportNoise로 소리를 들었으므로 제외함
     [Rpc(SendTo.NotMe)]
     private void PlayCurseAggroSoundClientRpc()
     {
-        // 팀원들의 컴퓨터에서는 몬스터에게 소음을 이중 신고하지 않도록 순수 사운드만 재생함
         AudioClip clip = SoundManager.Instance.GetSfxClip(SfxSound.VENT_CREAK);
         if (clip != null)
         {
@@ -748,79 +926,37 @@ public class PlayerInventory : NetworkBehaviour
     }
 
 
-    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
-    public void RequestClearSlotServerRpc(int slotIndex)
+    // ==========================================
+    // 8. 유틸리티 (Utilities)
+    // ==========================================
+
+    private Transform FindChildByName(Transform parent, string targetName)
     {
-        // 서버에서 해당 슬롯을 비웁니다.
-        if (slotIndex >= 0 && slotIndex < slots.Length)
+        foreach (Transform child in parent.GetComponentsInChildren<Transform>(true))
         {
-            slots[slotIndex] = null;
-            // 클라이언트들에게도 이 슬롯이 비었음을 알립니다 (필요 시)
-            ClearSlotClientRpc(slotIndex);
-        }
-    }
-
-    [ClientRpc]
-    private void ClearSlotClientRpc(int slotIndex)
-    {
-        if (!IsServer) slots[slotIndex] = null;
-    }
-    #region 내구도형 아이템 삭제 로직
-    /// <summary>
-    /// 내구도가 다한 무기를 모든 네트워크 클라이언트의 인벤토리 슬롯에서 안전하게 지워줍니다.
-    /// </summary>
-    public void RemoveBrokenItem(ItemBase brokenItem)
-    {
-        if (!IsServer || brokenItem == null) return;
-
-        // 💡 1. 무기가 세상에서 파괴(Despawn)되기 전에, 절대 유실되지 않는 고유 번호를 빼옵니다.
-        ulong netId = brokenItem.NetworkObjectId;
-
-        // 💡 2. 방장(서버)은 참조가 끊기기 전에 즉시 자기 인벤토리와 UI를 먼저 정리합니다.
-        ClearBrokenItemLocal(netId);
-
-        // 💡 3. 클라이언트들에게도 번호를 주며 지우라고 명령합니다.
-        RemoveBrokenItemClientRpc(netId);
-    }
-
-    [ClientRpc]
-    private void RemoveBrokenItemClientRpc(ulong netId)
-    {
-        // 방장은 위에서 이미 지웠으므로 중복으로 지우지 않습니다.
-        if (IsServer) return;
-
-        ClearBrokenItemLocal(netId);
-    }
-
-    /// <summary>
-    /// 실제 인벤토리 배열을 null로 비우고 UI를 갱신하는 공통 함수입니다.
-    /// </summary>
-    private void ClearBrokenItemLocal(ulong netId)
-    {
-        // 1. 양손 무기(Bat) 검사
-        if (twoHandedItem != null && twoHandedItem.NetworkObjectId == netId)
-        {
-            twoHandedItem = null;
-            OnTwoHandedToggled?.Invoke(false);
-        }
-        for (int i = 0; i < slots.Length; i++)
-        {
-            if (slots[i] != null && slots[i].NetworkObjectId == netId)
+            if (child.name == targetName)
             {
-                slots[i] = null;
-                break;
+                return child;
             }
         }
-
-        // 3. 인벤토리가 비워졌으니 InventoryUI.cs의 UpdateUI를 깨워 화면을 갱신합니다.
-        OnInventoryUpdated?.Invoke();
-
-        // 4. [핵심] 무기가 파괴되었으니 PlayerEquipment의 장착 상태를 즉시 새로고침합니다!
-        PlayerEquipment equipment = GetComponent<PlayerEquipment>();
-        if (equipment != null)
-        {
-            equipment.UpdateWeaponStatus();
-        }
+        return null;
     }
-    #endregion
+
+    private void SetItemPhysicsAndLayer(ItemBase item, bool isEquipped)
+    {
+        if (item == null) { return; }
+
+        Collider itemCollider = item.GetComponentInChildren<Collider>();
+        if (itemCollider != null)
+        {
+            itemCollider.isTrigger = isEquipped;
+        }
+
+        if (item.TryGetComponent(out Rigidbody rb))
+        {
+            rb.isKinematic = isEquipped;
+        }
+
+        item.gameObject.layer = LayerMask.NameToLayer(isEquipped ? "EquippedItem" : "Item");
+    }
 }
